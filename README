@@ -1,0 +1,9 @@
+Developer's environment:
+
+1. Visual Studio Community 2017 Version 15.8.7
+	1.1 Extensions: Qt Visual Studio Tools v2.4.2
+2. Qt 5.11.2 msvc2017_64
+3. CUDA v10.0
+
+For MATLAB interface:
+4. MATLAB R2018a (Necessary to define environment variable MATLAB_ROOT)
