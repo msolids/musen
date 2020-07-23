@@ -1,0 +1,55 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
+syntax = "proto3";
+option optimize_for = SPEED;
+
+message ProtoQuatern
+{
+	double q0 = 1;
+	double q1 = 2;
+	double q2 = 3;
+	double q3 = 4;
+}
+
+message ProtoVect
+{
+	double x = 1;
+	double y = 2;
+	double z = 3;
+}
+
+message ProtoParticle
+{
+	ProtoVect coord = 1;
+	double radius = 2;
+	string compound = 3;
+	ProtoVect orient = 4;
+	ProtoQuatern quaternion = 5;
+	double contact_radius = 6;
+}
+
+message ProtoBond
+{
+	int32 leftID = 1;
+	int32 rightID = 2;
+	double radius = 3;
+	string compound = 4;
+}
+
+message ProtoAgglomerate
+{
+	string name = 1;
+	string key = 2;
+	double volume = 3;
+
+	repeated ProtoParticle particles = 4;
+	repeated ProtoBond bonds = 5;
+	int32 type = 6;
+}
+
+message ProtoAgglomeratesDB
+{
+	repeated ProtoAgglomerate Agglomerate = 1;
+}

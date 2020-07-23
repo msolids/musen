@@ -1,0 +1,23 @@
+SOURCE_FILE             .\initScene.mdem
+RESULTS_FILE            .\resultScene.mdem
+COMPONENT               3
+
+AGGLOMERATES_DB         .\agglomeratesDTB.madb
+MODEL_PP                .\ModelPPHertzMindlin.dll
+MODEL_PP_PARAMS 
+MODEL_PW                .\ModelPWHertzMindlin.dll
+MODEL_PW_PARAMS 
+MODEL_SB                .\ModelSBElastic.dll
+MODEL_SB_PARAMS         CONSIDER_BREAKAGE 0 BIMODULARITY 1 COMPRESSIVE_BREAK 0 CONSIDER_DAMPING 0
+MODEL_LB                .\ModelLBCapilarViscous.dll
+MODEL_LB_PARAMS         MIN_THICKNESS 1e-5 CONTACT_ANGLE 70
+MODEL_EXT_FORCE         .\ModelEFViscousField.dll
+MODEL_EXT_FORCE_PARAMS  MEDIUM_VISCOSITY 1.34e-5 MEDIUM_DENSITY 1.28
+SIMULATION_TSTEP        1e-6
+SAVING_TSTEP            1e-3
+END_TIME                0.01
+SAVE_COLLISIONS         0
+USE_GPU                 0
+SNAPSHOT_TIME           0.01
+EXT_ACCEL               0 0 -9.81
+PART_VELOCITY_LIMIT     0

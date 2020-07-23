@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7E3F30C4-4535-44E6-BEEB-5C1D947CAF80}</ProjectGuid>
+    <RootNamespace>GenerallSources</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonPath.props" />
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonRelease.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonPath.props" />
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonDebug.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <CudaCompile />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <CudaCompile />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\STLFileHandler.cpp" />
+    <ClCompile Include="..\UnitConvertor.cpp" />
+    <ClCompile Include="AbstractDEMModel.cpp" />
+    <ClCompile Include="AnalysisVolume.cpp" />
+    <ClCompile Include="ModelManager.cpp" />
+    <ClCompile Include="TriangularMesh.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\MUSEN\BuildVersion\MUSENVersion.h" />
+    <ClInclude Include="..\GeometricFunctions.h" />
+    <ClInclude Include="..\GeneratorComponent.h" />
+    <ClInclude Include="..\Matrix3.h" />
+    <ClInclude Include="..\Quaternion.h" />
+    <ClInclude Include="..\STLFileHandler.h" />
+    <ClInclude Include="..\MixedFunctions.h" />
+    <ClInclude Include="..\MUSENStringFunctions.h" />
+    <ClInclude Include="..\MUSENVectorFunctions.h" />
+    <ClInclude Include="..\UnitConvertor.h" />
+    <ClInclude Include="..\Vector3.h" />
+    <ClInclude Include="AbstractDEMModel.h" />
+    <ClInclude Include="AnalysisVolume.h" />
+    <ClInclude Include="BasicTypes.h" />
+    <ClInclude Include="ModelManager.h" />
+    <ClInclude Include="MUSENComponent.h" />
+    <ClInclude Include="MUSENFileFunctions.h" />
+    <ClInclude Include="MUSENDefinitions.h" />
+    <ClInclude Include="TriangularMesh.h" />
+    <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="ThreadSafeQueue.h" />
+    <ClInclude Include="ThreadTask.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BasicGPUFunctions.cuh" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

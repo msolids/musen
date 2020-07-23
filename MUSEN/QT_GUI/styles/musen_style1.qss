@@ -1,0 +1,98 @@
+QLineEdit {
+	padding: 1px;
+	border-style: solid;
+	border: 1px solid #444477;
+	border-radius: 2px;
+}
+
+QLineEdit:disabled {
+	padding: 1px;
+	border-style: solid;
+	border: 1px solid #444477;
+	border-radius: 2px;
+	background-color: #F0F0F0;
+	border-color: gray;
+}
+
+QPushButton[PlusMinusButton="true"] {
+	font: bold 20px;
+	color: #fafaff;
+	background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #d1d2d4, stop: 0.1 #b7bece, stop: 0.49 #96acd9, stop: 0.5 #7f9eca, stop: 1 #5775b1);
+	border-width: 1px;
+	border-color: #339;
+	border-style: solid;
+	border-radius: 3;
+	padding: 3px;
+	font-size: 10px;
+	padding-left: 5px;
+	padding-right: 5px;
+	min-width: 15px;
+	max-width: 15px;
+	min-height: 13px;
+	max-height: 13px;
+}
+
+QMenuBar {
+	background: qlineargradient(x1:0,x2:0,y1:0,y2:1,stop:0 #cccccc, stop:0.4 #eeeeee)
+} 
+
+QMenuBar::item {
+	spacing: 3px; /* spacing between menu bar items */
+	padding: 1px 4px;
+	background: transparent;
+	border-radius: 4px;
+}
+
+QMenuBar::item:selected { /* when selected using mouse or keyboard */
+	background: #a8a8a8;
+}
+
+QMenuBar::item:pressed {
+	background: #888888;
+}
+
+QStatusBar {
+	background: qlineargradient(x1:0,x2:0,y1:0,y2:1,stop:0 #cccccc, stop:0.4 #eeeeee);
+	color:#222222;
+}
+
+QToolBox::tab:selected {
+	font: bold;
+    color: #000000;
+}
+	
+QToolBox::tab {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #CACACA, stop: 0.4 #C6C6C6, stop: 0.5 #C2C2C2, stop: 1.0 #BDBDBD);
+    border-radius: 4px;
+}
+
+/* QComboBox { */
+     /* border: 1px solid gray; */
+     /* border-radius: 3px; */
+     /* padding: 1px 18px 1px 3px; */
+     /* min-width: 6em; */
+/* } */
+
+QListView {
+	show-decoration-selected: 1; /* make the selection span the entire width of the view */
+}
+
+QListView::item:alternate {
+	background: #EEEEEE;
+}
+
+QListView::item:selected {
+	border: 1px solid #6a6ea9;
+}
+
+QListView::item:selected:!active {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #8fafdb, stop: 1 #6e8dca);
+}
+
+QListView::item:selected:active {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #7f9eca, stop: 1 #6e8dca);
+}
+
+QListView::item:hover {
+	background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #f3f3f5, stop: 1 #e2e2ff);
+}

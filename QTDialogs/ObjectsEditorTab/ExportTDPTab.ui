@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>exportTDPTab</class>
+ <widget class="QDialog" name="exportTDPTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>474</width>
+    <height>318</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Export time dependent properties</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/transparent_Ico.png</normaloff>
+    <normalon>:/QT_GUI/transparent_Ico.png</normalon>:/QT_GUI/transparent_Ico.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QVBoxLayout" name="mainLayout" stretch="2,1,0">
+     <item>
+      <widget class="QGroupBox" name="dataGroup">
+       <property name="title">
+        <string>Exported data</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <layout class="QVBoxLayout" name="dataLayout">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Number of selected objects</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="selObjectsNumber">
+              <property name="text">
+               <string>selObjectsNumber</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Time interval [s]</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="minTime">
+              <property name="toolTip">
+               <string>From which time point data should be saved [s]</string>
+              </property>
+              <property name="text">
+               <string>0.0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="maxTime">
+              <property name="toolTip">
+               <string>Up to which time point data should be saved [s]</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="maxTimeValue">
+              <property name="toolTip">
+               <string>Last time point [s]</string>
+              </property>
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Time step [s]</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="timeStep">
+              <property name="toolTip">
+               <string>Time interval for saving [s]</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="0" column="0">
+             <widget class="QCheckBox" name="exprotCoordinates">
+              <property name="statusTip">
+               <string>Export object coordinates [m]</string>
+              </property>
+              <property name="text">
+               <string>Coordinates</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="exportVelocities">
+              <property name="toolTip">
+               <string>Export object velocities [m/s]</string>
+              </property>
+              <property name="text">
+               <string>Velocities</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="exportForces">
+              <property name="statusTip">
+               <string>Export forces [N]</string>
+              </property>
+              <property name="text">
+               <string>Forces</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="exportAngularVelocities">
+              <property name="toolTip">
+               <string>Export angular velocities [rad/s]</string>
+              </property>
+              <property name="text">
+               <string>Angular velocities</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="optionsGroup">
+       <property name="title">
+        <string>Options</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QVBoxLayout" name="optionsLayout">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0">
+            <item>
+             <widget class="QLabel" name="outputFileName">
+              <property name="toolTip">
+               <string>Output file name</string>
+              </property>
+              <property name="text">
+               <string>OutputFileName</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="selectFile">
+              <property name="maximumSize">
+               <size>
+                <width>40</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Select output file</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Separator</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="dataSeparator">
+              <property name="toolTip">
+               <string>Text separator which will be used in the file</string>
+              </property>
+              <property name="text">
+               <string>; </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="statusLabel">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="cancelButton">
+         <property name="font">
+          <font>
+           <kerning>true</kerning>
+          </font>
+         </property>
+         <property name="text">
+          <string>Cancel    </string>
+         </property>
+         <property name="icon">
+          <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+           <normaloff>:/QT_GUI/transparent_Ico.png</normaloff>:/QT_GUI/transparent_Ico.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="exportButton">
+         <property name="text">
+          <string>Export</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>exportTDPTab</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>356</x>
+     <y>237</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>376</x>
+     <y>266</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

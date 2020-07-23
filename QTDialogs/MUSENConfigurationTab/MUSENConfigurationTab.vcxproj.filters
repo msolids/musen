@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Dateien">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;cxx;c;def</Extensions>
+    </Filter>
+    <Filter Include="Header Dateien">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Form Dateien">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ModelManagerTab.cpp">
+      <Filter>Source Dateien</Filter>
+    </ClCompile>
+    <ClCompile Include="UnitConverterTab.cpp">
+      <Filter>Source Dateien</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigurationTab.cpp">
+      <Filter>Source Dateien</Filter>
+    </ClCompile>
+    <ClCompile Include="TexturePicker.cpp">
+      <Filter>Source Dateien</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="ModelManagerTab.h">
+      <Filter>Header Dateien</Filter>
+    </QtMoc>
+    <QtMoc Include="UnitConverterTab.h">
+      <Filter>Header Dateien</Filter>
+    </QtMoc>
+    <QtMoc Include="ConfigurationTab.h">
+      <Filter>Header Dateien</Filter>
+    </QtMoc>
+    <QtMoc Include="TexturePicker.h">
+      <Filter>Header Dateien</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="TexturePicker.ui">
+      <Filter>Form Dateien</Filter>
+    </QtUic>
+    <QtUic Include="ConfigurationTab.ui">
+      <Filter>Form Dateien</Filter>
+    </QtUic>
+    <QtUic Include="ModelManagerTab.ui">
+      <Filter>Form Dateien</Filter>
+    </QtUic>
+    <QtUic Include="UnitConverterTab.ui">
+      <Filter>Form Dateien</Filter>
+    </QtUic>
+  </ItemGroup>
+</Project>

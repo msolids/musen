@@ -1,0 +1,142 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
+#pragma once
+#include "BasicGPUFunctions.cuh"
+#include <iomanip>
+#include <sstream>
+
+class CColor
+{
+public:
+#pragma pack (push, 1)
+	float r, g, b, a;
+#pragma pack (pop)
+	CColor() : r{ 0.f }, g{ 0.f }, b{ 0.f }, a{ 1.f }
+	{
+	}
+
+	CColor(float _r, float _g, float _b)
+	{
+		r = _r; g = _g; b = _b; a = 1.0f;
+	}
+
+	CColor(float _r, float _g, float _b, float _a)
+	{
+		r = _r; g = _g; b = _b; a = _a;
+	}
+
+	CColor(const CColor& _color, float _a)
+	{
+		r = _color.r; g = _color.g; b = _color.b; a = _a;
+	}
+
+	void SetColor(float _r, float _g, float _b, float _a)
+	{
+		r = _r; g = _g; b = _b; a = _a;
+	}
+
+	bool operator==(const CColor& _color) const
+	{
+		return r == _color.r && g == _color.g && b == _color.b && a == _color.a;
+	}
+
+	bool operator!=(const CColor& _color) const
+	{
+		return !operator==(_color);
+	}
+};
+
+double inline ClampFunction( double _dValue, double _dMin, double _dMax )
+{
+	if ( _dValue < _dMin )
+		return _dMin;
+	if ( _dValue > _dMax )
+		return _dMax;
+	return _dValue;
+}
+
+bool inline IsNaN(double _dVal)
+{
+	return (_dVal != _dVal);
+}
+
+void inline RandomSeed()
+{
+	unsigned seed = (unsigned)time(0);
+	switch (seed % 5)
+	{
+	case 4: seed *= 2; break;
+	case 3: seed *= seed; break;
+	case 2: seed += seed*seed; break;
+	case 1: seed = seed / 2;
+	case 0: break;
+	}
+	srand(seed);
+}
+
+std::string inline Double2Percent(double _v)
+{
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << _v * 100. << "%";
+	return ss.str();
+}
+
+std::string inline MsToTimeSpan(int64_t _ms)
+{
+	int64_t seconds = _ms / 1000;
+	int64_t minutes = seconds / 60;
+	int64_t hours = minutes / 60;
+	int64_t days = hours / 24;
+	seconds -= minutes * 60;
+	minutes -= hours * 60;
+	hours -= days * 24;
+	std::stringstream ss;
+	ss << std::setw(2) << std::setfill('0') << days    << ":"
+	   << std::setw(2) << std::setfill('0') << hours   << ":"
+	   << std::setw(2) << std::setfill('0') << minutes << ":"
+	   << std::setw(2) << std::setfill('0') << seconds;
+	return ss.str();
+}
+
+struct SDate
+{
+	unsigned nYear;
+	unsigned nMonth;
+	unsigned nDay;
+	SDate() : nYear(1900), nMonth(1), nDay(1) {}
+	SDate(unsigned _nY, unsigned _nM, unsigned _nD) : nYear(_nY), nMonth(_nM), nDay(_nD) {}
+	void SetDate(unsigned _nY, unsigned _nM, unsigned _nD) { nYear = _nY; nMonth = _nM; nDay = _nD; }
+};
+
+inline SDate CurrentDate()
+{
+	time_t t = time(0);   // get time now
+	struct tm now;
+#ifdef PATH_CONFIGURED // for Linux
+	localtime_r(&t, &now);
+#else
+	localtime_s(&now, &t);
+#endif
+	return SDate(now.tm_year + 1900, now.tm_mon + 1, now.tm_mday);
+}
+
+/// Converts enumerator value to its underlying integral type.
+template<typename E> constexpr auto E2I(E e) -> typename std::underlying_type<E>::type
+{
+	return static_cast<typename std::underlying_type<E>::type>(e);
+}
+
+enum class ESimulatorType : unsigned { BASE = 0, CPU = 1, GPU = 2 };
+
+inline uint64_t MortonEncode(size_t _x, size_t _y, size_t _z)
+{
+	uint64_t answer = 0;
+	for (uint64_t i = 0; i < sizeof(uint64_t) * CHAR_BIT / 3; ++i)
+	{
+		const uint64_t shifted = static_cast<uint64_t>(1) << i;
+		answer |= (_x & shifted) << (2 * i) | (_y & shifted) << (2 * i + 1) | (_z & shifted) << (2 * i + 2);
+	}
+	return answer;
+}

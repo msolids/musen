@@ -1,0 +1,1516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CMaterialsEditorTab</class>
+ <widget class="QDialog" name="CMaterialsEditorTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>680</width>
+    <height>610</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CMaterialsEditorTab</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_8">
+   <property name="spacing">
+    <number>5</number>
+   </property>
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="frameFileButtons">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="buttonNew">
+        <property name="toolTip">
+         <string>Create new database</string>
+        </property>
+        <property name="statusTip">
+         <string>Create new database</string>
+        </property>
+        <property name="whatsThis">
+         <string>Create new database</string>
+        </property>
+        <property name="text">
+         <string>New</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+          <normaloff>:/QT_GUI/Pictures/new.png</normaloff>:/QT_GUI/Pictures/new.png</iconset>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonLoad">
+        <property name="toolTip">
+         <string>Load database from file</string>
+        </property>
+        <property name="statusTip">
+         <string>Load database from file</string>
+        </property>
+        <property name="whatsThis">
+         <string>Load database from file</string>
+        </property>
+        <property name="text">
+         <string>Load</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+          <normaloff>:/QT_GUI/Pictures/load.png</normaloff>:/QT_GUI/Pictures/load.png</iconset>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonSave">
+        <property name="toolTip">
+         <string>Save database into current file</string>
+        </property>
+        <property name="statusTip">
+         <string>Save database into current file</string>
+        </property>
+        <property name="whatsThis">
+         <string>Save database into current file</string>
+        </property>
+        <property name="text">
+         <string>Save</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+          <normaloff>:/QT_GUI/Pictures/save.png</normaloff>:/QT_GUI/Pictures/save.png</iconset>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="buttonSaveAs">
+        <property name="toolTip">
+         <string>Save database into new file</string>
+        </property>
+        <property name="statusTip">
+         <string>Save database into new file</string>
+        </property>
+        <property name="whatsThis">
+         <string>Save database into new file</string>
+        </property>
+        <property name="text">
+         <string>Save as</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+          <normaloff>:/QT_GUI/Pictures/save_as.png</normaloff>:/QT_GUI/Pictures/save_as.png</iconset>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="tabPosition">
+      <enum>QTabWidget::West</enum>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tabGeneral">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <attribute name="title">
+       <string>Compounds</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayoutMain" stretch="1,2">
+         <item>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Compounds list</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QListWidget" name="listCompounds">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="1,1,1">
+                <item>
+                 <widget class="QPushButton" name="buttonAddCompound">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>Add new compound</string>
+                  </property>
+                  <property name="text">
+                   <string>Add</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                    <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="buttonAddAllCompounds">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>Add all compounds used in the scene, if they are available in the database</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Add all compounds used in the scene, if they are available in the database</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>Add all compounds used in the scene, if they are available in the database</string>
+                  </property>
+                  <property name="text">
+                   <string>Add all used</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                    <normaloff>:/QT_GUI/Pictures/addAll.png</normaloff>:/QT_GUI/Pictures/addAll.png</iconset>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="buttonDuplicateCompound">
+                  <property name="toolTip">
+                   <string>Duplicate selected compound</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Duplicate selected compound</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>Duplicate selected compound</string>
+                  </property>
+                  <property name="text">
+                   <string>Duplicate</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                    <normaloff>:/QT_GUI/Pictures/duplicate.png</normaloff>:/QT_GUI/Pictures/duplicate.png</iconset>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,1">
+                <item>
+                 <widget class="QPushButton" name="buttonRemoveCompound">
+                  <property name="minimumSize">
+                   <size>
+                    <width>121</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>Remove selected compound</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Remove selected compound</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>Remove selected compound</string>
+                  </property>
+                  <property name="text">
+                   <string>Remove</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                    <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                  <property name="default">
+                   <bool>false</bool>
+                  </property>
+                  <property name="flat">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="buttonRemoveUnusedCompounds">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>121</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>Remove selected compound</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Remove selected compound</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>Remove selected compound</string>
+                  </property>
+                  <property name="text">
+                   <string>Remove unused</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                    <normaloff>:/QT_GUI/Pictures/removeAll.png</normaloff>:/QT_GUI/Pictures/removeAll.png</iconset>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="1,1">
+                <item>
+                 <widget class="QPushButton" name="upCompound">
+                  <property name="toolTip">
+                   <string>Move selected compound upwards</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Move selected compound upwards</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>Move selected compound upwards</string>
+                  </property>
+                  <property name="text">
+                   <string>Up</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                    <normaloff>:/QT_GUI/Pictures/up.png</normaloff>:/QT_GUI/Pictures/up.png</iconset>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="downCompound">
+                  <property name="toolTip">
+                   <string>Move selected compound downwards</string>
+                  </property>
+                  <property name="statusTip">
+                   <string>Move selected compound downwards</string>
+                  </property>
+                  <property name="whatsThis">
+                   <string>Move selected compound downwards</string>
+                  </property>
+                  <property name="text">
+                   <string>Down</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                    <normaloff>:/QT_GUI/Pictures/down.png</normaloff>:/QT_GUI/Pictures/down.png</iconset>
+                  </property>
+                  <property name="autoDefault">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <widget class="QGroupBox" name="groupBoxInfo">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>Compound</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label_2">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Key</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineCompoundKey">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">background-color: rgb(227, 227, 227);</string>
+                  </property>
+                  <property name="frame">
+                   <bool>true</bool>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Author</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineCompoundAuthor">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="toolTip">
+                   <string>Person who have defined properties of this material</string>
+                  </property>
+                  <property name="clearButtonEnabled">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <item>
+                 <widget class="QLabel" name="label_5">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="sizeIncrement">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Created</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="labelCompoundCreationDate">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="colorLayout">
+                <item>
+                 <widget class="QLabel" name="label_12">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="sizeIncrement">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Color</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="CColorView" name="widgetColorView" native="true"/>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBoxProperties">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="title">
+              <string>Properties</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+               <widget class="CQtTable" name="tableProperties">
+                <property name="sizeAdjustPolicy">
+                 <enum>QAbstractScrollArea::AdjustToContents</enum>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>false</bool>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::SingleSelection</enum>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+                <attribute name="horizontalHeaderVisible">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="horizontalHeaderCascadingSectionResizes">
+                 <bool>false</bool>
+                </attribute>
+                <attribute name="horizontalHeaderStretchLastSection">
+                 <bool>true</bool>
+                </attribute>
+                <attribute name="verticalHeaderVisible">
+                 <bool>false</bool>
+                </attribute>
+                <column>
+                 <property name="text">
+                  <string>Name</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Units</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Value</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabInteractions">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <attribute name="title">
+       <string>Interactions</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Compounds</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QListWidget" name="listCompounds1">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listCompounds2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Interaction properties</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0,0,0,1">
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="labelCompound1">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Current compound 1</string>
+              </property>
+              <property name="autoFillBackground">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Compound 1</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+              <property name="clearButtonEnabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_6">
+              <property name="text">
+               <string>-</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="labelCompound2">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string>Current compound 2</string>
+              </property>
+              <property name="text">
+               <string>Compound 2</string>
+              </property>
+              <property name="frame">
+               <bool>true</bool>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="CQtTable" name="tableInterProperties">
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContents</enum>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>false</bool>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+            <attribute name="horizontalHeaderVisible">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="horizontalHeaderCascadingSectionResizes">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>Name</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Units</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Value</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabMixtures">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <attribute name="title">
+       <string>Mixtures</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="3,4">
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Mixtures list</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QListWidget" name="listMixtures">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0">
+            <item>
+             <widget class="Line" name="line_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonAddMixture">
+              <property name="minimumSize">
+               <size>
+                <width>105</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Add new mixture</string>
+              </property>
+              <property name="statusTip">
+               <string>Add new mixture</string>
+              </property>
+              <property name="whatsThis">
+               <string>Add new mixture</string>
+              </property>
+              <property name="text">
+               <string>Add</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonAddAllMixtures">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Add all mixtures used in the scene, if they are available in the database</string>
+              </property>
+              <property name="statusTip">
+               <string>Add all mixtures used in the scene, if they are available in the database</string>
+              </property>
+              <property name="whatsThis">
+               <string>Add all mixtures used in the scene, if they are available in the database</string>
+              </property>
+              <property name="text">
+               <string>Add all used</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/addAll.png</normaloff>:/QT_GUI/Pictures/addAll.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDuplicateMixture">
+              <property name="toolTip">
+               <string>Duplicate selected mixture</string>
+              </property>
+              <property name="statusTip">
+               <string>Duplicate selected mixture</string>
+              </property>
+              <property name="whatsThis">
+               <string>Duplicate selected mixture</string>
+              </property>
+              <property name="text">
+               <string>Duplicate</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/duplicate.png</normaloff>:/QT_GUI/Pictures/duplicate.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonRemoveMixture">
+              <property name="toolTip">
+               <string>Remove selected mixture</string>
+              </property>
+              <property name="statusTip">
+               <string>Remove selected mixture</string>
+              </property>
+              <property name="whatsThis">
+               <string>Remove selected mixture</string>
+              </property>
+              <property name="text">
+               <string>Remove</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonRemoveUnusedMixtures">
+              <property name="toolTip">
+               <string>Remove selected mixture</string>
+              </property>
+              <property name="statusTip">
+               <string>Remove selected mixture</string>
+              </property>
+              <property name="whatsThis">
+               <string>Remove selected mixture</string>
+              </property>
+              <property name="text">
+               <string>Remove unused</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/removeAll.png</normaloff>:/QT_GUI/Pictures/removeAll.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonUpMixture">
+              <property name="toolTip">
+               <string>Move selected mixture upwards</string>
+              </property>
+              <property name="statusTip">
+               <string>Move selected mixture upwards</string>
+              </property>
+              <property name="whatsThis">
+               <string>Move selected mixture upwards</string>
+              </property>
+              <property name="text">
+               <string>Up</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/up.png</normaloff>:/QT_GUI/Pictures/up.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDownMixture">
+              <property name="toolTip">
+               <string>Move selected mixture downwards</string>
+              </property>
+              <property name="statusTip">
+               <string>Move selected mixture downwards</string>
+              </property>
+              <property name="whatsThis">
+               <string>Move selected mixture downwards</string>
+              </property>
+              <property name="text">
+               <string>Down</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/down.png</normaloff>:/QT_GUI/Pictures/down.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Fractions in mixture</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="1">
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <item>
+             <widget class="Line" name="line_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonAddFraction">
+              <property name="minimumSize">
+               <size>
+                <width>105</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Add new size fraction into current mixture</string>
+              </property>
+              <property name="statusTip">
+               <string>Add new size fraction into current mixture</string>
+              </property>
+              <property name="whatsThis">
+               <string>Add new size fraction into current mixture</string>
+              </property>
+              <property name="text">
+               <string>Add </string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDuplicateFraction">
+              <property name="toolTip">
+               <string>Duplicate selected size fraction</string>
+              </property>
+              <property name="statusTip">
+               <string>Duplicate selected size fraction</string>
+              </property>
+              <property name="whatsThis">
+               <string>Duplicate selected size fraction</string>
+              </property>
+              <property name="text">
+               <string>Duplicate</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/duplicate.png</normaloff>:/QT_GUI/Pictures/duplicate.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonRemoveFraction">
+              <property name="toolTip">
+               <string>Remove selected size fraction from current mixture</string>
+              </property>
+              <property name="statusTip">
+               <string>Remove selected size fraction from current mixture</string>
+              </property>
+              <property name="whatsThis">
+               <string>Remove selected size fraction from current mixture</string>
+              </property>
+              <property name="text">
+               <string>Remove </string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonUpFraction">
+              <property name="toolTip">
+               <string>Move selected size fraction upwards</string>
+              </property>
+              <property name="statusTip">
+               <string>Move selected size fraction upwards</string>
+              </property>
+              <property name="whatsThis">
+               <string>Move selected size fraction upwards</string>
+              </property>
+              <property name="text">
+               <string>Up</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/up.png</normaloff>:/QT_GUI/Pictures/up.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonDownFraction">
+              <property name="toolTip">
+               <string>Move selected size fraction downwards</string>
+              </property>
+              <property name="statusTip">
+               <string>Move selected size fraction downwards</string>
+              </property>
+              <property name="whatsThis">
+               <string>Move selected size fraction downwards</string>
+              </property>
+              <property name="text">
+               <string>Down</string>
+              </property>
+              <property name="icon">
+               <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+                <normaloff>:/QT_GUI/Pictures/down.png</normaloff>:/QT_GUI/Pictures/down.png</iconset>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_12">
+              <item>
+               <widget class="QLabel" name="totalFractionLabel">
+                <property name="text">
+                 <string>Total fraction:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="labelFraction">
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonNormalize">
+              <property name="toolTip">
+               <string>Normalize fractions in current mixture (should be equal to 1)</string>
+              </property>
+              <property name="statusTip">
+               <string>Normalize fractions in current mixture (should be equal to 1)</string>
+              </property>
+              <property name="whatsThis">
+               <string>Normalize fractions in current mixture (should be equal to 1)</string>
+              </property>
+              <property name="text">
+               <string>Normalize</string>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="0">
+           <widget class="CQtTable" name="tableFractions">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>true</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>Name</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Compound</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Diameter [m]</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Cont. diam. [m]</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Number fraction</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionNewDatabase">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/newPage.png</normaloff>:/QT_GUI/newPage.png</iconset>
+   </property>
+   <property name="text">
+    <string>NewDatabase</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new database</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionLoadDatabase">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/folderr.png</normaloff>:/QT_GUI/folderr.png</iconset>
+   </property>
+   <property name="text">
+    <string>LoadDatabase</string>
+   </property>
+   <property name="toolTip">
+    <string>Load database</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionSaveDatabase">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/save.png</normaloff>:/QT_GUI/Pictures/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>SaveDatabase</string>
+   </property>
+   <property name="toolTip">
+    <string>Save database</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSaveDatabaseAs">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/save_as.png</normaloff>:/QT_GUI/Pictures/save_as.png</iconset>
+   </property>
+   <property name="text">
+    <string>SaveDatabaseAs</string>
+   </property>
+   <property name="toolTip">
+    <string>Save database as</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CQtTable</class>
+   <extends>QTableWidget</extends>
+   <header>QtTable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CColorView</class>
+   <extends>QWidget</extends>
+   <header>ColorView.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>buttonNew</tabstop>
+  <tabstop>buttonLoad</tabstop>
+  <tabstop>buttonSave</tabstop>
+  <tabstop>buttonSaveAs</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>listCompounds</tabstop>
+  <tabstop>buttonAddCompound</tabstop>
+  <tabstop>buttonAddAllCompounds</tabstop>
+  <tabstop>buttonDuplicateCompound</tabstop>
+  <tabstop>buttonRemoveCompound</tabstop>
+  <tabstop>buttonRemoveUnusedCompounds</tabstop>
+  <tabstop>upCompound</tabstop>
+  <tabstop>downCompound</tabstop>
+  <tabstop>lineCompoundKey</tabstop>
+  <tabstop>lineCompoundAuthor</tabstop>
+  <tabstop>tableProperties</tabstop>
+  <tabstop>listCompounds1</tabstop>
+  <tabstop>listCompounds2</tabstop>
+  <tabstop>labelCompound1</tabstop>
+  <tabstop>labelCompound2</tabstop>
+  <tabstop>tableInterProperties</tabstop>
+  <tabstop>listMixtures</tabstop>
+  <tabstop>buttonAddMixture</tabstop>
+  <tabstop>buttonAddAllMixtures</tabstop>
+  <tabstop>buttonDuplicateMixture</tabstop>
+  <tabstop>buttonRemoveMixture</tabstop>
+  <tabstop>buttonRemoveUnusedMixtures</tabstop>
+  <tabstop>buttonUpMixture</tabstop>
+  <tabstop>buttonDownMixture</tabstop>
+  <tabstop>tableFractions</tabstop>
+  <tabstop>buttonAddFraction</tabstop>
+  <tabstop>buttonDuplicateFraction</tabstop>
+  <tabstop>buttonRemoveFraction</tabstop>
+  <tabstop>buttonUpFraction</tabstop>
+  <tabstop>buttonDownFraction</tabstop>
+  <tabstop>buttonNormalize</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonNew</sender>
+   <signal>clicked()</signal>
+   <receiver>actionNewDatabase</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>42</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonLoad</sender>
+   <signal>clicked()</signal>
+   <receiver>actionLoadDatabase</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>123</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonSave</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSaveDatabase</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>204</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonSaveAs</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSaveDatabaseAs</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>285</x>
+     <y>16</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

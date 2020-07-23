@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>imageGeneratorTab</class>
+ <widget class="QDialog" name="imageGeneratorTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>270</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Generation of images </string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_3">
+   <item row="0" column="0" rowspan="3">
+    <widget class="QGroupBox" name="groupBoxTime">
+     <property name="title">
+      <string>Time</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <item row="0" column="0" colspan="2">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="startTimeLabel">
+          <property name="text">
+           <string>Start [s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="lineEditStartTime">
+          <property name="toolTip">
+           <string>Time point of the first image</string>
+          </property>
+          <property name="statusTip">
+           <string>Time point of the first image</string>
+          </property>
+          <property name="whatsThis">
+           <string>Time point of the first image</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QToolButton" name="toolButtonMinTime">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>min</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="endTimeLabel">
+          <property name="text">
+           <string>End [s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEditEndTime">
+          <property name="toolTip">
+           <string>Time point of the last image</string>
+          </property>
+          <property name="statusTip">
+           <string>Time point of the last image</string>
+          </property>
+          <property name="whatsThis">
+           <string>Time point of the last image</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QToolButton" name="toolButtonMaxTime">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Set the last simulation time point.</string>
+          </property>
+          <property name="statusTip">
+           <string>Set the last simulation time point.</string>
+          </property>
+          <property name="whatsThis">
+           <string>Set the last simulation time point.</string>
+          </property>
+          <property name="text">
+           <string>max</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="radioOnlySaved">
+        <property name="toolTip">
+         <string>Generate images only for saved time points</string>
+        </property>
+        <property name="text">
+         <string>Only saved </string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="radioTimeStep">
+        <property name="toolTip">
+         <string>Use data interpolation</string>
+        </property>
+        <property name="text">
+         <string>Time step [s]</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="lineEditTimeStep">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QGroupBox" name="groupBoxQuality">
+     <property name="title">
+      <string>Image quality</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Scaling factor</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spinBoxScaling">
+        <property name="toolTip">
+         <string>The coefficient by which the current window size will be scaled when generating images</string>
+        </property>
+        <property name="statusTip">
+         <string>The coefficient by which the current window size will be scaled when generating images</string>
+        </property>
+        <property name="whatsThis">
+         <string>The coefficient by which the current window size will be scaled when generating images</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>10</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Compression</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spinBoxCompression">
+        <property name="toolTip">
+         <string>Compression level of images</string>
+        </property>
+        <property name="statusTip">
+         <string>Compression level of images</string>
+        </property>
+        <property name="whatsThis">
+         <string>Compression level of images</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Number of images</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditImagesNumber">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Number of images which will be generated</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>File name prefix</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEditPrefix">
+       <property name="toolTip">
+        <string>File prefix of all images</string>
+       </property>
+       <property name="statusTip">
+        <string>File prefix of all images</string>
+       </property>
+       <property name="whatsThis">
+        <string>File prefix of all images</string>
+       </property>
+       <property name="text">
+        <string>image_</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QComboBox" name="comboExtension">
+       <item>
+        <property name="text">
+         <string>.jpg</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>.png</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>.bmp</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="minimumSize">
+        <size>
+         <width>90</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Output folder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEditFolder"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QToolButton" name="toolButtonPickFolder">
+       <property name="toolTip">
+        <string>Pick output folder</string>
+       </property>
+       <property name="statusTip">
+        <string>Pick output folder</string>
+       </property>
+       <property name="whatsThis">
+        <string>Pick output folder</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QProgressBar" name="progressBar">
+     <property name="toolTip">
+      <string>Saving progress</string>
+     </property>
+     <property name="statusTip">
+      <string>Saving progress</string>
+     </property>
+     <property name="whatsThis">
+      <string>Saving progress</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,0">
+     <item>
+      <widget class="QLabel" name="labelStatus">
+       <property name="text">
+        <string>Status</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonStart">
+       <property name="toolTip">
+        <string>Start/Stop generation</string>
+       </property>
+       <property name="text">
+        <string>Start</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+         <normaloff>:/QT_GUI/Pictures/Play_Icon.png</normaloff>:/QT_GUI/Pictures/Play_Icon.png</iconset>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>lineEditStartTime</tabstop>
+  <tabstop>toolButtonMinTime</tabstop>
+  <tabstop>lineEditEndTime</tabstop>
+  <tabstop>toolButtonMaxTime</tabstop>
+  <tabstop>radioOnlySaved</tabstop>
+  <tabstop>radioTimeStep</tabstop>
+  <tabstop>lineEditTimeStep</tabstop>
+  <tabstop>spinBoxScaling</tabstop>
+  <tabstop>spinBoxCompression</tabstop>
+  <tabstop>lineEditImagesNumber</tabstop>
+  <tabstop>lineEditPrefix</tabstop>
+  <tabstop>comboExtension</tabstop>
+  <tabstop>lineEditFolder</tabstop>
+  <tabstop>toolButtonPickFolder</tabstop>
+  <tabstop>pushButtonStart</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

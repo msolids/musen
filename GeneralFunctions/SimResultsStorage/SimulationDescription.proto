@@ -1,0 +1,363 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
+syntax = "proto3";
+option optimize_for = SPEED;
+
+import "MaterialsDatabase.proto";
+
+message ProtoSelectiveSaving
+{
+	bool p_coord = 1;
+	bool p_vel = 2;
+	bool p_angvel = 3;
+	bool p_quatern = 4;
+	bool p_force = 5;
+	bool p_tensor = 6;
+
+	bool sb_force = 7;
+	bool sb_tangoverlap = 8;
+	bool sb_tottorque = 9;
+
+	bool lb_force = 10;
+
+	bool tw_coord = 11;
+	bool tw_force = 12;
+	bool tw_vel = 13;
+}
+
+message ProtoVector
+{
+	double x = 1;
+	double y = 2;
+	double z = 3;
+}
+
+message ProtoTriangle
+{
+	ProtoVector vert1 = 1;
+	ProtoVector vert2 = 2;
+	ProtoVector vert3 = 3;
+}
+
+message ProtoMatrix
+{
+	ProtoVector v1 = 1;
+	ProtoVector v2 = 2;
+	ProtoVector v3 = 3;
+}
+
+message ProtoQuaternion
+{
+	double q0 = 1;
+	double q1 = 2;
+	double q2 = 3;
+	double q3 = 4;
+}
+
+message ProtoTimeDepVel
+{
+	double time = 1;
+	ProtoVector velocity =2;
+	ProtoVector rotVelocity = 3;
+	ProtoVector rotCenter = 4;
+}
+
+message ProtoGeometryInfo
+{
+	string name = 1;
+	string key = 2;
+	int32 analysis = 3;
+	repeated int32 planes = 4;
+	repeated ProtoTimeDepVel tdVal = 5;
+	double mass = 6;
+	ProtoVector vFreeMotion = 7;
+	int32 type = 8;
+	repeated double props = 9;
+	ProtoMatrix rotation = 10;
+	ProtoColor color = 11;
+	bool rotate_AroundMassCenter = 12;
+	bool forceDependentVel = 13;
+}
+
+message ProtoAnalysisVolumeInfo
+{
+	string name = 1;
+	string key = 2;
+	repeated ProtoTriangle triangles = 3;
+	int32 type = 4;
+	ProtoVector vCenter = 5;
+	repeated double vProps = 6;
+	ProtoMatrix rotation = 7;
+	ProtoColor color = 8;
+	repeated ProtoTimeDepVel tdVal = 9;
+}
+
+message ProtoMultisphere
+{
+	repeated int32 id = 1;
+}
+
+message ProtoParticleInfo
+{
+	int32 id = 1;
+
+	enum ParticleType {
+		nonentity = 0;
+		kSphere = 1;
+		kRectangle = 2;
+		kWall = 3;
+		kBond = 9;
+		kCylinder = 10;
+		kNozzle = 11;
+		kDroplet = 12;
+		kLiquidBond = 13;
+		kTriangularWall = 14;
+	}
+
+	ParticleType	type = 2;
+	string			compound = 3;
+	bytes			encoded_properties = 5;
+	double			activity_start = 6 ;
+	double			activity_end = 7 ;
+}
+
+message ProtoStopCriteria
+{
+	repeated uint32 types   = 2;
+	uint64 max_broken_bonds = 3;
+}
+
+message ProtoSimulationInfo
+{
+	int32 file_version = 1;
+	double begin_time = 2;
+	double end_time = 3;
+
+	ProtoVector simulation_volume_min = 4;
+	ProtoVector simulation_volume_max = 5;
+	repeated ProtoParticleInfo particles = 6;
+	repeated ProtoGeometryInfo geomObjects = 7;
+	repeated ProtoAnalysisVolumeInfo analysisVolumes = 8;
+	repeated double savedTimePoints = 9;
+	repeated ProtoMultisphere multispheres = 10;
+	ProtoVector periodic_conditions_min = 11;
+	ProtoVector periodic_conditions_max = 12;
+	bool periodic_conditions_x = 13;
+	bool periodic_conditions_y = 14;
+	bool periodic_conditions_z = 15;
+	bool periodic_conditions_enabled = 17;
+	ProtoVector periodic_conditions_vel = 21;
+	bool anisotripy = 18;
+	bool contact_radius = 19;
+
+	bool selective_saving = 20;
+	ProtoSelectiveSaving selective_saving_flags = 22;
+	ProtoStopCriteria stop_criteria = 23;
+}
+
+message ProtoSimulationStorage // final message of time-independent data and general information
+{
+	ProtoSimulationInfo info = 1;
+	ProtoModulesData modules_data = 2;
+	repeated ProtoBlockDescriptor data_blocks = 3;
+}
+
+message ProtoModulesData
+{
+	ProtoModuleSimulator simulator = 1;
+	ProtoModuleObjectsGenerator objects_generator = 2;
+	ProtoModuleBondsGenerator bonds_generator = 3;
+	ProtoModulePackageGenerator package_generator = 4;
+	ProtoModuleModelManager model_manager = 5;
+	ProtoMaterialsDatabase materials_database = 6;
+}
+
+message ProtoModuleSimulator
+{
+	double start_time                 = 1;
+	double end_time                   = 2;
+	double simulation_step            = 3;
+	double saving_step                = 4;
+	ProtoVector external_acceleration = 5;
+	bool save_collisions              = 6;
+	uint32 simulator_type             = 7;
+	uint32 max_cells_number           = 8;
+	double verlet_dist_coeff          = 9;
+	bool verlet_auto_adjust           = 10;
+	bool flexible_time_step           = 12;
+	double part_move_limit            = 13;
+	double time_step_factor           = 14;
+}
+
+message ProtoModuleObjectsGenerator
+{
+	repeated ProtoObjectsGenerator generators = 1;
+}
+
+message ProtoObjectsGenerator
+{
+	enum ObjectsType {
+		nonentity = 0;
+		cSphere = 1;
+		cAgglomerate = 2;
+	}
+	string 	 name = 1;
+	string	 volume_key = 2;
+	ProtoVector init_velocity = 4;
+	string 	 mixture_key = 5;
+	ObjectsType obj_type = 6;
+	string 	 aggl_key = 8;
+	double 	 start_generation_time = 9;
+	double 	 end_generation_time = 10;
+	double 	 update_time_step = 11;
+	double 	 generation_rate = 12;
+	repeated string 	 aggl_part_materials_alias = 13;
+	repeated string 	 aggl_part_materials_key = 14;
+	repeated string 	 aggl_bond_materials_alias = 15;
+	repeated string 	 aggl_bond_materials_key = 16;
+	double		 scaling_factor = 17;
+	bool 		 activity = 18 ;
+	bool		 random_velocity_flag = 19 ;
+	double		 velocity_magnitude = 20;
+	bool		 inside_geometries = 21;
+}
+
+message ProtoModuleBondsGenerator
+{
+	repeated ProtoBondsGenerator generators = 1;
+}
+
+message ProtoBondsGenerator
+{
+	string name 				= 1;
+	string material_key 		= 2;
+	uint32 obj_type 			= 3;
+	double min_length 			= 4;
+	double max_length 			= 5;
+	double property1 			= 6;
+	bool	allow_overlap 		= 7;
+	bool 	compound_specific 	= 8;
+	repeated string partner_compounds1 	= 9;
+	repeated string partner_compounds2 	= 10;
+	bool	activity 			= 11 ;
+}
+
+message ProtoModulePackageGenerator
+{
+	repeated ProtoPackageGenerator generators = 1;
+	uint32 simulator_type                     = 2;
+	double verlet_coeff                       = 3;
+}
+
+message ProtoPackageGenerator
+{
+	string volume_name        = 1;
+	uint32 volume_type        = 2;
+	ProtoVector volume_center = 3;
+	double volume_prop1       = 4;
+	double volume_prop2       = 5;
+	double volume_prop3       = 6;
+	bool volume_visible       = 7;
+	string mixture_key        = 8;
+	uint32 volume_index       = 9;
+	double porosity           = 10;
+	double max_overlap        = 11;
+	uint32 max_iterations     = 12;
+	ProtoVector init_velocity = 13;
+	int32 volume_stl_index    = 14;
+	bool volume_active        = 15;
+	string volume_key         = 16;
+	bool inside_geometry      = 17;
+}
+
+message ProtoModuleModelManager
+{
+	ProtoMusenModel pp_model = 1;
+	ProtoMusenModel pw_model = 2;
+	ProtoMusenModel sb_model = 3;
+	ProtoMusenModel lb_model = 4;
+	ProtoMusenModel ef_model = 5;
+	bool connected_pp_contact = 6;
+}
+
+message ProtoMusenModel
+{
+	string key = 1;
+	string path = 2;
+	string params = 4;
+}
+
+message ProtoBlockDescriptor
+{
+	double start_time = 1;
+	int64  offset_in_file = 2;
+	int32  size = 3;
+	int32  uncompressed_size = 4;
+
+	enum StorageFormat {
+		nonentity = 0;
+		kProtoBuf = 1;
+		kZippedProtoBuff = 2;
+	}
+
+	StorageFormat  format = 5;
+}
+
+//////// TIME_DEPENDENT DATA ////////////////////////
+
+message ProtoTimeDependentProperties
+{
+	ProtoVector coord = 1;
+	ProtoVector angles = 2;
+	ProtoVector vel = 3;
+	ProtoVector angle_vel = 4;
+	//ProtoVector accl = 5;
+	ProtoVector angle_accl = 6;
+	//double total_force = 7;
+	double total_torque = 8;
+	double temperature = 9;
+	double liquid_film_mass = 10;
+	ProtoVector force = 11;
+	ProtoQuaternion quaternion = 12;
+	ProtoMatrix stress_tensor = 13;
+}
+
+message ProtoTimePoint
+{
+	double time = 1;
+	repeated ProtoTimeDependentProperties particles = 2;
+}
+
+message ProtoBlockOfTimePoints // final message of time-dependent data
+{
+	repeated ProtoTimePoint time_points = 2;
+}
+
+//////////// COLLISION STORAGE /////////////////
+
+message ProtoCollision
+{
+	uint32 src_id = 1;
+	uint32 dst_id = 2;
+	double time_start = 3;
+	double time_end = 4;
+	ProtoVector max_total_force = 5;
+	ProtoVector max_norm_force = 6;
+	ProtoVector max_tang_force = 7;
+	ProtoVector norm_velocity = 8;
+	ProtoVector tang_velocity = 9;
+	ProtoVector contact_point = 10;
+}
+
+message ProtoBlockOfCollisions
+{
+	repeated ProtoCollision collisions = 1;
+}
+
+message ProtoBlockOfCollisionsInfo
+{
+	double time_min = 1;
+	double time_max = 2;
+}

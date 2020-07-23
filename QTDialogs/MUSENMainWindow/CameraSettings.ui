@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CCameraSettings</class>
+ <widget class="QDialog" name="CCameraSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>257</width>
+    <height>356</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Camera settings</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="CQtTable" name="table">
+     <attribute name="horizontalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
+     <row>
+      <property name="text">
+       <string>Field of view</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Aspect ratio</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Near clipping plane</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Far clipping plane</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Position X</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Position Y</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Position Z</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Rotation X</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Rotation Y</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Rotation Z</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string/>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="buttonExport">
+       <property name="text">
+        <string>Export</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonImport">
+       <property name="text">
+        <string>Import</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CQtTable</class>
+   <extends>QTableWidget</extends>
+   <header>QtTable.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

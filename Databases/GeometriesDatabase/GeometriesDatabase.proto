@@ -1,0 +1,27 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
+syntax = "proto3";
+option optimize_for = SPEED;
+
+message ProtoGeomVect
+{
+	double x = 1;
+	double y = 2;
+	double z = 3;
+}
+
+message ProtoGeometry
+{
+	string name = 1;
+	string key = 2;
+	double volume = 3;
+
+	repeated ProtoGeomVect vertices = 4;
+}
+
+message ProtoGeometriesDB
+{
+	repeated ProtoGeometry Geometry = 1;
+}

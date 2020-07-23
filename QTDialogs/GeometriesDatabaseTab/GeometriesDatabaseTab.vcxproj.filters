@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="GeometriesDatabaseTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeomOpenGLView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="GeometriesDatabaseTab.ui">
+      <Filter>Forms</Filter>
+    </QtUic>
+    <QtMoc Include="GeometriesDatabaseTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="GeomOpenGLView.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Forms">
+      <UniqueIdentifier>{1ff050b7-28c7-45c1-9940-0363f083a44f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{8aeeeffc-34f3-4ade-bbdc-5d043ce78b16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{d05181d7-2e00-4ff4-84e1-7408a6fcc5df}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;cxx;c;def</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{6ce9e754-1b2a-43ed-851b-8bdf0ddb06a8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="OpenGLView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLViewGlu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLViewShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EventMonitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenGLViewMixed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseGLView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="OpenGLView.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="OpenGLViewGlu.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ViewManager.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="EventMonitor.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="OpenGLViewMixed.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\fSphereShader.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\vSphereShader.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscFragCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscFragCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscVertCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscVertCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ViewSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLViewShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseGLView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

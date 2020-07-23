@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="AgglomeratesDatabase.cpp" />
+    <ClCompile Include="GeneratedFiles\AgglomeratesDatabase.pb.cc">
+      <Filter>GeneratedFiles</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AgglomeratesDatabase.h" />
+    <ClInclude Include="GeneratedFiles\AgglomeratesDatabase.pb.h">
+      <Filter>GeneratedFiles</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="protobuf">
+      <UniqueIdentifier>{ef898ad4-7bbd-49c2-bd96-d048f5e8eb1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GeneratedFiles">
+      <UniqueIdentifier>{28155943-f0fc-4e76-a150-1be9c1a1f160}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="AgglomeratesDatabase.proto">
+      <Filter>protobuf</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BaseGLView.cpp" />
+    <ClCompile Include="EventMonitor.cpp" />
+    <ClCompile Include="ViewSettings.cpp" />
+    <ClCompile Include="OpenGLViewShader.cpp" />
+    <ClCompile Include="OpenGLView.cpp" />
+    <ClCompile Include="OpenGLViewGlu.cpp" />
+    <ClCompile Include="OpenGLViewMixed.cpp" />
+    <ClCompile Include="ViewManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="OpenGLView.h">
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="OpenGLViewGlu.h">
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="OpenGLViewMixed.h">
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscVertCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeVertCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisVertCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\BondVertCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\fSphereShader.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationVertCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleVertCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicVertCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\vSphereShader.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallFragCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallFragCore.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallVertCompatibility.glsl" />
+    <None Include="..\..\MUSEN\QT_GUI\shaders\WallVertCore.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BaseGLView.h" />
+    <QtMoc Include="EventMonitor.h">
+    </QtMoc>
+    <ClInclude Include="OpenGLTypes.h" />
+    <ClInclude Include="ViewSettings.h" />
+    <ClInclude Include="OpenGLViewShader.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtGui;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab\GeneratedFiles;$(SolutionDir)..\QT_GUI;$(SolutionDir)..\QT_GUI\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\GeneralMusenDialog;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\QTFunctions;$(SolutionDir)..\..\QTDialogs\QTTable;$(SolutionDir)..\..\ExternalLibraries\zlib-1.2.11\include;$(SolutionDir)..\..\ExternalLibraries\protobuf-3.6.1\include;$(SolutionDir)..\..\Databases\AgglomerateDatabase;$(SolutionDir)..\..\Databases\GeometriesDatabase;$(SolutionDir)..\..\Databases\MaterialsDatabase;$(SolutionDir)..\..\Databases\MaterialsDatabase\GeneratedFiles;$(SolutionDir)..\..\GeneralFunctions;$(SolutionDir)..\..\GeneralFunctions\MUSEN;$(SolutionDir)..\..\GeneralFunctions\SimResultsStorage;$(SolutionDir)..\Modules\FileMerger;$(SolutionDir)..\Modules\FileConverter;$(SolutionDir)..\Modules\BondsGenerator;$(SolutionDir)..\Modules\ObjectsGenerator;$(SolutionDir)..\Modules\PackageGenerator;$(SolutionDir)..\Modules\ResultsAnalyzer;$(SolutionDir)..\Modules\ScriptInterface;$(SolutionDir)..\Modules\Simulator;$(CUDA_PATH)\include;$(NOINHERIT)</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WIN64;QT_CORE_LIB;QTOPENGLVIEW_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;%(PreprocessorDefinitions)</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtGui;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab\GeneratedFiles;$(SolutionDir)..\QT_GUI;$(SolutionDir)..\QT_GUI\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\GeneralMusenDialog;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\QTFunctions;$(SolutionDir)..\..\QTDialogs\QTTable;$(SolutionDir)..\..\ExternalLibraries\zlib-1.2.11\include;$(SolutionDir)..\..\ExternalLibraries\protobuf-3.6.1\include;$(SolutionDir)..\..\Databases\AgglomerateDatabase;$(SolutionDir)..\..\Databases\GeometriesDatabase;$(SolutionDir)..\..\Databases\MaterialsDatabase;$(SolutionDir)..\..\Databases\MaterialsDatabase\GeneratedFiles;$(SolutionDir)..\..\GeneralFunctions;$(SolutionDir)..\..\GeneralFunctions\MUSEN;$(SolutionDir)..\..\GeneralFunctions\SimResultsStorage;$(SolutionDir)..\Modules\FileMerger;$(SolutionDir)..\Modules\FileConverter;$(SolutionDir)..\Modules\BondsGenerator;$(SolutionDir)..\Modules\ObjectsGenerator;$(SolutionDir)..\Modules\PackageGenerator;$(SolutionDir)..\Modules\ResultsAnalyzer;$(SolutionDir)..\Modules\ScriptInterface;$(SolutionDir)..\Modules\Simulator;$(CUDA_PATH)\include;$(NOINHERIT)</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QTOPENGLVIEW_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;%(PreprocessorDefinitions)</Define>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="ViewManager.h">
+    </QtMoc>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DA8B8971-C00B-4629-AB99-A6AED2965E09}</ProjectGuid>
+    <Keyword>QtVS_v301</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
+    <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonDebug.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonRelease.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;opengl;widgets</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;opengl;widgets</QtModules>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).lib</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <CustomBuild>
+      <Command />
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs />
+    </CustomBuild>
+    <QtMoc />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).lib</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <CustomBuild>
+      <Command />
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs />
+    </CustomBuild>
+    <QtMoc />
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

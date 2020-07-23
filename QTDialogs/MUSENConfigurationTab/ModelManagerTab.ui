@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>modelManagerTab</class>
+ <widget class="QDialog" name="modelManagerTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Model Manager</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,3,0">
+   <item>
+    <widget class="QGroupBox" name="groupBoxPaths">
+     <property name="title">
+      <string>Searched paths</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QListWidget" name="directoryList">
+        <property name="toolTip">
+         <string>Folders where dll will be searched</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QPushButton" name="addDir">
+          <property name="toolTip">
+           <string>Add new path for dll search</string>
+          </property>
+          <property name="text">
+           <string>Add</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+            <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removeDir">
+          <property name="toolTip">
+           <string>Remove path from dll search</string>
+          </property>
+          <property name="text">
+           <string>Remove</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+            <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="upDir">
+          <property name="text">
+           <string>Up</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+            <normaloff>:/QT_GUI/Pictures/up.png</normaloff>:/QT_GUI/Pictures/up.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="downDir">
+          <property name="text">
+           <string>Down</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+            <normaloff>:/QT_GUI/Pictures/down.png</normaloff>:/QT_GUI/Pictures/down.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+     <zorder>directoryList</zorder>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Available models</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="CQtTable" name="modelsTable">
+        <property name="toolTip">
+         <string>The list of accessible libraries</string>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="horizontalScrollMode">
+         <enum>QAbstractItemView::ScrollPerPixel</enum>
+        </property>
+        <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>Name</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Type</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Location</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="okButton">
+       <property name="text">
+        <string>OK</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+         <normaloff>:/QT_GUI/Pictures/apply.png</normaloff>:/QT_GUI/Pictures/apply.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CQtTable</class>
+   <extends>QTableWidget</extends>
+   <header>QtTable.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>directoryList</tabstop>
+  <tabstop>addDir</tabstop>
+  <tabstop>removeDir</tabstop>
+  <tabstop>upDir</tabstop>
+  <tabstop>downDir</tabstop>
+  <tabstop>modelsTable</tabstop>
+  <tabstop>okButton</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

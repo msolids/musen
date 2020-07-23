@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>sampleAnalyzerTab</class>
+ <widget class="QDialog" name="sampleAnalyzerTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>646</width>
+    <height>403</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Sample analyzer</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QGroupBox" name="groupBox1">
+       <property name="title">
+        <string>Volume</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="layout1">
+          <item row="3" column="0">
+           <widget class="QLabel" name="radiusLabel">
+            <property name="text">
+             <string>Radius [m]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="zLabel">
+            <property name="text">
+             <string>Z [m]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="xCoord">
+            <property name="toolTip">
+             <string>Center of sampling volume </string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="yCoord">
+            <property name="toolTip">
+             <string>Center of sampling volume </string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="yLabel">
+            <property name="text">
+             <string>Y [m]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="xLabel">
+            <property name="text">
+             <string>X [m]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="zCoord">
+            <property name="toolTip">
+             <string>Center of sampling volume </string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="radius">
+            <property name="toolTip">
+             <string>Radius of sampling volume</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="considerBonds">
+          <property name="toolTip">
+           <string>Only by volume calculation bonds volume can be considered</string>
+          </property>
+          <property name="text">
+           <string>Consider bonds</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox2">
+       <property name="title">
+        <string>Main characteristics</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="layout2">
+          <item row="2" column="1">
+           <widget class="QLabel" name="massInRegion">
+            <property name="toolTip">
+             <string>Total mass of all particles in the sampling volume</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="particlesInRegion">
+            <property name="toolTip">
+             <string>Total particles number</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="coordinationNumber">
+            <property name="toolTip">
+             <string>Coordination number (overlap between particles + interparticle bonds)</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>Time [s]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Porosity</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="massLabel">
+            <property name="text">
+             <string>Mass</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QPushButton" name="updateMainData">
+            <property name="toolTip">
+             <string>Update main characteristics</string>
+            </property>
+            <property name="text">
+             <string>Update</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Particles number</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="porosityInRegion">
+            <property name="toolTip">
+             <string>Porosity in the sampling volume</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="toolTip">
+             <string>Coordination number (overlap between particles + interparticle bonds)</string>
+            </property>
+            <property name="text">
+             <string>Coordination number</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="currentTime">
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox3">
+     <property name="title">
+      <string>Export data</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QCheckBox" name="exportMass">
+          <property name="toolTip">
+           <string>Export mass [kg]</string>
+          </property>
+          <property name="text">
+           <string>Mass</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="exportPorosity">
+          <property name="toolTip">
+           <string>Export porosity</string>
+          </property>
+          <property name="text">
+           <string>Porosity</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="exportParticlesNumber">
+          <property name="toolTip">
+           <string>Export particles number</string>
+          </property>
+          <property name="text">
+           <string>Particles number</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="exportCoordNumber">
+          <property name="toolTip">
+           <string>Export coordination number</string>
+          </property>
+          <property name="text">
+           <string>Coordination number</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="3">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>Number of intervals</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="timeStart">
+          <property name="toolTip">
+           <string>Start time point for data generation [s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="timeEnd">
+          <property name="toolTip">
+           <string>End time point for data generation</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLineEdit" name="timeIntervalsNumber">
+          <property name="toolTip">
+           <string>Number of time intervals</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="4">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>Time [s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>End</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Start</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="velStart">
+          <property name="toolTip">
+           <string>Smallest export velocity [m/s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="psdStart">
+          <property name="toolTip">
+           <string>Smallest particle diameter [m]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="4">
+         <widget class="QCheckBox" name="exportPSD">
+          <property name="toolTip">
+           <string>Export size distribution</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="4">
+         <widget class="QCheckBox" name="exportVel">
+          <property name="toolTip">
+           <string>Export velocity distribution</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="velocityLabel">
+          <property name="text">
+           <string>Velocity [m/s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="psdLabel">
+          <property name="text">
+           <string>PSD [m]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLineEdit" name="psdEnd">
+          <property name="toolTip">
+           <string>Largest particle diameter [m]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QLineEdit" name="velEnd">
+          <property name="toolTip">
+           <string>Largest particle velocity [m/s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QLineEdit" name="velIntervalsNumber">
+          <property name="toolTip">
+           <string>Number of intervals for export of velocity distribution</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <widget class="QLineEdit" name="psdIntervalsNumber">
+          <property name="toolTip">
+           <string>Number of size intervals</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="statusMessage">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="exportData">
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Export data</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

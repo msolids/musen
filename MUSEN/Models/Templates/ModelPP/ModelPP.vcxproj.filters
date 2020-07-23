@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="ModelPP.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ModelPP.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="ModelPP.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ModelPP.cpp" />
+  </ItemGroup>
+</Project>

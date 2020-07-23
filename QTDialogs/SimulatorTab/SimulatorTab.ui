@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>simulatorTab</class>
+ <widget class="QDialog" name="simulatorTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>582</width>
+    <height>549</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Simulator</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,0">
+     <item>
+      <widget class="QTableWidget" name="statTable">
+       <property name="toolTip">
+        <string>Main statistics</string>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <attribute name="horizontalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <row>
+        <property name="text">
+         <string>Current simulation time [s]</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Current time step [s]</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Max particle velocity [m/s]</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Brocken solid bonds</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Brocken liquid bonds</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Number of generated objects</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Number of inactive particles</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Simulation started at</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Approximately finished at</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Approximately left</string>
+        </property>
+       </row>
+       <row>
+        <property name="text">
+         <string>Elapsed time</string>
+        </property>
+       </row>
+       <column>
+        <property name="text">
+         <string>New Column</string>
+        </property>
+       </column>
+       <item row="0" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="1" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="2" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="3" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="4" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="5" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="6" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="7" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="8" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="9" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="10" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBoxModels">
+       <property name="title">
+        <string>Selected models</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelPPText">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Interparticle contact:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="labelPP">
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>None</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="labelPWText">
+          <property name="text">
+           <string>Particle wall contact:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="labelPW">
+          <property name="text">
+           <string>None</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="labelSBText">
+          <property name="text">
+           <string>Solid bonds:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="labelSB">
+          <property name="text">
+           <string>None</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="labelLBText">
+          <property name="text">
+           <string>Liquid bonds:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLabel" name="labelLB">
+          <property name="text">
+           <string>None</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="labelEFText">
+          <property name="text">
+           <string>External force:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="labelEF">
+          <property name="text">
+           <string>None</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QPushButton" name="pushButtonModels">
+          <property name="text">
+           <string>Configure models</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QGroupBox" name="groupBoxSimOption">
+       <property name="title">
+        <string>Simulation options</string>
+       </property>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="simStepLabel">
+          <property name="text">
+           <string>Simulation step [s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="simulationStep">
+          <property name="toolTip">
+           <string>Time step used for integration scheme</string>
+          </property>
+          <property name="text">
+           <string>1e-6</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="savingStepLabel">
+          <property name="text">
+           <string>Saving step [s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="savingStep">
+          <property name="toolTip">
+           <string>Defines how often data will be saved</string>
+          </property>
+          <property name="text">
+           <string>1e-3</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="endTimeLabel">
+          <property name="text">
+           <string>End time [s]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="endTime">
+          <property name="toolTip">
+           <string>End time point when simulation should be finished</string>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <item>
+        <widget class="QLabel" name="reccomended_2">
+         <property name="toolTip">
+          <string>10% of Rayleigh time</string>
+         </property>
+         <property name="text">
+          <string>Recommended time step</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="RecommendedTimeStep">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Recommended time step - see documentation</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="updateRayleighButton">
+         <property name="toolTip">
+          <string>Update recommendet time step (10% of Rayleigh time)</string>
+         </property>
+         <property name="text">
+          <string>Calculate</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBoxExternAccel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>90</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>External acceleration [m/s2]</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QTableWidget" name="accelerationTable">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>External acceleration (gravity)</string>
+          </property>
+          <attribute name="horizontalHeaderVisible">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>100</number>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>30</number>
+          </attribute>
+          <row>
+           <property name="text">
+            <string>x  </string>
+           </property>
+          </row>
+          <column>
+           <property name="text">
+            <string>X</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Z</string>
+           </property>
+          </column>
+          <item row="0" column="0">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </item>
+          <item row="0" column="1">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </item>
+          <item row="0" column="2">
+           <property name="text">
+            <string>-9.81</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBoxSimDomain">
+       <property name="toolTip">
+        <string>The volume where all objects will be simulated</string>
+       </property>
+       <property name="title">
+        <string>Simulation domain</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_8">
+        <item>
+         <widget class="QTableWidget" name="boundingBoxTable">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>110</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Coordinates of bounding box</string>
+          </property>
+          <attribute name="horizontalHeaderCascadingSectionResizes">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>100</number>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderCascadingSectionResizes">
+           <bool>false</bool>
+          </attribute>
+          <row>
+           <property name="text">
+            <string>X</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>Y</string>
+           </property>
+          </row>
+          <row>
+           <property name="text">
+            <string>Z</string>
+           </property>
+          </row>
+          <column>
+           <property name="text">
+            <string>[mm]</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>[mm]</string>
+           </property>
+          </column>
+          <item row="0" column="0">
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="toolTip">
+            <string>Min X coordinate</string>
+           </property>
+          </item>
+          <item row="0" column="1">
+           <property name="text">
+            <string>1</string>
+           </property>
+          </item>
+          <item row="1" column="0">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </item>
+          <item row="1" column="1">
+           <property name="text">
+            <string>1</string>
+           </property>
+          </item>
+          <item row="2" column="0">
+           <property name="text">
+            <string>0</string>
+           </property>
+          </item>
+          <item row="2" column="1">
+           <property name="text">
+            <string>1</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="recalculateSimVolume">
+            <property name="toolTip">
+             <string>Automatically recalculate simulation domain</string>
+            </property>
+            <property name="text">
+             <string>Recalculate</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QGroupBox" name="groupBoxSelectiveSaving">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="title">
+          <string>Selective saving</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButtonConfSelectiveSaving">
+            <property name="text">
+             <string>Configure</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxCollisions">
+         <property name="toolTip">
+          <string>Turn on/off collision saving (can lead to large amount of generated data)</string>
+         </property>
+         <property name="text">
+          <string>Save collisions</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="comboSimulatorType">
+         <item>
+          <property name="text">
+           <string>CPU</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>GPU</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="statusMessage">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="startButton">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Start/Pause calculations</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+         <normaloff>:/QT_GUI/Pictures/play.png</normaloff>:/QT_GUI/Pictures/play.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="stopButton">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Stop calculation (no possibility to continue)</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+         <normaloff>:/QT_GUI/Pictures/stop.png</normaloff>:/QT_GUI/Pictures/stop.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

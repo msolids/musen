@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="SimulatorTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelParameterTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelsConfiguratorTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimulatorSettingsTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectiveSavingTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="SimulatorTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="SimulatorTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ModelParameterTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ModelsConfiguratorTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="ModelsConfiguratorTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="SimulatorSettingsTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="SimulatorSettingsTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="SelectiveSavingTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="SelectiveSavingTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ModelParameterTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>true</ParseFiles>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+      <ParseFiles>true</ParseFiles>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;cxx;c;def</Extensions>
+      <ParseFiles>true</ParseFiles>
+    </Filter>
+  </ItemGroup>
+</Project>

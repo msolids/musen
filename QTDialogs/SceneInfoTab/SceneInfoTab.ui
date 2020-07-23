@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>sceneInfoTab</class>
+ <widget class="QDialog" name="sceneInfoTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>410</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>180</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Scene info</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0">
+     <item row="1" column="2">
+      <widget class="QPushButton" name="updateInfoButton">
+       <property name="toolTip">
+        <string>Update information about package</string>
+       </property>
+       <property name="text">
+        <string>Update</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="timeLabel">
+       <property name="text">
+        <string>Current time [s]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="2">
+      <widget class="QLabel" name="currentTime">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_15">
+       <property name="text">
+        <string>Material</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="selectedMaterialCombo"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="CQtTable" name="infoTable">
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAsNeeded</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAsNeeded</enum>
+     </property>
+     <row>
+      <property name="text">
+       <string>Particles</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>  % (all)</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Solid bonds</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>  % (all)</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>Walls</string>
+      </property>
+     </row>
+     <row>
+      <property name="text">
+       <string>  % (all)</string>
+      </property>
+     </row>
+     <column>
+      <property name="text">
+       <string>Number</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Mass [kg]</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Volume [m3]</string>
+      </property>
+     </column>
+     <item row="0" column="0">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="0" column="1">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="0" column="2">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="1" column="0">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="1" column="1">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="1" column="2">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="2" column="0">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="2" column="1">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="2" column="2">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="3" column="0">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="3" column="1">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="3" column="2">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="4" column="0">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="4" column="1">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="4" column="2">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="5" column="0">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="5" column="1">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+     <item row="5" column="2">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flags">
+       <set>ItemIsSelectable|ItemIsDragEnabled|ItemIsEnabled</set>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="detailedInfo">
+     <property name="title">
+      <string>Detailed info</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0,0">
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Contacts number [-]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="averageOverlap">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLabel" name="contactsNumber">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" colspan="2">
+         <widget class="QLabel" name="maxOverlap">
+          <property name="toolTip">
+           <string>Maximal overlap between particles [m]</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="averageContactRadius">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
+         <widget class="QLabel" name="totalOverlap">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="averageOverlapLabel">
+          <property name="text">
+           <string>Average overlap [m]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="averageContactRadiusLabel">
+          <property name="text">
+           <string>Average contact radius [m]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="maxOverlapLabel">
+          <property name="toolTip">
+           <string>Maximal overlap between particles [m]</string>
+          </property>
+          <property name="text">
+           <string>Max overlap [m]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Agglomerates number</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLabel" name="agglomeratesNumber">
+          <property name="toolTip">
+           <string>Number of agglomerates in system</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="totalOverlapLabel">
+          <property name="text">
+           <string>Total overlap [m]</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="updateDeatiledInfoButton">
+          <property name="toolTip">
+           <string>Update information about package</string>
+          </property>
+          <property name="text">
+           <string>Update</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="exportOptions">
+       <property name="text">
+        <string>Export options</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="exportData">
+       <property name="text">
+        <string>Export</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CQtTable</class>
+   <extends>QTableWidget</extends>
+   <header>QtTable.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

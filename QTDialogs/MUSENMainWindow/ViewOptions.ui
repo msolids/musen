@@ -1,0 +1,1537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>viewOptionsTab</class>
+ <widget class="QDialog" name="viewOptionsTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>200</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>200</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>View options</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+  </property>
+  <property name="ViewOptionsDialog" stdset="0">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_7">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QToolBox" name="mainToolBox">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="QWidget" name="page">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>200</width>
+        <height>592</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Cutting</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBoxCutByPlane">
+         <property name="toolTip">
+          <string>Planes to cut view</string>
+         </property>
+         <property name="statusTip">
+          <string>Planes to cut view</string>
+         </property>
+         <property name="whatsThis">
+          <string>Planes to cut view</string>
+         </property>
+         <property name="title">
+          <string>Cutting planes</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <property name="leftMargin">
+           <number>9</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="buddy">
+               <cstring>groupBoxBrokenBonds</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="xMinLabel">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QLabel" name="xMaxLabel">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="enableCuttingX">
+              <property name="toolTip">
+               <string>Cutting plane YZ</string>
+              </property>
+              <property name="statusTip">
+               <string>Cutting plane YZ</string>
+              </property>
+              <property name="whatsThis">
+               <string>Cutting plane YZ</string>
+              </property>
+              <property name="text">
+               <string>X</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="minXEdit">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLineEdit" name="maxXEdit">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="enableCuttingY">
+              <property name="toolTip">
+               <string>Cutting plane XZ</string>
+              </property>
+              <property name="statusTip">
+               <string>Cutting plane XZ</string>
+              </property>
+              <property name="whatsThis">
+               <string>Cutting plane XZ</string>
+              </property>
+              <property name="text">
+               <string>Y</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="minYEdit">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="2">
+             <widget class="QLineEdit" name="maxYEdit">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QCheckBox" name="enableCuttingZ">
+              <property name="toolTip">
+               <string>Cutting plane XY</string>
+              </property>
+              <property name="statusTip">
+               <string>Cutting plane XY</string>
+              </property>
+              <property name="whatsThis">
+               <string>Cutting plane XY</string>
+              </property>
+              <property name="text">
+               <string>Z</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLineEdit" name="minZEdit">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QLineEdit" name="maxZEdit">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxCutByVolume">
+         <property name="toolTip">
+          <string>Volumes to cut view</string>
+         </property>
+         <property name="statusTip">
+          <string>Volumes to cut view</string>
+         </property>
+         <property name="whatsThis">
+          <string>Volumes to cut view</string>
+         </property>
+         <property name="title">
+          <string>Cutting volumes</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_9">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="listCuttingVolumes">
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxSlices">
+         <property name="toolTip">
+          <string>Slice view</string>
+         </property>
+         <property name="statusTip">
+          <string>Slice view</string>
+         </property>
+         <property name="whatsThis">
+          <string>Slice view</string>
+         </property>
+         <property name="title">
+          <string>Slices</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_10">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Plane:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButtonSliceX">
+              <property name="toolTip">
+               <string>Slice scene by X plane</string>
+              </property>
+              <property name="statusTip">
+               <string>Slice scene by X plane</string>
+              </property>
+              <property name="whatsThis">
+               <string>Slice scene by X plane</string>
+              </property>
+              <property name="text">
+               <string>X</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButtonSliceY">
+              <property name="toolTip">
+               <string>Slice scene by Y plane</string>
+              </property>
+              <property name="statusTip">
+               <string>Slice scene by Y plane</string>
+              </property>
+              <property name="whatsThis">
+               <string>Slice scene by Y plane</string>
+              </property>
+              <property name="text">
+               <string>Y</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButtonSliceZ">
+              <property name="toolTip">
+               <string>Slice scene by Z plane</string>
+              </property>
+              <property name="statusTip">
+               <string>Slice scene by Z plane</string>
+              </property>
+              <property name="whatsThis">
+               <string>Slice scene by Z plane</string>
+              </property>
+              <property name="text">
+               <string>Z</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="labelSliceCoords">
+              <property name="text">
+               <string>Coordinates [m]:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="CQtDoubleSpinBox" name="spinBoxSliceCoords">
+              <property name="toolTip">
+               <string>Coordinate of the selected plane</string>
+              </property>
+              <property name="statusTip">
+               <string>Coordinate of the selected plane</string>
+              </property>
+              <property name="whatsThis">
+               <string>Coordinate of the selected plane</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>200</width>
+        <height>592</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Visibility</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBoxShowParticles">
+         <property name="toolTip">
+          <string>Show or hide all particles</string>
+         </property>
+         <property name="statusTip">
+          <string>Show or hide all particles</string>
+         </property>
+         <property name="whatsThis">
+          <string>Show or hide all particles</string>
+         </property>
+         <property name="title">
+          <string>Particles</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="listParticlesMaterials">
+            <property name="toolTip">
+             <string>Select visible materials</string>
+            </property>
+            <property name="statusTip">
+             <string>Select visible materials</string>
+            </property>
+            <property name="whatsThis">
+             <string>Select visible materials</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxOrientations">
+            <property name="toolTip">
+             <string>Show or hide orientations of particles</string>
+            </property>
+            <property name="statusTip">
+             <string>Show or hide orientations of particles</string>
+            </property>
+            <property name="whatsThis">
+             <string>Show or hide orientations of particles</string>
+            </property>
+            <property name="text">
+             <string>Orientations</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxShowBonds">
+         <property name="toolTip">
+          <string>Show or hide all bonds</string>
+         </property>
+         <property name="statusTip">
+          <string>Show or hide all bonds</string>
+         </property>
+         <property name="whatsThis">
+          <string>Show or hide all bonds</string>
+         </property>
+         <property name="title">
+          <string>Bonds</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_12">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="listBondsMaterials">
+            <property name="toolTip">
+             <string>Select visible materials</string>
+            </property>
+            <property name="statusTip">
+             <string>Select visible materials</string>
+            </property>
+            <property name="whatsThis">
+             <string>Select visible materials</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxBrokenBonds">
+            <property name="toolTip">
+             <string>Show only broken bonds</string>
+            </property>
+            <property name="statusTip">
+             <string>Show only broken bonds</string>
+            </property>
+            <property name="whatsThis">
+             <string>Show only broken bonds</string>
+            </property>
+            <property name="title">
+             <string>Only broken in the interval</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_2">
+             <property name="topMargin">
+              <number>6</number>
+             </property>
+             <property name="bottomMargin">
+              <number>6</number>
+             </property>
+             <item row="2" column="0">
+              <widget class="QLineEdit" name="lineEditTimeBegBrokenBonds">
+               <property name="toolTip">
+                <string>Min break time</string>
+               </property>
+               <property name="statusTip">
+                <string>Min break time</string>
+               </property>
+               <property name="whatsThis">
+                <string>Min break time</string>
+               </property>
+               <property name="text">
+                <string>0</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="lineEditTimeEndBrokenBonds">
+               <property name="toolTip">
+                <string>Max break time</string>
+               </property>
+               <property name="statusTip">
+                <string>Max break time</string>
+               </property>
+               <property name="whatsThis">
+                <string>Max break time</string>
+               </property>
+               <property name="text">
+                <string>1</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="label_13">
+               <property name="text">
+                <string>Color</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="CColorView" name="colorBrokenBonds" native="true">
+               <property name="toolTip">
+                <string>Color of broken bonds</string>
+               </property>
+               <property name="statusTip">
+                <string>Color of broken bonds</string>
+               </property>
+               <property name="whatsThis">
+                <string>Color of broken bonds</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="labelTimeEndBrokenBonds">
+               <property name="text">
+                <string>To [s]</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="labelTimeBegBrokenBonds">
+               <property name="text">
+                <string>From [s]</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxShowGeometries">
+         <property name="toolTip">
+          <string>Show or hide all geometries</string>
+         </property>
+         <property name="statusTip">
+          <string>Show or hide all geometries</string>
+         </property>
+         <property name="whatsThis">
+          <string>Show or hide all geometries</string>
+         </property>
+         <property name="title">
+          <string>Geometries</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_13">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,0,0">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="toolTip">
+               <string>Transparency of visible geometries</string>
+              </property>
+              <property name="statusTip">
+               <string>Transparency of visible geometries</string>
+              </property>
+              <property name="whatsThis">
+               <string>Transparency of visible geometries</string>
+              </property>
+              <property name="text">
+               <string>Opacity</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="sliderOpacity">
+              <property name="toolTip">
+               <string>Opacity of visible geometries</string>
+              </property>
+              <property name="statusTip">
+               <string>Opacity of visible geometries</string>
+              </property>
+              <property name="whatsThis">
+               <string>Opacity of visible geometries</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QSlider::groove:horizontal {
+	border: 1px solid #bbb;
+	background: white;
+	height: 10px;
+	border-radius: 4px;
+}
+
+QSlider::sub-page:horizontal {
+	background: qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1, stop: 0 #ffffff, stop: 1 #555555);
+	background: qlineargradient(x1: 0, y1: 0.2, x2: 1, y2: 1, stop: 0 #eeeeee, stop: 1 #444444);
+	border: 1px solid #777;
+	height: 5px;
+	border-radius: 4px;
+}
+
+QSlider::add-page:horizontal {
+	background: #fff;
+	border: 1px solid #222288;
+	height: 5px;
+	border-radius: 4px;
+}
+
+QSlider::handle:horizontal {
+	background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #eee, stop:1 #777777);
+	border: 1px solid #777;
+	width: 8px;
+	margin-top: -2px;
+	margin-bottom: -2px;
+	border-radius: 3px;
+}
+
+QSlider::handle:horizontal:hover {
+	background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #fff, stop:1 #ddd);
+	border: 1px solid #444;
+	border-radius: 3px;
+}</string>
+              </property>
+              <property name="maximum">
+               <number>10</number>
+              </property>
+              <property name="pageStep">
+               <number>2</number>
+              </property>
+              <property name="value">
+               <number>10</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="OpacitySlider" stdset="0">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelTransparency">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Transparency of visible geometries</string>
+              </property>
+              <property name="statusTip">
+               <string>Transparency of visible geometries</string>
+              </property>
+              <property name="whatsThis">
+               <string>Transparency of visible geometries</string>
+              </property>
+              <property name="text">
+               <string>1.0</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listGeometries">
+            <property name="toolTip">
+             <string>Select visible geometries</string>
+            </property>
+            <property name="statusTip">
+             <string>Select visible geometries</string>
+            </property>
+            <property name="whatsThis">
+             <string>Select visible geometries</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxShowVolumes">
+         <property name="toolTip">
+          <string>Show or hide all volumes</string>
+         </property>
+         <property name="statusTip">
+          <string>Show or hide all volumes</string>
+         </property>
+         <property name="whatsThis">
+          <string>Show or hide all volumes</string>
+         </property>
+         <property name="title">
+          <string>Volumes</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_14">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="listVolumes">
+            <property name="toolTip">
+             <string>Select visible volumes</string>
+            </property>
+            <property name="statusTip">
+             <string>Select visible volumes</string>
+            </property>
+            <property name="whatsThis">
+             <string>Select visible volumes</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxDomain">
+         <property name="toolTip">
+          <string>Show or hide simulation domain</string>
+         </property>
+         <property name="statusTip">
+          <string>Show or hide simulation domain</string>
+         </property>
+         <property name="whatsThis">
+          <string>Show or hide simulation domain</string>
+         </property>
+         <property name="text">
+          <string>Simulation domain</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBoxPBC">
+         <property name="toolTip">
+          <string>Show or hide periodic boundary conditions</string>
+         </property>
+         <property name="statusTip">
+          <string>Show or hide periodic boundary conditions</string>
+         </property>
+         <property name="whatsThis">
+          <string>Show or hide periodic boundary conditions</string>
+         </property>
+         <property name="text">
+          <string>Periodic boundaries</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>156</width>
+           <height>1</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_3">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>183</width>
+        <height>617</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Selection</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="frameSelectingHint">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Single selection:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_10">
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;Ctrl + Left Click&gt;</string>
+            </property>
+            <property name="indent">
+             <number>15</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_11">
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>Group selection</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_8">
+            <property name="font">
+             <font>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;Ctrl + Right Click&gt;</string>
+            </property>
+            <property name="indent">
+             <number>15</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="objectsInfoTable">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>520</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Information about selected object(s)</string>
+         </property>
+         <property name="statusTip">
+          <string>Information about selected object(s)</string>
+         </property>
+         <property name="whatsThis">
+          <string>Information about selected object(s)</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="columnCount">
+          <number>1</number>
+         </property>
+         <attribute name="horizontalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <row>
+          <property name="text">
+           <string>Time [s]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Type</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>ID</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Radius [m]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Volume [mm3]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>X [m]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Y [m]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Z [m]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Vx [m/s]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Vy [m/s]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Vz [m/s]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Wx [rad/s]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Wy [rad/s]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Wz [rad/s]    </string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Mass [kg] </string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Temperature [K]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Force [N]</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Material</string>
+          </property>
+         </row>
+         <column/>
+         <item row="0" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="1" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="2" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="3" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="4" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="5" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="6" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="7" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="8" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="9" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="10" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="11" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="12" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="13" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="14" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="15" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="16" column="0">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </item>
+         <item row="17" column="0">
+          <property name="text">
+           <string>Undefined</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_4">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>200</width>
+        <height>592</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Colouring</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBoxColorType">
+         <property name="title">
+          <string>Color by</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxColorLimits">
+         <property name="toolTip">
+          <string>Coloring limits</string>
+         </property>
+         <property name="statusTip">
+          <string>Coloring limits</string>
+         </property>
+         <property name="whatsThis">
+          <string>Coloring limits</string>
+         </property>
+         <property name="title">
+          <string>Limits</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelColorLimitMin">
+            <property name="text">
+             <string>Min</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelColorLimitMax">
+            <property name="text">
+             <string>Max</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLineEdit" name="lineEditColorLimitMin">
+            <property name="toolTip">
+             <string>Min limit for coloring</string>
+            </property>
+            <property name="statusTip">
+             <string>Min limit for coloring</string>
+            </property>
+            <property name="whatsThis">
+             <string>Min limit for coloring</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEditColorLimitMax">
+            <property name="toolTip">
+             <string>Max limit for coloring</string>
+            </property>
+            <property name="statusTip">
+             <string>Max limit for coloring</string>
+            </property>
+            <property name="whatsThis">
+             <string>Max limit for coloring</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QPushButton" name="pushButtonColorLimitsAuto">
+            <property name="toolTip">
+             <string>Calculate min/max coloring limits</string>
+            </property>
+            <property name="statusTip">
+             <string>Calculate min/max coloring limits</string>
+            </property>
+            <property name="whatsThis">
+             <string>Calculate min/max coloring limits</string>
+            </property>
+            <property name="text">
+             <string>Auto</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxComponent">
+         <property name="toolTip">
+          <string>Component for vector value</string>
+         </property>
+         <property name="statusTip">
+          <string>Component for vector value</string>
+         </property>
+         <property name="whatsThis">
+          <string>Component for vector value</string>
+         </property>
+         <property name="title">
+          <string>Component</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QRadioButton" name="radioButtonComponentL">
+            <property name="toolTip">
+             <string>Color by length of vector value</string>
+            </property>
+            <property name="statusTip">
+             <string>Color by length of vector value</string>
+            </property>
+            <property name="whatsThis">
+             <string>Color by length of vector value</string>
+            </property>
+            <property name="text">
+             <string>Length</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButtonComponentX">
+            <property name="toolTip">
+             <string>Color by X-axis of vector value</string>
+            </property>
+            <property name="statusTip">
+             <string>Color by X-axis of vector value</string>
+            </property>
+            <property name="whatsThis">
+             <string>Color by X-axis of vector value</string>
+            </property>
+            <property name="text">
+             <string>X</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButtonComponentY">
+            <property name="toolTip">
+             <string>Color by Y-axis of vector value</string>
+            </property>
+            <property name="statusTip">
+             <string>Color by Y-axis of vector value</string>
+            </property>
+            <property name="whatsThis">
+             <string>Color by Y-axis of vector value</string>
+            </property>
+            <property name="text">
+             <string>Y</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButtonComponentZ">
+            <property name="toolTip">
+             <string>Color by Z-axis of vector value</string>
+            </property>
+            <property name="statusTip">
+             <string>Color by Z-axis of vector value</string>
+            </property>
+            <property name="whatsThis">
+             <string>Color by Z-axis of vector value</string>
+            </property>
+            <property name="text">
+             <string>Z</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxColors">
+         <property name="toolTip">
+          <string>Colors</string>
+         </property>
+         <property name="statusTip">
+          <string>Colors</string>
+         </property>
+         <property name="whatsThis">
+          <string>Colors</string>
+         </property>
+         <property name="title">
+          <string>Colors</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelColorMin">
+            <property name="text">
+             <string>Min</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelColorMid">
+            <property name="text">
+             <string>Mid</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="labelColorMax">
+            <property name="text">
+             <string>Max</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="CColorView" name="colorMin" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Color for min value</string>
+            </property>
+            <property name="statusTip">
+             <string>Color for min value</string>
+            </property>
+            <property name="whatsThis">
+             <string>Color for min value</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="CColorView" name="colorMid" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Color for mid value</string>
+            </property>
+            <property name="statusTip">
+             <string>Color for mid value</string>
+            </property>
+            <property name="whatsThis">
+             <string>Color for mid value</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="CColorView" name="colorMax" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>Color for max value</string>
+            </property>
+            <property name="statusTip">
+             <string>Color for max value</string>
+            </property>
+            <property name="whatsThis">
+             <string>Color for max value</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CColorView</class>
+   <extends>QWidget</extends>
+   <header>ColorView.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CQtDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>QtDoubleSpinBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

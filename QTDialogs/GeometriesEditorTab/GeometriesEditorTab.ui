@@ -1,0 +1,732 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>geometriesEditorTab</class>
+ <widget class="QDialog" name="geometriesEditorTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>767</width>
+    <height>471</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Geometries Editor</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Pictures/geomEditorIco.png</normaloff>:/QT_GUI/Pictures/geomEditorIco.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,4">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QListWidget" name="geometriesList">
+         <property name="toolTip">
+          <string>List of current geometries added to the scene</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_13">
+         <item>
+          <widget class="QPushButton" name="deleteGeometry">
+           <property name="toolTip">
+            <string>Remove geometry</string>
+           </property>
+           <property name="text">
+            <string>Delete</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+             <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addPushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Add</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+             <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QFrame" name="frameEditor">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Type     </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="geometryType">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Material     </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="materialsCombo">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>Color</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="CColorView" name="widgetColor" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <widget class="QLabel" name="centerLabel">
+            <property name="text">
+             <string>Center x:y:z </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="coordX"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="coordY"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="coordZ"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Shift to first particle contact</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="shiftUpwards">
+            <property name="toolTip">
+             <string>Shift object to the first contact with particle</string>
+            </property>
+            <property name="text">
+             <string>Upwards</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="shiftDownwards">
+            <property name="toolTip">
+             <string>Shift object downwards to the first contact with particle</string>
+            </property>
+            <property name="text">
+             <string>Downwards</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="scalingFactor">
+            <property name="text">
+             <string>1</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QRadioButton" name="radioButtonAngleX">
+              <property name="text">
+               <string>X</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButtonAngleY">
+              <property name="text">
+               <string>Y</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButtonAngleZ">
+              <property name="text">
+               <string>Z</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditAngle">
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Rotate [°]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QPushButton" name="scaleButton">
+            <property name="toolTip">
+             <string>Scale size of selected geometry</string>
+            </property>
+            <property name="text">
+             <string>Apply</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Scale</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QPushButton" name="rotateButton">
+            <property name="toolTip">
+             <string>Rotate selected geometry around center of mass (see documentation)</string>
+            </property>
+            <property name="text">
+             <string>Apply</string>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QLabel" name="param1Name">
+            <property name="text">
+             <string>Parameter 1</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="param1Value"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="param2Name">
+            <property name="text">
+             <string>Parameter 2</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="param2Value"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="param3Name">
+            <property name="text">
+             <string>Parameter 3</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="param3Value"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,4,1">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Number of triangles</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="sliderQuality">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEditQuality">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QCheckBox" name="rotateAroundCenter">
+            <property name="toolTip">
+             <string>Rotation center will be automatically calculated</string>
+            </property>
+            <property name="text">
+             <string>Rotate around center</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Free motion direction: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="freeMotionX">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>X</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="freeMotionY">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Y</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="freeMotionZ">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Z</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="massLabel">
+            <property name="text">
+             <string>Mass     </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="objectMass">
+            <property name="maximumSize">
+             <size>
+              <width>120</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QRadioButton" name="timeDepVelRadio">
+       <property name="text">
+        <string>Time-dependent velocity</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="forceDepVelRadio">
+       <property name="text">
+        <string>Force-dependent velocity</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="CQtTable" name="timeDepValues">
+       <property name="toolTip">
+        <string>Time dependent velocity of selected geometry</string>
+       </property>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <row>
+        <property name="text">
+         <string>New Row</string>
+        </property>
+       </row>
+       <column>
+        <property name="text">
+         <string>Time</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Vx</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Vy</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Vz</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Rot X</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Rot Y</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Rot Z</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Wx </string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Wy</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Wz</string>
+        </property>
+       </column>
+       <item row="0" column="0">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="1">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="2">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="3">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="4">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="5">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="6">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="7">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="8">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+       <item row="0" column="9">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QPushButton" name="buttonAddTP">
+         <property name="toolTip">
+          <string>Add new time point</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+           <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="buttonRemoveTP">
+         <property name="toolTip">
+          <string>Remove selected time point</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+           <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="statusMessage">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonClose">
+       <property name="text">
+        <string>OK</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CQtTable</class>
+   <extends>QTableWidget</extends>
+   <header>QtTable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CColorView</class>
+   <extends>QWidget</extends>
+   <header>ColorView.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>geometriesList</tabstop>
+  <tabstop>deleteGeometry</tabstop>
+  <tabstop>addPushButton</tabstop>
+  <tabstop>scalingFactor</tabstop>
+  <tabstop>scaleButton</tabstop>
+  <tabstop>radioButtonAngleX</tabstop>
+  <tabstop>radioButtonAngleY</tabstop>
+  <tabstop>radioButtonAngleZ</tabstop>
+  <tabstop>lineEditAngle</tabstop>
+  <tabstop>rotateButton</tabstop>
+  <tabstop>param1Value</tabstop>
+  <tabstop>param2Value</tabstop>
+  <tabstop>param3Value</tabstop>
+  <tabstop>sliderQuality</tabstop>
+  <tabstop>lineEditQuality</tabstop>
+  <tabstop>freeMotionX</tabstop>
+  <tabstop>freeMotionY</tabstop>
+  <tabstop>freeMotionZ</tabstop>
+  <tabstop>objectMass</tabstop>
+  <tabstop>timeDepValues</tabstop>
+  <tabstop>buttonAddTP</tabstop>
+  <tabstop>buttonRemoveTP</tabstop>
+  <tabstop>buttonClose</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonClose</sender>
+   <signal>clicked()</signal>
+   <receiver>geometriesEditorTab</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>585</x>
+     <y>451</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>523</x>
+     <y>439</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="ModelPPSintering.cuh" />
+    <ClInclude Include="ModelPPSintering.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="ModelPPSintering.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ModelPPSintering.cpp" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>timeSliderTab</class>
+ <widget class="QDialog" name="timeSliderTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>871</width>
+    <height>28</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="leftMargin">
+    <number>5</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>5</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QPushButton" name="firstTimePoint">
+     <property name="toolTip">
+      <string>Go to first saved time point</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/backward.png</normaloff>:/QT_GUI/Pictures/backward.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="previousTimePoint">
+     <property name="toolTip">
+      <string>Go to previous saved time point</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/stepBackward.png</normaloff>:/QT_GUI/Pictures/stepBackward.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSlider" name="timeSlider">
+     <property name="toolTip">
+      <string>Change current time (linear data interpolation between saved time points)</string>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="nextTimePoint">
+     <property name="toolTip">
+      <string>Go to next saved time point</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/stepForward.png</normaloff>:/QT_GUI/Pictures/stepForward.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="lastTimePoint">
+     <property name="toolTip">
+      <string>Go to the last saved time point</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/forward.png</normaloff>:/QT_GUI/Pictures/forward.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="timeEdit">
+     <property name="maximumSize">
+      <size>
+       <width>80</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="toolTip">
+      <string>Specify new time point</string>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="timeUnit">
+     <property name="text">
+      <string>s </string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="setTimeButton">
+     <property name="toolTip">
+      <string>Set time</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/apply.png</normaloff>:/QT_GUI/Pictures/apply.png</iconset>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -1,0 +1,908 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CExportAsTextTab</class>
+ <widget class="QDialog" name="CExportAsTextTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>550</width>
+    <height>571</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Export as text</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="1" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="propertiesTab">
+      <attribute name="title">
+       <string>Properties</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="1" column="3">
+        <widget class="QGroupBox" name="groupBoxGeometries">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="title">
+          <string>Geometries</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QCheckBox" name="checkBoxGeometry">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>General info</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxTDPGeometry">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>TD properties</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxIndOfPlanesGeometry">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>List of triangular walls</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QGroupBox" name="groupBoxObjectType">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="title">
+          <string>Object type</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QCheckBox" name="checkBoxParticle">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Particle</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxSolidBond">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Solid bond</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxLiquidBond">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Liquid bond</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxTriangularWall">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Triangular wall</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QGroupBox" name="groupBoxConstProperties">
+         <property name="title">
+          <string>Constant properties</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QCheckBox" name="checkBoxIdObject">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Object ID</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxObjectType">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Object type</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxObjectGeometry">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Object geometry</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxMaterial">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Material </string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxIntervalActivity">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Activity interval </string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QGroupBox" name="groupBoxSceneInfo">
+         <property name="title">
+          <string>Scene info</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QCheckBox" name="checkBoxComputationalDomain">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Computational domain</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxBoundaryConditions">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Boundary conditions</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxAnisotropy">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Anisotropy flag</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxContactRadius">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Contact radius flag</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_5">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="1" rowspan="3">
+        <widget class="QGroupBox" name="groupBoxTDProperties">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="title">
+          <string>TD properties</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QCheckBox" name="checkBoxAngularVelocity">
+            <property name="toolTip">
+             <string>Is used only for particles</string>
+            </property>
+            <property name="text">
+             <string>Angular velocity</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxCoordinate">
+            <property name="toolTip">
+             <string>Is used only for particles</string>
+            </property>
+            <property name="text">
+             <string>Coordinate</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxForce">
+            <property name="toolTip">
+             <string>Is used for all types of objects</string>
+            </property>
+            <property name="text">
+             <string>Force</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxPlanesCoordinates">
+            <property name="toolTip">
+             <string>Are used only for triangular walls</string>
+            </property>
+            <property name="text">
+             <string>Planes coordinates</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxQuaternion">
+            <property name="toolTip">
+             <string>Is used only for particles</string>
+            </property>
+            <property name="text">
+             <string>Quaternion</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxStressTensor">
+            <property name="toolTip">
+             <string>Is used only for particles</string>
+            </property>
+            <property name="text">
+             <string>Stress tensor</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxTangOverlap">
+            <property name="toolTip">
+             <string>Is used only for solid bonds</string>
+            </property>
+            <property name="text">
+             <string>Tangential overlap</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxTotalForce">
+            <property name="toolTip">
+             <string>Is used for all types of objects</string>
+            </property>
+            <property name="text">
+             <string>Total force</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxTotalTorque">
+            <property name="toolTip">
+             <string>Is used only for solid bonds</string>
+            </property>
+            <property name="text">
+             <string>Total torque</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxVelocity">
+            <property name="toolTip">
+             <string>Is used only for particles and triangular walls</string>
+            </property>
+            <property name="text">
+             <string>Velocity</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxTemperature">
+            <property name="toolTip">
+             <string>Is used only for particles and solid bonds</string>
+            </property>
+            <property name="text">
+             <string>Temperature</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="3" rowspan="2">
+        <widget class="QGroupBox" name="groupBoxMaterials">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="title">
+          <string>Materials</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QCheckBox" name="checkBoxCompounds">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Compounds</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxInteractions">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Interactions</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxMixtures">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Mixtures</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="1" column="0" rowspan="3">
+        <widget class="QGroupBox" name="groupBoxTime">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="title">
+          <string>Time</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="lineEditTimeTo">
+              <property name="toolTip">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="toolButtonUpdateTimeTo">
+              <property name="text">
+               <string>max</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEditTimeFrom">
+            <property name="toolTip">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="lineEditTimePoints">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QRadioButton" name="radioButtonTimeStep">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Time step [s]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="lineEditTimeStep">
+            <property name="toolTip">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>To [s]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QRadioButton" name="radioButtonTimeSaved">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Only saved</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>From [s]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="text">
+             <string>Data points</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <spacer name="verticalSpacer">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+         <zorder>label_5</zorder>
+         <zorder>lineEditTimeFrom</zorder>
+         <zorder>label_6</zorder>
+         <zorder>radioButtonTimeSaved</zorder>
+         <zorder>radioButtonTimeStep</zorder>
+         <zorder>lineEditTimeStep</zorder>
+         <zorder>label_7</zorder>
+         <zorder>lineEditTimePoints</zorder>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="CConstraintsEditorTab" name="constraintsTab">
+      <attribute name="title">
+       <string>Constraints</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QRadioButton" name="radioButtonSaveAll">
+       <property name="text">
+        <string>Save all</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup</string>
+       </attribute>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButtonSaveSelective">
+       <property name="text">
+        <string>Save selective</string>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttonGroup</string>
+       </attribute>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>TD precision</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="spinBoxPrecision">
+       <property name="toolTip">
+        <string>Decimal precision to be used to format floating-point values of time-dependent properties</string>
+       </property>
+       <property name="statusTip">
+        <string>Decimal precision to be used to format floating-point values of time-dependent properties</string>
+       </property>
+       <property name="whatsThis">
+        <string>Decimal precision to be used to format floating-point values of time-dependent properties</string>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>14</number>
+       </property>
+       <property name="value">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QProgressBar" name="progressBarExporting">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonCancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonExport">
+       <property name="text">
+        <string>Export</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
+     <item>
+      <widget class="QLabel" name="label_11">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="lineWidth">
+        <number>1</number>
+       </property>
+       <property name="midLineWidth">
+        <number>0</number>
+       </property>
+       <property name="text">
+        <string>Status:</string>
+       </property>
+       <property name="indent">
+        <number>-1</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="statusLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CConstraintsEditorTab</class>
+   <extends>QWidget</extends>
+   <header location="global">ConstraintsEditorTab.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>radioButtonSaveAll</tabstop>
+  <tabstop>radioButtonSaveSelective</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>groupBoxObjectType</tabstop>
+  <tabstop>checkBoxParticle</tabstop>
+  <tabstop>checkBoxSolidBond</tabstop>
+  <tabstop>checkBoxLiquidBond</tabstop>
+  <tabstop>checkBoxTriangularWall</tabstop>
+  <tabstop>lineEditTimeFrom</tabstop>
+  <tabstop>lineEditTimeTo</tabstop>
+  <tabstop>toolButtonUpdateTimeTo</tabstop>
+  <tabstop>radioButtonTimeSaved</tabstop>
+  <tabstop>radioButtonTimeStep</tabstop>
+  <tabstop>lineEditTimeStep</tabstop>
+  <tabstop>lineEditTimePoints</tabstop>
+  <tabstop>groupBoxConstProperties</tabstop>
+  <tabstop>checkBoxIdObject</tabstop>
+  <tabstop>checkBoxObjectType</tabstop>
+  <tabstop>checkBoxObjectGeometry</tabstop>
+  <tabstop>checkBoxMaterial</tabstop>
+  <tabstop>checkBoxIntervalActivity</tabstop>
+  <tabstop>checkBoxAngularVelocity</tabstop>
+  <tabstop>checkBoxCoordinate</tabstop>
+  <tabstop>checkBoxForce</tabstop>
+  <tabstop>checkBoxTotalForce</tabstop>
+  <tabstop>checkBoxVelocity</tabstop>
+  <tabstop>groupBoxSceneInfo</tabstop>
+  <tabstop>checkBoxComputationalDomain</tabstop>
+  <tabstop>checkBoxBoundaryConditions</tabstop>
+  <tabstop>checkBoxAnisotropy</tabstop>
+  <tabstop>checkBoxContactRadius</tabstop>
+  <tabstop>groupBoxGeometries</tabstop>
+  <tabstop>checkBoxGeometry</tabstop>
+  <tabstop>checkBoxTDPGeometry</tabstop>
+  <tabstop>checkBoxIndOfPlanesGeometry</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+ </buttongroups>
+</ui>

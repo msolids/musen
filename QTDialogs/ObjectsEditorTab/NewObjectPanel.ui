@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CNewObjectPanel</class>
+ <widget class="QWidget" name="CNewObjectPanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>818</width>
+    <height>72</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CNewObjectPanel</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_7">
+       <property name="maximumSize">
+        <size>
+         <width>60</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Type</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QFrame" name="newObjectTypeGroup">
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QRadioButton" name="radioParticle">
+          <property name="toolTip">
+           <string>Add particle</string>
+          </property>
+          <property name="statusTip">
+           <string>Add particle</string>
+          </property>
+          <property name="whatsThis">
+           <string>Add particle</string>
+          </property>
+          <property name="text">
+           <string>Particle</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioBond">
+          <property name="toolTip">
+           <string>Add solid bond</string>
+          </property>
+          <property name="statusTip">
+           <string>Add solid bond</string>
+          </property>
+          <property name="whatsThis">
+           <string>Add solid bond</string>
+          </property>
+          <property name="text">
+           <string>Solid bond</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkboxOverlap">
+       <property name="toolTip">
+        <string>Allow overlap between particles</string>
+       </property>
+       <property name="statusTip">
+        <string>Allow overlap between particles</string>
+       </property>
+       <property name="whatsThis">
+        <string>Allow overlap between particles</string>
+       </property>
+       <property name="text">
+        <string>Allow overlap</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_8">
+       <property name="maximumSize">
+        <size>
+         <width>60</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Material</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboMaterial">
+       <property name="toolTip">
+        <string>Material of the object</string>
+       </property>
+       <property name="statusTip">
+        <string>Material of the object</string>
+       </property>
+       <property name="whatsThis">
+        <string>Material of the object</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="1" rowspan="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>39</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="0" rowspan="2">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="4">
+      <widget class="QLineEdit" name="lineEditY">
+       <property name="toolTip">
+        <string>Y coordinate</string>
+       </property>
+       <property name="statusTip">
+        <string>Y coordinate</string>
+       </property>
+       <property name="whatsThis">
+        <string>Y coordinate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="5">
+      <widget class="QLineEdit" name="lineEditZ">
+       <property name="toolTip">
+        <string>Z coordinate</string>
+       </property>
+       <property name="statusTip">
+        <string>Z coordinate</string>
+       </property>
+       <property name="whatsThis">
+        <string>Z coordinate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="6">
+      <widget class="QLineEdit" name="lineEditID1">
+       <property name="toolTip">
+        <string>First particle ID</string>
+       </property>
+       <property name="statusTip">
+        <string>First particle ID</string>
+       </property>
+       <property name="whatsThis">
+        <string>First particle ID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QLabel" name="labelX">
+       <property name="text">
+        <string>Coordinate X [m]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="6">
+      <widget class="QLabel" name="labelID1">
+       <property name="text">
+        <string>ID1</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLineEdit" name="lineEditDiameter">
+       <property name="toolTip">
+        <string>Diameter</string>
+       </property>
+       <property name="statusTip">
+        <string>Diameter</string>
+       </property>
+       <property name="whatsThis">
+        <string>Diameter</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEditContactDiameter">
+       <property name="toolTip">
+        <string>Contact diameter</string>
+       </property>
+       <property name="statusTip">
+        <string>Contact diameter</string>
+       </property>
+       <property name="whatsThis">
+        <string>Contact diameter</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="4">
+      <widget class="QLabel" name="labelY">
+       <property name="text">
+        <string>Coordinate Y [m]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="7">
+      <widget class="QLineEdit" name="lineEditID2">
+       <property name="toolTip">
+        <string>Second particle ID</string>
+       </property>
+       <property name="statusTip">
+        <string>Second particle ID</string>
+       </property>
+       <property name="whatsThis">
+        <string>Second particle ID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="5">
+      <widget class="QLabel" name="labelZ">
+       <property name="text">
+        <string>Coordinate Z [m]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelDiameter">
+       <property name="text">
+        <string>Diameter [m]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="labelContactDiameter">
+       <property name="text">
+        <string>Contact diameter [m]</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="7">
+      <widget class="QLabel" name="labelID2">
+       <property name="text">
+        <string>ID2</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QLineEdit" name="lineEditX">
+       <property name="toolTip">
+        <string>X coordinate</string>
+       </property>
+       <property name="statusTip">
+        <string>X coordinate</string>
+       </property>
+       <property name="whatsThis">
+        <string>X coordinate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPushButton" name="buttonAdd">
+     <property name="toolTip">
+      <string>Add object</string>
+     </property>
+     <property name="statusTip">
+      <string>Add object</string>
+     </property>
+     <property name="whatsThis">
+      <string>Add object</string>
+     </property>
+     <property name="text">
+      <string>Add</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>radioParticle</tabstop>
+  <tabstop>radioBond</tabstop>
+  <tabstop>checkboxOverlap</tabstop>
+  <tabstop>comboMaterial</tabstop>
+  <tabstop>lineEditDiameter</tabstop>
+  <tabstop>lineEditContactDiameter</tabstop>
+  <tabstop>lineEditX</tabstop>
+  <tabstop>lineEditY</tabstop>
+  <tabstop>lineEditZ</tabstop>
+  <tabstop>lineEditID1</tabstop>
+  <tabstop>lineEditID2</tabstop>
+  <tabstop>buttonAdd</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

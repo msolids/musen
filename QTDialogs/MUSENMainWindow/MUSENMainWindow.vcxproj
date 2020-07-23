@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="AboutDialog.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="ExportAsTextTab.h">
+    </QtMoc>
+    <QtMoc Include="FileMergerTab.h">
+    </QtMoc>
+    <QtMoc Include="FileConverterTab.h">
+    </QtMoc>
+    <QtMoc Include="ClearSpecificTPTab.h">
+    </QtMoc>
+    <QtMoc Include="ViewOptionsTab.h">
+    </QtMoc>
+    <QtMoc Include="TimeSliderTab.h">
+    </QtMoc>
+    <QtMoc Include="MusenGUI.h" />
+    <QtMoc Include="ImageGeneratorTab.h">
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CameraSettings.cpp" />
+    <ClCompile Include="ClearSpecificTPTab.cpp" />
+    <ClCompile Include="ExportAsTextTab.cpp" />
+    <ClCompile Include="FileConverterTab.cpp" />
+    <ClCompile Include="FileMergerTab.cpp" />
+    <ClCompile Include="ImageGeneratorTab.cpp" />
+    <ClCompile Include="MusenGUI.cpp" />
+    <ClCompile Include="TimeSliderTab.cpp" />
+    <ClCompile Include="ViewOptionsTab.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="CameraSettings.ui" />
+    <QtUic Include="ImageGeneratorTab.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="MusenGUI.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="TimeSliderTab.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="ViewOptions.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="ExportAsTextTab.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="FileMergerTab.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="FileConverterTab.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="ClearSpecificTPTab.ui">
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="CameraSettings.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D0582D03-0861-49E3-BB2B-9AEDEA1A7BAB}</ProjectGuid>
+    <Keyword>QtVS_v301</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
+    <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonDebug.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonRelease.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;opengl;widgets</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;opengl;widgets</QtModules>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <QtMoc />
+    <QtUic />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <QtMoc />
+    <QtUic />
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

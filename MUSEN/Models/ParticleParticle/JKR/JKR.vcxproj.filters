@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="ModelPPJKR.h" />
+    <ClInclude Include="ModelPPJKR.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ModelPPJKR.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="ModelPPJKR.cu" />
+  </ItemGroup>
+</Project>

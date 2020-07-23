@@ -1,0 +1,85 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
+syntax = "proto3";
+option optimize_for = SPEED;
+
+message ProtoCompoundFraction
+{
+	string fractionName = 1;
+	string compoundKey = 2;
+	double diameter = 3;
+	double fraction = 4;
+	double contact_diameter = 5;
+}
+
+message ProtoMixture
+{
+	string uniqueKey = 1;
+	string mixtureName = 2;
+	repeated ProtoCompoundFraction fraction = 3;
+}
+
+message ProtoCorrelation
+{
+	double t1 = 1;
+	double t2 = 2;
+	double p1 = 3;
+	double p2 = 4;
+	uint32 corType = 5;
+	repeated double parameter = 6;
+}
+
+message ProtoTPProperty
+{
+	uint32 propertyType = 1;
+	repeated ProtoCorrelation correlation = 2;
+}
+
+message ProtoConstProperty
+{
+	uint32 propertyType = 1;
+	double value = 2;
+}
+
+message ProtoColor
+{
+	float r = 1;
+	float g = 2;
+	float b = 3;
+	float a = 4;
+}
+
+message ProtoDate
+{
+	 uint32 year = 1;
+	 uint32 month = 2;
+	 uint32 day = 3;
+}
+
+message ProtoCompound
+{
+	string compoundName = 1;
+	string uniqueKey = 2;
+	string authorName = 3;
+	ProtoDate creationDate = 4;
+	ProtoColor color = 5;
+	uint32 phase = 6;
+	repeated ProtoConstProperty constProperty = 7;
+	repeated ProtoTPProperty property = 8;
+}
+
+message ProtoInteraction
+{
+	string compoundKey1 = 1;
+	string compoundKey2 = 2;
+	repeated ProtoTPProperty property = 3;
+}
+
+message ProtoMaterialsDatabase
+{
+	repeated ProtoCompound compound = 1;
+	repeated ProtoInteraction interaction = 2;
+	repeated ProtoMixture mixture = 3;
+}

@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>configurationTab</class>
+ <widget class="QDialog" name="configurationTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>440</width>
+    <height>380</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MUSEN options</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="1">
+      <layout class="QVBoxLayout" name="verticalLayout_10">
+       <item>
+        <widget class="QGroupBox" name="groupBoxVisibility">
+         <property name="title">
+          <string>Display settings</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="checkBoxShowAxes">
+            <property name="toolTip">
+             <string>Show coordinate axes</string>
+            </property>
+            <property name="statusTip">
+             <string>Show coordinate axes</string>
+            </property>
+            <property name="whatsThis">
+             <string>Show coordinate axes</string>
+            </property>
+            <property name="text">
+             <string>Show axes</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkBoxShowTime">
+            <property name="toolTip">
+             <string>Show time stamp</string>
+            </property>
+            <property name="statusTip">
+             <string>Show time stamp</string>
+            </property>
+            <property name="whatsThis">
+             <string>Show time stamp</string>
+            </property>
+            <property name="text">
+             <string>Show time</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="checkBoxShowLegend">
+            <property name="toolTip">
+             <string>Show color legend</string>
+            </property>
+            <property name="statusTip">
+             <string>Show color legend</string>
+            </property>
+            <property name="whatsThis">
+             <string>Show color legend</string>
+            </property>
+            <property name="text">
+             <string>Show legend</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QToolButton" name="toolButtonFontTime">
+            <property name="text">
+             <string>Font</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+              <normaloff>:/QT_GUI/Pictures/font.png</normaloff>:/QT_GUI/Pictures/font.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QToolButton" name="toolButtonFontAxes">
+            <property name="text">
+             <string>Font</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+              <normaloff>:/QT_GUI/Pictures/font.png</normaloff>:/QT_GUI/Pictures/font.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QToolButton" name="toolButtonFontLegend">
+            <property name="text">
+             <string>Font</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+              <normaloff>:/QT_GUI/Pictures/font.png</normaloff>:/QT_GUI/Pictures/font.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="CColorView" name="widgetColorLegend" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="CColorView" name="widgetColorAxes" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="CColorView" name="widgetColorTime" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string>System</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="checkBoxAskTDData">
+          <property name="toolTip">
+           <string>Get rid of the annoying message when you start the simulation</string>
+          </property>
+          <property name="statusTip">
+           <string>Get rid of the annoying message when you start the simulation</string>
+          </property>
+          <property name="whatsThis">
+           <string>Get rid of the annoying message when you start the simulation</string>
+          </property>
+          <property name="text">
+           <string>Ask for confirmation when starting the simulation</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <layout class="QVBoxLayout" name="verticalLayout_11">
+       <item>
+        <widget class="QGroupBox" name="groupBoxParticles">
+         <property name="title">
+          <string>Rendering of objects</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QGroupBox" name="groupBoxRenderType">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="title">
+             <string>Rendering type</string>
+            </property>
+            <layout class="QGridLayout" name="gridLayout">
+             <property name="leftMargin">
+              <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>9</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QRadioButton" name="radioRenderStandart">
+               <property name="toolTip">
+                <string>Slow, not demanding on resources</string>
+               </property>
+               <property name="statusTip">
+                <string>Slow, not demanding on resources</string>
+               </property>
+               <property name="whatsThis">
+                <string>Slow, not demanding on resources</string>
+               </property>
+               <property name="text">
+                <string>GLU</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QRadioButton" name="radioRenderTexture">
+               <property name="toolTip">
+                <string>Faster, not demanding on resources</string>
+               </property>
+               <property name="statusTip">
+                <string>Faster, not demanding on resources</string>
+               </property>
+               <property name="whatsThis">
+                <string>Faster, not demanding on resources</string>
+               </property>
+               <property name="text">
+                <string>Mixed</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QRadioButton" name="radioRenderOpenGL">
+               <property name="toolTip">
+                <string>Fast but resource demanding</string>
+               </property>
+               <property name="statusTip">
+                <string>Fast but resource demanding</string>
+               </property>
+               <property name="whatsThis">
+                <string>Fast but resource demanding</string>
+               </property>
+               <property name="text">
+                <string>Shaders</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxQuality">
+            <property name="title">
+             <string>Quality</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>Poor</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSlider" name="sliderViewQuality">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>Detailization quality of some objects</string>
+                 </property>
+                 <property name="statusTip">
+                  <string>Detailization quality of some objects</string>
+                 </property>
+                 <property name="whatsThis">
+                  <string>Detailization quality of some objects</string>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>100</number>
+                 </property>
+                 <property name="value">
+                  <number>50</number>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="tickPosition">
+                  <enum>QSlider::TicksBelow</enum>
+                 </property>
+                 <property name="OpacitySlider" stdset="0">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="wallOpacity_3">
+                 <property name="text">
+                  <string>Good</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxPartTextures">
+            <property name="title">
+             <string>Particle textures</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QPushButton" name="pushButtonPartTextureDefault">
+               <property name="text">
+                <string>Set default</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonPartTextureLoad">
+               <property name="toolTip">
+                <string>Load texture from file</string>
+               </property>
+               <property name="statusTip">
+                <string>Load texture from file</string>
+               </property>
+               <property name="whatsThis">
+                <string>Load texture from file</string>
+               </property>
+               <property name="text">
+                <string>Load...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonPartTexturePick">
+               <property name="toolTip">
+                <string>Choose from the list of available</string>
+               </property>
+               <property name="statusTip">
+                <string>Choose from the list of available</string>
+               </property>
+               <property name="whatsThis">
+                <string>Choose from the list of available</string>
+               </property>
+               <property name="text">
+                <string>Pick...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonClose">
+       <property name="text">
+        <string>Close</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CColorView</class>
+   <extends>QWidget</extends>
+   <header>ColorView.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

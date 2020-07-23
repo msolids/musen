@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;cxx;c;def</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="ImageGeneratorTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="ImageGeneratorTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="TimeSliderTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="TimeSliderTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ViewOptions.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="ViewOptionsTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="ExportAsTextTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="ExportAsTextTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="FileMergerTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="FileMergerTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="FileConverterTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="FileConverterTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="ClearSpecificTPTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtUic Include="ClearSpecificTPTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="MusenGUI.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="MusenGUI.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="CameraSettings.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ImageGeneratorTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeSliderTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewOptionsTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportAsTextTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileMergerTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileConverterTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ClearSpecificTPTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MusenGUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="AboutDialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="CameraSettings.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+</Project>

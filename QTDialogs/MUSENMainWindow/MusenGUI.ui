@@ -1,0 +1,988 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MusenGUIClass</class>
+ <widget class="QMainWindow" name="MusenGUIClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>780</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>MUSEN</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>24</width>
+    <height>17</height>
+   </size>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <property name="MainWidget" stdset="0">
+    <bool>true</bool>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,5">
+    <property name="leftMargin">
+     <number>4</number>
+    </property>
+    <property name="topMargin">
+     <number>3</number>
+    </property>
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
+    <property name="bottomMargin">
+     <number>3</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="viewOptions" native="true"/>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="CTimeSliderTab" name="timeSlider" native="true"/>
+      </item>
+      <item>
+       <widget class="QWidget" name="sceneViewer" native="true"/>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1280</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionNew"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSaveAs"/>
+    <addaction name="actionSaveSnapshot"/>
+    <addaction name="actionExportToText"/>
+    <addaction name="actionImportFromText"/>
+    <addaction name="actionImportFromEDEM"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionExit"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menuDatabases">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="toolTip">
+     <string/>
+    </property>
+    <property name="title">
+     <string>Databases</string>
+    </property>
+    <addaction name="actionAgglomeratesDatabase"/>
+    <addaction name="actionGeometriesDatabase"/>
+    <addaction name="actionMaterialsDatabaseGlobal"/>
+   </widget>
+   <widget class="QMenu" name="menuScene">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Scene</string>
+    </property>
+    <addaction name="actionBondsGeneration"/>
+    <addaction name="actionPackageGenerator"/>
+    <addaction name="separator"/>
+    <addaction name="actionGeometriesEditor"/>
+    <addaction name="actionMaterialsDatabaseLocal"/>
+    <addaction name="actionObjectsEditor"/>
+    <addaction name="actionSceneEditor"/>
+    <addaction name="separator"/>
+    <addaction name="actionClearTimePoints"/>
+    <addaction name="actionClearSpecificTimePoints"/>
+    <addaction name="actionDeleteAllBonds"/>
+    <addaction name="actionDeleteAllParticles"/>
+    <addaction name="actionDeleteNonConnectedParticles"/>
+    <addaction name="actionDeleteSeparateParticles"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <widget class="QMenu" name="menuDocumentation">
+     <property name="title">
+      <string>Documentation</string>
+     </property>
+    </widget>
+    <addaction name="menuDocumentation"/>
+    <addaction name="actionAbout"/>
+    <addaction name="separator"/>
+    <addaction name="actionWatchOnYoutube"/>
+   </widget>
+   <widget class="QMenu" name="menuSimulation">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Simulation</string>
+    </property>
+    <addaction name="actionObjectsGenerator"/>
+    <addaction name="actionStartSimulation"/>
+    <addaction name="actionSimulatorSettings"/>
+   </widget>
+   <widget class="QMenu" name="menuOptions">
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionDefaultUnits"/>
+    <addaction name="actionModelManager"/>
+    <addaction name="actionConfiguration"/>
+   </widget>
+   <widget class="QMenu" name="menuAnalysis">
+    <property name="title">
+     <string>Analysis</string>
+    </property>
+    <addaction name="actionAgglomeratesAnalyzer"/>
+    <addaction name="actionBondsAnalyzer"/>
+    <addaction name="actionGeometriesAnalyzer"/>
+    <addaction name="actionResultAnalyzer"/>
+    <addaction name="actionSampleAnalyzer"/>
+    <addaction name="separator"/>
+    <addaction name="actionPackageInfo"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionCameraSettings"/>
+    <addaction name="actionExportGeometries"/>
+    <addaction name="actionMergeFiles"/>
+    <addaction name="actionSaveAsImage"/>
+    <addaction name="actionSaveAsImagesSet"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuScene"/>
+   <addaction name="menuSimulation"/>
+   <addaction name="menuAnalysis"/>
+   <addaction name="menuDatabases"/>
+   <addaction name="menuOptions"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="windowTitle">
+    <string>Tool bar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>17</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionLoad"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionSaveAs"/>
+   <addaction name="separator"/>
+   <addaction name="actionGeometriesEditor"/>
+   <addaction name="actionClearTimePoints"/>
+   <addaction name="actionDeleteAllParticles"/>
+   <addaction name="separator"/>
+   <addaction name="actionStartSimulation"/>
+   <addaction name="separator"/>
+   <addaction name="actionAutoCentrateViewX"/>
+   <addaction name="actionAutoCentrateViewY"/>
+   <addaction name="actionAutoCentrateViewZ"/>
+   <addaction name="separator"/>
+   <addaction name="actionAutoCentrateView"/>
+  </widget>
+  <action name="actionLoad">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/folderr.png</normaloff>:/QT_GUI/folderr.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load scene from the .mdem file</string>
+   </property>
+   <property name="statusTip">
+    <string>Load scene from the .mdem file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Load scene from the .mdem file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="toolTip">
+    <string>Close application</string>
+   </property>
+   <property name="statusTip">
+    <string>Close application</string>
+   </property>
+   <property name="whatsThis">
+    <string>Close application</string>
+   </property>
+  </action>
+  <action name="actionMaterialsDatabaseLocal">
+   <property name="text">
+    <string>Materials Editor</string>
+   </property>
+   <property name="toolTip">
+    <string>Open materials editor</string>
+   </property>
+   <property name="statusTip">
+    <string>Open database of current materials</string>
+   </property>
+  </action>
+  <action name="actionBondsGeneration">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/bondsGeneratorIco/bonds_generator.png</normaloff>:/bondsGeneratorIco/bonds_generator.png</iconset>
+   </property>
+   <property name="text">
+    <string>Bonds Generator</string>
+   </property>
+   <property name="toolTip">
+    <string>Modify properties of materials and mixtures</string>
+   </property>
+   <property name="statusTip">
+    <string>Modify properties of materials and mixtures</string>
+   </property>
+   <property name="whatsThis">
+    <string>Modify properties of materials and mixtures</string>
+   </property>
+  </action>
+  <action name="actionPackageInfo">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/QT_GUI/statistics.png</normaloff>:/QT_GUI/statistics.png</iconset>
+   </property>
+   <property name="text">
+    <string>Scene Info</string>
+   </property>
+   <property name="toolTip">
+    <string>Get the detailed information about the current scene</string>
+   </property>
+   <property name="statusTip">
+    <string>Get the detailed information about the current scene</string>
+   </property>
+   <property name="whatsThis">
+    <string>Get the detailed information about the current scene</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="toolTip">
+    <string>Get the information about the program</string>
+   </property>
+   <property name="statusTip">
+    <string>Get the information about the program</string>
+   </property>
+   <property name="whatsThis">
+    <string>Get the information about the program</string>
+   </property>
+  </action>
+  <action name="actionPackageGenerator">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/QT_GUI/package_button.jpg</normaloff>:/QT_GUI/package_button.jpg</iconset>
+   </property>
+   <property name="text">
+    <string>Package Generator</string>
+   </property>
+   <property name="toolTip">
+    <string>Create package of spherical particles</string>
+   </property>
+   <property name="statusTip">
+    <string>Create package of spherical particles</string>
+   </property>
+   <property name="whatsThis">
+    <string>Create package of spherical particles</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/newPage.png</normaloff>:/QT_GUI/newPage.png</iconset>
+   </property>
+   <property name="text">
+    <string>New...</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new empty scene</string>
+   </property>
+   <property name="statusTip">
+    <string>Create new empty scene</string>
+   </property>
+   <property name="whatsThis">
+    <string>Create new empty scene</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/save_button.png</normaloff>:/QT_GUI/save_button.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current scene into the current .mdem file</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current scene into the current .mdem file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save current scene into the current .mdem file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionExportToText">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/save_button_txt.png</normaloff>:/QT_GUI/save_button_txt.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export as text</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current scene as a text file</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current scene as a text file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save current scene as a text file</string>
+   </property>
+  </action>
+  <action name="actionObjectsEditor">
+   <property name="text">
+    <string>Objects Editor</string>
+   </property>
+   <property name="iconText">
+    <string>Objects editor</string>
+   </property>
+   <property name="toolTip">
+    <string>Manual objects editor</string>
+   </property>
+   <property name="statusTip">
+    <string>Manual objects editor</string>
+   </property>
+   <property name="whatsThis">
+    <string>Manual objects editor</string>
+   </property>
+  </action>
+  <action name="actionClearTimePoints">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/clock.png</normaloff>:/QT_GUI/Pictures/clock.png</iconset>
+   </property>
+   <property name="text">
+    <string>Remove all time points</string>
+   </property>
+   <property name="toolTip">
+    <string>Remove all time points in the current file</string>
+   </property>
+   <property name="statusTip">
+    <string>Remove all time points in the current file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Remove all time points in the current file</string>
+   </property>
+  </action>
+  <action name="actionSampleAnalyzer">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sample Analyzer</string>
+   </property>
+   <property name="toolTip">
+    <string>A tool for analyzing the scene in a specific volume</string>
+   </property>
+   <property name="statusTip">
+    <string>A tool for analyzing the scene in  specific volume</string>
+   </property>
+   <property name="whatsThis">
+    <string>A tool for analyzing the scene in a specific volume</string>
+   </property>
+  </action>
+  <action name="actionSaveAsImage">
+   <property name="text">
+    <string>Save as image</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current view as an image</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current view as an image</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save current view as an image</string>
+   </property>
+  </action>
+  <action name="actionSaveAsImagesSet">
+   <property name="text">
+    <string>Save set of images</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current simulation as a set of images</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current simulation as a set of images</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save current simulation as a set of images</string>
+   </property>
+  </action>
+  <action name="actionWatchOnYoutube">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/youtube_icon.png</normaloff>:/QT_GUI/Pictures/youtube_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Watch on YouTube</string>
+   </property>
+   <property name="toolTip">
+    <string>Open YouTube channel</string>
+   </property>
+   <property name="statusTip">
+    <string>Open YouTube channel</string>
+   </property>
+   <property name="whatsThis">
+    <string>Open YouTube channel</string>
+   </property>
+  </action>
+  <action name="actionSceneEditor">
+   <property name="text">
+    <string>Scene Editor</string>
+   </property>
+   <property name="toolTip">
+    <string>Modify total scene</string>
+   </property>
+   <property name="statusTip">
+    <string>Modify total scene</string>
+   </property>
+   <property name="whatsThis">
+    <string>Modify total scene</string>
+   </property>
+  </action>
+  <action name="actionConfiguration">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Specify program options </string>
+   </property>
+   <property name="statusTip">
+    <string>Specify program options </string>
+   </property>
+   <property name="whatsThis">
+    <string>Specify program options </string>
+   </property>
+  </action>
+  <action name="actionDeleteAllParticles">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/deleteParticles.png</normaloff>:/QT_GUI/Pictures/deleteParticles.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete all particles</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete all particles from the current scene</string>
+   </property>
+   <property name="statusTip">
+    <string>Delete all particles from the current scene</string>
+   </property>
+   <property name="whatsThis">
+    <string>Delete all particles from the current scene</string>
+   </property>
+  </action>
+  <action name="actionSaveSnapshot">
+   <property name="text">
+    <string>Save data snapshot</string>
+   </property>
+   <property name="toolTip">
+    <string>Save selected time point as a separate .mdem file</string>
+   </property>
+   <property name="statusTip">
+    <string>Save selected time point as a separate .mdem file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save selected time point as a separate .mdem file</string>
+   </property>
+  </action>
+  <action name="actionGeometriesDatabase">
+   <property name="text">
+    <string>Geometries</string>
+   </property>
+   <property name="toolTip">
+    <string>Open database of geometries</string>
+   </property>
+   <property name="statusTip">
+    <string>Open database of geometries</string>
+   </property>
+   <property name="whatsThis">
+    <string>Open database of geometries</string>
+   </property>
+  </action>
+  <action name="actionAgglomeratesDatabase">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/aggloIco.png</normaloff>:/QT_GUI/Pictures/aggloIco.png</iconset>
+   </property>
+   <property name="text">
+    <string>Agglomerates</string>
+   </property>
+   <property name="toolTip">
+    <string>Open database of agglomerates</string>
+   </property>
+   <property name="statusTip">
+    <string>Open database of agglomerates</string>
+   </property>
+   <property name="whatsThis">
+    <string>Open database of agglomerates</string>
+   </property>
+  </action>
+  <action name="actionObjectsGenerator">
+   <property name="text">
+    <string>Dynamic Generator</string>
+   </property>
+   <property name="toolTip">
+    <string>Specify parameters for generation of new particles</string>
+   </property>
+   <property name="statusTip">
+    <string>Specify parameters for generation of new particles</string>
+   </property>
+   <property name="whatsThis">
+    <string>Specify parameters for generation of new particles</string>
+   </property>
+  </action>
+  <action name="actionGeometriesEditor">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/geomEditorIco.png</normaloff>:/QT_GUI/Pictures/geomEditorIco.png</iconset>
+   </property>
+   <property name="text">
+    <string>Geometries Editor</string>
+   </property>
+   <property name="toolTip">
+    <string>Modify position, size and velocity of geometrical objects</string>
+   </property>
+   <property name="statusTip">
+    <string>Modify position, size and velocity of geometrical objects</string>
+   </property>
+   <property name="whatsThis">
+    <string>Modify position, size and velocity of geometrical objects</string>
+   </property>
+  </action>
+  <action name="actionStartSimulation">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/Play_Icon.png</normaloff>:/QT_GUI/Pictures/Play_Icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Start Simulation</string>
+   </property>
+   <property name="toolTip">
+    <string>Main simulator</string>
+   </property>
+   <property name="statusTip">
+    <string>Main simulator</string>
+   </property>
+   <property name="whatsThis">
+    <string>Main simulator</string>
+   </property>
+  </action>
+  <action name="actionResultAnalyzer">
+   <property name="text">
+    <string>Particles Analyzer</string>
+   </property>
+   <property name="toolTip">
+    <string>Particles analyzer</string>
+   </property>
+   <property name="statusTip">
+    <string>Particles analyzer</string>
+   </property>
+   <property name="whatsThis">
+    <string>Particles analyzer</string>
+   </property>
+  </action>
+  <action name="actionGeometriesAnalyzer">
+   <property name="text">
+    <string>Geometries Analyzer</string>
+   </property>
+   <property name="toolTip">
+    <string>Geometries analyzer</string>
+   </property>
+   <property name="statusTip">
+    <string>Geometries analyzer</string>
+   </property>
+   <property name="whatsThis">
+    <string>Geometries analyzer</string>
+   </property>
+  </action>
+  <action name="actionBondsAnalyzer">
+   <property name="text">
+    <string>Bonds Analyzer</string>
+   </property>
+   <property name="toolTip">
+    <string>Bonds analyzer</string>
+   </property>
+   <property name="statusTip">
+    <string>Bonds analyzer</string>
+   </property>
+   <property name="whatsThis">
+    <string>Bonds analyzer</string>
+   </property>
+  </action>
+  <action name="actionCollisionsAnalyzer">
+   <property name="text">
+    <string>Collisions Analyzer</string>
+   </property>
+   <property name="toolTip">
+    <string>Collisions analyzer</string>
+   </property>
+   <property name="statusTip">
+    <string>Collisions analyzer</string>
+   </property>
+   <property name="whatsThis">
+    <string>Collisions analyzer</string>
+   </property>
+  </action>
+  <action name="actionImportFromText">
+   <property name="text">
+    <string>Import from text</string>
+   </property>
+   <property name="iconText">
+    <string>Import from text </string>
+   </property>
+   <property name="toolTip">
+    <string>Import data from a text file</string>
+   </property>
+   <property name="statusTip">
+    <string>Import data from a text file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Import data from a text file</string>
+   </property>
+  </action>
+  <action name="actionImportFromEDEM">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Import from EDEM</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/save_as.png</normaloff>:/QT_GUI/Pictures/save_as.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save as...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save current scene into the new .mdem file</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current scene into the new .mdem file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save current scene into the new .mdem file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionAutoCentrateView">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/autoCentrate.png</normaloff>:/QT_GUI/autoCentrate.png</iconset>
+   </property>
+   <property name="text">
+    <string>Center view</string>
+   </property>
+   <property name="toolTip">
+    <string>Center view</string>
+   </property>
+  </action>
+  <action name="actionModelManager">
+   <property name="text">
+    <string>Model Manager</string>
+   </property>
+   <property name="toolTip">
+    <string>Setup paths to models</string>
+   </property>
+   <property name="statusTip">
+    <string>Setup paths to models</string>
+   </property>
+   <property name="whatsThis">
+    <string>Setup paths to models</string>
+   </property>
+  </action>
+  <action name="actionDefaultUnits">
+   <property name="text">
+    <string>Default Units</string>
+   </property>
+   <property name="toolTip">
+    <string>Configure default units of measurement</string>
+   </property>
+   <property name="statusTip">
+    <string>Configure default units of measurement</string>
+   </property>
+   <property name="whatsThis">
+    <string>Configure default units of measurement</string>
+   </property>
+  </action>
+  <action name="actionDeleteAllBonds">
+   <property name="text">
+    <string>Delete all bonds</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete all bonds from the current scene</string>
+   </property>
+   <property name="statusTip">
+    <string>Delete all bonds from the current scene</string>
+   </property>
+   <property name="whatsThis">
+    <string>Delete all bonds from the current scene</string>
+   </property>
+  </action>
+  <action name="actionAgglomeratesAnalyzer">
+   <property name="text">
+    <string>Agglomerates Analyzer</string>
+   </property>
+   <property name="toolTip">
+    <string>Agglomerates analyzer</string>
+   </property>
+   <property name="statusTip">
+    <string>Agglomerates analyzer</string>
+   </property>
+   <property name="whatsThis">
+    <string>Agglomerates analyzer</string>
+   </property>
+  </action>
+  <action name="actionExportGeometries">
+   <property name="text">
+    <string>Export geometries as STL</string>
+   </property>
+   <property name="toolTip">
+    <string>Export geometries as binary STL file</string>
+   </property>
+   <property name="statusTip">
+    <string>Export geometries as binary STL file</string>
+   </property>
+   <property name="whatsThis">
+    <string>Export geometries as binary STL file</string>
+   </property>
+  </action>
+  <action name="actionMaterialsDatabaseGlobal">
+   <property name="text">
+    <string>Materials</string>
+   </property>
+   <property name="toolTip">
+    <string>Open database of materials</string>
+   </property>
+   <property name="statusTip">
+    <string>Open database of materials</string>
+   </property>
+   <property name="whatsThis">
+    <string>Open database of materials</string>
+   </property>
+  </action>
+  <action name="actionAutoCentrateViewX">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/autoCentrateX.png</normaloff>:/QT_GUI/Pictures/autoCentrateX.png</iconset>
+   </property>
+   <property name="text">
+    <string>X</string>
+   </property>
+   <property name="toolTip">
+    <string>Center by X</string>
+   </property>
+  </action>
+  <action name="actionAutoCentrateViewY">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/autoCentrateY.png</normaloff>:/QT_GUI/Pictures/autoCentrateY.png</iconset>
+   </property>
+   <property name="text">
+    <string>Y</string>
+   </property>
+   <property name="toolTip">
+    <string>Center by Y</string>
+   </property>
+  </action>
+  <action name="actionAutoCentrateViewZ">
+   <property name="icon">
+    <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+     <normaloff>:/QT_GUI/Pictures/autoCentrateZ.png</normaloff>:/QT_GUI/Pictures/autoCentrateZ.png</iconset>
+   </property>
+   <property name="text">
+    <string>Z</string>
+   </property>
+   <property name="toolTip">
+    <string>Center by Z</string>
+   </property>
+  </action>
+  <action name="actionMergeFiles">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Merge files</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionDeleteNonConnectedParticles">
+   <property name="text">
+    <string>Delete particles without bonds</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete particles which are not connected with bonds</string>
+   </property>
+  </action>
+  <action name="actionSimulatorSettings">
+   <property name="text">
+    <string>Simulator Settings</string>
+   </property>
+  </action>
+  <action name="actionClearSpecificTimePoints">
+   <property name="text">
+    <string>Remove specific time points</string>
+   </property>
+  </action>
+  <action name="actionDeleteSeparateParticles">
+   <property name="text">
+    <string>Delete separate particles</string>
+   </property>
+   <property name="toolTip">
+    <string>Remove all particles with coordination number of 0</string>
+   </property>
+  </action>
+  <action name="actionCameraSettings">
+   <property name="text">
+    <string>Camera settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Current camera settings</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CTimeSliderTab</class>
+   <extends>QWidget</extends>
+   <header location="global">TimeSliderTab.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

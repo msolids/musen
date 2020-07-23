@@ -1,0 +1,310 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>MUSEN</ProjectName>
+    <ProjectGuid>{C37BCE55-C8BA-4AD0-8847-1DEC07A49B7F}</ProjectGuid>
+    <RootNamespace>QT_GUI</RootNamespace>
+    <Keyword>QtVS_v301</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
+    <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.0.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="..\PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="..\PropertySheets\MusenCommonDebug.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="..\PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="..\PropertySheets\MusenCommonRelease.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;opengl;widgets</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>msvc2017_64</QtInstall>
+    <QtModules>core;gui;opengl;widgets</QtModules>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zlibstatic.lib;libprotobuf.lib;cudart_static.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(SolutionDir)..\..\ExternalLibraries\protobuf\lib;$(SolutionDir)..\..\ExternalLibraries\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <CudaCompile />
+    <PreBuildEvent>
+      <Command>$(SolutionDir)\..\BuildVersion\generate_build_version.bat</Command>
+    </PreBuildEvent>
+    <QtRcc />
+    <QtMoc>
+    </QtMoc>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zlibstatic.lib;libprotobufd.lib;cudart_static.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(SolutionDir)..\..\ExternalLibraries\protobuf\lib;$(SolutionDir)..\..\ExternalLibraries\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
+      <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <CudaCompile>
+      <GenerateLineInfo>true</GenerateLineInfo>
+    </CudaCompile>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)\..\BuildVersion\generate_build_version.bat</Command>
+    </PreBuildEvent>
+    <QtRcc />
+    <QtMoc>
+    </QtMoc>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Databases\AgglomerateDatabase\AgglomeratesDatabase.vcxproj">
+      <Project>{600a2fc6-c6f3-4579-ba6f-434f8c78b9d0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Databases\GeometriesDatabase\GeometriesDatabase.vcxproj">
+      <Project>{600a2fc6-c6f3-4579-ba6f-434f8c78bad0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Databases\MaterialsDatabase\MaterialsDatabase.vcxproj">
+      <Project>{3ee95952-cf82-4c58-bb13-a471932b22c2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\GeneralFunctions\MUSEN\MUSENGeneralSources.vcxproj">
+      <Project>{7e3f30c4-4535-44e6-beeb-5c1d947caf80}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\GeneralFunctions\SimResultsStorage\SimResultsStorage.vcxproj">
+      <Project>{2ef32648-db44-4a95-82c1-2931af3674bc}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\AgglomeratesDatabaseTab\AgglomeratesDatabaseTab.vcxproj">
+      <Project>{d6d4b2c4-3f0e-4a61-a21a-dd3c99ab586f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\BondsGeneratorTab\BondsGeneratorTab.vcxproj">
+      <Project>{b12702ad-abfb-343a-a199-8e24837244a3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\GeneralMusenDialog\GeneralMUSENDialog.vcxproj">
+      <Project>{408cd18f-ec70-42cd-915b-1d9ecfcb0e9f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\GeometriesDatabaseTab\GeometriesDatabaseTab.vcxproj">
+      <Project>{d6d4b2c4-3f0e-4a61-a21a-dd3c99a0586f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\GeometriesEditorTab\GeometriesEditorTab.vcxproj">
+      <Project>{ac2328e4-ba49-46d6-b75b-86841416b50f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\MaterialsDatabaseTab\MaterialsDatabaseTab.vcxproj">
+      <Project>{ab81ec9d-4a95-4277-b113-9b610c10bfb7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\MUSENConfigurationTab\MUSENConfigurationTab.vcxproj">
+      <Project>{d6d4b2c4-3f0e-4a61-a21a-dd3c99f0586f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\MUSENMainWindow\MUSENMainWindow.vcxproj">
+      <Project>{d0582d03-0861-49e3-bb2b-9aedea1a7bab}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\ObjectsEditorTab\ObjectsEditorTab.vcxproj">
+      <Project>{73b4fcf6-3d25-4e9b-a3b7-6f3b4e908d6e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\ObjectsGeneratorTab\ObjectsGeneratorTab.vcxproj">
+      <Project>{d6d4b2c4-3f0e-4b61-a21a-dd3c99ab586f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\PackageGeneratorTab\PackageGeneratorTab.vcxproj">
+      <Project>{b1c6ac41-b234-4bbf-b3e2-53f37f1d0781}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\QtOpenGLView\QtOpenGLView.vcxproj">
+      <Project>{da8b8971-c00b-4629-ab99-a6aed2965e09}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\QtWidgets\QtWidgets.vcxproj">
+      <Project>{cfb61e05-dd7a-4af9-b0c9-c4001319f6e3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\ResultsAnalyzerTab\ResultsAnalyzerTab.vcxproj">
+      <Project>{496ec4c3-5be7-4eb9-be8d-4c4b4ddf63b3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\SampleAnalyzerTab\SampleAnalyzerTab.vcxproj">
+      <Project>{3eab3878-f8cd-4293-a96e-ceed7f45dddf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\SceneEditorTab\SceneEditorTab.vcxproj">
+      <Project>{34197aa7-aabc-4b67-8463-b6a99c14005e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\SceneInfoTab\SceneInfoTab.vcxproj">
+      <Project>{390e3b70-1b01-4183-a646-8df446c6b651}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QTDialogs\SimulatorTab\SimulatorTab.vcxproj">
+      <Project>{59ab9a65-f926-4562-a643-853f46be133a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ExternalForce\CentrifugalCasting\CentrifugalCasting.vcxproj">
+      <Project>{df0d11c1-a321-4a44-a00e-4933fb4469c4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ExternalForce\ViscousField\ViscousField.vcxproj">
+      <Project>{df0d11c1-a321-4a44-a00e-4913fb4469c4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\LiquidBonds\CapilaryViscous\LiquidBondModelCV.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-caba82000000}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\HertzMindlinLiquid\HertzMindlinLiquid.vcxproj">
+      <Project>{dc7428ad-0dec-45f2-a95e-f2d4f4da0dc5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\HertzMindlin\HertzMindlin.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-caba821af423}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\Hertz\Hertz.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-cabff21af423}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\JKR\JKR.vcxproj">
+      <Project>{8eb7463e-01fa-4d9b-aefd-782412d78a5e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\LinearElastic\LinearElastic.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-cabd821af423}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\PopovJKR\PopovJKR.vcxproj">
+      <Project>{8377ee15-b097-463c-aa11-9548c90e9752}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\SimpleViscoElastic\SimpleViscoElastic.vcxproj">
+      <Project>{4b843dcb-2532-4a99-a1b0-bce3194a303c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\TestSinteringModel\TestSinteringModel.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-caba82ad3423}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleWall\PWHertzMindlinLiquid\PWHertzMindlinLiquid.vcxproj">
+      <Project>{0d791835-45f7-418e-8f20-14b64224d09f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleWall\PWHertzMindlin\PWHertzMindlin.vcxproj">
+      <Project>{0d791835-45f7-418e-8f70-14b64224d09f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleWall\PWJKR\PWJKR.vcxproj">
+      <Project>{428f24df-bf14-4ff9-9739-25a003d78cbe}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleWall\PWPopovJKR\PWPopovJKR.vcxproj">
+      <Project>{224cc610-a6ab-42c6-a043-fc7a87f38ad8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleWall\PWSimpleViscoElastic\PWSimpleViscoElastic.vcxproj">
+      <Project>{f2936b6b-3137-4b04-be80-c4cdb383d7a2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelAerogel\BondModelAerogel.vcxproj">
+      <Project>{229c56bb-4ec6-4097-b52d-caba121af420}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelElasticPerfectlyPlastic\BondModelElasticPerfectlyPlastic.vcxproj">
+      <Project>{f984c638-d38f-4633-98cf-645f367e41ba}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelElastic\BondModelPotyondy.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-caba821af420}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelKelvin\BondModelKelvin.vcxproj">
+      <Project>{100e46c2-1212-4082-b4a8-0be8407a9009}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelLinearPlastic\BondModelLinearPlastic.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-caba823af420}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelMaxwell\BondModelMaxwell.vcxproj">
+      <Project>{2f4bef13-d9ef-4e25-8fb9-0fbbb6308027}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelPlasticConcrete\BondModelElasticPlasticConcrete.vcxproj">
+      <Project>{f984c638-d38f-4633-ddcf-645f367e41ba}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelThermal\BondModelThermal.vcxproj">
+      <Project>{289c56bb-4ec6-4d97-b52d-caba821af420}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\BondsGenerator\BondsGenerator.vcxproj">
+      <Project>{739e5585-3715-40ea-99fb-ab1adb2e2dc3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\ContactAnalyzers\ContactAnalyzers.vcxproj">
+      <Project>{24f35bd5-786f-4f75-8450-8feb8d97ac12}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\FileManager\FileManager.vcxproj">
+      <Project>{436428f0-1018-47a2-b055-f2079b53ddf4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\ObjectsGenerator\ObjectsGenerator.vcxproj">
+      <Project>{14f35bd5-786f-4f75-8450-8feb8d9ffc12}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\PackageGenerator\PackageGenerator.vcxproj">
+      <Project>{14f35bd5-786f-4f75-8450-8feb8d97ac12}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\ResultsAnalyzer\ResultsAnalyzer.vcxproj">
+      <Project>{451612c8-d384-43bb-baa3-1446721feb70}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\SimplifiedScene\SimplifiedScene.vcxproj">
+      <Project>{b6d40bf0-ee28-4396-aa29-264153415498}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\Simulator\Simulator.vcxproj">
+      <Project>{b6d40bf0-ee28-4396-af29-264153415498}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\SystemStructure\SystemStructure.vcxproj">
+      <Project>{739e5585-3715-40aa-99fb-ab1adb2e2dc3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\MUSEN_Ico.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="qt_gui.qrc">
+    </QtRcc>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.0.targets" />
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties QtVersion_x0020_Win32="4.8.1" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

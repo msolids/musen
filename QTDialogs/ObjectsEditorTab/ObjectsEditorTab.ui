@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>objectsEditorTab</class>
+ <widget class="QDialog" name="objectsEditorTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>976</width>
+    <height>640</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Objects editor</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+  </property>
+  <property name="toolTip">
+   <string/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="timeLabel">
+           <property name="text">
+            <string>Time [s]:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="currentTime">
+           <property name="toolTip">
+            <string>Current time point</string>
+           </property>
+           <property name="statusTip">
+            <string>Current time point</string>
+           </property>
+           <property name="whatsThis">
+            <string>Current time point</string>
+           </property>
+           <property name="text">
+            <string>TextLabel</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Objects</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="objectTypes">
+         <property name="toolTip">
+          <string>Type of objects to show</string>
+         </property>
+         <property name="statusTip">
+          <string>Type of objects to show</string>
+         </property>
+         <property name="whatsThis">
+          <string>Type of objects to show</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxDataFields">
+         <property name="title">
+          <string>Visible data fields</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7"/>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QGroupBox" name="groupBox">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QPushButton" name="buttonUpdate">
+              <property name="toolTip">
+               <string>Update the table according to the selected data fields</string>
+              </property>
+              <property name="statusTip">
+               <string>Update the table according to the selected data fields</string>
+              </property>
+              <property name="whatsThis">
+               <string>Update the table according to the selected data fields</string>
+              </property>
+              <property name="text">
+               <string>Apply</string>
+              </property>
+              <property name="autoDefault">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBoxAutoUpdate">
+              <property name="toolTip">
+               <string>Instantly update the table if visible data fields are changing</string>
+              </property>
+              <property name="statusTip">
+               <string>Instantly update the table if visible data fields are changing</string>
+              </property>
+              <property name="whatsThis">
+               <string>Instantly update the table if visible data fields are changing</string>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::RightToLeft</enum>
+              </property>
+              <property name="text">
+               <string>Instant apply</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="showHidePanelButton">
+         <property name="toolTip">
+          <string>Toggle visibility of Object panel</string>
+         </property>
+         <property name="statusTip">
+          <string>Toggle visibility of Object panel</string>
+         </property>
+         <property name="whatsThis">
+          <string>Toggle visibility of Object panel</string>
+         </property>
+         <property name="text">
+          <string>Show Object panel</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="2,0">
+       <item>
+        <widget class="CQtTable" name="objectsTable">
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxAddObject">
+         <property name="title">
+          <string>Add new object panel</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="CNewObjectPanel" name="newObjectPanel" native="true"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusMessage">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CQtTable</class>
+   <extends>QTableWidget</extends>
+   <header>QtTable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CNewObjectPanel</class>
+   <extends>QWidget</extends>
+   <header>NewObjectPanel.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>
