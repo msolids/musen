@@ -44,7 +44,7 @@ void COpenGLViewMixed::DrawParticles()
 
 	InitializeVBO();
 
-	const GLfloat spheresScale = static_cast<GLfloat>(m_windowSize.height()) / std::tanf(m_viewport.fovy * 0.5f * static_cast<GLfloat>(PI_180));
+	const GLfloat spheresScale = static_cast<GLfloat>(m_windowSize.height()) / std::tan(m_viewport.fovy * 0.5f * static_cast<GLfloat>(PI_180));
 
 	m_MatrixProjection.setToIdentity();
 	m_MatrixProjection.perspective(m_viewport.fovy, m_viewport.aspect, m_viewport.zNear, m_viewport.zFar);
