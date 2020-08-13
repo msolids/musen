@@ -82,6 +82,7 @@
         <file>shaders/DiscFragCore.glsl</file>
         <file>shaders/DiscVertCompatibility.glsl</file>
         <file>shaders/DiscVertCore.glsl</file>
+        <file alias="License">../../LICENSE</file>
     </qresource>
     <qresource prefix="/bondsGeneratorIco">
         <file>bonds_generator.png</file>

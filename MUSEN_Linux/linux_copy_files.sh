@@ -72,3 +72,5 @@ for DIR in "${DIRS[@]}"; do
 	mkdir -p ./MUSEN_src/$DIR
 	find $PWD/../$DIR -maxdepth 1 -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.proto' -o -name '*.cuh' -o -name '*.cu' -o -name '*.ui' -o -name '*.png' -o -name '*.glsl' -o -name '*.qss' -o -name '*.qrc' -o -name '*.sh' \) -exec cp '{}' ''$PWD'/MUSEN_src/'$DIR'' ';'
 done
+
+cp ${PWD}/../LICENSE ${PWD}/MUSEN_src/

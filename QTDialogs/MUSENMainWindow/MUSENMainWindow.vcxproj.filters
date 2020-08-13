@@ -66,6 +66,9 @@
     <QtMoc Include="CameraSettings.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="AboutWindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImageGeneratorTab.cpp">
@@ -95,12 +98,18 @@
     <ClCompile Include="CameraSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AboutWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="AboutDialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="CameraSettings.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="AboutWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

@@ -33,6 +33,15 @@ struct SJob
 		CTriState inside{ CTriState::EState::UNDEFINED };
 	};
 
+	struct SBondGenerator
+	{
+		std::string material{ "" };
+		double minDistance{ std::numeric_limits<double>::infinity() };
+		double maxDistance{ std::numeric_limits<double>::infinity() };
+		double diameter{ 0.0 };
+		CTriState overlay{ CTriState::EState::UNDEFINED };
+	};
+
 	struct SMDBMaterialProperties
 	{
 		ETPPropertyTypes propertyKey;
@@ -112,8 +121,11 @@ struct SJob
 	double maxPartMove{ 0. };
 	double stepIncFactor{ 0. };
 
-	// package generator
+	// package generator, <index, generator>
 	std::map<size_t, SPackageGenerator> packageGenerators;
+
+	// bonds generator, <index, generator>
+	std::map<size_t, SBondGenerator> bondGenerators;
 
 	// export as text
 	CExportAsText::SObjectTypeFlags txtExportObjects;

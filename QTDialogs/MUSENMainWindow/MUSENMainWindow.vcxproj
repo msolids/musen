@@ -31,6 +31,7 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AboutWindow.cpp" />
     <ClCompile Include="CameraSettings.cpp" />
     <ClCompile Include="ClearSpecificTPTab.cpp" />
     <ClCompile Include="ExportAsTextTab.cpp" />
@@ -42,6 +43,7 @@
     <ClCompile Include="ViewOptionsTab.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <QtUic Include="AboutWindow.ui" />
     <QtUic Include="CameraSettings.ui" />
     <QtUic Include="ImageGeneratorTab.ui">
     </QtUic>
@@ -77,10 +79,14 @@
   <ItemGroup>
     <QtMoc Include="CameraSettings.h" />
   </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="AboutWindow.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D0582D03-0861-49E3-BB2B-9AEDEA1A7BAB}</ProjectGuid>
-    <Keyword>QtVS_v301</Keyword>
+    <Keyword>QtVS_v303</Keyword>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -95,9 +101,6 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <PropertyGroup Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">
-    <QtMsBuild>$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
-  </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
   </Target>
@@ -117,6 +120,16 @@
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <QtInstall>msvc2017_64</QtInstall>
     <QtModules>core;gui;opengl;widgets</QtModules>
@@ -131,19 +144,10 @@
   <PropertyGroup>
     <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules />
-    <CodeAnalysisRuleAssemblies />
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules />
-    <CodeAnalysisRuleAssemblies />
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,7 +161,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\AgglomeratesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\AgglomeratesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\BondsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\BondsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\GeometriesEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\GeometriesEditorTab\uic;$(SolutionDir)..\..\QTDialogs\MaterialsDatabaseTab;$(SolutionDir)$(Platform)\$(Configuration)\MaterialsDatabaseTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENConfigurationTab;$(SolutionDir)$(Platform)\$(Configuration)\MUSENConfigurationTab\uic;$(SolutionDir)..\..\QTDialogs\MUSENMainWindow;$(SolutionDir)$(Platform)\$(Configuration)\MUSENMainWindow\uic;$(SolutionDir)..\..\QTDialogs\ObjectsEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsEditorTab\uic;$(SolutionDir)..\..\QTDialogs\ObjectsGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\ObjectsGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\PackageGeneratorTab;$(SolutionDir)$(Platform)\$(Configuration)\PackageGeneratorTab\uic;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\ResultsAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\ResultsAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;$(SolutionDir)..\..\QTDialogs\SceneEditorTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneEditorTab\uic;$(SolutionDir)..\..\QTDialogs\SceneInfoTab;$(SolutionDir)$(Platform)\$(Configuration)\SceneInfoTab\uic;$(SolutionDir)..\..\QTDialogs\SimulatorTab;$(SolutionDir)$(Platform)\$(Configuration)\SimulatorTab\uic;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

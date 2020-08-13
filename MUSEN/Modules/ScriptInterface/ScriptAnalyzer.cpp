@@ -110,6 +110,15 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		else if (key == "PACK_GEN_VELOCITY")	m_jobs.back().packageGenerators[index].velocity   = GetValueFromStream<CVector3>(&ss);
 		else if (key == "PACK_GEN_INSIDE")		m_jobs.back().packageGenerators[index].inside     = GetValueFromStream<CTriState>(&ss);
 	}
+	else if (key.rfind("BOND_GEN", 0) == 0)
+	{
+		const auto index = GetValueFromStream<size_t>(&ss);
+		if      (key == "BOND_GEN_MATERIAL")	m_jobs.back().bondGenerators[index].material	= GetRestOfLine(&ss);
+		else if (key == "BOND_GEN_MINDIST")		m_jobs.back().bondGenerators[index].minDistance	= GetValueFromStream<double>(&ss);
+		else if (key == "BOND_GEN_MAXDIST")		m_jobs.back().bondGenerators[index].maxDistance	= GetValueFromStream<double>(&ss);
+		else if (key == "BOND_GEN_DIAMETER")	m_jobs.back().bondGenerators[index].diameter	= GetValueFromStream<double>(&ss);
+		else if (key == "BOND_GEN_OVERLAY")		m_jobs.back().bondGenerators[index].overlay		= GetValueFromStream<CTriState>(&ss);
+	}
 	else if (key == "MATERIAL_PROPERTY")
 	{
 		const auto propertyStr = ToUpperCase(GetValueFromStream<std::string>(&ss));

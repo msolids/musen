@@ -67,6 +67,7 @@ void CScriptRunner::GeneratePackage()
 	// delete all existing particles
 	m_systemStructure.DeleteAllParticles();
 
+	// setup generators
 	CPackageGenerator generator;
 	generator.SetSystemStructure(&m_systemStructure);
 	generator.LoadConfiguration();
@@ -100,6 +101,7 @@ void CScriptRunner::GeneratePackage()
 		if (g.second.inside.IsDefined())	generator.Generator(index)->insideGeometry   = g.second.inside.ToBool();
 	}
 
+	// check data correctness
 	if (!generator.IsDataCorrect())
 	{
 		m_err << generator.ErrorMessage();
@@ -108,9 +110,11 @@ void CScriptRunner::GeneratePackage()
 
 	m_out << "Generation started" << std::endl;
 	generator.StartGeneration();
+	m_out << "Generation finished" << std::endl;
+	m_out << "Saving started" << std::endl;
 	generator.SaveConfiguration();
 	m_systemStructure.SaveToFile(m_job.resultFileName);
-	m_out << "Generation finished" << std::endl;
+	m_out << "Saving finished" << std::endl;
 }
 
 void CScriptRunner::GenerateBonds()
@@ -123,9 +127,29 @@ void CScriptRunner::GenerateBonds()
 	// delete all existing bonds
 	m_systemStructure.DeleteAllBonds();
 
+	// setup generators
 	CBondsGenerator generator;
 	generator.SetSystemStructure(&m_systemStructure);
 	generator.LoadConfiguration();
+	for (const auto& g : m_job.bondGenerators)
+	{
+		const size_t index = g.first - 1;
+		while (index >= generator.GeneratorsNumber())
+			generator.AddGenerator({});
+		if (!g.second.material.empty())
+		{
+			if (const auto* material = m_systemStructure.m_MaterialDatabase.GetCompoundByName(g.second.material))
+				generator.Generator(index)->compoundKey = material->GetKey();
+			else
+				generator.Generator(index)->compoundKey = g.second.material;
+		}
+		if (std::isfinite(g.second.minDistance))	generator.Generator(index)->minDistance      = g.second.minDistance;
+		if (std::isfinite(g.second.maxDistance))	generator.Generator(index)->maxDistance      = g.second.maxDistance;
+		if (g.second.diameter != 0.0)				generator.Generator(index)->diameter         = g.second.diameter;
+		if (g.second.overlay.IsDefined())			generator.Generator(index)->isOverlayAllowed = g.second.overlay.ToBool();
+	}
+
+	// check data correctness
 	if (!generator.IsDataCorrect())
 	{
 		m_out << generator.ErrorMessage() << std::endl;
@@ -134,8 +158,11 @@ void CScriptRunner::GenerateBonds()
 
 	m_out << "Generation started" << std::endl;
 	generator.StartGeneration();
-	m_systemStructure.SaveToFile(m_job.resultFileName);
 	m_out << "Generation finished" << std::endl;
+	m_out << "Saving started" << std::endl;
+	generator.SaveConfiguration();
+	m_systemStructure.SaveToFile(m_job.resultFileName);
+	m_out << "Saving finished" << std::endl;
 }
 
 void CScriptRunner::AnalyzeResults()

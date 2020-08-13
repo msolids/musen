@@ -3,15 +3,15 @@
    See LICENSE file for license and warranty information. */
 
 #include "MusenGUI.h"
-#include "ui_AboutDialog.h"
+#include "AboutWindow.h"
 #include "ImportFromText.h"
-#include "MUSENVersion.h"
 
 const QString MusenGUI::m_sRecentFilesParamName	= "recentFiles";
 
-MusenGUI::MusenGUI(const QString& _sBuildVersion, QWidget* parent /*= nullptr*/, Qt::WindowFlags flags /*= 0*/) :
+MusenGUI::MusenGUI(const QString& _buildVersion, QWidget* parent /*= nullptr*/, Qt::WindowFlags flags /*= 0*/) :
 	QMainWindow(parent, flags),
-	m_pFileLocker(nullptr)
+	m_pFileLocker(nullptr),
+	m_buildVersion(_buildVersion)
 {
 	ui.setupUi(this);
 	//ui.viewOptions->setWindowFlags(Qt::Widget);
@@ -77,8 +77,6 @@ MusenGUI::MusenGUI(const QString& _sBuildVersion, QWidget* parent /*= nullptr*/,
 
 	m_pViewManager->SetPointers(&m_SystemStructure, m_pSampleAnalyzerTab);
 
-	CreateAboutDialog(_sBuildVersion);
-
 	QWidget* pSpacer = new QWidget();
 	pSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	ui.mainToolBar->insertWidget(ui.actionAutoCentrateViewX, pSpacer);
@@ -121,8 +119,8 @@ void MusenGUI::InitializeConnections()
 	connect(ui.actionExportToText,                &QAction::triggered, m_pExportAsTextTab,           &CExportAsTextTab::ShowDialog);
 	connect(ui.actionMergeFiles,                  &QAction::triggered, m_pFileMergerTab,             &CFileMergerTab::ShowDialog);
 	connect(ui.actionClearSpecificTimePoints,     &QAction::triggered, m_pClearSpecificTPTab,        &CClearSpecificTPTab::ShowDialog);
-	connect(ui.actionAbout,                       &QAction::triggered, m_pAboutDialog,               &QDialog::show);
 	connect(ui.actionCameraSettings,              &QAction::triggered, m_pCameraSettings,            &QDialog::show);
+	connect(ui.actionAbout,                       &QAction::triggered, this,						 &MusenGUI::ShowAboutWindow);
 	connect(ui.actionNew,                         &QAction::triggered, this,                         &MusenGUI::NewSystemStructure);
 	connect(ui.actionLoad,                        &QAction::triggered, this,                         &MusenGUI::LoadSystemStructure);
 	connect(ui.actionSave,                        &QAction::triggered, this,                         &MusenGUI::SaveSystemStructure);
@@ -209,13 +207,10 @@ QString MusenGUI::SettingsPath()
 	return iniPath + iniFileName;
 }
 
-void MusenGUI::CreateAboutDialog(const QString& _sBuildVersion)
+void MusenGUI::ShowAboutWindow()
 {
-	m_pAboutDialog = new QDialog(this);
-	Ui::aboutDialog uiAboutDialog;
-	uiAboutDialog.setupUi(m_pAboutDialog);
-	uiAboutDialog.labelVersion->setText("Version " + QString{ MUSEN_VERSION_STR });
-	uiAboutDialog.labelBuild->setText(QString("Build ") + _sBuildVersion);
+	CAboutWindow about(m_buildVersion, this);
+	about.exec();
 }
 
 void MusenGUI::CreateRecentFilesMenu()

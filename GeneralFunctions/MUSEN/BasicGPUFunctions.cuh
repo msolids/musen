@@ -28,6 +28,7 @@ public:
 		const std::string name = prop.name;
 
 		if (name == "Quadro GV100")			return { 80, 512 };
+		if (name == "TITAN RTX")			return { 72, 256 };
 		if (name == "GeForce RTX 2080 Ti")	return { 68, 256 };
 		if (name == "GeForce GTX 1080 Ti")	return { 28, 256 };
 		if (name == "GeForce GTX 970")		return { 13, 256 };

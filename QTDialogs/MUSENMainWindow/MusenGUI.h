@@ -99,11 +99,11 @@ class MusenGUI : public QMainWindow
 	QList<QAction*> m_vpRecentFilesActions;
 	QSettings* m_pSettings;
 	QLockFile* m_pFileLocker;
-	QDialog* m_pAboutDialog; // Dialog to show about information.
 	QString m_sFileName;	 // Name of the current file with system structure.
+	QString m_buildVersion;
 
 public:
-	MusenGUI(const QString& _sBuildVersion, QWidget* parent = nullptr, Qt::WindowFlags flags = 0);
+	MusenGUI(const QString& _buildVersion, QWidget* parent = nullptr, Qt::WindowFlags flags = 0);
 
 	void InitializeConnections(); // Initialize all connections on the form.
 
@@ -112,7 +112,7 @@ public slots:
 
 private:
 	static QString SettingsPath();
-	void CreateAboutDialog(const QString& _sBuildVersion);
+	void ShowAboutWindow();
 	void CreateRecentFilesMenu();
 	void UpdateRecentFilesMenu();
 	void CreateHelpMenu();

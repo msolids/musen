@@ -11,15 +11,15 @@
 // Information about generating bonds.
 struct SBondClass
 {
-	bool isActive{};			// Activity of the bond's class.
-	std::string name;			// Name of the bond's class.
-	double minDistance{ 0.0 };	// Minimum distance between surfaces of particles to be connected.
-	double maxDistance{ 1e-3 };	// Maximum distance between surfaces of particles to be connected.
-	double diameter{ 5e-4 };	// Diameter of the bond.
-	bool isOverlayAllowed{};	// Allow to define multiple bonds between the same particles.
-	std::string compoundKey;	// Compound of the bond.
+	bool isActive{ true };			// Activity of the bond's class.
+	std::string name;				// Name of the bond's class.
+	double minDistance{ 0.0 };		// Minimum distance between surfaces of particles to be connected.
+	double maxDistance{ 1e-3 };		// Maximum distance between surfaces of particles to be connected.
+	double diameter{ 5e-4 };		// Diameter of the bond.
+	bool isOverlayAllowed{ false };	// Allow to define multiple bonds between the same particles.
+	std::string compoundKey;		// Compound of the bond.
 
-	bool isCompoundSpecific{};	// Connect only particles of specific compounds.
+	bool isCompoundSpecific{ false };	// Connect only particles of specific compounds.
 	std::pair<std::vector<std::string>, std::vector<std::string>> compoundsLists; // List of allowed compounds pairs that may be connected if isCompoundSpecific is set.
 
 	unsigned generatedBonds{};	// Number of currently generated bonds.
