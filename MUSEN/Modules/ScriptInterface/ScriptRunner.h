@@ -4,6 +4,7 @@
 
 #pragma once
 #include "ScriptJob.h"
+#include "ResultsComparer.h"
 
 class CScriptRunner
 {
@@ -15,6 +16,7 @@ public:
 
 	SJob m_job;
 	CSystemStructure m_systemStructure;
+	CResultsComparer m_resultsComparer;
 
 public:
 	CScriptRunner();
@@ -30,7 +32,6 @@ private:
 	void GenerateSnapshot();	// Takes a snapshot.
 	void ExportToText();		// Saves the scene as a text file.
 	void ImportFromText();		// Loads the scene from a text file.
-	void RunTests();			// Runs tests.
 	void CompareFiles();		// Compares two files.
 
 	// Loads the source file into m_systemStructure and saves it into result file.

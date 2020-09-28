@@ -74,7 +74,7 @@ void COpenGLViewGlu::DrawParticlesWithFFP()
 		vVisibleCutPart.resize(m_pSystemStructure->GetTotalObjectsCount(), false);
 		for (std::string volumeKey : m_viewSettings->Cutting().volumes)
 		{
-			std::vector<size_t> vNewIndexes = m_pSystemStructure->GetParticleIndicesInVolume(m_dCurrentTime, volumeKey);
+			std::vector<size_t> vNewIndexes = m_pSystemStructure->AnalysisVolume(volumeKey)->GetParticleIndicesInside(m_dCurrentTime);
 			for (size_t j = 0; j < vNewIndexes.size(); j++)
 				vVisibleCutPart[vNewIndexes[j]] = true;
 		}

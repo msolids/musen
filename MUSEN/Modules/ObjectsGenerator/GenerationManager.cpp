@@ -44,70 +44,85 @@ void CGenerationManager::DeleteGenerator( size_t _nIndex )
 
 void CGenerationManager::LoadConfiguration()
 {
-	const ProtoModulesData& _pProtoMessage = *m_pSystemStructure->GetProtoModulesData();
+	const ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
 	DeleteAllGenerators();
-	for (int i = 0; i < _pProtoMessage.objects_generator().generators_size(); ++i)
+	for (int i = 0; i < protoMessage.objects_generator().generators_size(); ++i)
 	{
-		const ProtoObjectsGenerator& genProto = _pProtoMessage.objects_generator().generators(i);
+		const ProtoObjectsGenerator& protoGen = protoMessage.objects_generator().generators(i);
 		CreateNewGenerator();
-		CObjectsGenerator* pGen = m_vGenerators.back();
-		pGen->m_sName = genProto.name();
-		pGen->m_sVolumeKey = genProto.volume_key();
-		pGen->m_bRandomVelocity = genProto.random_velocity_flag();
-		pGen->m_vObjInitVel = ProtoVectorToVector(genProto.init_velocity());
-		pGen->m_dVelMagnitude = genProto.velocity_magnitude();
-		pGen->m_sMixtureKey = genProto.mixture_key();
-		pGen->m_bGenerateMixture = (genProto.obj_type() == ProtoObjectsGenerator_ObjectsType_cSphere);
-		pGen->m_sAgglomerateKey = genProto.aggl_key();
-		pGen->m_dStartGenerationTime = genProto.start_generation_time();
-		pGen->m_dEndGenerationTime = genProto.end_generation_time();
-		pGen->m_dUpdateStep = genProto.update_time_step();
-		pGen->m_dGenerationRate = genProto.generation_rate();
-		pGen->m_bInsideGeometries = genProto.inside_geometries();
-		for (int j = 0; j < genProto.aggl_part_materials_alias_size(); ++j)
-			pGen->m_partMaterials[genProto.aggl_part_materials_alias(j)] = genProto.aggl_part_materials_key(j);
-		for (int j = 0; j < genProto.aggl_bond_materials_alias_size(); ++j)
-			pGen->m_bondMaterials[genProto.aggl_bond_materials_alias(j)] = genProto.aggl_bond_materials_key(j);
-		m_vGenerators[i]->m_dAgglomerateScaleFactor = genProto.scaling_factor();
-		m_vGenerators[i]->m_bActive = genProto.activity();
+		CObjectsGenerator* gen = m_vGenerators.back();
+		const int version = protoGen.version();
+		gen->m_sName = protoGen.name();
+		gen->m_sVolumeKey = protoGen.volume_key();
+		gen->m_bRandomVelocity = protoGen.random_velocity_flag();
+		gen->m_vObjInitVel = Proto2Val(protoGen.init_velocity());
+		gen->m_dVelMagnitude = protoGen.velocity_magnitude();
+		gen->m_sMixtureKey = protoGen.mixture_key();
+		gen->m_bGenerateMixture = (protoGen.obj_type() == ProtoObjectsGenerator_ObjectsType_cSphere);
+		gen->m_sAgglomerateKey = protoGen.aggl_key();
+		gen->m_dStartGenerationTime = protoGen.start_generation_time();
+		gen->m_dEndGenerationTime = protoGen.end_generation_time();
+		gen->m_dUpdateStep = protoGen.update_time_step();
+		gen->m_bInsideGeometries = protoGen.inside_geometries();
+		for (int j = 0; j < protoGen.aggl_part_materials_alias_size(); ++j)
+			gen->m_partMaterials[protoGen.aggl_part_materials_alias(j)] = protoGen.aggl_part_materials_key(j);
+		for (int j = 0; j < protoGen.aggl_bond_materials_alias_size(); ++j)
+			gen->m_bondMaterials[protoGen.aggl_bond_materials_alias(j)] = protoGen.aggl_bond_materials_key(j);
+		m_vGenerators[i]->m_dAgglomerateScaleFactor = protoGen.scaling_factor();
+		m_vGenerators[i]->m_bActive = protoGen.activity();
+		if (version == 0) // compatibility with older versions
+		{
+			m_vGenerators[i]->m_rateType = CObjectsGenerator::ERateType::GENERATION_RATE;
+			m_vGenerators[i]->m_rateValue = protoGen.generation_rate();
+			m_vGenerators[i]->m_maxIterations = 30;
+		}
+		else
+		{
+			m_vGenerators[i]->m_rateType = static_cast<CObjectsGenerator::ERateType>(protoGen.rate_type());
+			m_vGenerators[i]->m_rateValue = protoGen.rate_value();
+			m_vGenerators[i]->m_maxIterations = protoGen.max_iterations();
+		}
 	}
 }
 
 void CGenerationManager::SaveConfiguration()
 {
-	ProtoModulesData& _pProtoMessage = *m_pSystemStructure->GetProtoModulesData();
-	_pProtoMessage.mutable_objects_generator()->clear_generators();
-	for (size_t i = 0; i < m_vGenerators.size(); ++i)
+	ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
+	protoMessage.mutable_objects_generator()->clear_generators();
+	for (const auto& gen : m_vGenerators)
 	{
-		ProtoObjectsGenerator* pGen = _pProtoMessage.mutable_objects_generator()->add_generators();
-		pGen->set_name(m_vGenerators[i]->m_sName);
-		pGen->set_volume_key(m_vGenerators[i]->m_sVolumeKey);
-		pGen->set_random_velocity_flag(m_vGenerators[i]->m_bRandomVelocity);
-		VectorToProtoVector(pGen->mutable_init_velocity(), m_vGenerators[i]->m_vObjInitVel);
-		pGen->set_velocity_magnitude(m_vGenerators[i]->m_dVelMagnitude);
-		pGen->set_mixture_key(m_vGenerators[i]->m_sMixtureKey);
-		if (m_vGenerators[i]->m_bGenerateMixture)
-			pGen->set_obj_type(ProtoObjectsGenerator_ObjectsType_cSphere);
+		ProtoObjectsGenerator* protoGen = protoMessage.mutable_objects_generator()->add_generators();
+		protoGen->set_version(1);
+		protoGen->set_name(gen->m_sName);
+		protoGen->set_volume_key(gen->m_sVolumeKey);
+		protoGen->set_random_velocity_flag(gen->m_bRandomVelocity);
+		Val2Proto(protoGen->mutable_init_velocity(), gen->m_vObjInitVel);
+		protoGen->set_velocity_magnitude(gen->m_dVelMagnitude);
+		protoGen->set_mixture_key(gen->m_sMixtureKey);
+		if (gen->m_bGenerateMixture)
+			protoGen->set_obj_type(ProtoObjectsGenerator_ObjectsType_cSphere);
 		else
-			pGen->set_obj_type(ProtoObjectsGenerator_ObjectsType_cAgglomerate);
-		pGen->set_aggl_key(m_vGenerators[i]->m_sAgglomerateKey);
-		pGen->set_start_generation_time(m_vGenerators[i]->m_dStartGenerationTime);
-		pGen->set_end_generation_time(m_vGenerators[i]->m_dEndGenerationTime);
-		pGen->set_update_time_step(m_vGenerators[i]->m_dUpdateStep);
-		pGen->set_generation_rate(m_vGenerators[i]->m_dGenerationRate);
-		pGen->set_inside_geometries(m_vGenerators[i]->m_bInsideGeometries);
-		for (auto it = m_vGenerators[i]->m_partMaterials.begin(); it != m_vGenerators[i]->m_partMaterials.end(); ++it)
+			protoGen->set_obj_type(ProtoObjectsGenerator_ObjectsType_cAgglomerate);
+		protoGen->set_aggl_key(gen->m_sAgglomerateKey);
+		protoGen->set_start_generation_time(gen->m_dStartGenerationTime);
+		protoGen->set_end_generation_time(gen->m_dEndGenerationTime);
+		protoGen->set_update_time_step(gen->m_dUpdateStep);
+		protoGen->set_inside_geometries(gen->m_bInsideGeometries);
+		for (auto& material : gen->m_partMaterials)
 		{
-			pGen->add_aggl_part_materials_alias(it->first);
-			pGen->add_aggl_part_materials_key(it->second);
+			protoGen->add_aggl_part_materials_alias(material.first);
+			protoGen->add_aggl_part_materials_key(material.second);
 		}
-		for (auto it = m_vGenerators[i]->m_bondMaterials.begin(); it != m_vGenerators[i]->m_bondMaterials.end(); ++it)
+		for (auto& material : gen->m_bondMaterials)
 		{
-			pGen->add_aggl_bond_materials_alias(it->first);
-			pGen->add_aggl_bond_materials_key(it->second);
+			protoGen->add_aggl_bond_materials_alias(material.first);
+			protoGen->add_aggl_bond_materials_key(material.second);
 		}
-		pGen->set_scaling_factor(m_vGenerators[i]->m_dAgglomerateScaleFactor);
-		pGen->set_activity(m_vGenerators[i]->m_bActive);
+		protoGen->set_scaling_factor(gen->m_dAgglomerateScaleFactor);
+		protoGen->set_activity(gen->m_bActive);
+		protoGen->set_max_iterations(gen->m_maxIterations);
+		protoGen->set_rate_type(E2I(gen->m_rateType));
+		protoGen->set_rate_value(gen->m_rateValue);
 	}
 }
 
@@ -117,7 +132,7 @@ std::string CGenerationManager::IsDataCorrect() const
 	{
 		if ( !m_vGenerators[ i ]->m_bActive ) continue; // consider only active objects generators
 
-		CAnalysisVolume* pGenVolume = m_pSystemStructure->GetAnalysisVolume( m_vGenerators[ i ]->m_sVolumeKey );
+		CAnalysisVolume* pGenVolume = m_pSystemStructure->AnalysisVolume( m_vGenerators[ i ]->m_sVolumeKey );
 		if (!pGenVolume)
 			return "No generation volume was specified for dynamic generator - " + m_vGenerators[ i ]->m_sName;
 

@@ -26,14 +26,14 @@ CConstraints::~CConstraints()
 void CConstraints::UpdateSettings()
 {
 	for(auto g : m_vGeometries)
-		if (g >= m_pSystemStructure->GetGeometriesNumber())
+		if (g >= m_pSystemStructure->GeometriesNumber())
 		{
 			m_bGeometriesActive = false;
 			ClearGeometries();
 			break;
 		}
 	for (auto v : m_vVolumes)
-		if (v >= m_pSystemStructure->GetAnalysisVolumesNumber())
+		if (v >= m_pSystemStructure->AnalysisVolumesNumber())
 		{
 			m_bVolumesActive = false;
 			ClearVolumes();
@@ -82,7 +82,7 @@ bool CConstraints::IsAllMaterials2Selected(const std::string& _sKey) const
 
 bool CConstraints::IsAllGeometriesSelected() const
 {
-	return (!m_bGeometriesActive || m_vGeometries.empty() || m_vGeometries.size() == m_pSystemStructure->GetGeometriesNumber());
+	return (!m_bGeometriesActive || m_vGeometries.empty() || m_vGeometries.size() == m_pSystemStructure->GeometriesNumber());
 }
 
 bool CConstraints::IsAllDiametersSelected() const
@@ -168,8 +168,9 @@ std::set<size_t> CConstraints::GetGeometriesPlanes() const
 	std::set<size_t> vPlanes;
 	for (auto it = m_vGeometries.begin(); it != m_vGeometries.end(); ++it)
 	{
-		SGeometryObject* pGeoObj = m_pSystemStructure->GetGeometry(*it);
-		vPlanes.insert(pGeoObj->vPlanes.begin(), pGeoObj->vPlanes.end());
+		CRealGeometry* pGeoObj = m_pSystemStructure->Geometry(*it);
+		const auto p = pGeoObj->Planes();
+		vPlanes.insert(p.begin(), p.end());
 	}
 	return vPlanes;
 }
@@ -463,16 +464,16 @@ std::set<size_t> CConstraints::ApplyVolumeFilter(double _dTime, unsigned _nObjTy
 		switch (_nObjType)
 		{
 		case SPHERE:
-			vNewIndexes = m_pSystemStructure->GetParticleIndicesInVolume(_dTime, *it, false);
+			vNewIndexes = m_pSystemStructure->AnalysisVolume(*it)->GetParticleIndicesInside(_dTime, false);
 			break;
 		case SOLID_BOND:
-			vNewIndexes = m_pSystemStructure->GetSolidBondIndicesInVolume(_dTime, *it);
+			vNewIndexes = m_pSystemStructure->AnalysisVolume(*it)->GetSolidBondIndicesInside(_dTime);
 			break;
 		case LIQUID_BOND:
-			vNewIndexes = m_pSystemStructure->GetLiquidBondIndicesInVolume(_dTime, *it);
+			vNewIndexes = m_pSystemStructure->AnalysisVolume(*it)->GetLiquidBondIndicesInside(_dTime);
 			break;
 		case TRIANGULAR_WALL:
-			vNewIndexes = m_pSystemStructure->GetWallIndicesInVolume(_dTime, *it);
+			vNewIndexes = m_pSystemStructure->AnalysisVolume(*it)->GetWallIndicesInside(_dTime);
 			break;
 		default: break;
 		}
@@ -495,7 +496,7 @@ std::set<size_t> CConstraints::ApplyVolumeFilter(double _dTime, const std::vecto
 	std::set<size_t> vFiltered;
 	for (std::set<unsigned>::iterator it = m_vVolumes.begin(); it != m_vVolumes.end(); ++it)
 	{
-		std::vector<size_t> vNewIndexes = m_pSystemStructure->GetObjectIndicesInVolume(_dTime, _vCoords, *it);
+		std::vector<size_t> vNewIndexes = m_pSystemStructure->AnalysisVolume(*it)->GetObjectIndicesInside(_dTime, _vCoords);
 		vFiltered.insert(vNewIndexes.begin(), vNewIndexes.end());
 	}
 	return vFiltered;

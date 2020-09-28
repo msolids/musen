@@ -64,7 +64,56 @@ message ProtoTimeDepVel
 	ProtoVector rotCenter = 4;
 }
 
-message ProtoGeometryInfo
+message ProtoGeometryMotionInterval
+{
+	uint32 version           = 1;
+	ProtoVector velocity     = 2;
+	ProtoVector rot_velocity = 3;
+	ProtoVector rot_center   = 4;
+	double limit1            = 5;
+	double limit2            = 6;
+	uint32 limit_type        = 7;
+}
+
+message ProtoGeometryMotion
+{
+	uint32 version                                 = 1;
+	uint32 type                                    = 2;
+	repeated ProtoGeometryMotionInterval intervals = 3;
+}
+
+message ProtoBaseGeometry
+{
+	uint32 version             = 1;
+	string name                = 2;
+	string key                 = 3;
+	int32 shape                = 4;
+	ProtoColor color           = 5;
+	repeated double sizes      = 7;
+	ProtoMatrix rotation       = 8;
+	ProtoGeometryMotion motion = 9;
+	double scaling             = 10;
+}
+
+message ProtoAnalysisVolume
+{
+	uint32 version                   = 1;
+	ProtoBaseGeometry base_geometry  = 2;
+	repeated ProtoTriangle triangles = 3;
+	ProtoVector center               = 4;
+}
+
+message ProtoRealGeometry
+{
+	uint32 version                   = 1;
+	ProtoBaseGeometry base_geometry  = 2;
+	repeated uint64 planes           = 3;
+	ProtoVector free_motion          = 4;
+	double mass                      = 5;
+	bool rotate_around_center        = 6;
+}
+
+message ProtoRealGeometry_v0
 {
 	string name = 1;
 	string key = 2;
@@ -81,7 +130,7 @@ message ProtoGeometryInfo
 	bool forceDependentVel = 13;
 }
 
-message ProtoAnalysisVolumeInfo
+message ProtoAnalysisVolume_v0
 {
 	string name = 1;
 	string key = 2;
@@ -131,6 +180,7 @@ message ProtoStopCriteria
 
 message ProtoSimulationInfo
 {
+	uint32 version = 25;
 	int32 file_version = 1;
 	double begin_time = 2;
 	double end_time = 3;
@@ -138,8 +188,10 @@ message ProtoSimulationInfo
 	ProtoVector simulation_volume_min = 4;
 	ProtoVector simulation_volume_max = 5;
 	repeated ProtoParticleInfo particles = 6;
-	repeated ProtoGeometryInfo geomObjects = 7;
-	repeated ProtoAnalysisVolumeInfo analysisVolumes = 8;
+	repeated ProtoRealGeometry_v0 real_geometry_v0 = 7;
+	repeated ProtoRealGeometry real_geometry = 26;
+	repeated ProtoAnalysisVolume_v0 analysis_volume_v0 = 8;
+	repeated ProtoAnalysisVolume analysis_volume = 24;
 	repeated double savedTimePoints = 9;
 	repeated ProtoMultisphere multispheres = 10;
 	ProtoVector periodic_conditions_min = 11;
@@ -222,6 +274,10 @@ message ProtoObjectsGenerator
 	bool		 random_velocity_flag = 19 ;
 	double		 velocity_magnitude = 20;
 	bool		 inside_geometries = 21;
+	int32		 version = 22;
+	uint64		 max_iterations = 23;
+	int32        rate_type = 24;
+	double		 rate_value = 25;
 }
 
 message ProtoModuleBondsGenerator

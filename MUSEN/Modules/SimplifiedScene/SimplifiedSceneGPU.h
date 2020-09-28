@@ -17,7 +17,7 @@ protected:
 	SGPUWalls m_Walls;
 
 public:
-	void SetCudaDefines(const CCUDADefines* _cudaDefines);
+	CSimplifiedSceneGPU(const CCUDADefines* _cudaDefines);
 
 	void InitializeScene(CSimplifiedScene& _Scene, CSystemStructure* _pSystemStructure);
 

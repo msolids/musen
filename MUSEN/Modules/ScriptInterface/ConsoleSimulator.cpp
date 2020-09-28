@@ -154,6 +154,9 @@ bool CConsoleSimulator::SimulationPrecheck() const
 			errorMessage += "Error: " + _message + "\n";
 	};
 
+	// check materials database
+	AddErrorMessage(m_systemStructure.m_MaterialDatabase.IsDataCorrect());
+
 	// check models
 	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::PP));
 	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::PW));
@@ -187,7 +190,7 @@ void CConsoleSimulator::RunSimulation() const
 {
 	m_out << " ==================== Simulation started  ====================" << std::endl;
 	m_simulatorManager.GetSimulatorPtr()->p_out = &m_out;
-	m_simulatorManager.GetSimulatorPtr()->StartSimulation();
+	m_simulatorManager.GetSimulatorPtr()->Simulate();
 	m_out << " ==================== Simulation finished ====================" << std::endl;
 }
 

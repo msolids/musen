@@ -419,8 +419,8 @@ void COpenGLView::DrawGeometricalObjects() const
 	if (!m_viewSettings->Visibility().geometries) return;
 	for (const auto& geometryKey : m_viewSettings->VisibleGeometries())
 	{
-		const auto geometry = m_pSystemStructure->GetGeometry(geometryKey);
-		const CColor color{ geometry->color, 1.f - m_viewSettings->GeometriesTransparency() };
+		const auto geometry = m_pSystemStructure->Geometry(geometryKey);
+		const CColor color{ geometry->Color(), 1.f - m_viewSettings->GeometriesTransparency() };
 		for (const auto& w : m_pSystemStructure->GetAllWallsForGeometry(m_dCurrentTime, geometryKey))
 			DrawTriangularPlane(w->GetCoords(m_dCurrentTime), w->GetNormalVector(m_dCurrentTime), color);
 	}
@@ -433,13 +433,9 @@ void COpenGLView::DrawAnalysisVolumes() const
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	for (const auto& volumeKey : m_viewSettings->VisibleVolumes())
 	{
-		const auto volume = m_pSystemStructure->GetAnalysisVolume(volumeKey);
-		const CVector3 shift = volume->GetShift(m_dCurrentTime);
-		for (const auto& triangle : volume->vTriangles)
-		{
-			const STriangleType t = triangle.Shifted(shift);
-			DrawTriangularPlane(t, t.Normal(), volume->color);
-		}
+		const auto volume = m_pSystemStructure->AnalysisVolume(volumeKey);
+		for (const auto& t : volume->Mesh(m_dCurrentTime).Triangles())
+			DrawTriangularPlane(t, t.Normal(), volume->Color());
 	}
 	glEnable(GL_LIGHTING);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1005,7 +1001,7 @@ void COpenGLView::DrawQuad(const CVector3& _v1, const CVector3& _v2, const CVect
 	glPopMatrix();
 }
 
-void COpenGLView::DrawTriangularPlane(const STriangleType& _triangle, const CVector3& _normal, const CColor& _color) const
+void COpenGLView::DrawTriangularPlane(const CTriangle& _triangle, const CVector3& _normal, const CColor& _color) const
 {
 	if (IsPointCuttedByPlanes(_triangle.p1) || IsPointCuttedByPlanes(_triangle.p2) || IsPointCuttedByPlanes(_triangle.p3)) return;
 

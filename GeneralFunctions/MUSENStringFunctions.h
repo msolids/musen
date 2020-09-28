@@ -26,37 +26,32 @@ std::wstring inline UnicodePath(const std::string& _sPath)
 }
 #endif
 
-std::string inline GenerateNewKey(unsigned _length = 10)
+std::string inline GenerateKey(size_t _length = 10)
 {
-	std::string sResult;
-	static const char alphanum[] =
-		"0123456789"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	for (unsigned i = 0; i < _length; ++i)
-		 sResult += alphanum[rand() % (sizeof(alphanum) - 1)];
-	return sResult;
+	std::string result;
+	static const char symbols[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	for (size_t i = 0; i < _length; ++i)
+		result += symbols[std::rand() % (sizeof(symbols) - 1)];
+	return result;
 }
 
-std::string inline GenerateUniqueString(const std::string &_sInitString, const std::vector<std::string> &_vStringsSet, unsigned _length = 10)
+// Creates a key that is not already in the provided list.
+std::string inline GenerateUniqueKey(const std::vector<std::string>& _existing, size_t _length = 10)
 {
-	std::string sResult = _sInitString;
-	if (sResult.empty())
-		sResult = GenerateNewKey(_length);
-	bool bUnique = false;
-	while (!bUnique)
+	while (true)
 	{
-		bUnique = true;
-		for (size_t i = 0; i < _vStringsSet.size(); ++i)
-		{
-			if (_vStringsSet[i] == sResult)
-			{
-				sResult = GenerateNewKey(_length);
-				bUnique = false;
-				break;
-			}
-		}
+		std::string res = GenerateKey(_length);
+		if (std::find(_existing.begin(), _existing.end(), res) == _existing.end())
+			return res;
 	}
-	return sResult;
+}
+
+// Creates a key that is not already in the provided list.
+std::string inline GenerateUniqueKey(const std::string& _init, const std::vector<std::string>& _existing, size_t _length = 10)
+{
+	if (std::find(_existing.begin(), _existing.end(), _init) == _existing.end())
+		return _init;
+	return GenerateUniqueKey(_existing, _length);
 }
 
 // compare two file names and if they are same return true

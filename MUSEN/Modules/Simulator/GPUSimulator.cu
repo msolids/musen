@@ -5,9 +5,9 @@
 #include "GPUSimulator.cuh"
 #include <thrust/count.h>
 
-void CGPU::SetCudaDefines(const CCUDADefines* _cudaDefines)
+CGPU::CGPU(const CCUDADefines* _cudaDefines) :
+	m_cudaDefines{ _cudaDefines }
 {
-	m_cudaDefines = _cudaDefines;
 	CUDAKernels::SetThreadsNumber(m_cudaDefines->CUDA_THREADS_PER_BLOCK);
 }
 

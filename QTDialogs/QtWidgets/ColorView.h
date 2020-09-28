@@ -16,14 +16,16 @@ class CColorView : public QWidget
 public:
 	CColorView(QWidget* parent = nullptr);
 
-	void setColor(const CColor& _color);
-	void setColor(const QColor& _color);
+	void SetColor(const CColor& _color);
+	void SetColor(const QColor& _color);
 	QColor getColor() const;
+	CColor getColor2() const;
 
 protected:
 	void paintEvent(QPaintEvent* _event) override;
 	void mouseDoubleClickEvent(QMouseEvent* _event) override;
 
 signals:
-	void ColorChanged();
+	void ColorChanged();	// Is emitted whenever the color is changed, either by user of programmatically.
+	void ColorEdited();		// Is emitted whenever the color is changed by user.
 };

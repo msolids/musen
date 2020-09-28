@@ -3,813 +3,834 @@
    See LICENSE file for license and warranty information. */
 
 #include "GeometriesEditorTab.h"
-#include "qtOperations.h"
+#include "MeshGenerator.h"
+#include "QtSignalBlocker.h"
 #include <QMenu>
+#include <QWidgetAction>
 #include <QMessageBox>
+#include <QToolButton>
 
-CGeometriesEditorTab::CGeometriesEditorTab( QWidget *parent ): CMusenDialog(parent)
+// TODO: center of geometries and volumes via minimum bounding box
+
+CGeometriesEditorTab::CGeometriesEditorTab(QWidget* parent) : CMusenDialog{ parent }
 {
 	ui.setupUi(this);
-	m_bAvoidSignal = false;
+	setWindowFlags(Qt::Window);
 
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	ui.timeDepValues->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-
-	QMenu* pGeometriesMenu = new QMenu(this);
-	QMenu* pSubmenuReal = new QMenu("Real geometry", this);
-	QMenu* pSubmenuVirt = new QMenu("Analysis volume", this);
-	pGeometriesMenu->addMenu(pSubmenuReal);
-	pGeometriesMenu->addMenu(pSubmenuVirt);
-	ui.addPushButton->setMenu(pGeometriesMenu);
-
-	m_pSubmenuRealStd = new QMenu("Standard", this);
-	m_pSubmenuRealLib = new QMenu("From current database", this);
-	pSubmenuReal->addMenu(m_pSubmenuRealStd);
-	pSubmenuReal->addMenu(m_pSubmenuRealLib);
-
-	m_pSubmenuVirtStd = new QMenu("Standard", this);
-	m_pSubmenuVirtLib = new QMenu("From current database", this);
-	pSubmenuVirt->addMenu(m_pSubmenuVirtStd);
-	pSubmenuVirt->addMenu(m_pSubmenuVirtLib);
-
-	m_pMapperRealStd = new QSignalMapper(this);
-	m_pMapperRealLib = new QSignalMapper(this);
-	m_pMapperVirtStd = new QSignalMapper(this);
-	m_pMapperVirtLib = new QSignalMapper(this);
+	SetupGeometriesList();
+	SetupPropertiesList();
 
 	InitializeConnections();
+
+	// TODO: resize to always see buttons titles
+	ui.splitter->setSizes(QList<int>{100, 150, 200});
+	m_motionWidth = ui.groupMotion->width();
 
 	m_sHelpFileName = "Users Guide/Geometries Editor.pdf";
 }
 
-void CGeometriesEditorTab::InitializeConnections()
+void CGeometriesEditorTab::InitializeConnections() const
 {
-	connect(m_pMapperRealStd, static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &CGeometriesEditorTab::AddGeometryRealStd);
-	connect(m_pMapperRealLib, static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &CGeometriesEditorTab::AddGeometryRealLib);
-	connect(m_pMapperVirtStd, static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &CGeometriesEditorTab::AddGeometryVirtStd);
-	connect(m_pMapperVirtLib, static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &CGeometriesEditorTab::AddGeometryVirtLib);
-	connect(ui.deleteGeometry, &QPushButton::clicked,				this, &CGeometriesEditorTab::RemoveGeometry);
-	connect(ui.geometriesList, &QListWidget::itemChanged,			this, &CGeometriesEditorTab::GeometryNameChanged);
-	connect(ui.geometriesList, &QListWidget::currentItemChanged,	this, &CGeometriesEditorTab::UpdateSelectedGeometryProperties);
+	connect(ui.buttonDeleteGeometry, &QPushButton::clicked, this, &CGeometriesEditorTab::DeleteGeometry);
+	connect(ui.buttonUpGeometry,	 &QPushButton::clicked, this, &CGeometriesEditorTab::UpGeometry);
+	connect(ui.buttonDownGeometry,	 &QPushButton::clicked, this, &CGeometriesEditorTab::DownGeometry);
 
-	connect(ui.materialsCombo,	static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::SetMaterial);
-	connect(ui.widgetColor,		&CColorView::ColorChanged,	this, &CGeometriesEditorTab::GeometryColorChanged);
-	connect(ui.scaleButton,		&QPushButton::clicked,		this, &CGeometriesEditorTab::ScaleGeometry);
-	connect(ui.coordX, &QLineEdit::editingFinished, 		this, &CGeometriesEditorTab::MoveGeometry);
-	connect(ui.coordY, &QLineEdit::editingFinished, this, &CGeometriesEditorTab::MoveGeometry);
-	connect(ui.coordZ, &QLineEdit::editingFinished, this, &CGeometriesEditorTab::MoveGeometry);
-	connect(ui.rotateButton,	&QPushButton::clicked,		this, &CGeometriesEditorTab::RotateGeometry);
-	connect(ui.shiftUpwards,	&QPushButton::clicked,		this, &CGeometriesEditorTab::ShiftGeometryUpwards);
-	connect(ui.shiftDownwards,	&QPushButton::clicked,		this, &CGeometriesEditorTab::ShiftGeometryDownwards);
+	connect(ui.listGeometries, &QTreeWidget::itemChanged,		 this, &CGeometriesEditorTab::NameChanged);
+	connect(ui.listGeometries, &QTreeWidget::currentItemChanged, this, &CGeometriesEditorTab::GeometrySelected);
 
-	connect(ui.param1Value,		&QLineEdit::editingFinished,	this, &CGeometriesEditorTab::GeometryParamsChanged);
-	connect(ui.param2Value,		&QLineEdit::editingFinished,	this, &CGeometriesEditorTab::GeometryParamsChanged);
-	connect(ui.param3Value,		&QLineEdit::editingFinished,	this, &CGeometriesEditorTab::GeometryParamsChanged);
-	connect(ui.sliderQuality,	&QSlider::valueChanged,			this, &CGeometriesEditorTab::GeometryParamsChanged);
+	connect(ui.tableMotion,				&CQtTable::itemChanged,			this, &CGeometriesEditorTab::MotionTableChanged);
+	connect(ui.checkBoxAroundCenter,	&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.checkBoxFreeMotionX,		&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.checkBoxFreeMotionY,		&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.checkBoxFreeMotionZ,		&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.lineEditMass,			&QLineEdit::editingFinished,	this, &CGeometriesEditorTab::MotionChanged);
 
-	connect(ui.rotateAroundCenter, &QCheckBox::clicked, this, &CGeometriesEditorTab::SetFreeMotion);
+	connect(ui.buttonAddMotion,		&QPushButton::clicked, this, &CGeometriesEditorTab::AddMotion);
+	connect(ui.buttonDeleteMotion,	&QPushButton::clicked, this, &CGeometriesEditorTab::DeleteMotion);
+}
 
-	connect(ui.freeMotionX,	&QCheckBox::clicked,			this, &CGeometriesEditorTab::SetFreeMotion);
-	connect(ui.freeMotionY, &QCheckBox::clicked,			this, &CGeometriesEditorTab::SetFreeMotion);
-	connect(ui.freeMotionZ, &QCheckBox::clicked,			this, &CGeometriesEditorTab::SetFreeMotion);
-	connect(ui.objectMass,	&QLineEdit::editingFinished,	this, &CGeometriesEditorTab::SetFreeMotion);
+void CGeometriesEditorTab::Initialize()
+{
+	ui.tableMotion->SetUnitConverter(m_pUnitConverter);
+	ui.treeProperties->SetUnitConverter(m_pUnitConverter);
+}
 
-	connect(ui.buttonAddTP,		&QPushButton::clicked, this, &CGeometriesEditorTab::AddTimePoint);
-	connect(ui.buttonRemoveTP,	&QPushButton::clicked, this, &CGeometriesEditorTab::RemoveTimePoints);
+void CGeometriesEditorTab::SetupGeometriesList()
+{
+	auto font = ui.listGeometries->font();
+	font.setItalic(true);
 
-	connect(ui.timeDepValues, &CQtTable::itemChanged, this, &CGeometriesEditorTab::SetTDVelocities);
-	connect(this, &CGeometriesEditorTab::customContextMenuRequested, this, &CGeometriesEditorTab::ShowContextMenu);
+	ui.listGeometries->clear();
+	m_list[EType::GEOMETRY] = ui.listGeometries->CreateItem(0, "Real geometries", CQtTree::EFlags::NoEdit | CQtTree::EFlags::NoSelect);
+	m_list[EType::GEOMETRY]->setFont(0, font);
 
-	connect(ui.forceDepVelRadio, &QRadioButton::clicked, this, &CGeometriesEditorTab::SetTDVelocities);
-	connect(ui.timeDepVelRadio, &QRadioButton::clicked, this, &CGeometriesEditorTab::SetTDVelocities);
+	m_list[EType::VOLUME] = ui.listGeometries->CreateItem(0, "Analysis volumes", CQtTree::EFlags::NoEdit | CQtTree::EFlags::NoSelect);
+	m_list[EType::VOLUME]->setFont(0, font);
+}
+
+void CGeometriesEditorTab::SetupPropertiesList()
+{
+	ui.treeProperties->setColumnCount(3);
+
+	/// general
+	auto* general = ui.treeProperties->CreateItem(0, "General");
+
+	// combo box with materials
+	m_properties[EProperty::MATERIAL] = ui.treeProperties->CreateItem(general, 0, "Material");
+	const auto* material = ui.treeProperties->AddComboBox(m_properties[EProperty::MATERIAL], 1, {}, {}, 0);
+	connect(material, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::MaterialChanged);
+
+	// color picker
+	m_properties[EProperty::COLOR] = ui.treeProperties->CreateItem(general, 0, "Color");
+	const auto* color = ui.treeProperties->AddColorPicker(m_properties[EProperty::COLOR], 1, {});
+	connect(color, &CColorView::ColorEdited, this, &CGeometriesEditorTab::ColorChanged);
+
+	// motion
+	m_properties[EProperty::MOTION] = ui.treeProperties->CreateItem(general, 0, "Motion");
+	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1, {}, {}, 0);
+	connect(motion, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::MotionTypeChanged);
+
+	// triangles
+	m_properties[EProperty::TRIANGLES] = ui.treeProperties->CreateItem(general, 0, "Triangles");
+	const auto* triangles = ui.treeProperties->AddListSpinBox(m_properties[EProperty::TRIANGLES], 1, {}, 0);
+	connect(triangles, static_cast<void (CQtListSpinBox::*)(int)>(&CQtListSpinBox::valueChanged), this, &CGeometriesEditorTab::QualityChanged);
+
+	general->setExpanded(true);
+
+	/// rotation
+	auto* rotation = ui.treeProperties->CreateItem(0, "Rotation");
+
+	auto AddRotation = [&](EProperty _prop, const std::string& _name, EAxis _axis)
+	{
+		m_properties[_prop] = ui.treeProperties->CreateItem(rotation, 0, _name);
+		ui.treeProperties->AddDoubleSpinBox(m_properties[_prop], 1, {}, EUnitType::ANGLE);
+		const auto* rotate = ui.treeProperties->AddPushButton(m_properties[_prop], 2, "Apply");
+		connect(rotate, &QPushButton::clicked, [=] { RotationChanged(_axis); });
+	};
+	AddRotation(EProperty::ROTATE_X, "X [rad]", EAxis::X);
+	AddRotation(EProperty::ROTATE_Y, "Y [rad]", EAxis::Y);
+	AddRotation(EProperty::ROTATE_Z, "Z [rad]", EAxis::Z);
+
+	rotation->setExpanded(true);
+
+	/// position
+	auto* position = ui.treeProperties->CreateItem(0, "Position");
+
+	auto AddPosition = [&](EProperty _prop, const std::string& _name, const QString& _buttonName1, const QString& _buttonName2, EAxis _axis)
+	{
+		m_properties[_prop] = ui.treeProperties->CreateItem(position, 0, _name);
+		const auto* spinbox = ui.treeProperties->AddDoubleSpinBox(m_properties[_prop], 1, {}, EUnitType::LENGTH);
+		connect(spinbox, &CQtDoubleSpinBox::ValueChanged, this, &CGeometriesEditorTab::PositionChanged);
+
+		auto* widget = new QWidget{ ui.treeProperties };
+		auto* button1 = new QPushButton{ widget };
+		auto* button2 = new QPushButton{ widget };
+		button1->setIcon(QIcon{ ":/QT_GUI/Pictures/geo_" + _buttonName1 + ".png" });
+		button2->setIcon(QIcon{ ":/QT_GUI/Pictures/geo_" + _buttonName2 + ".png" });
+		button1->setAutoDefault(false);
+		button2->setAutoDefault(false);
+		button1->setToolTip("Place geometry on the selected side of all particles");
+		button2->setToolTip("Place geometry on the selected side of all particles");
+		connect(button1, &QPushButton::clicked, this, [=]() { PlaceAside(_axis, EPosition::MIN); });
+		connect(button2, &QPushButton::clicked, this, [=]() { PlaceAside(_axis, EPosition::MAX); });
+		auto* layout = new QHBoxLayout{ widget };
+		layout->setAlignment(Qt::AlignCenter);
+		layout->setContentsMargins(0, 0, 0, 0);
+		layout->addWidget(button1);
+		layout->addWidget(button2);
+		widget->setLayout(layout);
+		ui.treeProperties->setItemWidget(m_properties[_prop], 2, widget);
+	};
+	AddPosition(EProperty::POSITION_X, "X [mm]", "left", "right", EAxis::X);
+	AddPosition(EProperty::POSITION_Y, "Y [mm]", "front", "back", EAxis::Y);
+	AddPosition(EProperty::POSITION_Z, "Z [mm]", "bottom", "top", EAxis::Z);
+
+	position->setExpanded(true);
+
+	/// size
+	auto* sizes = ui.treeProperties->CreateItem(0, "Size");
+
+	// scaling
+	m_properties[EProperty::SCALE] = ui.treeProperties->CreateItem(sizes, 0, "Scale");
+	auto* scale = ui.treeProperties->AddDoubleSpinBox(m_properties[EProperty::SCALE], 1, {}, EUnitType::NONE);
+	scale->AllowOnlyPositive(true);
+	connect(scale, &CQtDoubleSpinBox::ValueChanged, this, &CGeometriesEditorTab::ScalingChanged);
+
+	// sizes
+	auto AddSize = [&](EProperty _prop, const std::string& _name)
+	{
+		m_properties[_prop] = ui.treeProperties->CreateItem(sizes, 0, _name);
+		auto* spinbox = ui.treeProperties->AddDoubleSpinBox(m_properties[_prop], 1, {}, EUnitType::LENGTH);
+		spinbox->AllowOnlyPositive(true);
+		connect(spinbox, &CQtDoubleSpinBox::ValueChanged, this, &CGeometriesEditorTab::SizeChanged);
+	};
+	AddSize(EProperty::SIZE_X,       "X [mm]");
+	AddSize(EProperty::SIZE_Y,       "Y [mm]");
+	AddSize(EProperty::SIZE_Z,       "Z [mm]");
+	AddSize(EProperty::WIDTH,        "Width [mm]");
+	AddSize(EProperty::DEPTH,        "Depth [mm]");
+	AddSize(EProperty::HEIGHT,       "Height [mm]");
+	AddSize(EProperty::RADIUS,       "Radius [mm]");
+	AddSize(EProperty::INNER_RADIUS, "Inner radius [mm]");
+
+	sizes->setExpanded(true);
+
+	/// resize columns and hide some rows
+	for (int i = 0; i < ui.treeProperties->columnCount(); ++i)
+		ui.treeProperties->resizeColumnToContents(i);
+	rotation->setExpanded(false);
+}
+
+void CGeometriesEditorTab::setVisible(bool _visible)
+{
+	CMusenDialog::setVisible(_visible);
+	if (!_visible) return;
+	if (m_object) return; // geometry is already selected
+	if (m_list[EType::GEOMETRY]->childCount() != 0)		// select first available geometry
+		ui.listGeometries->setCurrentItem(m_list[EType::GEOMETRY]->child(0));
+	else if (m_list[EType::VOLUME]->childCount() != 0)	// select first available volume
+		ui.listGeometries->setCurrentItem(m_list[EType::VOLUME]->child(0));
 }
 
 void CGeometriesEditorTab::UpdateWholeView()
 {
-	UpdateAddButton();
-	UpdateHeaders();
+	UpdateMeasurementUnits();
+	UpdateAddButtons();
+	UpdateMaterialsCombo();
 	UpdateGeometriesList();
-	UpdateSelectedGeometryProperties();
+	UpdatePropertiesInfo();
+	UpdateMotionInfo();
 }
 
-void CGeometriesEditorTab::keyPressEvent(QKeyEvent *event)
+void CGeometriesEditorTab::UpdateMeasurementUnits() const
 {
-	switch (event->key())
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::ROTATE_X),     "X",            EUnitType::ANGLE);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::ROTATE_Y),     "Y",            EUnitType::ANGLE);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::ROTATE_Z),     "Z",            EUnitType::ANGLE);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::POSITION_X),   "X",            EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::POSITION_Y),   "Y",            EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::POSITION_Z),   "Z",            EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::SIZE_X),       "X",            EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::SIZE_Y),       "Y",            EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::SIZE_Z),       "Z",            EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::WIDTH),        "Width",        EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::DEPTH),        "Depth",        EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::HEIGHT),       "Height",       EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::RADIUS),       "Radius",       EUnitType::LENGTH);
+	ui.treeProperties->SetHeaderText(m_properties.at(EProperty::INNER_RADIUS), "Inner radius", EUnitType::LENGTH);
+
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::TIME_BEG,		"Time start",		EUnitType::TIME);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::TIME_END,		"Time end",			EUnitType::TIME);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::FORCE,			"Force",			EUnitType::FORCE);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_X,			"Velocity X",		EUnitType::VELOCITY);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Y,			"Velocity Y",		EUnitType::VELOCITY);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Z,			"Velocity Z",		EUnitType::VELOCITY);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_VEL_X,		"Rot. velocity X",  EUnitType::ANGULAR_VELOCITY);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_VEL_Y,		"Rot. velocity Y",  EUnitType::ANGULAR_VELOCITY);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_VEL_Z,		"Rot. velocity Z",  EUnitType::ANGULAR_VELOCITY);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_CENTER_X,	"Rot. center X",	EUnitType::LENGTH);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_CENTER_Y,	"Rot. center Y",	EUnitType::LENGTH);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_CENTER_Z,	"Rot. center Z",	EUnitType::LENGTH);
+
+	ShowConvLabel(ui.labelMass, "Mass", EUnitType::MASS);
+}
+
+void CGeometriesEditorTab::UpdateAddButtons()
+{
+	// function to add a text separator to menu
+	auto AddSeparator = [&](QMenu* _menu, const QString& _text)
 	{
-	case Qt::Key_Delete:
-		if (ui.geometriesList->hasFocus())	RemoveGeometry();
+		auto* label = new QLabel{ "<b>" + _text + "</b>", this };
+		label->setAlignment(Qt::AlignCenter);
+		auto* action = new QWidgetAction{ _menu };
+		action->setDefaultWidget(label);
+		_menu->addAction(action);
+	};
+
+	// function to create a menu for push button
+	auto CreateMenu = [&](EType _type)
+	{
+		auto* geometriesMenu = new QMenu(this);
+
+		AddSeparator(geometriesMenu, "Standard");
+
+		for (const auto& v : AllStandardVolumeTypes())
+		{
+			if (v.first == EVolumeShape::VOLUME_STL) continue;
+			auto* action = new QAction{ QString::fromStdString(v.second), this };
+			geometriesMenu->addAction(action);
+			connect(action, &QAction::triggered, this, [=]() { AddGeometryStd(v.first, _type); });
+		}
+
+		AddSeparator(geometriesMenu, "From geometries DB");
+
+		for (const auto& g : m_pGeometriesDB->Geometries())
+		{
+			auto* action = new QAction{ QString::fromStdString(g->mesh.Name()), this };
+			geometriesMenu->addAction(action);
+			connect(action, &QAction::triggered, this, [=]() { AddGeometryLib(g->key, _type); });
+		}
+
+		return geometriesMenu;
+	};
+
+	ui.buttonAddGeometry->setMenu(CreateMenu(EType::GEOMETRY));
+	ui.buttonAddVolume->setMenu(CreateMenu(EType::VOLUME));
+}
+
+void CGeometriesEditorTab::UpdateMaterialsCombo() const
+{
+	ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MATERIAL), 1, m_pMaterialsDB->GetCompoundsNames(), m_pMaterialsDB->GetCompoundsKeys(), "");
+}
+
+void CGeometriesEditorTab::UpdateMotionCombo() const
+{
+	switch(Type())
+	{
+	case EType::NONE: break;
+	case EType::GEOMETRY:
+		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT), E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT) }, -1);
 		break;
-	default: CMusenDialog::keyPressEvent(event);
+	case EType::VOLUME:
+		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT) }, -1);
+		break;
 	}
-}
-
-void CGeometriesEditorTab::UpdateAddButton()
-{
-	m_pSubmenuRealStd->clear();
-	m_pSubmenuRealLib->clear();
-	m_pSubmenuVirtStd->clear();
-	m_pSubmenuVirtLib->clear();
-
-	m_pMapperRealStd->removeMappings(this);
-	m_pMapperRealLib->removeMappings(this);
-	m_pMapperVirtStd->removeMappings(this);
-	m_pMapperVirtLib->removeMappings(this);
-
-	for (size_t i = 0; i < m_pGeometriesDB->GetGeometriesNumber(); ++i)
-	{
-		QAction* pRealAction = new QAction(ss2qs(m_pGeometriesDB->GetGeometry(i)->sName), this);
-		m_pSubmenuRealLib->addAction(pRealAction);
-		connect(pRealAction, &QAction::triggered, m_pMapperRealLib, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-		m_pMapperRealLib->setMapping(pRealAction, static_cast<int>(i));
-
-		QAction* pVirtAction = new QAction(ss2qs(m_pGeometriesDB->GetGeometry(i)->sName), this);
-		m_pSubmenuVirtLib->addAction(pVirtAction);
-		connect(pVirtAction, &QAction::triggered, m_pMapperVirtLib, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-		m_pMapperVirtLib->setMapping(pVirtAction, static_cast<int>(i));
-	}
-
-	for (size_t i = 0; i < CAnalysisVolume::AllVolumeTypesNames().size() - 1; ++i)
-	{
-		QAction* pRealAction = new QAction(ss2qs(CAnalysisVolume::AllVolumeTypesNames()[i]), this);
-		m_pSubmenuRealStd->addAction(pRealAction);
-		connect(pRealAction, &QAction::triggered, m_pMapperRealStd, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-		m_pMapperRealStd->setMapping(pRealAction, static_cast<int>(CAnalysisVolume::AllVolumeTypes()[i]));
-
-		QAction* pVirtAction = new QAction(ss2qs(CAnalysisVolume::AllVolumeTypesNames()[i]), this);
-		m_pSubmenuVirtStd->addAction(pVirtAction);
-		connect(pVirtAction, &QAction::triggered, m_pMapperVirtStd, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-		m_pMapperVirtStd->setMapping(pVirtAction, static_cast<int>(CAnalysisVolume::AllVolumeTypes()[i]));
-	}
-}
-
-void CGeometriesEditorTab::UpdateHeaders()
-{
-	ShowConvLabel(ui.centerLabel, "Center X:Y:Z", EUnitType::LENGTH);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(0), "Time", EUnitType::TIME);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(1), "Vx", EUnitType::VELOCITY);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(2), "Vy", EUnitType::VELOCITY);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(3), "Vz", EUnitType::VELOCITY);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(4), "RotX", EUnitType::LENGTH);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(5), "RotY", EUnitType::LENGTH);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(6), "RotZ", EUnitType::LENGTH);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(7), "Wx", EUnitType::ANGULAR_VELOCITY);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(8), "Wy", EUnitType::ANGULAR_VELOCITY);
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(9), "Wz", EUnitType::ANGULAR_VELOCITY);
-	ShowConvLabel(ui.massLabel, "Mass", EUnitType::MASS);
 }
 
 void CGeometriesEditorTab::UpdateGeometriesList()
 {
-	m_bAvoidSignal = true;
-	int iOld = ui.geometriesList->currentRow();
-	ui.geometriesList->clear();
-	for (int i = 0; i < static_cast<int>(m_pSystemStructure->GetGeometriesNumber()); ++i)
-	{
-		ui.geometriesList->insertItem(i, ss2qs(m_pSystemStructure->GetGeometry(i)->sName));
-		ui.geometriesList->item(i)->setFlags(ui.geometriesList->item(i)->flags() | Qt::ItemIsEditable);
-	}
-	int nOffset = static_cast<int>(m_pSystemStructure->GetGeometriesNumber());
-	for (int i = 0; i < static_cast<int>(m_pSystemStructure->GetAnalysisVolumesNumber()); ++i)
-	{
-		ui.geometriesList->insertItem(i + nOffset, ss2qs(m_pSystemStructure->GetAnalysisVolume(i)->sName));
-		ui.geometriesList->item(i + nOffset)->setFlags(ui.geometriesList->item(i + nOffset)->flags() | Qt::ItemIsEditable);
-	}
-	m_bAvoidSignal = false;
+	/*[[maybe_unused]]*/ CQtSignalBlocker blocker{ ui.listGeometries };
+	const auto oldKey = ui.listGeometries->GetCurrentData();
 
-	if (ui.geometriesList->count() == 0)
-		ui.geometriesList->setCurrentRow(-1);
-	else if ((iOld != -1) && (iOld < ui.geometriesList->count()))
-		ui.geometriesList->setCurrentRow(iOld);
-	else
-		ui.geometriesList->setCurrentRow(0);
+	CQtTree::Clear(m_list[EType::GEOMETRY]);
+	m_list[EType::GEOMETRY]->setHidden(m_pSystemStructure->GeometriesNumber() == 0);
+	for (const auto& geometry : m_pSystemStructure->AllGeometries())
+		ui.listGeometries->CreateItem(m_list[EType::GEOMETRY], 0, geometry->Name(), CQtTree::EFlags::Edit, QString::fromStdString(geometry->Key()));
+
+	CQtTree::Clear(m_list[EType::VOLUME]);
+	m_list[EType::VOLUME]->setHidden(m_pSystemStructure->AnalysisVolumesNumber() == 0);
+	for (const auto& volume : m_pSystemStructure->AllAnalysisVolumes())
+		ui.listGeometries->CreateItem(m_list[EType::VOLUME], 0, volume->Name(), CQtTree::EFlags::Edit, QString::fromStdString(volume->Key()));
+
+	ui.listGeometries->expandAll();
+	ui.listGeometries->SetCurrentItem(oldKey);
+	GeometrySelected();
 }
 
-void CGeometriesEditorTab::UpdateSelectedGeometryProperties()
+void CGeometriesEditorTab::UpdatePropertiesInfoEmpty() const
 {
-	m_bAvoidSignal = true;
-	ui.timeDepValues->clearContents();
-	ui.timeDepValues->setRowCount(0);
-	ui.materialsCombo->clear();
-	EnableAllFields(false);
+	CQtSignalBlocker blocker{ ui.treeProperties };
 
-	if ((ui.geometriesList->currentRow() < 0) || (ui.geometriesList->currentRow() >= (int)m_pSystemStructure->GetGeometriesNumber() + (int)m_pSystemStructure->GetAnalysisVolumesNumber()))
+	ui.treeProperties->SetComboBoxValue(     m_properties.at(EProperty::MATERIAL),     1, -1);
+	ui.treeProperties->SetComboBoxValue(     m_properties.at(EProperty::MOTION),       1, 0);
+	ui.treeProperties->SetListSpinBoxValue(  m_properties.at(EProperty::TRIANGLES),    1, 0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::ROTATE_X),     1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::ROTATE_Y),     1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::ROTATE_Z),     1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_X),   1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Y),   1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Z),   1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SCALE),        1, 1.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_X),       1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_Y),       1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_Z),       1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::WIDTH),        1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::DEPTH),        1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::HEIGHT),       1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::RADIUS),       1, 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::INNER_RADIUS), 1, 0.0);
+	m_properties.at(EProperty::SIZE_X      )->setHidden(true);
+	m_properties.at(EProperty::SIZE_Y      )->setHidden(true);
+	m_properties.at(EProperty::SIZE_Z      )->setHidden(true);
+	m_properties.at(EProperty::WIDTH       )->setHidden(true);
+	m_properties.at(EProperty::DEPTH       )->setHidden(true);
+	m_properties.at(EProperty::HEIGHT      )->setHidden(true);
+	m_properties.at(EProperty::RADIUS      )->setHidden(true);
+	m_properties.at(EProperty::INNER_RADIUS)->setHidden(true);
+}
+
+void CGeometriesEditorTab::UpdatePropertiesInfo() const
+{
+	ui.treeProperties->setEnabled(m_object);
+
+	if (!m_object)
 	{
-		ui.frameEditor->setEnabled(false);
-		ui.deleteGeometry->setEnabled(false);
-		m_bAvoidSignal = false;
+		UpdatePropertiesInfoEmpty();
 		return;
 	}
 
-	ui.deleteGeometry->setEnabled(true);
-	ui.frameEditor->setEnabled(true);
+	CQtSignalBlocker blocker{ ui.treeProperties };
 
-	if (ui.geometriesList->currentRow() < (int)m_pSystemStructure->GetGeometriesNumber())
-		UpdateInfoAboutGeometry(ui.geometriesList->currentRow());
+	ui.treeProperties->itemWidget(m_properties.at(EProperty::MATERIAL), 1)->setEnabled(Type() == EType::GEOMETRY);
+	ui.treeProperties->SetComboBoxValue(m_properties.at(EProperty::MATERIAL), 1, Type() == EType::GEOMETRY ? QString::fromStdString(dynamic_cast<CRealGeometry*>(m_object)->Material()) : "");
+	ui.treeProperties->SetColorPickerValue(m_properties.at(EProperty::COLOR), 1, m_object->Color());
+	ui.treeProperties->SetComboBoxValue(m_properties.at(EProperty::MOTION), 1, E2I(m_object->Motion()->MotionType()));
+	ui.treeProperties->itemWidget(m_properties.at(EProperty::TRIANGLES), 1)->setEnabled(m_object->Shape() != EVolumeShape::VOLUME_STL && m_object->Shape() != EVolumeShape::VOLUME_BOX);
+	ui.treeProperties->SetupListSpinBox(m_properties.at(EProperty::TRIANGLES), 1, vector_cast<int>(CMeshGenerator::AllowedTrianglesNumber(m_object->Shape())), static_cast<int>(m_object->TrianglesNumber()));
+	const auto center = m_object->Center(0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_X), 1, std::abs(center.x) > 1e-12 ? center.x : 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Y), 1, std::abs(center.y) > 1e-12 ? center.y : 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Z), 1, std::abs(center.z) > 1e-12 ? center.z : 0.0);
+	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SCALE),      1, m_object->ScalingFactor());
+	const auto shape = m_object->Shape();
+	if (shape == EVolumeShape::VOLUME_STL)
+	{
+		const auto bb = m_object->BoundingBox(0.0);
+		const auto size = bb.coordEnd - bb.coordBeg;
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_X), 1, size.x);
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_Y), 1, size.y);
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_Z), 1, size.z);
+	}
 	else
-		UpdateInfoAboutAnalysisVolume(ui.geometriesList->currentRow() - static_cast<int>(m_pSystemStructure->GetGeometriesNumber()));
-	m_bAvoidSignal = false;
+	{
+		const auto sizes = m_object->Sizes();
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::WIDTH),        1, sizes.Width());
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::DEPTH),        1, sizes.Depth());
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::HEIGHT),       1, sizes.Height());
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::RADIUS),       1, sizes.Radius());
+		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::INNER_RADIUS), 1, sizes.InnerRadius());
+	}
+
+	m_properties.at(EProperty::SIZE_X      )->setHidden(!VectorContains({ EVolumeShape::VOLUME_STL }, shape));
+	m_properties.at(EProperty::SIZE_Y      )->setHidden(!VectorContains({ EVolumeShape::VOLUME_STL }, shape));
+	m_properties.at(EProperty::SIZE_Z      )->setHidden(!VectorContains({ EVolumeShape::VOLUME_STL }, shape));
+	m_properties.at(EProperty::WIDTH       )->setHidden(!VectorContains({ EVolumeShape::VOLUME_BOX }, shape));
+	m_properties.at(EProperty::DEPTH       )->setHidden(!VectorContains({ EVolumeShape::VOLUME_BOX }, shape));
+	m_properties.at(EProperty::HEIGHT      )->setHidden(!VectorContains({ EVolumeShape::VOLUME_BOX, EVolumeShape::VOLUME_CYLINDER }, shape));
+	m_properties.at(EProperty::RADIUS      )->setHidden(!VectorContains({ EVolumeShape::VOLUME_CYLINDER, EVolumeShape::VOLUME_SPHERE, EVolumeShape::VOLUME_HOLLOW_SPHERE }, shape));
+	m_properties.at(EProperty::INNER_RADIUS)->setHidden(!VectorContains({ EVolumeShape::VOLUME_HOLLOW_SPHERE }, shape));
 }
 
-void CGeometriesEditorTab::UpdateInfoAboutGeometry(int _index)
+void CGeometriesEditorTab::UpdateMotionInfo()
 {
-	const SGeometryObject* pRealGeom = m_pSystemStructure->GetGeometry(_index);
-	if (!pRealGeom) return;
+	ui.tableMotion->setColumnCount(0);
+	ui.groupMotion->setEnabled(m_object);
 
-	EnableAllFields(true);
+	if (!m_object) return;
 
-	if (pRealGeom->bForceDepVel)
-		ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(0), "Force", EUnitType::FORCE);
-	else
-		ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(0), "Time", EUnitType::TIME);
+	CQtSignalBlocker blocker{ ui.tableMotion, ui.checkBoxAroundCenter, ui.groupFreeMotion, ui.checkBoxFreeMotionX, ui.checkBoxFreeMotionY, ui.checkBoxFreeMotionZ, ui.lineEditMass };
 
-	ui.materialsCombo->insertItem(0, "");
-	for (size_t i = 0; i < m_pMaterialsDB->CompoundsNumber(); ++i)
-		ui.materialsCombo->insertItem(static_cast<int>(i + 1), ss2qs(m_pMaterialsDB->GetCompoundName(i)));
-	if (!pRealGeom->vPlanes.empty())
+	const auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
+
+	// movement type
+	const auto* motion = m_object->Motion();
+	const auto type = motion->MotionType();
+	ui.tableMotion->ShowRow(ERowMotion::TIME_BEG,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
+	ui.tableMotion->ShowRow(ERowMotion::TIME_END,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
+	ui.tableMotion->ShowRow(ERowMotion::FORCE,        type == CGeometryMotion::EMotionType::FORCE_DEPENDENT);
+	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   type == CGeometryMotion::EMotionType::FORCE_DEPENDENT);
+	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_X,    geometry);
+	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Y,    geometry);
+	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Z,    geometry);
+	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_X, geometry && !geometry->RotateAroundCenter());
+	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_Y, geometry && !geometry->RotateAroundCenter());
+	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_Z, geometry && !geometry->RotateAroundCenter());
+
+	// movement parameters
+	switch (type)
 	{
-		if (const CPhysicalObject* pObject = m_pSystemStructure->GetObjectByIndex(pRealGeom->vPlanes.front()))
+	case CGeometryMotion::EMotionType::TIME_DEPENDENT:
+	{
+		const auto intervals = motion->GetTimeIntervals();
+		ui.tableMotion->setColumnCount(static_cast<int>(intervals.size()));
+		for (int i = 0; i < static_cast<int>(intervals.size()); ++i)
 		{
-			const int nIndex = m_pMaterialsDB->GetCompoundIndex(pObject->GetCompoundKey());
-			if (nIndex != -1 && nIndex < ui.materialsCombo->count())
-				ui.materialsCombo->setCurrentIndex(nIndex + 1);
+			ui.tableMotion->SetItemEditableConv(ERowMotion::TIME_BEG, i, intervals[i].timeBeg, EUnitType::TIME);
+			ui.tableMotion->SetItemEditableConv(ERowMotion::TIME_END, i, intervals[i].timeEnd, EUnitType::TIME);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X, i, intervals[i].motion.velocity, EUnitType::VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X, i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter, EUnitType::LENGTH);
+		}
+		break;
+	}
+	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+	{
+		const auto intervals = motion->GetForceIntervals();
+		ui.tableMotion->setColumnCount(static_cast<int>(intervals.size()));
+		for (int i = 0; i < static_cast<int>(intervals.size()); ++i)
+		{
+			ui.tableMotion->SetItemEditableConv(ERowMotion::FORCE, i, intervals[i].forceLimit, EUnitType::FORCE);
+			ui.tableMotion->SetComboBox(ERowMotion::LIMIT_TYPE, i, { "MIN", "MAX" }, { E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MIN), E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MAX) }, E2I(intervals[i].limitType));
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X, i, intervals[i].motion.velocity, EUnitType::VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X, i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter, EUnitType::LENGTH);
+		}
+		break;
+	}
+	case CGeometryMotion::EMotionType::NONE:
+		ui.tableMotion->setColumnCount(0);
+		break;
+	}
+
+	ui.checkBoxAroundCenter->setChecked(geometry && geometry->RotateAroundCenter());
+	ui.checkBoxAroundCenter->setEnabled(geometry);
+	ui.tableMotion->resizeColumnsToContents();
+
+	// free motion parameters
+	ui.checkBoxFreeMotionX->setChecked(geometry && geometry->FreeMotion().x);
+	ui.checkBoxFreeMotionY->setChecked(geometry && geometry->FreeMotion().y);
+	ui.checkBoxFreeMotionZ->setChecked(geometry && geometry->FreeMotion().z);
+	ShowConvValue(ui.lineEditMass, geometry ? geometry->Mass() : 0, EUnitType::MASS);
+	ui.lineEditMass->setEnabled(geometry && !geometry->FreeMotion().IsZero());
+	ui.groupFreeMotion->setEnabled(geometry);
+
+	// visibility
+	if (type == CGeometryMotion::EMotionType::NONE)
+	{
+		if (ui.groupMotion->isVisible())
+		{
+			m_motionWidth = ui.groupMotion->width();
+			ui.groupMotion->hide();
+			resize(width() - m_motionWidth - ui.groupMotion->layout()->spacing(), height());
 		}
 	}
-
-	ui.widgetColor->setColor(pRealGeom->color);
-	ShowConvValue( ui.coordX, ui.coordY, ui.coordZ, m_pSystemStructure->GetGeometryCenter(0, _index), EUnitType::LENGTH);
-	ShowConvValue(ui.objectMass, pRealGeom->dMass, EUnitType::MASS);
-	ui.freeMotionX->setChecked(pRealGeom->vFreeMotion.x);
-	ui.freeMotionY->setChecked(pRealGeom->vFreeMotion.y);
-	ui.freeMotionZ->setChecked(pRealGeom->vFreeMotion.z);
-	if (!(pRealGeom->vFreeMotion.x || pRealGeom->vFreeMotion.y || pRealGeom->vFreeMotion.z))
-		ui.objectMass->setEnabled(false);
-
-	ui.rotateAroundCenter->setChecked(pRealGeom->bRotateAroundCenter);
-	ui.forceDepVelRadio->setChecked(pRealGeom->bForceDepVel);
-	ui.timeDepVelRadio->setChecked(!pRealGeom->bForceDepVel);
-
-	for (int i = 0; i < static_cast<int>(pRealGeom->vIntervals.size()); ++i)
+	else
 	{
-		ui.timeDepValues->insertRow(i);
-		for (int j = 0; j < ui.timeDepValues->columnCount(); ++j)
-			ui.timeDepValues->setItem(i, j, new QTableWidgetItem(""));
-		if (pRealGeom->bRotateAroundCenter)
-			for (int j = 4; j < 7; ++j)
-				ui.timeDepValues->item(i, j)->setFlags(ui.timeDepValues->item(i, j)->flags() ^ Qt::ItemIsEditable);
-		if (pRealGeom->bForceDepVel)
-			ShowConvValue(ui.timeDepValues->item(i, 0), pRealGeom->vIntervals[i].dCriticalValue, EUnitType::FORCE);
-		else
-			ShowConvValue(ui.timeDepValues->item(i, 0), pRealGeom->vIntervals[i].dCriticalValue, EUnitType::TIME);
-		ShowVectorInTableRow(pRealGeom->vIntervals[i].vVel, ui.timeDepValues, i, 1, EUnitType::VELOCITY);
-		ShowVectorInTableRow(pRealGeom->vIntervals[i].vRotCenter, ui.timeDepValues, i, 4, EUnitType::LENGTH);
-		ShowVectorInTableRow(pRealGeom->vIntervals[i].vRotVel, ui.timeDepValues, i, 7, EUnitType::ANGULAR_VELOCITY);
+		if (ui.groupMotion->isHidden())
+		{
+			ui.groupMotion->show();
+			resize(width() + m_motionWidth + ui.groupMotion->layout()->spacing(), height());
+		}
 	}
-	if (pRealGeom->bRotateAroundCenter)
-	{
-		ui.timeDepValues->SetColumnBackgroundColor(InactiveTableColor(), 4);
-		ui.timeDepValues->SetColumnBackgroundColor(InactiveTableColor(), 5);
-		ui.timeDepValues->SetColumnBackgroundColor(InactiveTableColor(), 6);
-	}
-
-	UpdateInfo(pRealGeom->nVolumeType, "Real geometry: ", pRealGeom->vProps, pRealGeom->vPlanes.size());
 }
 
-void CGeometriesEditorTab::UpdateInfoAboutAnalysisVolume(int _index)
+void CGeometriesEditorTab::AddGeometryStd(EVolumeShape _shape, EType _type)
 {
-	const CAnalysisVolume* pVolume = m_pSystemStructure->GetAnalysisVolume(_index);
-	if (!pVolume) return;
-
-	ShowConvLabel(ui.timeDepValues->horizontalHeaderItem(0), "Time", EUnitType::TIME);
-	ui.timeDepVelRadio->setChecked(true);
-	for (int i = 0; i < static_cast<int>(pVolume->m_vIntervals.size()); ++i)
+	if (_type == EType::GEOMETRY && !CheckAndConfirmTPRemoval()) return;
+	const SVolumeType domain = m_pSystemStructure->GetBoundingBox();
+	const CVector3 center = (domain.coordBeg + domain.coordEnd) / 2;
+	const CGeometrySizes sizes = CGeometrySizes::Defaults(Length(domain.coordEnd - domain.coordBeg));
+	const CBaseGeometry* geometry{ nullptr };
+	switch (_type)
 	{
-		ui.timeDepValues->insertRow(i);
-		for (int j = 0; j < ui.timeDepValues->columnCount(); ++j)
-			ui.timeDepValues->setItem(i, j, new QTableWidgetItem(""));
-		for (int j = 4; j < 7; ++j)
-			ui.timeDepValues->item(i, j)->setFlags(ui.timeDepValues->item(i, j)->flags() ^ Qt::ItemIsEditable);
-		ShowConvValue(ui.timeDepValues->item(i, 0), pVolume->m_vIntervals[i].dTime, EUnitType::TIME);
-		ShowVectorInTableRow(pVolume->m_vIntervals[i].vVel, ui.timeDepValues, i, 1, EUnitType::VELOCITY);
-		ShowVectorInTableRow(CVector3(0), ui.timeDepValues, i, 4, EUnitType::LENGTH);
-		ShowVectorInTableRow(CVector3(0), ui.timeDepValues, i, 7, EUnitType::ANGULAR_VELOCITY);
+	case EType::NONE: return;
+	case EType::GEOMETRY:	geometry = m_pSystemStructure->AddGeometry(_shape, sizes, center);			break;
+	case EType::VOLUME:		geometry = m_pSystemStructure->AddAnalysisVolume(_shape, sizes, center);	break;
+	}
+	UpdateGeometriesList();
+	ui.listGeometries->SetCurrentItem(QString::fromStdString(geometry->Key()));
+	EmitChangeSignals();
+}
+
+void CGeometriesEditorTab::AddGeometryLib(const std::string& _key, EType _type)
+{
+	if (_type == EType::GEOMETRY && !CheckAndConfirmTPRemoval()) return;
+	const CBaseGeometry* geometry{ nullptr };
+	switch (_type)
+	{
+	case EType::NONE: return;
+	case EType::GEOMETRY:	geometry = m_pSystemStructure->AddGeometry(m_pGeometriesDB->Geometry(_key)->mesh);			break;
+	case EType::VOLUME:		geometry = m_pSystemStructure->AddAnalysisVolume(m_pGeometriesDB->Geometry(_key)->mesh);	break;
 	}
 
-
-	ui.widgetColor->setColor(pVolume->color);
-	ShowConvValue(ui.coordX, ui.coordY, ui.coordZ, pVolume->GetCenter(0), EUnitType::LENGTH);
-
-	UpdateInfo(pVolume->nVolumeType, "Analysis volume: ", pVolume->vProps, pVolume->vTriangles.size());
+	UpdateGeometriesList();
+	ui.listGeometries->SetCurrentItem(QString::fromStdString(geometry->Key()));
+	EmitChangeSignals();
 }
 
-void CGeometriesEditorTab::UpdateInfo(const EVolumeType& _volumeType, const QString& _sTypePrefix, const std::vector<double>& _vParams, size_t _nPlanesNum)
+void CGeometriesEditorTab::DeleteGeometry()
 {
-	switch (_volumeType)
+	const EType type = Type();
+	if (type == EType::NONE) return;
+
+	const auto prev = CQtTree::GetData(ui.listGeometries->itemAbove(ui.listGeometries->currentItem()));
+	if (QMessageBox::question(this, windowTitle(), tr("Delete %1 %2?").arg(type == EType::GEOMETRY ? "geometry" : "volume").arg(QString::fromStdString(m_object->Name())), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel) != QMessageBox::Yes) return;
+	if (type == EType::GEOMETRY)	m_pSystemStructure->DeleteGeometry(m_object->Key());
+	else							m_pSystemStructure->DeleteAnalysisVolume(m_object->Key());
+
+	EmitChangeSignals(type);
+	UpdateGeometriesList();
+	ui.listGeometries->SetCurrentItem(prev);
+}
+
+void CGeometriesEditorTab::UpGeometry()
+{
+	switch (Type())
 	{
-	case EVolumeType::VOLUME_BOX:
-		ui.geometryType->setText(_sTypePrefix + "Box");
-		ui.param1Value->setEnabled(true); ui.param2Value->setEnabled(true); ui.param3Value->setEnabled(true);
-		ShowConvLabel(ui.param1Name, "Width X", EUnitType::LENGTH);		ShowConvValue(ui.param1Value, _vParams[0], EUnitType::LENGTH);
-		ShowConvLabel(ui.param2Name, "Depth Y", EUnitType::LENGTH);		ShowConvValue(ui.param2Value, _vParams[1], EUnitType::LENGTH);
-		ShowConvLabel(ui.param3Name, "Height Z", EUnitType::LENGTH);		ShowConvValue(ui.param3Value, _vParams[2], EUnitType::LENGTH);
-		ui.sliderQuality->setEnabled(false);
-		ui.sliderQuality->setRange(1, 1);
-		ui.sliderQuality->setSliderPosition(1);
-		break;
-	case EVolumeType::VOLUME_SPHERE:
-		ui.param1Value->setEnabled(true); ui.param2Value->setEnabled(false); ui.param3Value->setEnabled(false);
-		ui.geometryType->setText(_sTypePrefix + "Sphere");
-		ShowConvLabel(ui.param1Name, "Radius", EUnitType::LENGTH);
-		if ( !_vParams.empty() )
-			ShowConvValue(ui.param1Value, _vParams[0], EUnitType::LENGTH);
-		ui.sliderQuality->setEnabled(true);
-		ui.sliderQuality->setRange(0, 6);
-		ui.sliderQuality->setSliderPosition(static_cast<int>(log(_nPlanesNum / 20) / log(4)));
-		break;
-	case EVolumeType::VOLUME_CYLINDER:
-		ui.geometryType->setText(_sTypePrefix + "Cylinder");
-		ui.param1Value->setEnabled(true); ui.param2Value->setEnabled(true); ui.param3Value->setEnabled(false);
-		ShowConvLabel(ui.param1Name, "Radius", EUnitType::LENGTH);		ShowConvValue(ui.param1Value, _vParams[0], EUnitType::LENGTH);
-		ShowConvLabel(ui.param2Name, "Height Z", EUnitType::LENGTH);		ShowConvValue(ui.param2Value, _vParams[1], EUnitType::LENGTH);
-		ui.sliderQuality->setEnabled(true);
-		ui.sliderQuality->setRange(4, 512);
-		ui.sliderQuality->setSliderPosition(static_cast<int>(_nPlanesNum / 4));
-		break;
-	case EVolumeType::VOLUME_HOLLOW_SPHERE:
-		ui.geometryType->setText(_sTypePrefix + "Hollow sphere");
-		ui.param1Value->setEnabled(true); ui.param2Value->setEnabled(true); ui.param3Value->setEnabled(false);
-		ShowConvLabel(ui.param1Name, "Radius", EUnitType::LENGTH);		ShowConvValue(ui.param1Value, _vParams[0], EUnitType::LENGTH);
-		ShowConvLabel(ui.param2Name, "Inner radius", EUnitType::LENGTH); ShowConvValue(ui.param2Value, _vParams[1], EUnitType::LENGTH);
-		ui.sliderQuality->setEnabled(true);
-		ui.sliderQuality->setRange(0, 6);
-		ui.sliderQuality->setSliderPosition(static_cast<int>(log(_nPlanesNum / 40) / log(4)));
-		break;
-	case EVolumeType::VOLUME_STL:
-		ui.geometryType->setText(_sTypePrefix + "From database");
-		ui.param1Value->setEnabled(false); ui.param2Value->setEnabled(false); ui.param3Value->setEnabled(false);
-		ui.sliderQuality->setEnabled(false);
-		ui.sliderQuality->setRange(1, 1);
-		ui.sliderQuality->setSliderPosition(1);
-		break;
-	default:
-		break;
+	case EType::NONE: return;
+	case EType::GEOMETRY:	m_pSystemStructure->UpGeometry(m_object->Key());		break;
+	case EType::VOLUME:		m_pSystemStructure->UpAnalysisVolume(m_object->Key());	break;
 	}
-	ui.lineEditQuality->setText(QString::number(_nPlanesNum));
+
+	EmitChangeSignals();
+	UpdateGeometriesList();
 }
 
-void CGeometriesEditorTab::EnableAllFields(bool _bEnable)
+void CGeometriesEditorTab::DownGeometry()
 {
-	ui.param1Value->setText(""); ui.param2Value->setText(""); ui.param3Value->setText("");
-	ui.param1Name->setText(" "); ui.param2Name->setText(" "); ui.param3Name->setText(" ");
-	ui.materialsCombo->setEnabled(_bEnable);	ui.objectMass->setEnabled(_bEnable);
-	ui.rotateAroundCenter->setEnabled(_bEnable); ui.forceDepVelRadio->setEnabled(_bEnable);
-	ui.freeMotionX->setEnabled(_bEnable);	ui.freeMotionY->setEnabled(_bEnable);  ui.freeMotionZ->setEnabled(_bEnable);
-	ui.shiftDownwards->setEnabled(_bEnable); ui.shiftUpwards->setEnabled(_bEnable);
+	switch (Type())
+	{
+	case EType::NONE: return;
+	case EType::GEOMETRY:	m_pSystemStructure->DownGeometry(m_object->Key());			break;
+	case EType::VOLUME:		m_pSystemStructure->DownAnalysisVolume(m_object->Key());	break;
+	}
+
+	EmitChangeSignals();
+	UpdateGeometriesList();
 }
 
-bool CGeometriesEditorTab::ConfirmRemoveAllTP()
+void CGeometriesEditorTab::NameChanged()
 {
-	if (m_pSystemStructure->GetMaxTime() > 0)
-		if (QMessageBox::question(this, "Confirmation", "This scene contains time-dependent data. All time points after 0 will be removed. Continue?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::No) return false;
+	if (!m_object) return;
+
+	const QString name = ui.listGeometries->currentItem()->text(0);
+	if (name.isEmpty()) return;
+
+	m_object->SetName(name.toStdString());
+
+	EmitChangeSignals();
+	UpdateGeometriesList();
+	UpdatePropertiesInfo();
+}
+
+void CGeometriesEditorTab::GeometrySelected()
+{
+	auto* item = ui.listGeometries->currentItem();
+	if(!item) return;
+
+	if (item->parent() == m_list[EType::GEOMETRY])		m_object = m_pSystemStructure->Geometry(CQtTree::GetData(item).toStdString());
+	else if (item->parent() == m_list[EType::VOLUME])	m_object = m_pSystemStructure->AnalysisVolume(CQtTree::GetData(item).toStdString());
+	else												m_object = nullptr;
+
+	UpdateMotionCombo();
+	UpdatePropertiesInfo();
+	UpdateMotionInfo();
+}
+
+void CGeometriesEditorTab::MaterialChanged()
+{
+	if (Type() != EType::GEOMETRY) return;
+	const auto key = ui.treeProperties->GetComboBoxValue(m_properties.at(EProperty::MATERIAL), 1).toString().toStdString();
+	dynamic_cast<CRealGeometry*>(m_object)->SetMaterial(key);
+	emit ObjectsChanged();
+}
+
+void CGeometriesEditorTab::ColorChanged()
+{
+	const CColor color = ui.treeProperties->GetColorPickerValue(m_properties.at(EProperty::COLOR), 1);
+	m_object->SetColor(color);
+	EmitChangeSignals();
+}
+
+void CGeometriesEditorTab::MotionTypeChanged()
+{
+	const CGeometryMotion::EMotionType type = static_cast<CGeometryMotion::EMotionType>(ui.treeProperties->GetComboBoxValue(m_properties.at(EProperty::MOTION), 1).toUInt());
+	m_object->Motion()->SetMotionType(type);
+	UpdateMotionInfo();
+}
+
+void CGeometriesEditorTab::RotationChanged(EAxis _axis)
+{
+	if (!m_object) return;
+	if (Type() == EType::GEOMETRY && !CheckAndConfirmTPRemoval()) return;
+
+	CVector3 angle{ 0.0 };
+	angle[E2I(_axis)] = ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(static_cast<EProperty>(EProperty::ROTATE_X + E2I(_axis))), 1);
+	angle *= PI / 180;
+	const CMatrix3 rotationMatrix = CQuaternion{ angle }.ToRotmat();
+	m_object->Rotate(rotationMatrix);
+
+	EmitChangeSignals();
+	UpdatePropertiesInfo();
+}
+
+void CGeometriesEditorTab::PositionChanged()
+{
+	if (!m_object) return;
+	if (Type() == EType::GEOMETRY && !CheckAndConfirmTPRemoval()) return;
+
+	const CVector3 center{
+		ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_X), 1),
+		ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Y), 1),
+		ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Z), 1)	};
+	m_object->SetCenter(center);
+
+	EmitChangeSignals();
+	UpdatePropertiesInfo();
+}
+
+void CGeometriesEditorTab::SizeChanged()
+{
+	if (!m_object) return;
+	if (Type() == EType::GEOMETRY && !CheckAndConfirmTPRemoval()) return;
+
+	CGeometrySizes sizes;
+	if (m_object->Shape() == EVolumeShape::VOLUME_STL)
+	{
+		sizes.SetWidth( ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_X), 1));
+		sizes.SetDepth( ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_Y), 1));
+		sizes.SetHeight(ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_Z), 1));
+	}
+	else
+	{
+		sizes.SetWidth(      ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::WIDTH),        1));
+		sizes.SetDepth(      ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::DEPTH),        1));
+		sizes.SetHeight(     ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::HEIGHT),       1));
+		sizes.SetRadius(     ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::RADIUS),       1));
+		sizes.SetInnerRadius(ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::INNER_RADIUS), 1));
+	}
+	m_object->SetSizes(sizes);
+
+	EmitChangeSignals();
+	UpdatePropertiesInfo();
+}
+
+void CGeometriesEditorTab::QualityChanged()
+{
+	if (!m_object) return;
+	if (Type() == EType::GEOMETRY && !CheckAndConfirmTPRemoval()) return;
+	m_object->SetAccuracy(CMeshGenerator::TrianglesToAccuracy(m_object->Shape(), ui.treeProperties->GetListSpinBoxValue(m_properties.at(EProperty::TRIANGLES), 1)));
+	EmitChangeSignals();
+	UpdatePropertiesInfo();
+}
+
+void CGeometriesEditorTab::ScalingChanged()
+{
+	if (!m_object) return;
+	if (Type() == EType::GEOMETRY && !CheckAndConfirmTPRemoval()) return;
+
+	const double factor = ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::SCALE), 1);
+	if (factor <= 0) return;
+	m_object->Scale(factor);
+
+	EmitChangeSignals();
+	UpdatePropertiesInfo();
+}
+
+void CGeometriesEditorTab::AddMotion()
+{
+	if (!m_object) return;
+
+	m_object->Motion()->AddInterval();
+	UpdateMotionInfo();
+}
+
+void CGeometriesEditorTab::DeleteMotion()
+{
+	if (!m_object) return;
+
+	std::set<int> cols;
+	for (const auto& index : ui.tableMotion->selectionModel()->selection().indexes())
+		cols.insert(index.column());
+
+	for (auto i = cols.rbegin(); i != cols.rend(); ++i)
+		m_object->Motion()->DeleteInterval(*i);
+	UpdateMotionInfo();
+}
+
+void CGeometriesEditorTab::MotionTableChanged()
+{
+	if (!m_object) return;
+
+	const auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
+
+	const int iCol = ui.tableMotion->currentColumn();
+	switch (m_object->Motion()->MotionType())
+	{
+	case CGeometryMotion::EMotionType::TIME_DEPENDENT:
+		// TODO: change to a version without structs
+		m_object->Motion()->ChangeTimeInterval(iCol, {
+			ui.tableMotion->GetConvValue(ERowMotion::TIME_BEG, iCol, EUnitType::TIME),
+			ui.tableMotion->GetConvValue(ERowMotion::TIME_END, iCol, EUnitType::TIME), {
+			ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
+			geometry ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) : CVector3{ 0.0 },
+			geometry ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH) : CVector3{ 0.0 }
+			} });
+		break;
+	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+		// TODO: change to a version without structs
+		m_object->Motion()->ChangeForceInterval(iCol, {
+			ui.tableMotion->GetConvValue(ERowMotion::FORCE, iCol, EUnitType::FORCE),
+			static_cast<CGeometryMotion::SForceMotionInterval::ELimitType>(ui.tableMotion->GetComboBoxValue(ERowMotion::LIMIT_TYPE, iCol).toUInt()), {
+			ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
+			ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) ,
+			ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH)
+			} });
+		break;
+	case CGeometryMotion::EMotionType::NONE: break;
+	}
+
+	UpdateMotionInfo();
+}
+
+void CGeometriesEditorTab::MotionChanged()
+{
+	auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
+	if (!geometry) return;
+
+	geometry->SetRotateAroundCenter(ui.checkBoxAroundCenter->isChecked());
+	geometry->SetMass(GetConvValue(ui.lineEditMass, EUnitType::MASS));
+	geometry->SetFreeMotion(CBasicVector3<bool>{ ui.checkBoxFreeMotionX->isChecked(), ui.checkBoxFreeMotionY->isChecked(), ui.checkBoxFreeMotionZ->isChecked() });
+
+	UpdateMotionInfo();
+}
+
+void CGeometriesEditorTab::PlaceAside(EAxis _axis, EPosition _pos)
+{
+	if (!m_object || m_pSystemStructure->GetAllSpheres(0, true).empty()) return;
+
+	auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
+	const size_t e = E2I(_axis); // index of the entry (x/y/z) in CVector3
+
+	// choose proper functions
+	using fun_type = double(&)(std::initializer_list<double>);
+	fun_type& fun1 = _pos == EPosition::MIN ? static_cast<fun_type>(std::min) : static_cast<fun_type>(std::max);
+	fun_type& fun2 = _pos == EPosition::MAX ? static_cast<fun_type>(std::min) : static_cast<fun_type>(std::max);
+
+	// min/max position of existing particles
+	double partPos = fun2({ -std::numeric_limits<double>::max(), std::numeric_limits<double>::max() });
+	for (const auto& part : m_pSystemStructure->GetAllSpheres(0, true))
+		partPos = fun1({ partPos, part->GetCoordinates(0)[e] + part->GetRadius() * (_pos == EPosition::MIN ? -1 : 1) });
+
+	// min/max position of walls of the given physical geometry / analysis volume
+	const auto bb = m_object->BoundingBox(0.0);
+	const double wallPos = fun2({ bb.coordBeg[e], bb.coordEnd[e] });
+
+	// calculate offset for geometry
+	const CVector3 offset{
+		_axis == EAxis::X ? partPos - wallPos : 0,
+		_axis == EAxis::Y ? partPos - wallPos : 0,
+		_axis == EAxis::Z ? partPos - wallPos : 0 };
+
+	// shift physical geometry / analysis volume
+	m_object->Shift(offset);
+
+	UpdatePropertiesInfo();
+
+	if (!geometry)
+		emit AnalysisGeometriesChanged();
+	emit ObjectsChanged();
+}
+
+CGeometriesEditorTab::EType CGeometriesEditorTab::Type() const
+{
+	if (dynamic_cast<CRealGeometry*>(m_object)) return EType::GEOMETRY;
+	if (dynamic_cast<CAnalysisVolume*>(m_object)) return EType::VOLUME;
+	return EType::NONE;
+}
+
+void CGeometriesEditorTab::EmitChangeSignals(EType _type/* = EType::NONE*/)
+{
+	emit ObjectsChanged();
+	if (_type == EType::VOLUME || _type == EType::NONE && dynamic_cast<CAnalysisVolume*>(m_object))
+		emit AnalysisGeometriesChanged();
+}
+
+bool CGeometriesEditorTab::CheckAndConfirmTPRemoval()
+{
+	if (m_pSystemStructure->GetMaxTime() <= 0) return true;
+	const auto answer = QMessageBox::question(this, windowTitle(), "This scene contains time-dependent data. All time points after 0 will be removed. Continue?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+	if (answer != QMessageBox::Yes) return false;
 	m_pSystemStructure->ClearAllStatesFrom(0);
 	return true;
 }
 
-void CGeometriesEditorTab::ShowContextMenu(const QPoint& _pos)
+void CGeometriesEditorTab::keyPressEvent(QKeyEvent* _event)
 {
-	if (QApplication::focusWidget() == ui.timeDepValues)
+	switch (_event->key())
 	{
-		QMenu myMenu;
-		QAction* addNewCycle = myMenu.addAction(QIcon(":/QT_GUI/Pictures/add.png"), "Add time point");
-		QAction* removeCycle = myMenu.addAction(QIcon(":/QT_GUI/Pictures/minus.png"), "Remove time point");
-		QAction* selectedItem = myMenu.exec(this->mapToGlobal(_pos));
-		if (selectedItem == addNewCycle)
-			AddTimePoint();
-		else if (selectedItem == removeCycle)
-			RemoveTimePoints();
+	case Qt::Key_Delete:
+		if (ui.listGeometries->hasFocus()) DeleteGeometry(); break;
+	default: CMusenDialog::keyPressEvent(_event);
 	}
-}
-
-void CGeometriesEditorTab::GeometryNameChanged(QListWidgetItem* _pItem)
-{
-	if (m_bAvoidSignal) return;
-	int nRow = ui.geometriesList->currentRow();
-	QString sNewName = _pItem->text().simplified().replace(" ", "");
-	if ((nRow >= 0) && (nRow < (int)m_pSystemStructure->GetGeometriesNumber()))
-	{
-		SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(nRow);
-		if (!pGeometry) return;
-		if (!sNewName.isEmpty()) pGeometry->sName = qs2ss(sNewName);
-	}
-	else
-	{
-		CAnalysisVolume* pVolume = m_pSystemStructure->GetAnalysisVolume(nRow - m_pSystemStructure->GetGeometriesNumber());
-		if (!pVolume) return;
-		if (!sNewName.isEmpty()) pVolume->sName = qs2ss(sNewName);
-		emit ObjectsChanged();
-		emit AnalysisGeometriesChanged();
-	}
-	UpdateWholeView();
-}
-
-void CGeometriesEditorTab::AddGeometryRealStd(int _type)
-{
-	if (!ConfirmRemoveAllTP()) return;
-
-	std::vector<double> props(3);
-	SVolumeType domain{ m_pSystemStructure->GetMinCoordinate(), m_pSystemStructure->GetMaxCoordinate() }; // calculate default position and size of analysis volume
-	CVector3 vCenter = (domain.coordBeg + domain.coordEnd) / 2;
-	for (auto& p : props)
-	{
-		p = Length(domain.coordEnd - domain.coordBeg) / 5;
-		if (p == 0) p = 0.01; // 10 [mm] by default
-	}
-
-	m_pSystemStructure->AddGeometry(static_cast<EVolumeType>(_type), props, vCenter, CMatrix3::Diagonal());
-
-	UpdateGeometriesList();
-	ui.geometriesList->setCurrentRow((int)m_pSystemStructure->GetGeometriesNumber() - 1);
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::AddGeometryRealLib(int _indexDB)
-{
-	if (!ConfirmRemoveAllTP()) return;
-	m_pSystemStructure->AddGeometry(*m_pGeometriesDB->GetGeometry(_indexDB));
-
-	UpdateGeometriesList();
-	ui.geometriesList->setCurrentRow((int)m_pSystemStructure->GetGeometriesNumber() - 1);
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::AddGeometryVirtStd(int _type)
-{
-	std::vector<double> props(3);
-	SVolumeType domain{ m_pSystemStructure->GetMinCoordinate(), m_pSystemStructure->GetMaxCoordinate() }; // calculate default position and size of analysis volume
-	CVector3 vCenter = (domain.coordBeg + domain.coordEnd) / 2;
-	for (auto& p : props)
-	{
-		p = Length(domain.coordEnd - domain.coordBeg) / 5;
-		if (p == 0) p = 0.01; // 10 [mm] by default
-	}
-
-	m_pSystemStructure->AddAnalysisVolume(static_cast<EVolumeType>(_type), props, vCenter, CMatrix3::Diagonal());
-
-	emit ObjectsChanged();
-	emit AnalysisGeometriesChanged();
-	UpdateGeometriesList();
-	ui.geometriesList->setCurrentRow((int)m_pSystemStructure->GetGeometriesNumber() + (int)m_pSystemStructure->GetAnalysisVolumesNumber() - 1);
-}
-
-void CGeometriesEditorTab::AddGeometryVirtLib(int _indexDB)
-{
-	m_pSystemStructure->AddAnalysisVolume(*m_pGeometriesDB->GetGeometry(_indexDB));
-
-	emit ObjectsChanged();
-	emit AnalysisGeometriesChanged();
-	UpdateGeometriesList();
-	ui.geometriesList->setCurrentRow((int)m_pSystemStructure->GetGeometriesNumber() + (int)m_pSystemStructure->GetAnalysisVolumesNumber() - 1);
-}
-
-void CGeometriesEditorTab::RemoveGeometry()
-{
-	if (QMessageBox::question(this, "Confirmation", "Delete selected geometry?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::No) return;
-	if (ui.geometriesList->currentRow() < (int)m_pSystemStructure->GetGeometriesNumber())
-		m_pSystemStructure->DeleteGeometry(ui.geometriesList->currentRow());
-	else
-	{
-		m_pSystemStructure->DeleteAnalysisVolume(ui.geometriesList->currentRow() - m_pSystemStructure->GetGeometriesNumber());
-		emit AnalysisGeometriesChanged();
-	}
-	UpdateWholeView();
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::SetMaterial(int _iMaterial)
-{
-	if (m_bAvoidSignal) return;
-	const CCompound* pCompound = m_pMaterialsDB->GetCompound(_iMaterial - 1);
-	if (!pCompound)
-	{
-		ui.statusMessage->setText("Wrong compound has been specified.");
-		return;
-	}
-	m_pSystemStructure->SetGeometryMaterial(ui.geometriesList->currentRow(), pCompound);
-
-	ui.statusMessage->setText("New material has been specified.");
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::GeometryColorChanged()
-{
-	qreal r, g, b, f;
-	ui.widgetColor->getColor().getRgbF(&r, &g, &b, &f);
-
-	if (ui.geometriesList->currentRow() < (int)m_pSystemStructure->GetGeometriesNumber())
-	{
-		SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(ui.geometriesList->currentRow());
-		if(pGeometry) pGeometry->color = CColor(r, g, b, f);
-	}
-	else
-	{
-		CAnalysisVolume* pVolume = m_pSystemStructure->GetAnalysisVolume(ui.geometriesList->currentRow() - m_pSystemStructure->GetGeometriesNumber());
-		if(pVolume) pVolume->color = CColor(r, g, b, f);
-	}
-	ui.statusMessage->setText("New color has been set.");
-	UpdateSelectedGeometryProperties();
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::ScaleGeometry()
-{
-	double dScaleFactor = ui.scalingFactor->text().toDouble();
-	if (dScaleFactor <= 0)
-	{
-		ui.statusMessage->setText("The scaling factor must be greater than zero.");
-		return;
-	}
-
-	if (ui.geometriesList->currentRow() < (int)m_pSystemStructure->GetGeometriesNumber())
-	{
-		if (!ConfirmRemoveAllTP()) return;
-		m_pSystemStructure->ScaleGeometry(0, ui.geometriesList->currentRow(), dScaleFactor);
-	}
-	else
-	{
-		m_pSystemStructure->ScaleAnalysisVolume(ui.geometriesList->currentRow() - m_pSystemStructure->GetGeometriesNumber(), dScaleFactor);
-		emit AnalysisGeometriesChanged();
-	}
-	ui.statusMessage->setText("The object has been scaled.");
-	UpdateSelectedGeometryProperties();
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::MoveGeometry()
-{
-	if (m_bAvoidSignal) return;
-	CVector3 vNewCenter = GetConvValue(ui.coordX, ui.coordY, ui.coordZ, EUnitType::LENGTH);
-
-	if (ui.geometriesList->currentRow() < (int)m_pSystemStructure->GetGeometriesNumber())
-	{
-		if (!ConfirmRemoveAllTP()) return;
-		m_pSystemStructure->SetGeometryCenter(0, ui.geometriesList->currentRow(), vNewCenter);
-	}
-	else
-	{
-		m_pSystemStructure->SetAnalysisVolumeCenter(ui.geometriesList->currentRow() - m_pSystemStructure->GetGeometriesNumber(), vNewCenter);
-		emit AnalysisGeometriesChanged();
-	}
-	ui.statusMessage->setText("The object has been moved.");
-	UpdateSelectedGeometryProperties();
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::RotateGeometry()
-{
-	CVector3 vAngle;
-	if (ui.radioButtonAngleX->isChecked())
-		vAngle = CVector3{ ui.lineEditAngle->text().toDouble(), 0, 0 };
-	else if (ui.radioButtonAngleY->isChecked())
-		vAngle = CVector3{ 0, ui.lineEditAngle->text().toDouble(), 0 };
-	else if (ui.radioButtonAngleZ->isChecked())
-		vAngle = CVector3{ 0, 0, ui.lineEditAngle->text().toDouble() };
-	vAngle *= PI / 180;
-	CMatrix3 rotationMatrix = CQuaternion(vAngle).ToRotmat();
-
-	if (ui.geometriesList->currentRow() < (int)m_pSystemStructure->GetGeometriesNumber())
-	{
-		if (!ConfirmRemoveAllTP()) return;
-		m_pSystemStructure->RotateGeometry(0, ui.geometriesList->currentRow(), rotationMatrix);
-	}
-	else
-	{
-		m_pSystemStructure->RotateAnalysisVolume(ui.geometriesList->currentRow() - m_pSystemStructure->GetGeometriesNumber(), rotationMatrix);
-		emit AnalysisGeometriesChanged();
-	}
-	ui.statusMessage->setText("The object has been rotated.");
-	emit ObjectsChanged();
-	UpdateSelectedGeometryProperties();
-}
-
-void CGeometriesEditorTab::ShiftGeometryUpwards()
-{
-	SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(ui.geometriesList->currentRow());
-	if (!pGeometry) return;
-
-	double dMinZ = m_pSystemStructure->GetMaxCoordinate(0).z;
-	for (size_t i = 0; i < m_pSystemStructure->GetTotalObjectsCount(); ++i)
-	{
-		CPhysicalObject* pTemp = m_pSystemStructure->GetObjectByIndex(i);
-		if (!pTemp) continue;
-		if (pTemp->GetObjectType() == SPHERE)
-			if (dMinZ > pTemp->GetCoordinates(0).z - static_cast<CSphere*>(pTemp)->GetRadius())
-				dMinZ = pTemp->GetCoordinates(0).z - static_cast<CSphere*>(pTemp)->GetRadius();
-	}
-
-	double dMaxZWall = 0;
-	std::vector<CTriangularWall*> walls = m_pSystemStructure->GetGeometryWalls(ui.geometriesList->currentRow());
-	for (size_t i = 0; i < walls.size(); ++i)
-	{
-		double dTempMax = std::max({ walls[i]->GetCoordVertex1(0).z, walls[i]->GetCoordVertex2(0).z, walls[i]->GetCoordVertex3(0).z });
-		if (i == 0)
-			dMaxZWall = dTempMax;
-		else
-			dMaxZWall = std::max(dMaxZWall, dTempMax);
-	}
-
-	CVector3 vOffset(0, 0, dMinZ - dMaxZWall);
-	for (auto wall : walls)
-		wall->SetPlaneCoord(0., wall->GetCoordVertex1(0) + vOffset, wall->GetCoordVertex2(0) + vOffset, wall->GetCoordVertex3(0) + vOffset);
-
-	UpdateSelectedGeometryProperties();
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::ShiftGeometryDownwards()
-{
-	SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(ui.geometriesList->currentRow());
-	if (!pGeometry) return;
-
-	double dMaxZ = m_pSystemStructure->GetMinCoordinate(0).z;
-	for (size_t i = 0; i < m_pSystemStructure->GetTotalObjectsCount(); ++i)
-	{
-		CPhysicalObject* pTemp = m_pSystemStructure->GetObjectByIndex(i);
-		if (!pTemp) continue;
-		if (pTemp->GetObjectType() == SPHERE)
-			if (dMaxZ < pTemp->GetCoordinates(0).z + static_cast<CSphere*>(pTemp)->GetRadius())
-				dMaxZ = pTemp->GetCoordinates(0).z + static_cast<CSphere*>(pTemp)->GetRadius();
-	}
-
-	double dMinZWall = 0;
-	std::vector<CTriangularWall*> walls = m_pSystemStructure->GetGeometryWalls(ui.geometriesList->currentRow());
-	for (size_t i = 0; i < walls.size(); ++i)
-	{
-		double dTempMin = std::min({ walls[i]->GetCoordVertex1(0).z, walls[i]->GetCoordVertex2(0).z, walls[i]->GetCoordVertex3(0).z });
-		if (i == 0)
-			dMinZWall = dTempMin;
-		else
-			dMinZWall = std::min(dMinZWall, dTempMin);
-	}
-
-	CVector3 vOffset(0, 0, dMaxZ - dMinZWall);
-	for (auto wall : walls)
-		wall->SetPlaneCoord(0., wall->GetCoordVertex1(0) + vOffset, wall->GetCoordVertex2(0) + vOffset, wall->GetCoordVertex3(0) + vOffset);
-
-	UpdateSelectedGeometryProperties();
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::GeometryParamsChanged()
-{
-	if (m_bAvoidSignal) return;
-
-	int iRow = ui.geometriesList->currentRow();
-	std::vector<double> vParams{ GetConvValue(ui.param1Value, EUnitType::LENGTH), GetConvValue(ui.param2Value, EUnitType::LENGTH), GetConvValue(ui.param3Value, EUnitType::LENGTH) };
-
-	if (iRow < static_cast<int>(m_pSystemStructure->GetGeometriesNumber()))
-	{
-		SGeometryObject* pOldGeometry = m_pSystemStructure->GetGeometry(iRow);
-		if (!pOldGeometry) return;
-		if (pOldGeometry->nVolumeType == EVolumeType::VOLUME_STL) return;
-		SGeometryObject tempGeometry = *pOldGeometry;
-		if (!ConfirmRemoveAllTP()) return;
-
-		CVector3 vCenter = m_pSystemStructure->GetGeometryCenter(0, iRow);
-		m_pSystemStructure->DeleteGeometry(iRow);
-		SGeometryObject* pNewGeometry = m_pSystemStructure->AddGeometry(tempGeometry.nVolumeType, vParams, vCenter, tempGeometry.mRotation, ui.sliderQuality->value());
-		pNewGeometry->sName = tempGeometry.sName;
-		pNewGeometry->sKey = tempGeometry.sKey;
-		pNewGeometry->color = tempGeometry.color;
-		pNewGeometry->dMass = tempGeometry.dMass;
-		pNewGeometry->vFreeMotion = tempGeometry.vFreeMotion;
-		pNewGeometry->vIntervals = tempGeometry.vIntervals;
-		pNewGeometry->bRotateAroundCenter = tempGeometry.bRotateAroundCenter;
-
-		// move to the old position
-		for (size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber() - iRow - 1; ++i)
-			m_pSystemStructure->UpGeometry(m_pSystemStructure->GetGeometriesNumber() - 1 - i);
-	}
-	else
-	{
-		CAnalysisVolume* pOldVolume = m_pSystemStructure->GetAnalysisVolume(iRow - m_pSystemStructure->GetGeometriesNumber());
-		if (!pOldVolume) return;
-		if (pOldVolume->nVolumeType == EVolumeType::VOLUME_STL) return;
-		CAnalysisVolume tempVolume = *pOldVolume;
-
-		m_pSystemStructure->DeleteAnalysisVolume(iRow - m_pSystemStructure->GetGeometriesNumber());
-		CAnalysisVolume* pNewVolume = m_pSystemStructure->AddAnalysisVolume(tempVolume.nVolumeType, vParams, tempVolume.GetCenter(0), tempVolume.mRotation, ui.sliderQuality->value());
-		pNewVolume->sName = tempVolume.sName;
-		pNewVolume->sKey = tempVolume.sKey;
-		pNewVolume->color = tempVolume.color;
-
-		// move to the old position
-		for (size_t i = 0; i < m_pSystemStructure->GetAnalysisVolumesNumber() - (iRow - m_pSystemStructure->GetGeometriesNumber()) - 1; ++i)
-			m_pSystemStructure->UpAnalysisVolume(m_pSystemStructure->GetAnalysisVolumesNumber() - 1 - i);
-
-		emit AnalysisGeometriesChanged();
-	}
-	UpdateSelectedGeometryProperties();
-	emit ObjectsChanged();
-}
-
-void CGeometriesEditorTab::SetFreeMotion()
-{
-	if (m_bAvoidSignal) return;
-	SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(ui.geometriesList->currentRow());
-	if (!pGeometry) return;
-	pGeometry->dMass = GetConvValue(ui.objectMass, EUnitType::MASS);
-	pGeometry->vFreeMotion.Init(0);
-	if (ui.freeMotionX->isChecked()) pGeometry->vFreeMotion.x = 1;
-	if (ui.freeMotionY->isChecked()) pGeometry->vFreeMotion.y = 1;
-	if (ui.freeMotionZ->isChecked()) pGeometry->vFreeMotion.z = 1;
-	if (pGeometry->vFreeMotion.Length() > 0)
-		ui.objectMass->setEnabled(true);
-	else
-		ui.objectMass->setEnabled(false);
-
-	pGeometry->bRotateAroundCenter = ui.rotateAroundCenter->isChecked();
-	UpdateSelectedGeometryProperties();
-}
-
-void CGeometriesEditorTab::AddTimePoint()
-{
-	int iRow = ui.geometriesList->currentRow();
-	if (iRow < static_cast<int>(m_pSystemStructure->GetGeometriesNumber() ))
-	{
-		SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(ui.geometriesList->currentRow());
-		if (!pGeometry) return;
-		pGeometry->AddTimePoint();
-	}
-	else
-	{
-		CAnalysisVolume* pAnalysisVolume = m_pSystemStructure->GetAnalysisVolume(iRow - m_pSystemStructure->GetGeometriesNumber());
-		if (!pAnalysisVolume) return;
-		pAnalysisVolume->AddTimePoint();
-	}
-	UpdateSelectedGeometryProperties();
-}
-
-void CGeometriesEditorTab::RemoveTimePoints()
-{
-	QItemSelection selection(ui.timeDepValues->selectionModel()->selection());
-	QSet<int> rows;
-	foreach(const QModelIndex &index, selection.indexes())
-		rows.insert(index.row());
-	QList<int> rowsList = rows.values();
-	qSort(rowsList);
-
-	int iRow = ui.geometriesList->currentRow();
-	if (iRow < static_cast<int>(m_pSystemStructure->GetGeometriesNumber()))
-	{
-		SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(ui.geometriesList->currentRow());
-		if (!pGeometry) return;
-		for (int i = rowsList.count() - 1; i >= 0; --i)
-			pGeometry->vIntervals.erase(pGeometry->vIntervals.begin() + rowsList[i]);
-	} else
-	{
-		CAnalysisVolume* pAnalysisVolume = m_pSystemStructure->GetAnalysisVolume(iRow - m_pSystemStructure->GetGeometriesNumber());
-		if (!pAnalysisVolume) return;
-		for (int i = rowsList.count() - 1; i >= 0; --i)
-			pAnalysisVolume->m_vIntervals.erase(pAnalysisVolume->m_vIntervals.begin() + rowsList[i]);
-
-	}
-	UpdateSelectedGeometryProperties();
-}
-
-void CGeometriesEditorTab::SetTDVelocities()
-{
-	if (m_bAvoidSignal) return;
-
-	int iRow = ui.geometriesList->currentRow();
-	if (iRow < static_cast<int>(m_pSystemStructure->GetGeometriesNumber()))
-	{
-
-		SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(ui.geometriesList->currentRow());
-		if (!pGeometry) return;
-		pGeometry->vIntervals.clear();
-		pGeometry->bForceDepVel = !ui.timeDepVelRadio->isChecked();
-
-		for (int i = 0; i < ui.timeDepValues->rowCount(); ++i)
-		{
-			double dLimitValue;
-			if (pGeometry->bForceDepVel)
-				dLimitValue = GetConvValue(ui.timeDepValues->item(i, 0), EUnitType::FORCE);
-			else
-				dLimitValue = GetConvValue(ui.timeDepValues->item(i, 0), EUnitType::TIME);
-
-			CVector3 vVel = GetVectorFromTableRow(ui.timeDepValues, i, 1, EUnitType::VELOCITY);
-			CVector3 vRotCenter = GetVectorFromTableRow(ui.timeDepValues, i, 4, EUnitType::LENGTH);
-			CVector3 vRotVel = GetVectorFromTableRow(ui.timeDepValues, i, 7, EUnitType::ANGULAR_VELOCITY);
-			pGeometry->vIntervals.push_back({ dLimitValue, vVel, vRotVel, vRotCenter });
-		}
-	}
-	else
-	{
-		CAnalysisVolume* pAnalysisVolume = m_pSystemStructure->GetAnalysisVolume(iRow - m_pSystemStructure->GetGeometriesNumber());
-		if (!pAnalysisVolume) return;
-		pAnalysisVolume->m_vIntervals.clear();
-		for (int i = 0; i < ui.timeDepValues->rowCount(); ++i)
-			pAnalysisVolume->m_vIntervals.push_back({ GetConvValue(ui.timeDepValues->item(i, 0), EUnitType::TIME),
-				GetVectorFromTableRow(ui.timeDepValues, i, 1, EUnitType::VELOCITY) });
-	}
-	UpdateSelectedGeometryProperties();
 }

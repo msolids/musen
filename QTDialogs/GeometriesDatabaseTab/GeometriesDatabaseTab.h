@@ -5,40 +5,52 @@
 #pragma once
 #include "GeneralMUSENDialog.h"
 #include "ui_GeometriesDatabaseTab.h"
-#include "GeomOpenGLView.h"
-#include "GeometriesDatabase.h"
 
 class CGeometriesDatabaseTab : public CMusenDialog
 {
 	Q_OBJECT
 
-private:
 	Ui::geometriesDatabaseTab ui;
+	QString m_lastUsedFilePath;		// Last used full file path to use in file dialogs.
+	bool m_isDBModified{};			// Whether the database was modified after saving/loading.
 
 public:
-	CGeometriesDatabaseTab(QWidget *parent = 0);
+	CGeometriesDatabaseTab(QWidget *parent = nullptr);
 
 private:
 	void InitializeConnections();
-	void UpdateButtons();
-	void UpdateSelectedGeomInfo();
+	void Initialize() override;
+	void SetupScaleButton();
+
+	void UpdateWholeView() override;
+	void UpdateWindowTitle();
+	void UpdateGeometriesList() const;
+	void UpdateGeometryInfoHeaders() const;
+	void UpdateGeometryInfo() const;
+	void Update3DView() const;
+	void UpdateButtons() const;
+
+	QString DefaultPath() const;
+	void SetDBModified(bool _modified);
+
+	void keyPressEvent(QKeyEvent* _event) override;
+	void closeEvent(QCloseEvent* _event) override;
 
 private slots:
 	void NewDatabase();
-	void SaveDatabase();
-	void SaveDatabaseAs( const QString& _sFileName = "" );
 	void LoadDatabase();
-	void DataWasChanged();
-	void ShowGeometry();
-	void DeleteGeometry();
+	void SaveDatabase();
+	void SaveDatabaseAs();
 
-	void AddNewGeometry(); 
+	void ImportGeometry();
 	void ExportGeometry();
-	void NewGeometryAdded();
-	void UpdateWholeView();
-	void NewRowSelected();
+	void DeleteGeometry();
 	void UpGeometry();
 	void DownGeometry();
+	void ScaleGeometry(double _factor);
+
+	void GeometrySelected() const;
+	void GeometryRenamed();
 
 signals:
 	void GeometryAdded();

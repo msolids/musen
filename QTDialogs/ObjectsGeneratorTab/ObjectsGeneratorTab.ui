@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>objectsGeneratorTab</class>
- <widget class="QDialog" name="objectsGeneratorTab">
+ <class>ObjectsGeneratorTab</class>
+ <widget class="QDialog" name="ObjectsGeneratorTab">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>581</width>
-    <height>372</height>
+    <width>548</width>
+    <height>370</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,13 +23,6 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_7">
      <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Active generators</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QListWidget" name="generatorsList">
        <property name="toolTip">
         <string>List of generators</string>
@@ -37,7 +30,21 @@
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,1">
+      <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,0">
+       <item>
+        <widget class="QPushButton" name="addGenerator">
+         <property name="toolTip">
+          <string>Add new generator</string>
+         </property>
+         <property name="text">
+          <string>Add</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+           <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QPushButton" name="removeGenerator">
          <property name="toolTip">
@@ -55,32 +62,12 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="addGenerator">
-         <property name="toolTip">
-          <string>Add new generator</string>
-         </property>
-         <property name="text">
-          <string>Add</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-           <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
     </layout>
    </item>
    <item>
     <widget class="QFrame" name="frameSettings">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <property name="leftMargin">
        <number>0</number>
@@ -95,7 +82,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QGroupBox" name="groupBox_4">
+       <widget class="QGroupBox" name="groupBoxMain">
         <property name="title">
          <string>Main properties</string>
         </property>
@@ -119,25 +106,52 @@
           </layout>
          </item>
          <item>
-          <widget class="QCheckBox" name="insideGeometriesCheckBox">
-           <property name="toolTip">
-            <string>Objects will be generated inside real geometries</string>
-           </property>
-           <property name="text">
-            <string>Generate inside geometries</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Max iterations</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEditMaxIterations"/>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="insideGeometriesCheckBox">
+             <property name="toolTip">
+              <string>Objects will be generated inside real geometries</string>
+             </property>
+             <property name="text">
+              <string>Generate inside geometries</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="groupBoxObjects">
         <property name="title">
-         <string>Generation objects</string>
+         <string>Generating objects</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
@@ -171,12 +185,6 @@
            </item>
            <item>
             <widget class="QFrame" name="frameAgglomerate">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
              <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="1,0,1,0">
               <property name="leftMargin">
                <number>0</number>
@@ -230,7 +238,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="QGroupBox" name="groupBoxVelocity">
         <property name="title">
          <string>Objects velocity</string>
         </property>
@@ -248,13 +256,20 @@
             </widget>
            </item>
            <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QFrame" name="frameFixed">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
              <layout class="QHBoxLayout" name="horizontalLayout_14">
               <property name="leftMargin">
                <number>0</number>
@@ -319,12 +334,6 @@
            </item>
            <item>
             <widget class="QFrame" name="frameRandom">
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Raised</enum>
-             </property>
              <layout class="QHBoxLayout" name="horizontalLayout_18">
               <property name="leftMargin">
                <number>0</number>
@@ -339,16 +348,6 @@
                <number>0</number>
               </property>
               <item>
-               <widget class="QLabel" name="labelMagnitude">
-                <property name="text">
-                 <string>Magnitude [m/s]</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="lineEditMagnitude"/>
-              </item>
-              <item>
                <spacer name="horizontalSpacer_2">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -361,6 +360,16 @@
                 </property>
                </spacer>
               </item>
+              <item>
+               <widget class="QLabel" name="labelMagnitude">
+                <property name="text">
+                 <string>Magnitude [m/s]</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEditMagnitude"/>
+              </item>
              </layout>
             </widget>
            </item>
@@ -370,7 +379,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_3">
+       <widget class="QGroupBox" name="groupBoxRate">
         <property name="title">
          <string>Generation rate</string>
         </property>
@@ -417,18 +426,30 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="labelGenRate">
-           <property name="text">
-            <string>Generation rate [1/s]</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="3">
-          <widget class="QLineEdit" name="generationRate">
+          <widget class="QLineEdit" name="lineEditRateValue">
            <property name="toolTip">
             <string>Number of particles/agglomerates which will be generated in 1 sec</string>
            </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QComboBox" name="comboRateType">
+           <item>
+            <property name="text">
+             <string>Generation rate [1/s]</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Objects per step</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Objects total</string>
+            </property>
+           </item>
           </widget>
          </item>
         </layout>
@@ -441,7 +462,6 @@
  </widget>
  <tabstops>
   <tabstop>generatorsList</tabstop>
-  <tabstop>removeGenerator</tabstop>
   <tabstop>addGenerator</tabstop>
   <tabstop>agglomRadio</tabstop>
   <tabstop>agglomerateCombo</tabstop>
@@ -456,7 +476,7 @@
   <tabstop>startTime</tabstop>
   <tabstop>endTime</tabstop>
   <tabstop>updateStep</tabstop>
-  <tabstop>generationRate</tabstop>
+  <tabstop>lineEditRateValue</tabstop>
  </tabstops>
  <resources>
   <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>

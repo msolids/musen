@@ -24,7 +24,7 @@ class CObjectsEditorTab: public CMusenDialog
 	const QString c_FIELDS_SOLID_BONDS = "OET_FIELDS_SOLID_BONDS";
 	const QString c_FIELDS_WALLS       = "OET_FIELDS_WALLS";
 
-	Ui::objectsEditorTab ui;
+	Ui::objectsEditorTab ui{};
 
 	enum EObjectTypes : int
 	{
@@ -53,6 +53,8 @@ class CObjectsEditorTab: public CMusenDialog
 		INITIAL_LENGTH,
 		NORMAL,
 		GEOMETRY,
+		STRESS,
+		TANGENTIAL_OVERLAP,
 	};
 
 	struct SDataField

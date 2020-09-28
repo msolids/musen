@@ -161,9 +161,6 @@
     <ProjectReference Include="..\Models\SolidBonds\BondModelLinearPlastic\BondModelLinearPlastic.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba823af420}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Models\SolidBonds\BondModelMaxwell\BondModelMaxwell.vcxproj">
-      <Project>{2f4bef13-d9ef-4e25-8fb9-0fbbb6308027}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Models\SolidBonds\BondModelPlasticConcrete\BondModelElasticPlasticConcrete.vcxproj">
       <Project>{f984c638-d38f-4633-ddcf-645f367e41ba}</Project>
     </ProjectReference>

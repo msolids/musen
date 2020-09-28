@@ -177,16 +177,16 @@ void CConstraintsEditorTab::UpdateVolumes()
 	m_bAvoidSignal = true;
 	ui.listVolumes->clear();
 	// add 'all' entry to the volume list
-	if (m_pSystemStructure->GetAnalysisVolumesNumber() > 0)
+	if (m_pSystemStructure->AnalysisVolumesNumber() > 0)
 	{
 		ui.listVolumes->insertItem(0, new QListWidgetItem("Everywhere"));
 		ui.listVolumes->item(0)->setCheckState(Qt::Unchecked);
 	}
 	// add new entries to the volume list
-	for (unsigned i = 0; i < m_pSystemStructure->GetAnalysisVolumesNumber(); ++i)
+	for (unsigned i = 0; i < m_pSystemStructure->AnalysisVolumesNumber(); ++i)
 	{
-		CAnalysisVolume* pVolume = m_pSystemStructure->GetAnalysisVolume(i);
-		ui.listVolumes->insertItem(i + 1, new QListWidgetItem(ss2qs(pVolume->sName)));
+		CAnalysisVolume* pVolume = m_pSystemStructure->AnalysisVolume(i);
+		ui.listVolumes->insertItem(i + 1, new QListWidgetItem(ss2qs(pVolume->Name())));
 		ui.listVolumes->item(i + 1)->setCheckState(Qt::Unchecked);
 	}
 	// set flags
@@ -207,16 +207,16 @@ void CConstraintsEditorTab::UpdateGeometries()
 	m_bAvoidSignal = true;
 	ui.listGeometries->clear();
 	// add 'all' entry to the geometries list
-	if (m_pSystemStructure->GetGeometriesNumber() > 0)
+	if (m_pSystemStructure->GeometriesNumber() > 0)
 	{
 		ui.listGeometries->insertItem(0, new QListWidgetItem("All"));
 		ui.listGeometries->item(0)->setCheckState(Qt::Unchecked);
 	}
 	// add new entries to the geometries list
-	for (unsigned i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i)
+	for (unsigned i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i)
 	{
-		SGeometryObject* pGeomObj = m_pSystemStructure->GetGeometry(i);
-		ui.listGeometries->insertItem(i + 1, new QListWidgetItem(ss2qs(pGeomObj->sName)));
+		CRealGeometry* pGeomObj = m_pSystemStructure->Geometry(i);
+		ui.listGeometries->insertItem(i + 1, new QListWidgetItem(QString::fromStdString(pGeomObj->Name())));
 		ui.listGeometries->item(i + 1)->setCheckState(Qt::Unchecked);
 	}
 	// set flags
@@ -279,7 +279,7 @@ void CConstraintsEditorTab::NewVolumeChecked(QListWidgetItem* _pItem)
 		if (_pItem->checkState() == Qt::Checked)
 		{
 			ui.listVolumes->item(0)->setCheckState(Qt::Unchecked);
-			if(m_pConstraints->GetVolumes().size() == m_pSystemStructure->GetAnalysisVolumesNumber())
+			if(m_pConstraints->GetVolumes().size() == m_pSystemStructure->AnalysisVolumesNumber())
 				m_pConstraints->ClearVolumes();
 			m_pConstraints->AddVolume(nRow - 1);
 		}
@@ -307,7 +307,7 @@ void CConstraintsEditorTab::NewGeometryChecked(QListWidgetItem* _pItem)
 		if (_pItem->checkState() == Qt::Checked)
 		{
 			ui.listGeometries->item(0)->setCheckState(Qt::Unchecked);
-			if(m_pConstraints->GetGeometries().size() == m_pSystemStructure->GetGeometriesNumber())
+			if(m_pConstraints->GetGeometries().size() == m_pSystemStructure->GeometriesNumber())
 				m_pConstraints->ClearGeometries();
 			m_pConstraints->AddGeometry(nRow - 1);
 		}

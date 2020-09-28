@@ -35,7 +35,6 @@ void CScriptRunner::RunScriptJob(const SJob& _job)
 	case SJob::EComponent::SNAPSHOT_GENERATOR: GenerateSnapshot();	break;
 	case SJob::EComponent::EXPORT_TO_TEXT:     ExportToText();		break;
 	case SJob::EComponent::IMPORT_FROM_TEXT:   ImportFromText();	break;
-	case SJob::EComponent::AUTO_TESTING:       RunTests();			break;
 	case SJob::EComponent::COMPARE_FILES:      CompareFiles();		break;
 	}
 }
@@ -82,8 +81,8 @@ void CScriptRunner::GeneratePackage()
 			generator.AddGenerator({});
 		if (!g.second.volume.empty())
 		{
-			if (const auto* volume = m_systemStructure.GetAnalysisVolumeByName(g.second.volume))
-				generator.Generator(index)->volumeKey = volume->sKey;
+			if (const auto* volume = m_systemStructure.AnalysisVolumeByName(g.second.volume))
+				generator.Generator(index)->volumeKey = volume->Key();
 			else
 				generator.Generator(index)->volumeKey = g.second.volume;
 		}
@@ -258,29 +257,13 @@ void CScriptRunner::ImportFromText()
 	m_out << "Import from text finished" << std::endl;
 }
 
-void CScriptRunner::RunTests()
-{
-	m_out << "Selected component: Auto tests" << std::endl << std::endl;
-
-	std::ifstream inputFile(UnicodePath(m_job.sourceFileName));  //open input file
-	std::ofstream outputFile(UnicodePath(m_job.resultFileName)); //open output file
-
-	if (!inputFile.good()) return;
-	std::string scriptFileName;
-	while (safeGetLine(inputFile, scriptFileName).good())
-	{
-		CScriptRunner runner;
-		runner.m_out.copyfmt(m_out);					// copy everything except rdstate and rdbuf
-		runner.m_out.clear(outputFile.rdstate());	// copy rdstate
-		runner.m_out.rdbuf(outputFile.rdbuf());
-		runner.RunScriptJob(m_job);
-		runner.CompareFiles();
-	}
-	outputFile.close();
-}
 
 void CScriptRunner::CompareFiles()
 {
+	m_out << "Selected component: File comparison" << std::endl << std::endl;
+
+	std::ofstream outStream;
+	outStream.open(m_job.logFileName, std::ios::app);
 	CSystemStructure scene1, scene2;
 	const bool loaded1 = LoadMusenFile(m_job.sourceFileName, scene1);
 	const bool loaded2 = LoadMusenFile(m_job.resultFileName, scene2);
@@ -289,34 +272,8 @@ void CScriptRunner::CompareFiles()
 		m_err << "Unable to load two files." << std::endl;
 		return;
 	}
-
-	if (scene1.GetTotalObjectsCount() != scene2.GetTotalObjectsCount())
-	{
-		m_out << "Different number of objects: " << scene1.GetTotalObjectsCount() << " and " << scene2.GetTotalObjectsCount() << std::endl;
-		return;
-	}
-
-	const double time = scene1.GetMaxTime();
-	const double tolerance = 1e-3;			// allowed relative deviation 0.1 %
-	for (size_t i = 0; i < scene1.GetTotalObjectsCount(); ++i)
-	{
-		CPhysicalObject* object1 = scene1.GetObjectByIndex(i);
-		CPhysicalObject* object2 = scene2.GetObjectByIndex(i);
-
-		if (object1 && object2)
-		{
-			if (fabs(object1->GetCoordinates(time) - object2->GetCoordinates(time)) > fabs(object1->GetCoordinates(time) * tolerance))
-			{
-				m_out << "Different coordinates for object with ID: " << i << std::endl;
-				return;
-			}
-			if (fabs(object1->GetVelocity(time) - object2->GetVelocity(time)) > fabs(object1->GetVelocity(time) * tolerance))
-			{
-				m_out << "Different velocities for object with ID: " << i << std::endl;
-				return;
-			}
-		}
-	}
+	m_resultsComparer.CompareScenes(outStream, &scene1, &scene2);
+	outStream.close();
 }
 
 bool CScriptRunner::LoadAndResaveSystemStructure()

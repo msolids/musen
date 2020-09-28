@@ -16,7 +16,10 @@
 #define UC_VELOCITY_UNIT "UC_VELOCITY_UNIT"
 #define UC_FORCE_UNIT "UC_FORCE_UNIT"
 #define UC_VOLUME_UNIT "UC_VOLUME_UNIT"
+#define UC_SURFACE_UNIT "UC_SURFACE_UNIT"
+#define UC_STRESS_UNIT "UC_STRESS_UNIT"
 #define UC_ANGULAR_VELOCITY_UNIT "UC_ANGULAR_VELOCITY_UNIT"
+#define UC_ANGLE_UNIT "UC_ANGLE_UNIT"
 
 // various properties
 enum class EUnitType : unsigned
@@ -36,7 +39,8 @@ enum class EUnitType : unsigned
 	PSD_q0            = 12,
 	PSD_q3            = 13,
 	STRESS            = 14,
-	ANGULAR_VELOCITY  = 15
+	ANGULAR_VELOCITY  = 15,
+	ANGLE             = 16,
 };
 
 class CUnitConvertor
@@ -59,10 +63,11 @@ private:
 	double GetPressure( double _dPressureSI ) const;
 	double GetVelocity( double _dVelocitySI ) const;
 	double GetForce( double _dForceSI ) const;
-	double GetVolume( double _dForceSI ) const;
+	double GetVolume( double _dVolumeSI ) const;
 	double GetSurface( double _dSurfaceSI ) const;
-	double GetStress(double _dSurfaceSI) const;
+	double GetStress(double _dStressSI) const;
 	double GetAngVelocity(double _dVelocitySI) const;
+	double GetAngle(double _dAngleSI) const;
 
 	// from current to SI
 	double GetTemperatureSI( double _dValue ) const;
@@ -78,6 +83,7 @@ private:
 	double GetSurfaceSI( double _dValue ) const;
 	double GetStressSI(double _dValue) const;
 	double GetAngVelocitySI(double _dValue) const;
+	double GetAngleSI(double _dValue) const;
 
 public:
 
@@ -85,8 +91,8 @@ public:
 
 	static std::string GetPropertyName(EUnitType _nPropType);
 	std::string GetPropertyNameByIndex( unsigned _nPropertyIndex );
-	std::string GetSelectedUnit(EUnitType _nPropertyType);
-	std::vector<std::string> GetPossibleUnitsByIndex( unsigned _nPropertyIndex );
+	std::string GetSelectedUnit(EUnitType _nPropertyType) const;
+	std::vector<std::string> GetPossibleUnitsByIndex( unsigned _nPropertyIndex ) const;
 
 	unsigned GetSelectedUnitTypeByIndex( unsigned _nPropertyIndex );
 	unsigned GetSelectedUnitType(EUnitType _nPropertyType);

@@ -456,9 +456,9 @@ void CResultsAnalyzerTab::SetupGeometryCombo()
 {
 	m_bAvoidSignal = true;
 	ui.comboBoxGeometry->clear();
-	for (unsigned i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i)
-		ui.comboBoxGeometry->insertItem(i, ss2qs(m_pSystemStructure->GetGeometry(i)->sName));
-	if (m_pSystemStructure->GetGeometriesNumber() > 0)
+	for (unsigned i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i)
+		ui.comboBoxGeometry->insertItem(i, QString::fromStdString(m_pSystemStructure->Geometry(i)->Name()));
+	if (m_pSystemStructure->GeometriesNumber() > 0)
 		ui.comboBoxGeometry->setCurrentIndex(0);
 	m_bAvoidSignal = false;
 }

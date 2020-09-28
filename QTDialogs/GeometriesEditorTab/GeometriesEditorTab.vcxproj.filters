@@ -9,9 +9,6 @@
     <QtUic Include="GeometriesEditorTab.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtMoc Include="GeometriesEditorTab.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Form Files">
@@ -29,5 +26,10 @@
       <Extensions>cpp;cxx;c;def</Extensions>
       <ParseFiles>true</ParseFiles>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="GeometriesEditorTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>

@@ -9,19 +9,19 @@ CParticleFilter::CParticleFilter(CSystemStructure& _systemStructure, const SPack
 	m_generator{ _generator }
 {
 	// get generation volume
-	const CAnalysisVolume* volume = _systemStructure.GetAnalysisVolume(m_generator.volumeKey);
+	const CAnalysisVolume* volume = _systemStructure.AnalysisVolume(m_generator.volumeKey);
 
 	// setup volume checker to verify objects are inside the generation volume
 	m_volumeChecker = new CInsideVolumeChecker{ volume, 0 };
 
 	// setup volume checkers to verify that new objects are not situated in any real volume
 	if (!_generator.insideGeometry)
-		for (size_t i = 0; i < _systemStructure.GetGeometriesNumber(); ++i)
+		for (const auto& g : _systemStructure.AllGeometries())
 		{
-			std::vector<STriangleType> triangles;
-			for (const auto& wall : _systemStructure.GetGeometryWalls(i))
+			std::vector<CTriangle> triangles;
+			for (const auto& wall : g->Walls())
 				triangles.push_back(wall->GetCoords(0));
-			m_geometryCheckers.push_back(new CInsideVolumeChecker{ triangles, CVector3{0} });
+			m_geometryCheckers.push_back(new CInsideVolumeChecker{ triangles });
 		}
 }
 
@@ -57,10 +57,9 @@ std::vector<size_t> CParticleFilter::Filter(const std::vector<CVector3>& _coords
 	}
 
 	// filter out particles that have contact with already existing ones
-	const std::vector<size_t> existingParticles = m_systemStructure.GetParticleIndicesInVolume(0, m_generator.volumeKey, false);	// existing particles
-	for (auto id : existingParticles)
+	const std::vector<const CSphere*> existingParticles = m_systemStructure.AnalysisVolume(m_generator.volumeKey)->GetParticlesInside(0, false);	// existing particles
+	for (const auto& existPart : existingParticles)
 	{
-		const auto existPart = dynamic_cast<CSphere*>(m_systemStructure.GetObjectByIndex(id));
 		const CVector3 ovrPartCoord = existPart->GetCoordinates(0);
 		const double ovrPartRad = existPart->GetContactRadius();
 

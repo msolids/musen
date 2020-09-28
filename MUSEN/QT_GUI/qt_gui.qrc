@@ -83,6 +83,12 @@
         <file>shaders/DiscVertCompatibility.glsl</file>
         <file>shaders/DiscVertCore.glsl</file>
         <file alias="License">../../LICENSE</file>
+        <file>Pictures/geo_back.png</file>
+        <file>Pictures/geo_bottom.png</file>
+        <file>Pictures/geo_front.png</file>
+        <file>Pictures/geo_left.png</file>
+        <file>Pictures/geo_right.png</file>
+        <file>Pictures/geo_top.png</file>
     </qresource>
     <qresource prefix="/bondsGeneratorIco">
         <file>bonds_generator.png</file>

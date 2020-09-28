@@ -4,18 +4,12 @@
     <ClCompile Include="GeometriesDatabaseTab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeomOpenGLView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="GeometriesDatabaseTab.ui">
       <Filter>Forms</Filter>
     </QtUic>
     <QtMoc Include="GeometriesDatabaseTab.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="GeomOpenGLView.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

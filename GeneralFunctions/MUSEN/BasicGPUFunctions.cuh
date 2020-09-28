@@ -14,7 +14,7 @@ public:
 	unsigned CUDA_BLOCKS_NUM{};
 	unsigned CUDA_THREADS_PER_BLOCK{};
 
-	void Initialize()
+	CCUDADefines()
 	{
 		const auto settings = GetSettings(0);
 		CUDA_BLOCKS_NUM = settings.first;

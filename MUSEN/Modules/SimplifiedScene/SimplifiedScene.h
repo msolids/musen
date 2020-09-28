@@ -2,6 +2,7 @@
 
 #include "SystemStructure.h"
 #include "SceneOptionalVariables.h"
+#include "SceneTypes.h"
 
 /* This class is compressed representation of the data from the system structure which will be used for the calculation. */
 class CSimplifiedScene

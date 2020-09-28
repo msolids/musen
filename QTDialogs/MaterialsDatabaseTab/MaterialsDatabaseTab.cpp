@@ -4,6 +4,7 @@
 
 #include "MaterialsDatabaseTab.h"
 #include "qtOperations.h"
+#include "QtSignalBlocker.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QLockFile>
@@ -401,12 +402,13 @@ void CMaterialsDatabaseTab::UpdateCompoundInfo()
 		ui.lineCompoundAuthor->setEnabled(true);
 		ui.widgetColorView->setEnabled(true);
 
+		CQtSignalBlocker blocker{ ui.widgetColorView };
 		ui.lineCompoundKey->setText(ss2qs(pCompound->GetKey()));
 		ui.lineCompoundAuthor->setText(ss2qs(pCompound->GetAuthorName()));
 		QString sDate;
 		sDate.sprintf("%02d.%02d.%04d", pCompound->GetCreationDate().nDay, pCompound->GetCreationDate().nMonth, pCompound->GetCreationDate().nYear);
 		ui.labelCompoundCreationDate->setText(sDate);
-		ui.widgetColorView->setColor(pCompound->GetColor());
+		ui.widgetColorView->SetColor(pCompound->GetColor());
 	}
 }
 

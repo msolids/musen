@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "CollisionsAnalyzer.h"
+#include "GeometricFunctions.h"
 
 CCollisionsAnalyzer::CCollisionsAnalyzer()
 {
@@ -66,12 +67,12 @@ void CCollisionsAnalyzer::AddCollisions(const std::vector<SCollision*>& _vCollis
 		pCurrColl->set_dst_id(vAllCollisions[i]->nDstID);
 		pCurrColl->set_time_start(vAllCollisions[i]->pSave->dTimeStart);
 		pCurrColl->set_time_end(vAllCollisions[i]->pSave->dTimeEnd);
-		VectorToProtoVector(pCurrColl->mutable_max_total_force(), vAllCollisions[i]->pSave->vMaxTotalForce);
-		VectorToProtoVector(pCurrColl->mutable_max_norm_force(), vAllCollisions[i]->pSave->vMaxNormForce);
-		VectorToProtoVector(pCurrColl->mutable_max_tang_force(), vAllCollisions[i]->pSave->vMaxTangForce);
-		VectorToProtoVector(pCurrColl->mutable_norm_velocity(), vAllCollisions[i]->pSave->vNormVelocity);
-		VectorToProtoVector(pCurrColl->mutable_tang_velocity(), vAllCollisions[i]->pSave->vTangVelocity);
-		VectorToProtoVector(pCurrColl->mutable_contact_point(), vAllCollisions[i]->pSave->vContactPoint);
+		Val2Proto(pCurrColl->mutable_max_total_force(), vAllCollisions[i]->pSave->vMaxTotalForce);
+		Val2Proto(pCurrColl->mutable_max_norm_force(), vAllCollisions[i]->pSave->vMaxNormForce);
+		Val2Proto(pCurrColl->mutable_max_tang_force(), vAllCollisions[i]->pSave->vMaxTangForce);
+		Val2Proto(pCurrColl->mutable_norm_velocity(), vAllCollisions[i]->pSave->vNormVelocity);
+		Val2Proto(pCurrColl->mutable_tang_velocity(), vAllCollisions[i]->pSave->vTangVelocity);
+		Val2Proto(pCurrColl->mutable_contact_point(), vAllCollisions[i]->pSave->vContactPoint);
 	}
 
 	descr.set_time_min(dMinTime);
@@ -143,7 +144,7 @@ bool CCollisionsAnalyzer::Export()
 			{
 			case CResultsAnalyzer::EPropertyType::Coordinate:
 				if (bNewCPFormat)	// new version collision files
-					WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->contact_point()), iTime);
+					WriteComponentToResults(Proto2Val(vCollisons[i]->contact_point()), iTime);
 				else // old version collision files
 					WriteComponentToResults(CalculateCollisionCoordinate(*vCollisons[i], dTime), iTime);
 				break;
@@ -151,9 +152,9 @@ bool CCollisionsAnalyzer::Export()
 				if (bNewCPFormat)	// new version collision files
 				{
 					if (m_nDistance == CResultsAnalyzer::EDistanceType::ToPoint)
-						WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->contact_point()) - m_Point1, iTime);
+						WriteComponentToResults(Proto2Val(vCollisons[i]->contact_point()) - m_Point1, iTime);
 					else
-						WriteValueToResults(DistanceFromPointToSegment(ProtoVectorToVector(vCollisons[i]->contact_point()), m_Point1, m_Point2), iTime);
+						WriteValueToResults(DistanceFromPointToSegment(Proto2Val(vCollisons[i]->contact_point()), m_Point1, m_Point2), iTime);
 				}
 				else // old version collision files
 				{
@@ -172,27 +173,27 @@ bool CCollisionsAnalyzer::Export()
 				break;
 			case CResultsAnalyzer::EPropertyType::ForceNormal:
 				if (vCollisons[i]->time_end() == -1) continue;	// not finished collision
-				WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->max_norm_force()), iTime);
+				WriteComponentToResults(Proto2Val(vCollisons[i]->max_norm_force()), iTime);
 				break;
 			case CResultsAnalyzer::EPropertyType::ForceTangential:
 				if (vCollisons[i]->time_end() == -1) continue;	// not finished collision
-				WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->max_tang_force()), iTime);
+				WriteComponentToResults(Proto2Val(vCollisons[i]->max_tang_force()), iTime);
 				break;
 			case CResultsAnalyzer::EPropertyType::ForceTotal:
 				if (vCollisons[i]->time_end() == -1) continue;	// not finished collision
-				WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->max_total_force()), iTime);
+				WriteComponentToResults(Proto2Val(vCollisons[i]->max_total_force()), iTime);
 				break;
 			case CResultsAnalyzer::EPropertyType::Number:
 				m_vConcResults[iTime]++;
 				break;
 			case CResultsAnalyzer::EPropertyType::VelocityNormal:
-				WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->norm_velocity()), iTime);
+				WriteComponentToResults(Proto2Val(vCollisons[i]->norm_velocity()), iTime);
 				break;
 			case CResultsAnalyzer::EPropertyType::VelocityTangential:
-				WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->tang_velocity()), iTime);
+				WriteComponentToResults(Proto2Val(vCollisons[i]->tang_velocity()), iTime);
 				break;
 			case CResultsAnalyzer::EPropertyType::VelocityTotal:
-				WriteComponentToResults(ProtoVectorToVector(vCollisons[i]->norm_velocity()) + ProtoVectorToVector(vCollisons[i]->tang_velocity()), iTime);
+				WriteComponentToResults(Proto2Val(vCollisons[i]->norm_velocity()) + Proto2Val(vCollisons[i]->tang_velocity()), iTime);
 				break;
 			default:
 				break;
@@ -224,7 +225,7 @@ std::vector<ProtoCollision*> CCollisionsAnalyzer::FilterCollisionsByVolume(const
 	for (size_t i = 0; i < _vCollisions.size(); ++i)
 	{
 		vIDs.insert(i);
-		vCoords[i] = ProtoVectorToVector(_vCollisions.at(i)->contact_point());
+		vCoords[i] = Proto2Val(_vCollisions.at(i)->contact_point());
 	}
 
 	// filter by coordinates
@@ -368,6 +369,6 @@ double CCollisionsAnalyzer::CalculateCollisionEnergy(ProtoCollision& _collision)
 		double dMass2 = m_pSystemStructure->GetObjectByIndex(_collision.dst_id())->GetMass();
 		dM = 2 * dMass1*dMass2 / (dMass1 + dMass2);
 	}
-	double dV = Length(ProtoVectorToVector(_collision.norm_velocity()) + ProtoVectorToVector(_collision.tang_velocity()));
+	double dV = Length(Proto2Val(_collision.norm_velocity()) + Proto2Val(_collision.tang_velocity()));
 	return 0.5*dM*dV*dV;
 }

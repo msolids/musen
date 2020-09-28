@@ -70,6 +70,10 @@ public:
 	CCompound* GetCompound(const std::string& _sCompoundKey);
 	/// Returns const pointer to a compound with specified key. Returns nullptr if such compound has not been defined.
 	const CCompound* GetCompound(const std::string& _sCompoundKey) const;
+	/// Returns pointers to all compounds.
+	std::vector<CCompound*> GetCompounds();
+	/// Returns const pointers to all compounds.
+	std::vector<const CCompound*> GetCompounds() const;
 	/// Returns index of a compound with specified key. If not found -1 is returned.
 	int GetCompoundIndex(const std::string& _sCompoundKey) const;
 	/// Returns unique key of a compound with specified index. If not found empty string is returned.
@@ -193,6 +197,9 @@ public:
 	void UpMixture(size_t _iMixture);
 	/// Moves selected mixture downwards in the list of mixtures.
 	void DownMixture(size_t _iMixture);
+
+	// Checks whether all entered data are valid and returns an error message.
+	std::string IsDataCorrect() const;
 
 private:
 	/// Creates new Interaction between two compounds and returns pointer to it. If such interaction already exists, pointer to it will be returned.

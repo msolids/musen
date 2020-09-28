@@ -29,19 +29,20 @@ public:
 
 	void Initialize(const SJob* _job = nullptr); // Apply all settings from job.
 
+	// Checks all required settings and prints found warnings and errors, returns true if the  simulation can be started.
+	bool SimulationPrecheck() const;
+	// Prints information about simulation settings.
+	void PrintSimulationInfo();
+
 private:
 	void SetupSystemStructure() const;	// Apply settings of m_job to m_systemStructure.
 	void SetupGenerationManager();		// Apply settings of m_job to m_generationManager.
 	void SetupModelManager();			// Apply settings of m_job to m_modelManager.
 	void SetupSimulationManager();		// Apply settings of m_job to m_simulatorManager.
 
-	// Checks all required settings and prints found warnings and errors, returns true if the  simulation can be started.
-	bool SimulationPrecheck() const;
 	// Runs the simulation.
 	void RunSimulation() const;
 
-	// Prints information about simulation settings.
-	void PrintSimulationInfo();
 	// Prints information about chosen models and their settings.
 	void PrintModelsInfo();
 	// Prints information about GPU.

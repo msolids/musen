@@ -6,7 +6,6 @@
 #include "ViewSettings.h"
 #include "qtOperations.h"
 #include <QMenu>
-#include <QMessageBox>
 #include "QtSignalBlocker.h"
 
 CObjectsEditorTab::CObjectsEditorTab(CExportTDPTab* _pTab, CViewSettings* _viewSettings, QSettings* _settings, QWidget* parent) :
@@ -34,6 +33,7 @@ CObjectsEditorTab::CObjectsEditorTab(CExportTDPTab* _pTab, CViewSettings* _viewS
 		{ EFieldTypes::COORDINATION_NUMBER,	"Coordination number",		{ "Coord number" },											},
 		{ EFieldTypes::MAX_OVERLAP,	        "Max overlap",		        { "Max overlap" },			EUnitType::LENGTH,				},
 		{ EFieldTypes::FORCE,				"Force",					{ "Fx", "Fy", "Fz" },		EUnitType::FORCE,				},
+		{ EFieldTypes::STRESS,				"Stress",					{ "Sx", "Sy", "Sz" },		EUnitType::PRESSURE,			},
 		{ EFieldTypes::TEMPERATURE,			"Temperature",				{ "T" },					EUnitType::TEMPERATURE,			},
 		{ EFieldTypes::ORIENTATION,			"Orientation",				{ "Qx", "Qy", "Qz", "Qw" },									},
 	};
@@ -49,6 +49,7 @@ CObjectsEditorTab::CObjectsEditorTab(CExportTDPTab* _pTab, CViewSettings* _viewS
 		{ EFieldTypes::INITIAL_LENGTH,		"Initial length",			{ "Initial L" },			EUnitType::LENGTH,			    },
 		{ EFieldTypes::FORCE,				"Force",					{ "Fx", "Fy", "Fz" },		EUnitType::FORCE,			    },
 		{ EFieldTypes::TEMPERATURE,			"Temperature",				{ "T" },					EUnitType::TEMPERATURE,		    },
+		{ EFieldTypes::TANGENTIAL_OVERLAP,	"Tang overlap",				{ "Overl X", "Overl Y", "Overl Z"  },		EUnitType::LENGTH,		    },
 	};
 
 	m_dataFieldsWall = {
@@ -172,7 +173,7 @@ void CObjectsEditorTab::UpdateTable()
 	int iCol = 0;
 	for (const auto& field : ActiveDataFields())
 		for (const auto& header : field.headers)
-			ui.objectsTable->SetColHeaderItem(iCol++, header + (field.units != EUnitType::NONE ? " [" + m_pUnitConverter->GetSelectedUnit(field.units) + "]" : ""));
+			ui.objectsTable->SetColHeaderItemConv(iCol++, header, field.units);
 
 	switch (SelectedObjectsType())
 	{
@@ -276,6 +277,17 @@ void CObjectsEditorTab::UpdateTableParts() const
 				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, data[iRow], field.units);
 			break;
 		}
+		case EFieldTypes::STRESS:
+		{
+			std::vector<CVector3> data(particles.size());
+			ParallelFor(particles.size(), [&](size_t iRow)
+			{
+				data[iRow] = particles[iRow]->GetNormalStress();
+			});
+			for (int iRow = 0; iRow < number; ++iRow)
+				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, data[iRow], field.units);
+			break;
+		}
 		case EFieldTypes::TEMPERATURE:
 		{
 			std::vector<double> data(particles.size());
@@ -302,6 +314,7 @@ void CObjectsEditorTab::UpdateTableParts() const
 		case EFieldTypes::LENGTH:
 		case EFieldTypes::INITIAL_LENGTH:
 		case EFieldTypes::NORMAL:
+		case EFieldTypes::TANGENTIAL_OVERLAP:
 		case EFieldTypes::GEOMETRY: break;
 		}
 
@@ -402,13 +415,25 @@ void CObjectsEditorTab::UpdateTableBonds() const
 				ui.objectsTable->SetItemEditableConv(iRow, iCol, data[iRow], field.units);
 			break;
 		}
+		case EFieldTypes::TANGENTIAL_OVERLAP:
+		{
+			std::vector<CVector3> data(bonds.size());
+			ParallelFor(bonds.size(), [&](size_t iRow)
+			{
+				data[iRow] = bonds[iRow]->GetTangentialOverlap();
+			});
+			for (int iRow = 0; iRow < number; ++iRow)
+				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, data[iRow], field.units);
+			break;
+		}
 		case EFieldTypes::MAX_OVERLAP:
 		case EFieldTypes::ROTATION_VELOCITY:
 		case EFieldTypes::CONTACT_DIAMETER:
 		case EFieldTypes::ORIENTATION:
 		case EFieldTypes::COORDINATION_NUMBER:
 		case EFieldTypes::NORMAL:
-		case EFieldTypes::GEOMETRY: break;
+		case EFieldTypes::GEOMETRY:
+		case EFieldTypes::STRESS: break;
 		}
 
 		iCol += static_cast<int>(field.headers.size());
@@ -448,11 +473,11 @@ void CObjectsEditorTab::UpdateTableWalls() const
 		case EFieldTypes::GEOMETRY:
 		{
 			std::vector<size_t> geometryID(m_pSystemStructure->GetTotalObjectsCount());
-			for (size_t iGeometry = 0; iGeometry < m_pSystemStructure->GetGeometriesNumber(); ++iGeometry)
-				for (const auto& plane : m_pSystemStructure->GetGeometry(iGeometry)->vPlanes)
+			for (size_t iGeometry = 0; iGeometry < m_pSystemStructure->GeometriesNumber(); ++iGeometry)
+				for (const auto& plane : m_pSystemStructure->Geometry(iGeometry)->Planes())
 					geometryID[plane] = iGeometry;
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemNotEditable(iRow, iCol, m_pSystemStructure->GetGeometry(geometryID[walls[iRow]->m_lObjectID])->sName);
+				ui.objectsTable->SetItemNotEditable(iRow, iCol, m_pSystemStructure->Geometry(geometryID[walls[iRow]->m_lObjectID])->Name());
 			break;
 		}
 		case EFieldTypes::COORDINATE:
@@ -484,7 +509,9 @@ void CObjectsEditorTab::UpdateTableWalls() const
 		case EFieldTypes::MAX_OVERLAP:
 		case EFieldTypes::PARTNERS_ID:
 		case EFieldTypes::LENGTH:
-		case EFieldTypes::INITIAL_LENGTH:	break;
+		case EFieldTypes::INITIAL_LENGTH:
+		case EFieldTypes::TANGENTIAL_OVERLAP:
+		case EFieldTypes::STRESS: break;
 		}
 
 		iCol += static_cast<int>(field.headers.size());
@@ -541,7 +568,9 @@ void CObjectsEditorTab::SetObjectDataPart(int _row, CSphere& _part) const
 		case EFieldTypes::LENGTH:
 		case EFieldTypes::INITIAL_LENGTH:
 		case EFieldTypes::NORMAL:
-		case EFieldTypes::GEOMETRY: break;
+		case EFieldTypes::GEOMETRY:
+		case EFieldTypes::TANGENTIAL_OVERLAP:
+		case EFieldTypes::STRESS: break;
 		}
 
 		iCol += static_cast<int>(field.headers.size());
@@ -598,6 +627,7 @@ void CObjectsEditorTab::SetObjectDataBond(int _row, CSolidBond& _bond) const
 			_bond.SetDiameter(newD);
 			break;
 		}
+		case EFieldTypes::TANGENTIAL_OVERLAP: _bond.SetTangentialOverlap(ui.objectsTable->GetConvVectorRow(_row, iCol, field.units)); break;
 		case EFieldTypes::INITIAL_LENGTH:	_bond.SetInitialLength(ui.objectsTable->GetConvValue(_row, iCol, field.units));	break;
 		case EFieldTypes::TEMPERATURE:		_bond.SetTemperature(ui.objectsTable->GetConvValue(_row, iCol, field.units));	break;
 		case EFieldTypes::ID:
@@ -612,7 +642,8 @@ void CObjectsEditorTab::SetObjectDataBond(int _row, CSolidBond& _bond) const
 		case EFieldTypes::ORIENTATION:
 		case EFieldTypes::COORDINATION_NUMBER:
 		case EFieldTypes::NORMAL:
-		case EFieldTypes::GEOMETRY: break;
+		case EFieldTypes::GEOMETRY:
+		case EFieldTypes::STRESS: break;
 		}
 
 		iCol += static_cast<int>(field.headers.size());
@@ -642,7 +673,9 @@ void CObjectsEditorTab::SetObjectDataWall(int _row, CTriangularWall& _wall) cons
 		case EFieldTypes::LENGTH:
 		case EFieldTypes::INITIAL_LENGTH:
 		case EFieldTypes::NORMAL:
-		case EFieldTypes::GEOMETRY: break;
+		case EFieldTypes::GEOMETRY:
+		case EFieldTypes::TANGENTIAL_OVERLAP:
+		case EFieldTypes::STRESS: break;
 		}
 
 		iCol += static_cast<int>(field.headers.size());

@@ -3,7 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "SimplifiedScene.h"
-#include "Quaternion.h"
+#include "GeometricFunctions.h"
 
 CSimplifiedScene::CSimplifiedScene()
 {
@@ -72,13 +72,13 @@ void CSimplifiedScene::InitializeScene(double _dStartTime, const SOptionalVariab
 		viParticles.push_back(pair.second);
 
 	// add geometrical objects
-	for (size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i)
+	for (size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i)
 	{
-		SGeometryObject* pGeom = m_pSystemStructure->GetGeometry(i);
-		for (size_t j = 0; j < pGeom->vPlanes.size(); ++j)
-			if (m_pSystemStructure->GetObjectByIndex(pGeom->vPlanes[j]))
-				viWalls.push_back(pGeom->vPlanes[j]);
-		pGeom->nCurrentInterval = 0;
+		CRealGeometry* pGeom = m_pSystemStructure->Geometry(i);
+		for (const auto& plane : pGeom->Planes())
+			if (m_pSystemStructure->GetObjectByIndex(plane))
+				viWalls.push_back(plane);
+		pGeom->Motion()->ResetMotionInfo();
 	}
 
 
@@ -142,6 +142,7 @@ void  CSimplifiedScene::AddParticle(size_t _index, double _dTime)
 		pSphere->GetVelocity(_dTime),
 		pSphere->GetAngleVelocity(_dTime)
 	);
+	m_Objects.vParticles->CoordVerlet(m_Objects.vParticles->Size() - 1) = pSphere->GetCoordinates(_dTime); // needed for proper work of dynamic generator
 	m_Objects.vParticles->AddQuaternion(pSphere->GetOrientation(_dTime));
 	m_Objects.vParticles->AddContactRadius(pSphere->GetContactRadius());
 
@@ -164,6 +165,7 @@ void CSimplifiedScene::AddSolidBond(size_t _index, double _dTime)
 		pBond->GetDiameter(),
 		pBond->m_dCrossCutSurface,
 		pBond->GetInitLength(),
+		pBond->GetTangentialOverlap(),
 		pBond->m_dAxialMoment,
 		pBond->GetYoungModulus(),
 		pBond->GetShearModulus(),
@@ -574,16 +576,16 @@ void CSimplifiedScene::InitializeLiquidBondsCharacteristics(double _dTime)
 
 void CSimplifiedScene::InitializeGeometricalObjects(double _dTime)
 {
-	for (size_t iGeom = 0; iGeom < m_pSystemStructure->GetGeometriesNumber(); ++iGeom)
+	for (size_t iGeom = 0; iGeom < m_pSystemStructure->GeometriesNumber(); ++iGeom)
 	{
-		SGeometryObject* pGeom = m_pSystemStructure->GetGeometry(iGeom);
-		if (pGeom->vPlanes.empty()) continue;
-		CVector3 vVel = pGeom->GetCurrentVel();
-		CVector3 vRotVel = pGeom->GetCurrentRotVel();
+		CRealGeometry* pGeom = m_pSystemStructure->Geometry(iGeom);
+		if (pGeom->Planes().empty()) continue;
+		CVector3 vVel = pGeom->GetCurrentVelocity();
+		CVector3 vRotVel = pGeom->GetCurrentRotVelocity();
 		CVector3 vRotCenter = pGeom->GetCurrentRotCenter();
-		for (size_t i = 0; i < pGeom->vPlanes.size(); ++i)
+		for (const auto& plane : pGeom->Planes())
 		{
-			size_t index = m_vNewIndexes[pGeom->vPlanes[i]];
+			size_t index = m_vNewIndexes[plane];
 			m_Objects.vWalls->Vel(index) = vVel;
 			m_Objects.vWalls->RotVel(index) = vRotVel;
 			m_Objects.vWalls->RotCenter(index) = vRotCenter;
@@ -641,7 +643,7 @@ void CSimplifiedScene::AddVirtualParticleBox(size_t _nSourceID, const CVector3& 
 
 void CSimplifiedScene::FindAdjacentWalls()
 {
-	const auto HaveSharedVertex = [](const STriangleType& _t1, const STriangleType& _t2)
+	const auto HaveSharedVertex = [](const CTriangle& _t1, const CTriangle& _t2)
 	{
 		constexpr double tol = 1e-18;
 		return SquaredLength(_t1.p1 - _t2.p1) < tol
@@ -657,17 +659,17 @@ void CSimplifiedScene::FindAdjacentWalls()
 
 	m_adjacentWalls.clear();								// remove old
 	m_adjacentWalls.resize(m_Objects.vWalls->Size(), {});	// resize
-	for (const auto& geometry : m_pSystemStructure->GetAllGeometries())
+	for (const auto& geometry : m_pSystemStructure->AllGeometries())
 	{
-		const auto& planes = geometry->vPlanes;
+		const auto& planes = geometry->Planes();
 		for (size_t iPlane1 = 0; iPlane1 < planes.size() - 1; ++iPlane1)
 		{
 			const size_t iWall1 = m_vNewIndexes[planes[iPlane1]];
-			const STriangleType triangle1{ m_Objects.vWalls->Vert1(iWall1), m_Objects.vWalls->Vert2(iWall1), m_Objects.vWalls->Vert3(iWall1) };
+			const CTriangle triangle1{ m_Objects.vWalls->Vert1(iWall1), m_Objects.vWalls->Vert2(iWall1), m_Objects.vWalls->Vert3(iWall1) };
 			for (size_t iPlane2 = iPlane1 + 1; iPlane2 < planes.size(); ++iPlane2)
 			{
 				const size_t iWall2 = m_vNewIndexes[planes[iPlane2]];
-				const STriangleType triangle2{ m_Objects.vWalls->Vert1(iWall2), m_Objects.vWalls->Vert2(iWall2), m_Objects.vWalls->Vert3(iWall2) };
+				const CTriangle triangle2{ m_Objects.vWalls->Vert1(iWall2), m_Objects.vWalls->Vert2(iWall2), m_Objects.vWalls->Vert3(iWall2) };
 				if (HaveSharedVertex(triangle1, triangle2))
 				{
 					m_adjacentWalls[iWall1].push_back(iWall2);

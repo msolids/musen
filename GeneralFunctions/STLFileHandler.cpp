@@ -3,102 +3,77 @@
    See LICENSE file for license and warranty information. */
 
 #include "STLFileHandler.h"
+#include "MUSENFileFunctions.h"
+#include "MUSENStringFunctions.h"
+#include <fstream>
 
-CSTLFileHandler::CSTLFileHandler()
+CTriangularMesh CSTLFileHandler::ReadFromFile(const std::string& _filePath)
 {
-}
-
-CSTLFileHandler::~CSTLFileHandler()
-{
-}
-
-CTriangularMesh CSTLFileHandler::ReadFromFile(const std::string& _filePath) const
-{
-	switch (GetFileType(_filePath, FileAccess::READ))
+	switch (GetFileTypeR(_filePath))
 	{
-	case FileType::STLA:
-		return Read_STLA(_filePath);
-	case FileType::STLB:
-		return Read_STLB(_filePath);
-	default:
-		return CTriangularMesh();
+	case EFileType::STL_ASCII:		return ReadSTLAscii(_filePath);
+	case EFileType::STL_BINARY:		return ReadSTLBinary(_filePath);
+	default:						return {};
 	}
 }
 
-void CSTLFileHandler::WriteToFile(const CTriangularMesh& _geometry, const std::string& _filePath) const
+void CSTLFileHandler::WriteToFile(const CTriangularMesh& _geometry, const std::string& _filePath)
 {
-	switch (GetFileType(_filePath, FileAccess::WRITE))
+	switch (GetFileTypeW(_filePath))
 	{
-	case FileType::STLA:
-		return Write_STLA(_geometry, _filePath);
-	case FileType::STLB:
-		return Write_STLB(_geometry, _filePath);
-	default:
-		return Write_STLB(_geometry, _filePath);
+	case EFileType::STL_ASCII:		return WriteSTLAscii(_geometry, _filePath);
+	case EFileType::STL_BINARY:
+	default:						return WriteSTLBinary(_geometry, _filePath);
 	}
 }
 
-void CSTLFileHandler::WriteToFile(const CTriangularMesh& _geometry, std::ofstream& _file) const
+CSTLFileHandler::EFileType CSTLFileHandler::GetFileTypeR(const std::string& _filePath)
 {
-	if (!_file) return;
-	Write_STLB(_geometry, _file);
+	if (IsSTLBinary(_filePath))	return EFileType::STL_BINARY;
+	if (IsSTLAscii(_filePath))	return EFileType::STL_ASCII;
+	return EFileType::UNKNOWN;
 }
 
-CSTLFileHandler::FileType CSTLFileHandler::GetFileType(const std::string& _filePath, const FileAccess& _access) const
+CSTLFileHandler::EFileType CSTLFileHandler::GetFileTypeW(const std::string& _filePath)
 {
-	std::string ext = ToLowerCase(MUSENFileFunctions::getFileExt(_filePath));
-	if ((ext == "stl" || ext == "stlb") && (_access == FileAccess::WRITE || IsSTLB(_filePath)))
-		return FileType::STLB;
-	if ((ext == "stl" || ext == "stla") && (_access == FileAccess::WRITE || IsSTLA(_filePath)))
-		return FileType::STLA;
-	return FileType::UNKNOWN_TYPE;
+	const std::string ext = ToLowerCase(MUSENFileFunctions::getFileExt(_filePath));
+	if (ext == "stla" || MUSENFileFunctions::isFileExist(_filePath) && IsSTLAscii(_filePath))					return EFileType::STL_ASCII;
+	if (ext == "stl" || ext == "stlb" || MUSENFileFunctions::isFileExist(_filePath) && IsSTLBinary(_filePath))	return EFileType::STL_BINARY;
+	return EFileType::UNKNOWN;
 }
 
-bool CSTLFileHandler::IsSTLA(const std::string& _filePath) const
+bool CSTLFileHandler::IsSTLAscii(const std::string& _filePath)
 {
-	if (IsSTLB(_filePath))
-		return false;
-
 	std::ifstream file(UnicodePath(_filePath), std::ifstream::in);
-	if (!file)
-		return false;
+	if (!file) return false;
 
 	std::string line;
 	safeGetLine(file, line);
-	std::stringstream ss(line);
-	ss >> line;
 	file.close();
-	return ToLowerCase(line) == "solid";
+	std::stringstream ss{ line };
+	return ToLowerCase(GetValueFromStream<std::string>(&ss)) == "solid";
 }
 
-CTriangularMesh CSTLFileHandler::Read_STLA(const std::string& _filePath) const
+CTriangularMesh CSTLFileHandler::ReadSTLAscii(const std::string& _filePath)
 {
 	std::ifstream file(UnicodePath(_filePath), std::ifstream::in);
-	if (!file)
-		return CTriangularMesh();
+	if (!file) return {};
 
 	CTriangularMesh geometry;
-	std::string key, line;
+	std::string line;
 	std::vector<CVector3> face;
 	while (safeGetLine(file, line).good())
 	{
-		std::stringstream ss(line);
-		ss >> key;
+		std::stringstream ss{ line };
+		const std::string key = GetValueFromStream<std::string>(&ss);
 		if (ToLowerCase(key) == "solid")
-		{
-			geometry.sName = GetRestOfLine(&ss);
-		}
+			geometry.SetName(GetRestOfLine(&ss));
 		else if (ToLowerCase(key) == "vertex")
-		{
-			CVector3 vertex;
-			ss >> vertex.x >> vertex.y >> vertex.z;
-			face.push_back(vertex);
-		}
+			face.push_back(GetValueFromStream<CVector3>(&ss));
 		else if (ToLowerCase(key) == "endloop")
 		{
-			if (face.size() != 3) // only handle triangles
-				return CTriangularMesh();
-			geometry.vTriangles.push_back(STriangleType(face[0], face[1], face[2]));
+			if (face.size() != 3) return {}; // only handle triangles
+			geometry.AddTriangle({ face[0], face[1], face[2] });
 			face.clear();
 		}
 	}
@@ -108,101 +83,89 @@ CTriangularMesh CSTLFileHandler::Read_STLA(const std::string& _filePath) const
 	return geometry;
 }
 
-void CSTLFileHandler::Write_STLA(const CTriangularMesh& _geometry, const std::string& _filePath) const
+void CSTLFileHandler::WriteSTLAscii(const CTriangularMesh& _geometry, const std::string& _filePath)
 {
 	std::ofstream file(UnicodePath(_filePath), std::ofstream::out | std::ofstream::trunc);
-	if (!file) return;	// cannot open file for writing
+	if (!file) return;				// cannot open file for writing
 	file.imbue(std::locale("C"));	// use standard locale for output
 	file.precision(6);				// set floating point precision
 	file << std::scientific;		// sign-mantissa-"e"-sign-exponent format
 
-	CVector3 normal(0); // we do not store normals -> set them all to 0
+	const CVector3 normal{ 0 }; // we do not store normals -> set them all to 0
 
-	file << "solid " << _geometry.sName << std::endl;
-	for (size_t i = 0; i < _geometry.vTriangles.size(); ++i)
+	file << "solid " << _geometry.Name() << std::endl;
+	for (const auto& t : _geometry.Triangles())
 	{
 		file << "  facet normal " << normal << std::endl;
-		file << "    outer loop" << std::endl;
-		file << "      vertex  " << _geometry.vTriangles[i].p1 << std::endl;
-		file << "      vertex  " << _geometry.vTriangles[i].p2 << std::endl;
-		file << "      vertex  " << _geometry.vTriangles[i].p3 << std::endl;
-		file << "    endloop" << std::endl;
-		file << "  endfacet" << std::endl;
+		file << "    outer loop"            << std::endl;
+		file << "      vertex  "  << t.p1   << std::endl;
+		file << "      vertex  "  << t.p2   << std::endl;
+		file << "      vertex  "  << t.p3   << std::endl;
+		file << "    endloop"               << std::endl;
+		file << "  endfacet"                << std::endl;
 	}
-	file << "endsolid " << _geometry.sName << std::endl;
+	file << "endsolid " << _geometry.Name() << std::endl;
 
 	file.close();
 }
 
-bool CSTLFileHandler::IsSTLB(const std::string& _filePath) const
+bool CSTLFileHandler::IsSTLBinary(const std::string& _filePath)
 {
-	const unsigned HEADER_FIELD_SIZE = 80;
-	const unsigned NUMBER_FIELD_SIZE = 4;
-	const unsigned TRIANGLE_FIELD_SIZE = 50;
-
-	size_t fileSize = MUSENFileFunctions::getFileSize(_filePath);
-	if (fileSize < HEADER_FIELD_SIZE + NUMBER_FIELD_SIZE) // header + number of triangles
-		return false;
+	const size_t fileSize = MUSENFileFunctions::getFileSize(_filePath);
+	if (fileSize < STL_HEADER_SIZE + STL_NUMBER_SIZE) return false; // header + number of triangles
 
 	std::ifstream file(UnicodePath(_filePath), std::ifstream::in | std::ifstream::binary);
-	if (!file)
-		return false;
+	if (!file) return false;
 
-	file.seekg(HEADER_FIELD_SIZE);	// skip header
+	// get the number of triangles
 	uint32_t trianglesNumber;
-	file.read((char*)(&trianglesNumber), sizeof(uint32_t));
-
+	file.seekg(STL_HEADER_SIZE);	// skip the header
+	file.read(reinterpret_cast<char*>(&trianglesNumber), STL_NUMBER_SIZE);
 	file.close();
 
-	return fileSize == (trianglesNumber * TRIANGLE_FIELD_SIZE) + HEADER_FIELD_SIZE + NUMBER_FIELD_SIZE;
+	return fileSize == trianglesNumber * STL_TRIANGLE_SIZE + STL_HEADER_SIZE + STL_NUMBER_SIZE;
 }
 
-CTriangularMesh CSTLFileHandler::Read_STLB(const std::string& _filePath) const
+CTriangularMesh CSTLFileHandler::ReadSTLBinary(const std::string& _filePath)
 {
-	const unsigned HEADER_FIELD_SIZE = 80;
-
 	std::ifstream file(UnicodePath(_filePath), std::ifstream::in | std::ifstream::binary);
-	if (!file)
-		return CTriangularMesh();
+	if (!file) return {};
 
-	CTriangularMesh geometry;
-	geometry.sName = "STL_geometry";
-
-	char header[HEADER_FIELD_SIZE];
-	file.read(header, HEADER_FIELD_SIZE);
+	// get the number of triangles
 	uint32_t trianglesNumber;
-	file.read((char*)(&trianglesNumber), sizeof(uint32_t));
+	file.seekg(STL_HEADER_SIZE);	// skip the header
+	file.read(reinterpret_cast<char*>(&trianglesNumber), STL_NUMBER_SIZE);
+
+	// get triangles data
+	std::vector<SSTLTriangle> stlTriangles(trianglesNumber);
+	file.read(reinterpret_cast<char*>(stlTriangles.data()), trianglesNumber * sizeof(SSTLTriangle));
+	file.close();
+
+	// transform STLTriangle to CTriangle
+	std::vector<CTriangle> triangles(trianglesNumber);
 	for (size_t i = 0; i < trianglesNumber; ++i)
-	{
-		SSTLTriangle triangle;
-		file.read((char*)(&triangle), sizeof(SSTLTriangle));
-		geometry.vTriangles.push_back(STriangleType(CVector3(triangle.v1[0], triangle.v1[1], triangle.v1[2]),
-													CVector3(triangle.v2[0], triangle.v2[1], triangle.v2[2]),
-													CVector3(triangle.v3[0], triangle.v3[1], triangle.v3[2])));
-	}
-	file.close();
+		triangles[i] = stlTriangles[i].ToTriangle();
 
-	return geometry;
+	return CTriangularMesh{ MUSENFileFunctions::getFileName(_filePath), triangles };
 }
 
-void CSTLFileHandler::Write_STLB(const CTriangularMesh& _geometry, const std::string& _filePath) const
+void CSTLFileHandler::WriteSTLBinary(const CTriangularMesh& _geometry, const std::string& _filePath)
 {
 	std::ofstream file(UnicodePath(_filePath), std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
 	if (!file) return;	// cannot open file for writing
-	Write_STLB(_geometry, file);
-}
 
-void CSTLFileHandler::Write_STLB(const CTriangularMesh& _geometry, std::ofstream& _file) const
-{
-	const unsigned HEADER_FIELD_SIZE = 80;
+	// write header
+	char header[STL_HEADER_SIZE];
+	file.write(reinterpret_cast<char*>(&header), STL_HEADER_SIZE);
 
-	char header[HEADER_FIELD_SIZE];
-	_file.write((char*)(&header), HEADER_FIELD_SIZE);
-	uint32_t trianglesNumber = static_cast<uint32_t>(_geometry.vTriangles.size());
-	_file.write((char*)(&trianglesNumber), sizeof(uint32_t));
-	for (size_t i = 0; i < trianglesNumber; ++i)
+	// write the number of triangles
+	auto trianglesNumber = static_cast<uint32_t>(_geometry.TrianglesNumber());
+	file.write(reinterpret_cast<char*>(&trianglesNumber), sizeof(uint32_t));
+
+	// write triangles data
+	for (const auto& t : _geometry.Triangles())
 	{
-		SSTLTriangle triangle(_geometry.vTriangles[i].p1, _geometry.vTriangles[i].p2, _geometry.vTriangles[i].p3);
-		_file.write((char*)(&triangle), sizeof(SSTLTriangle));
+		SSTLTriangle triangle(t.p1, t.p2, t.p3);
+		file.write(reinterpret_cast<char*>(&triangle), sizeof(SSTLTriangle));
 	}
 }

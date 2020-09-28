@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="AboutDialog.ui" />
-  </ItemGroup>
-  <ItemGroup>
     <QtMoc Include="ExportAsTextTab.h">
     </QtMoc>
     <QtMoc Include="FileMergerTab.h">

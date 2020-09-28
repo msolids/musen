@@ -3,143 +3,175 @@
    See LICENSE file for license and warranty information. */
 
 #include "GeometriesDatabase.h"
+#include "STLFileHandler.h"
+#include "MUSENStringFunctions.h"
+#include <fstream>
 
-CGeometriesDatabase::~CGeometriesDatabase()
+void CGeometriesDatabase::NewDatabase()
 {
-	DeleteGeometries();
+	m_geometries.clear();
+	m_fileName.clear();
 }
 
-void CGeometriesDatabase::DeleteGeometries()
+std::string CGeometriesDatabase::GetFileName() const
 {
-	for (size_t i = 0; i < m_vGeometries.size(); ++i)
-		delete m_vGeometries[i];
-	m_vGeometries.clear();
+	return m_fileName;
 }
 
-void CGeometriesDatabase::AddGeometry(const std::string& _sSTLFileName)
+void CGeometriesDatabase::AddGeometry(const std::string& _filePath)
 {
-	CTriangularMesh* pGeometry = new CTriangularMesh;
-	CSTLFileHandler loader;
-	*pGeometry = loader.ReadFromFile(_sSTLFileName);
-	if (!pGeometry->vTriangles.empty())
-		m_vGeometries.push_back(pGeometry);
+	AddGeometry(CSTLFileHandler::ReadFromFile(_filePath));
 }
 
-void CGeometriesDatabase::ExportGeometry(size_t _index, const std::string& _sSTLFileName) const
+void CGeometriesDatabase::AddGeometry(const CTriangularMesh& _mesh, const std::string& _key/* = ""*/, double _scale/* = 1.0*/)
 {
-	if (_index >= m_vGeometries.size())
-		return;
-	CSTLFileHandler saver;
-	saver.WriteToFile(*m_vGeometries[_index], _sSTLFileName);
+	if (_mesh.IsEmpty()) return;
+	if (_scale == 0) _scale = 1.0;
+	m_geometries.push_back({ _mesh, GenerateKey(_key), _scale });
 }
 
-CTriangularMesh* CGeometriesDatabase::GetGeometry(size_t _nIndex)
+void CGeometriesDatabase::DeleteGeometry(size_t _index)
 {
-	if (_nIndex < m_vGeometries.size())
-		return m_vGeometries[_nIndex];
-	else
-		return nullptr;
+	if (_index < m_geometries.size())
+		m_geometries.erase(m_geometries.begin() + _index);
 }
 
-const CTriangularMesh* CGeometriesDatabase::GetGeometry(size_t _nIndex) const
+void CGeometriesDatabase::UpGeometry(size_t _index)
 {
-	if (_nIndex < m_vGeometries.size())
-		return m_vGeometries[_nIndex];
-	else
-		return nullptr;
+	if (_index < m_geometries.size() && _index != 0)
+		std::iter_swap(m_geometries.begin() + _index, m_geometries.begin() + _index - 1);
 }
 
-void CGeometriesDatabase::SaveToFile(const std::string& _sFileName)
+void CGeometriesDatabase::DownGeometry(size_t _index)
+{
+	if (_index < m_geometries.size() && _index != m_geometries.size() - 1)
+		std::iter_swap(m_geometries.begin() + _index, m_geometries.begin() + _index + 1);
+}
+
+size_t CGeometriesDatabase::GeometriesNumber() const
+{
+	return m_geometries.size();
+}
+
+CGeometriesDatabase::SGeometry* CGeometriesDatabase::Geometry(size_t _index)
+{
+	return const_cast<SGeometry*>(static_cast<const CGeometriesDatabase&>(*this).Geometry(_index));
+}
+
+const CGeometriesDatabase::SGeometry* CGeometriesDatabase::Geometry(size_t _index) const
+{
+	if (_index >= m_geometries.size()) return nullptr;
+	return &m_geometries[_index];
+}
+
+CGeometriesDatabase::SGeometry* CGeometriesDatabase::Geometry(const std::string& _key)
+{
+	return const_cast<SGeometry*>(static_cast<const CGeometriesDatabase&>(*this).Geometry(_key));
+}
+
+const CGeometriesDatabase::SGeometry* CGeometriesDatabase::Geometry(const std::string& _key) const
+{
+	for (const auto& geometry : m_geometries)
+		if (geometry.key == _key)
+			return &geometry;
+	return nullptr;
+}
+
+std::vector<CGeometriesDatabase::SGeometry*> CGeometriesDatabase::Geometries()
+{
+	std::vector<SGeometry*> res;
+	res.reserve(m_geometries.size());
+	for (auto& g : m_geometries)
+		res.push_back(&g);
+	return res;
+}
+
+std::vector<const CGeometriesDatabase::SGeometry*> CGeometriesDatabase::Geometries() const
+{
+	std::vector<const SGeometry*> res;
+	res.reserve(m_geometries.size());
+	for (const auto& g : m_geometries)
+		res.push_back(&g);
+	return res;
+}
+
+void CGeometriesDatabase::ScaleGeometry(size_t _index, double _factor)
+{
+	if (_index >= m_geometries.size()) return;
+	if (m_geometries[_index].scaleFactor == _factor) return;									// is already scaled that way
+	const double rescaleFactor = _factor / m_geometries[_index].scaleFactor;					// to rescale already scaled geometry
+	m_geometries[_index].scaleFactor = _factor;													// new scaling factor
+	m_geometries[_index].mesh.Scale(rescaleFactor);												// scale
+	m_geometries[_index].mesh.SetCenter(m_geometries[_index].mesh.Center() * rescaleFactor);	// move to scaled coordinates
+}
+
+void CGeometriesDatabase::ExportGeometry(size_t _index, const std::string& _filePath) const
+{
+	if (_index >= m_geometries.size()) return;
+	CSTLFileHandler::WriteToFile(m_geometries[_index].mesh, _filePath);
+}
+
+void CGeometriesDatabase::SaveToFile(const std::string& _filePath)
 {
 	ProtoGeometriesDB protoGeometriesDB;
 
-	for (size_t i = 0; i < m_vGeometries.size(); ++i)
+	for (const auto& g : m_geometries)
 	{
 		ProtoGeometry* protoGeom = protoGeometriesDB.add_geometry();
-		protoGeom->set_name(m_vGeometries[i]->sName);
-		for (size_t j = 0; j < m_vGeometries[i]->vTriangles.size(); ++j)
+		protoGeom->set_name(g.mesh.Name());
+		protoGeom->set_key(g.key);
+		protoGeom->set_scale(g.scaleFactor);
+		for (const auto& t : g.mesh.Triangles())
 		{
 			ProtoGeomVect* vert1 = protoGeom->add_vertices();
-			vert1->set_x(m_vGeometries[i]->vTriangles[j].p1.x);
-			vert1->set_y(m_vGeometries[i]->vTriangles[j].p1.y);
-			vert1->set_z(m_vGeometries[i]->vTriangles[j].p1.z);
 			ProtoGeomVect* vert2 = protoGeom->add_vertices();
-			vert2->set_x(m_vGeometries[i]->vTriangles[j].p2.x);
-			vert2->set_y(m_vGeometries[i]->vTriangles[j].p2.y);
-			vert2->set_z(m_vGeometries[i]->vTriangles[j].p2.z);
 			ProtoGeomVect* vert3 = protoGeom->add_vertices();
-			vert3->set_x(m_vGeometries[i]->vTriangles[j].p3.x);
-			vert3->set_y(m_vGeometries[i]->vTriangles[j].p3.y);
-			vert3->set_z(m_vGeometries[i]->vTriangles[j].p3.z);
+			vert1->set_x(t.p1.x);	vert1->set_y(t.p1.y);	vert1->set_z(t.p1.z);
+			vert2->set_x(t.p2.x);	vert2->set_y(t.p2.y);	vert2->set_z(t.p2.z);
+			vert3->set_x(t.p3.x);	vert3->set_y(t.p3.y);	vert3->set_z(t.p3.z);
 		}
 	}
 
-	std::fstream outFile(UnicodePath(_sFileName), std::ios::out | std::ios::trunc | std::ios::binary);
+	std::fstream outFile(UnicodePath(_filePath), std::ios::out | std::ios::trunc | std::ios::binary);
 	std::string data;
 	// TODO: consider to use SerializeToZeroCopyStream() for performance
 	protoGeometriesDB.SerializeToString(&data);
 	outFile << data;
 	outFile.close();
-	m_sDatabaseFileName = _sFileName;
+
+	m_fileName = _filePath;
 }
 
-void CGeometriesDatabase::LoadFromFile(const std::string& _sFileName)
+void CGeometriesDatabase::LoadFromFile(const std::string& _filePath)
 {
-	std::fstream inputFile(UnicodePath(_sFileName), std::ios::in | std::ios::binary);
-	if (!inputFile)
-		return;
+	std::fstream inputFile(UnicodePath(_filePath), std::ios::in | std::ios::binary);
+	if (!inputFile)	return;
 
 	ProtoGeometriesDB protoGeometriesDB;
 	// TODO: consider to use ParseFromZeroCopyStream() for performance
-	if (!protoGeometriesDB.ParseFromString(std::string(std::istreambuf_iterator<char>(inputFile), std::istreambuf_iterator<char>())))
-		return;
+	if (!protoGeometriesDB.ParseFromString(std::string(std::istreambuf_iterator<char>(inputFile), std::istreambuf_iterator<char>()))) return;
 
-	DeleteGeometries();
+	m_geometries.clear();
+
 	for (int i = 0; i < protoGeometriesDB.geometry_size(); ++i)
 	{
-		CTriangularMesh* pNewGeometry = new CTriangularMesh;
 		ProtoGeometry* protoGeom = protoGeometriesDB.mutable_geometry(i);
-		pNewGeometry->sName = protoGeom->name();
+		std::vector<CTriangle> triangles(protoGeom->vertices_size() / 3);
 		for (int j = 0; j < protoGeom->vertices_size() / 3; ++j)
-			pNewGeometry->vTriangles.push_back(STriangleType(
+			triangles[j] = CTriangle {
 				CVector3(protoGeom->mutable_vertices(j * 3 + 0)->x(), protoGeom->mutable_vertices(j * 3 + 0)->y(), protoGeom->mutable_vertices(j * 3 + 0)->z()),
 				CVector3(protoGeom->mutable_vertices(j * 3 + 1)->x(), protoGeom->mutable_vertices(j * 3 + 1)->y(), protoGeom->mutable_vertices(j * 3 + 1)->z()),
-				CVector3(protoGeom->mutable_vertices(j * 3 + 2)->x(), protoGeom->mutable_vertices(j * 3 + 2)->y(), protoGeom->mutable_vertices(j * 3 + 2)->z())));
-		m_vGeometries.push_back(pNewGeometry);
+				CVector3(protoGeom->mutable_vertices(j * 3 + 2)->x(), protoGeom->mutable_vertices(j * 3 + 2)->y(), protoGeom->mutable_vertices(j * 3 + 2)->z())};
+		AddGeometry(CTriangularMesh{ protoGeom->name(), triangles }, protoGeom->key(), protoGeom->scale());
 	}
-	m_sDatabaseFileName = _sFileName;
+
+	m_fileName = _filePath;
 }
 
-void CGeometriesDatabase::NewDatabase()
+std::string CGeometriesDatabase::GenerateKey(const std::string& _key /*= ""*/) const
 {
-	DeleteGeometries();
-	m_sDatabaseFileName.clear();
-}
-
-void CGeometriesDatabase::DeleteGeometry(size_t _nIndex)
-{
-	if (_nIndex < m_vGeometries.size())
-		m_vGeometries.erase(m_vGeometries.begin() + _nIndex);
-}
-
-void CGeometriesDatabase::UpGeometry(size_t _nIndex)
-{
-	if (_nIndex < m_vGeometries.size() && _nIndex != 0)
-		std::iter_swap(m_vGeometries.begin() + _nIndex, m_vGeometries.begin() + _nIndex - 1);
-}
-
-void CGeometriesDatabase::DownGeometry(size_t _nIndex)
-{
-	if ((_nIndex < m_vGeometries.size()) && (_nIndex != (m_vGeometries.size() - 1)))
-		std::iter_swap(m_vGeometries.begin() + _nIndex, m_vGeometries.begin() + _nIndex + 1);
-}
-
-std::string CGeometriesDatabase::GetFileName() const
-{
-	return m_sDatabaseFileName;
-}
-
-size_t CGeometriesDatabase::GetGeometriesNumber() const
-{
-	return m_vGeometries.size();
+	std::vector<std::string> keys;
+	for (const auto& geometry : m_geometries)
+		keys.push_back(geometry.key);
+	return GenerateUniqueKey(_key, keys);
 }

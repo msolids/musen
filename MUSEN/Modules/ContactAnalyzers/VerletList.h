@@ -6,6 +6,7 @@
 
 #include "ThreadPool.h"
 #include "SimplifiedScene.h"
+#include "GeometricFunctions.h"
 
 struct SCalcPerfmMetric
 {
@@ -69,6 +70,7 @@ private:
 	SParticleStruct& m_vParticles;
 	const SWallStruct& m_vWalls;
 	SVolumeType m_SimDomain;
+	SVolumeType m_workDomain; // Working simulation domain taking into account simulation domain, verlet distance and max particle radius. Needed for proper work with PBC.
 	double m_dMaxParticleRadius;
 	double m_dMinParticleRadius;
 	double m_dVerletDistance;

@@ -11,6 +11,7 @@ CVerletList::CVerletList(CSimplifiedScene& _Scene): m_Scene(_Scene),
 {
 	m_SimDomain.coordBeg.Init(0);
 	m_SimDomain.coordEnd.Init(0.5);
+	m_workDomain = m_SimDomain;
 	m_dMaxParticleRadius = 0;
 	m_dMinParticleRadius = 0;
 	m_dVerletDistance = 0;
@@ -42,6 +43,7 @@ void CVerletList::SetSceneInfo(const SVolumeType& _simDomain, double _dMinPartRa
 	if (m_SimDomain.coordBeg != _simDomain.coordBeg || m_SimDomain.coordEnd != _simDomain.coordEnd)
 	{
 		m_SimDomain = _simDomain;
+		m_workDomain = m_SimDomain;
 		bRecalculate = true;
 	}
 	if (_dMinPartRadius != m_dMinParticleRadius && _dMinPartRadius > 0)
@@ -145,7 +147,21 @@ void CVerletList::RecalculateGrid()
 	double dCurrCellSize = 2 * m_dMaxParticleRadius +  m_dVerletDistance;
 	if (dCurrCellSize == 0)	return;
 
-	const double dAverLength = (m_SimDomain.coordEnd.x - m_SimDomain.coordBeg.x+ m_SimDomain.coordEnd.y - m_SimDomain.coordBeg.y+ m_SimDomain.coordEnd.z - m_SimDomain.coordBeg.z)/3;
+	// if PBC is enabled, the simulation domain must be large enough to allow generation of virtual particles outside PBC, but still inside the domain
+	if (m_Scene.m_PBC.bEnabled)
+	{
+		m_workDomain = m_SimDomain;
+		const double delta = m_dVerletDistance + 2 * m_dMaxParticleRadius;
+		const CVector3 pbcSides{ (double)m_Scene.m_PBC.bX, (double)m_Scene.m_PBC.bY, (double)m_Scene.m_PBC.bZ };
+		for (size_t i = 0; i < 3; ++i)
+			if (pbcSides[i] != 0.0)
+			{
+				m_workDomain.coordBeg[i] = std::min(m_workDomain.coordBeg[i], m_Scene.m_PBC.currentDomain.coordBeg[i] - delta);
+				m_workDomain.coordEnd[i] = std::max(m_workDomain.coordEnd[i], m_Scene.m_PBC.currentDomain.coordEnd[i] + delta);
+			}
+	}
+
+	const double dAverLength = (m_workDomain.coordEnd.x - m_workDomain.coordBeg.x + m_workDomain.coordEnd.y - m_workDomain.coordBeg.y + m_workDomain.coordEnd.z - m_workDomain.coordBeg.z) / 3;
 	do
 	{
 		m_vGrid.emplace_back();
@@ -160,9 +176,9 @@ void CVerletList::RecalculateGrid()
 			dCurrCellSize = 0; // to stop loop afterwards
 		}
 
-		gl.nCellsX = static_cast<unsigned>(floor((m_SimDomain.coordEnd.x - m_SimDomain.coordBeg.x) / gl.dCellSize)) + 1;
-		gl.nCellsY = static_cast<unsigned>(floor((m_SimDomain.coordEnd.y - m_SimDomain.coordBeg.y) / gl.dCellSize)) + 1;
-		gl.nCellsZ = static_cast<unsigned>(floor((m_SimDomain.coordEnd.z - m_SimDomain.coordBeg.z) / gl.dCellSize)) + 1;
+		gl.nCellsX = static_cast<unsigned>(floor((m_workDomain.coordEnd.x - m_workDomain.coordBeg.x) / gl.dCellSize)) + 1;
+		gl.nCellsY = static_cast<unsigned>(floor((m_workDomain.coordEnd.y - m_workDomain.coordBeg.y) / gl.dCellSize)) + 1;
+		gl.nCellsZ = static_cast<unsigned>(floor((m_workDomain.coordEnd.z - m_workDomain.coordBeg.z) / gl.dCellSize)) + 1;
 
 		if (gl.nCellsX < 1) gl.nCellsX = 1;
 		if (gl.nCellsY < 1) gl.nCellsY = 1;
@@ -656,7 +672,7 @@ void CVerletList::RecalcParticlesPositions()
 		{
 			if (m_vParticles.Active(i))
 			{
-				const CVector3 relCoord = (m_vParticles.Coord(i) - m_SimDomain.coordBeg) / gridLevel.dCellSize;
+				const CVector3 relCoord = (m_vParticles.Coord(i) - m_workDomain.coordBeg) / gridLevel.dCellSize;
 				vIDx[i] = static_cast<unsigned>(floor(relCoord.x));
 				vIDy[i] = static_cast<unsigned>(floor(relCoord.y));
 				vIDz[i] = static_cast<unsigned>(floor(relCoord.z));
@@ -689,14 +705,14 @@ void CVerletList::RecalcWallsPositions()
 		{
 			SGridLevel& gridLevel = m_vGrid[iGrid];
 
-			const CVector3 minCoord = (m_vWalls.MinCoord(iWall) - m_SimDomain.coordBeg) / gridLevel.dCellSize;
+			const CVector3 minCoord = (m_vWalls.MinCoord(iWall) - m_workDomain.coordBeg) / gridLevel.dCellSize;
 			int nMinX = static_cast<int>(floor(minCoord.x));
 			int nMinY = static_cast<int>(floor(minCoord.y));
 			int nMinZ = static_cast<int>(floor(minCoord.z));
 
 			if (nMinX >= static_cast<int>(gridLevel.nCellsX) || nMinY >= static_cast<int>(gridLevel.nCellsY) || nMinZ >= static_cast<int>(gridLevel.nCellsZ)) continue;
 
-			const CVector3 maxCoord = (m_vWalls.MaxCoord(iWall) - m_SimDomain.coordBeg) / gridLevel.dCellSize;
+			const CVector3 maxCoord = (m_vWalls.MaxCoord(iWall) - m_workDomain.coordBeg) / gridLevel.dCellSize;
 			int nMaxX = static_cast<int>(ceil(maxCoord.x)) + 1;
 			int nMaxY = static_cast<int>(ceil(maxCoord.y)) + 1;
 			int nMaxZ = static_cast<int>(ceil(maxCoord.z)) + 1;

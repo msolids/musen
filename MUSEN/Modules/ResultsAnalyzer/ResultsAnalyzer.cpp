@@ -35,7 +35,7 @@ void CResultsAnalyzer::UpdateSettings()
 	m_nProgress = 0;
 	m_sStatusDescr = "";
 	m_bError = false;
-	if(m_nGeometryIndex >= m_pSystemStructure->GetGeometriesNumber())
+	if(m_nGeometryIndex >= m_pSystemStructure->GeometriesNumber())
 		SetGeometryIndex(0);
 }
 

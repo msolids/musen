@@ -4,6 +4,7 @@
 
 #include "ViewManager.h"
 #include "AgglomeratesAnalyzer.h"
+#include "MeshGenerator.h"
 #include "OpenGLViewGlu.h"
 #include "OpenGLViewMixed.h"
 #include "OpenGLViewShader.h"
@@ -263,7 +264,7 @@ void CViewManager::SetCameraStandardView(const CVector3& _position) const
 	CVector3 minCoord{ -0.001 };
 	CVector3 maxCoord{ 0.001 };
 
-	if (m_systemStructure->GetTotalObjectsCount() || m_systemStructure->GetAnalysisVolumesNumber())
+	if (m_systemStructure->GetTotalObjectsCount() || m_systemStructure->AnalysisVolumesNumber())
 	{
 		minCoord.Init(std::numeric_limits<double>::max());
 		maxCoord.Init(std::numeric_limits<double>::lowest());
@@ -279,13 +280,13 @@ void CViewManager::SetCameraStandardView(const CVector3& _position) const
 		// for all walls
 		for (const auto* wall : m_systemStructure->GetAllWalls(m_time, true))
 		{
-			const STriangleType t = wall->GetCoords(m_time);
+			const CTriangle t = wall->GetCoords(m_time);
 			minCoord = Min(minCoord, Min(t.p1, t.p2, t.p3));
 			maxCoord = Max(maxCoord, Max(t.p1, t.p2, t.p3));
 		}
 		// for all analysis volumes
-		for (const auto* volume : m_systemStructure->GetAllAnalysisVolumes())
-			for (auto t : volume->vTriangles)
+		for (const auto* volume : m_systemStructure->AllAnalysisVolumes())
+			for (const auto& t : volume->Mesh(m_time).Triangles())
 			{
 				minCoord = Min(minCoord, Min(t.p1, t.p2, t.p3));
 				maxCoord = Max(maxCoord, Max(t.p1, t.p2, t.p3));
@@ -936,23 +937,23 @@ void CViewManager::UpdateWalls() const
 	{
 		visible.resize(m_systemStructure->GetTotalObjectsCount(), false);
 		for (const auto& v : m_viewSettings->Cutting().volumes)
-			for (size_t i : m_systemStructure->GetWallIndicesInVolume(m_time, v))
+			for (size_t i : m_systemStructure->AnalysisVolume(v)->GetWallIndicesInside(m_time))
 				visible[i] = true;
 	}
 
 	// list of visible geometries
 	const auto visibleGeometries = m_viewSettings->VisibleGeometries();
 
-	for (const auto& geometry : m_systemStructure->GetAllGeometries())
+	for (const auto& geometry : m_systemStructure->AllGeometries())
 	{
-		if (!SetContains(visibleGeometries, geometry->sKey)) continue;							// filter by selected geometries
-		const QColor color = C2Q(CColor{ geometry->color, 1.f - m_viewSettings->GeometriesTransparency() });
+		if (!SetContains(visibleGeometries, geometry->Key())) continue;							// filter by selected geometries
+		const QColor color = C2Q(CColor{ geometry->Color(), 1.f - m_viewSettings->GeometriesTransparency() });
 
 		// for all active walls
-		for (const auto& w : m_systemStructure->GetAllWallsForGeometry(m_time, geometry->sKey))
+		for (const auto& w : m_systemStructure->GetAllWallsForGeometry(m_time, geometry->Key()))
 		{
 			if (m_viewSettings->Cutting().cutByVolumes && !visible[w->m_lObjectID]) continue;	// cut by volume
-			const STriangleType t = w->GetCoords(m_time);
+			const CTriangle t = w->GetCoords(m_time);
 			if (m_viewSettings->Cutting().CutByPlanes() && (IsCutByPlanes(t.p1) || IsCutByPlanes(t.p2) || IsCutByPlanes(t.p3))) continue;	// cut by planes
 			data.emplace_back(COpenGLViewShader::STriangle{ C2Q(t.p1), C2Q(t.p2), C2Q(t.p3), color });
 		}
@@ -974,28 +975,26 @@ void CViewManager::UpdateVolumes() const
 		const auto visibleVolumes = m_viewSettings->VisibleVolumes();
 
 		// common analysis volumes
-		for (const auto& volume : m_systemStructure->GetAllAnalysisVolumes())
+		for (const auto& volume : m_systemStructure->AllAnalysisVolumes())
 		{
-			if (!SetContains(visibleVolumes, volume->sKey)) continue;				// filter by selected volumes
-			data.reserve(data.size() + volume->vTriangles.size());
-			const CVector3 shift = volume->GetShift(m_time);
-			const QColor color = C2Q(volume->color);
-			for (const auto& triangle : volume->vTriangles)
-			{
-				const STriangleType t = triangle.Shifted(shift);
+			if (!SetContains(visibleVolumes, volume->Key())) continue;				// filter by selected volumes
+			const auto& mesh = volume->Mesh(m_time);
+			data.reserve(data.size() + mesh.TrianglesNumber());
+			const QColor color = C2Q(volume->Color());
+			for (const auto& t : mesh.Triangles())
 				data.emplace_back(COpenGLViewShader::STriangle{ C2Q(t.p1), C2Q(t.p2), C2Q(t.p3), color });
-			}
 		}
 	}
 
 	// sample analysis volume
 	if (m_sampleAnalyzer && m_sampleAnalyzer->isVisible())
 	{
-		CTriangularMesh mesh = CTriangularMesh::GenerateMesh(EVolumeType::VOLUME_SPHERE, std::vector<double>{m_sampleAnalyzer->m_dRadius}, m_sampleAnalyzer->m_vCenter, CMatrix3::Diagonal(), 3);
+		CTriangularMesh mesh = CMeshGenerator::Sphere(m_sampleAnalyzer->m_dRadius, 3);
+		mesh.Shift(m_sampleAnalyzer->m_vCenter);
 
-		data.reserve(data.size() + mesh.vTriangles.size());
+		data.reserve(data.size() + mesh.TrianglesNumber());
 		const QColor color = C2Q(CColor{ 0.4f, 0.4f, 0.4f, 0.5f });
-		for (const auto& t : mesh.vTriangles)
+		for (const auto& t : mesh.Triangles())
 			data.emplace_back(COpenGLViewShader::STriangle{ C2Q(t.p1), C2Q(t.p2), C2Q(t.p3), color });
 	}
 
@@ -1123,7 +1122,7 @@ std::vector<CSphere*> CViewManager::GetVisibleParticles() const
 	{
 		show.resize(m_systemStructure->GetTotalObjectsCount(), false);
 		for (const auto& v : m_viewSettings->Cutting().volumes)
-			for (auto i : m_systemStructure->GetParticleIndicesInVolume(m_time, v))
+			for (auto i : m_systemStructure->AnalysisVolume(v)->GetParticleIndicesInside(m_time))
 				show[i] = true;
 	}
 
@@ -1157,7 +1156,7 @@ std::vector<CSolidBond*> CViewManager::GetVisibleBonds() const
 	{
 		show.resize(m_systemStructure->GetTotalObjectsCount(), false);
 		for (const auto& v : m_viewSettings->Cutting().volumes)
-			for (auto i : m_systemStructure->GetBondIndicesInVolume(m_time, v))
+			for (auto i : m_systemStructure->AnalysisVolume(v)->GetBondIndicesInside(m_time))
 				show[i] = true;
 	}
 
@@ -1205,7 +1204,7 @@ std::vector<CSphere*> CViewManager::GetVisibleSlices() const
 	{
 		show.resize(m_systemStructure->GetTotalObjectsCount(), false);
 		for (const auto& v : m_viewSettings->Cutting().volumes)
-			for (auto i : m_systemStructure->GetParticleIndicesInVolume(m_time, v))
+			for (auto i : m_systemStructure->AnalysisVolume(v)->GetParticleIndicesInside(m_time))
 				show[i] = true;
 	}
 

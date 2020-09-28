@@ -10,8 +10,14 @@
 
 class CObjectsGenerator
 {
-
 public:
+	enum class ERateType
+	{
+		GENERATION_RATE  = 0,
+		OBJECTS_PER_STEP = 1,
+		OBJECTS_TOTAL    = 2,
+	};
+
 	std::string m_sName;
 	std::string m_sVolumeKey;
 
@@ -30,17 +36,21 @@ public:
 
 	double m_dStartGenerationTime;
 	double m_dEndGenerationTime;
-	double m_dGenerationRate; // [1/s]
 	double m_dUpdateStep;
+	size_t m_maxIterations{ 30 };
+	ERateType m_rateType{ ERateType::GENERATION_RATE };
+	double m_rateValue{ 1e-3 };
 
 	bool m_bVisible; // visibility in 3D representation
 	bool m_bActive;	// activity of this generator
 
 	double m_dLastGenerationTime; // last time point when generation has been done
 
+private:
 	CAgglomeratesDatabase* m_pAgglomDB;
 	SAgglomerate m_PreLoadedAgglomerate;
 	CMaterialsDatabase* m_pMaterialsDB;
+	double m_dGenerationRate{ 0 }; // [1/s]
 
 public:
 	CObjectsGenerator(CAgglomeratesDatabase* _pAgglomD, CMaterialsDatabase* _pMaterialsDB);
@@ -55,12 +65,11 @@ public:
 private:
 	// return true if creation was successfully
 	void GenerateNewObject( std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart,
-		std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad, std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox );
+		std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad, std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox, SPBC& _PBC, const double _dCurrentTime);
 
 	bool IsOverlapped( const std::vector<CVector3>& _vCoordPart, const std::vector<double>& _vPartContRad,
-		const std::vector<unsigned>& _vExistedPartID, const std::vector<unsigned>& _nExistedWallsID, const CSimplifiedScene& _Scene );
+		const std::vector<unsigned>& _vExistedPartID, const std::vector<unsigned>& _nExistedWallsID, const CSimplifiedScene& _Scene, const unsigned intAgglColl = 0) const;
 
 	// creates random point in the volume
-	void inline CreateRandomPoint( CVector3* _pResult, const SVolumeType& _boundBox );
-	void inline CreateRandomAngle( CVector3* _pResult );
+	static void CreateRandomPoint( CVector3* _pResult, const SVolumeType& _boundBox );
 };

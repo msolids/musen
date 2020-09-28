@@ -7,6 +7,7 @@
 #include "ResultsAnalyzer.h"
 #include "CollisionsStorage.h"
 #include "ProtoFunctions.h"
+#include "SceneTypes.h"
 
 class CCollisionsAnalyzer : public CResultsAnalyzer
 {

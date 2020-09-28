@@ -17,9 +17,9 @@ protected:
 	std::vector<SCollision*> m_vFinishedCollisionsPW;	// list of finished particle-wall collisions
 
 	CSimplifiedScene& m_Scene;
-	CVerletList* m_pVerletList;
-	CCollisionsAnalyzer* m_pCollisionsAnalyzer;
-	bool m_bAnalyzeCollisions;
+	CVerletList& m_verletList;
+	CCollisionsAnalyzer& m_collisionsAnalyzer;
+	bool m_bAnalyzeCollisions{ false };
 
 public:
 	std::vector< std::vector<SCollision*>> m_vCollMatrixPP;
@@ -47,10 +47,8 @@ private:
 	void CopyFinishedPWCollisions();
 
 public:
-	CCollisionsCalculator(CSimplifiedScene& _Scene);
+	CCollisionsCalculator(CSimplifiedScene& _scene, CVerletList& _list, CCollisionsAnalyzer& _analyzer);
 	~CCollisionsCalculator();
-
-	void SetPointers(CVerletList* _pList, CCollisionsAnalyzer* _pCollAnalyzer );
 
 	void ClearCollMatrixes();
 	void ResizeCollMatrixes();

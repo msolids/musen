@@ -37,10 +37,10 @@ bool CGeometriesAnalyzer::Export()
 bool CGeometriesAnalyzer::InitAnalyzer(std::vector<EPropertyType> _properties)
 {
 	m_vCalcFunctions.clear();
-	m_pObject = m_pSystemStructure->GetGeometry(m_nGeometryIndex);
+	m_pObject = m_pSystemStructure->Geometry(m_nGeometryIndex);
 	if (!m_pObject) return false;
 
-	m_vInitPosition = m_pSystemStructure->GetGeometryCenter(0, m_nGeometryIndex);
+	m_vInitPosition = m_pObject->Center(0);
 
 	m_bCustomFileWriter = true; // to omit calling of WriteResultsToFile() from CResultsAnalyzer::StartExport
 	m_sStatusDescr = "Starting export.";
@@ -62,7 +62,7 @@ bool CGeometriesAnalyzer::InitAnalyzer(std::vector<EPropertyType> _properties)
 			break;
 		case EPropertyType::Distance:
 			// init calculation
-			m_vInitPosition = m_pSystemStructure->GetGeometryCenter(0, m_nGeometryIndex);
+			m_vInitPosition = m_pObject->Center(0);
 			m_vCalcFunctions.emplace_back([&](const double& _timePoint)
 			{
 				const CVector3 currDistance = this->CalculateDistance(_timePoint);
@@ -93,13 +93,13 @@ void CGeometriesAnalyzer::FlushStream() const
 
 CVector3 CGeometriesAnalyzer::CalculateDistance(const double& _timePoint) const
 {
-	return m_pSystemStructure->GetGeometryCenter(_timePoint, m_nGeometryIndex) - m_vInitPosition;
+	return m_pObject->Center(_timePoint) - m_vInitPosition;
 }
 
 CVector3 CGeometriesAnalyzer::CalculateForce(const double& _timePoint) const
 {
 	CVector3 tmp(0.0);
-	for (unsigned int plane : m_pObject->vPlanes)
+	for (auto plane : m_pObject->Planes())
 		tmp += m_pSystemStructure->GetObjectByIndex(plane)->GetForce(_timePoint);
 	return tmp;
 }

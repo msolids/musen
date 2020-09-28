@@ -25,7 +25,7 @@ void CAgglomeratesDatabase::AddNewAgglomerate(SAgglomerate& _pAgglomerate)
 	m_vAgglomerates.push_back(pAgglom);
 }
 
-SAgglomerate* CAgglomeratesDatabase::GetAgglomerate(unsigned _nIndex)
+SAgglomerate* CAgglomeratesDatabase::GetAgglomerate(size_t _nIndex)
 {
 	if (_nIndex >= m_vAgglomerates.size()) return NULL;
 	return m_vAgglomerates[_nIndex];

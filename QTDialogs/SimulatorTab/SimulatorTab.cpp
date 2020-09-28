@@ -10,7 +10,7 @@
 
 void CSimulatorThread::StartSimulation()
 {
-	m_pSimulator->StartSimulation();
+	m_pSimulator->Simulate();
 	emit finished();
 }
 
@@ -202,6 +202,14 @@ void CSimulatorTab::StartSimulation()
 		return;
 	}
 
+	// check materials database
+	sErrorMessage = m_pSystemStructure->m_MaterialDatabase.IsDataCorrect();
+	if (!sErrorMessage.empty())
+	{
+		ui.statusMessage->setText(QString::fromStdString(sErrorMessage));
+		return;
+	}
+
 	// check that all object are in simulation domain
 	const SVolumeType vSimDomain = m_pSystemStructure->GetSimulationDomain();
 	if (!IsPointInDomain(vSimDomain, m_pSystemStructure->GetMaxCoordinate(0)) || !IsPointInDomain(vSimDomain, m_pSystemStructure->GetMinCoordinate(0)))
@@ -236,7 +244,7 @@ void CSimulatorTab::StartSimulation()
 	{
 		const CObjectsGenerator* pGenerator = pGenerationManager->GetGenerator(i);
 		if (!pGenerator->m_bActive) continue;
-		CAnalysisVolume* pVolume = m_pSystemStructure->GetAnalysisVolume(pGenerator->m_sVolumeKey);
+		CAnalysisVolume* pVolume = m_pSystemStructure->AnalysisVolume(pGenerator->m_sVolumeKey);
 		if (pVolume == nullptr) return;
 		const SVolumeType vGenerationDomain = pVolume->BoundingBox(0);
 		if (!IsPointInDomain(vSimDomain, vGenerationDomain.coordBeg) || !IsPointInDomain(vSimDomain, vGenerationDomain.coordEnd))
@@ -303,7 +311,7 @@ void CSimulatorTab::StartSimulation()
 			return;
 		}
 	}
-	if (m_pSystemStructure->GetGeometriesNumber() != 0)
+	if (m_pSystemStructure->GeometriesNumber() != 0)
 	{
 		if (!pModelManager->IsModelDefined(EMusenModelType::PW))
 		{
@@ -516,7 +524,7 @@ void CSimulatorTab::RecalculateSimulationDomain()
 	{
 		const CObjectsGenerator* pGenerator = m_pSimulatorManager->GetSimulatorPtr()->GetGenerationManager()->GetGenerator( i );
 		if ( !pGenerator->m_bActive ) continue;
-		CAnalysisVolume* pVolume = m_pSystemStructure->GetAnalysisVolume( pGenerator->m_sVolumeKey );
+		CAnalysisVolume* pVolume = m_pSystemStructure->AnalysisVolume( pGenerator->m_sVolumeKey );
 		if ( pVolume == nullptr ) continue;
 		const SVolumeType vGenerationDomain = pVolume->BoundingBox(0);
 		vSimDomain.coordBeg = Min(vSimDomain.coordBeg, vGenerationDomain.coordBeg);

@@ -79,9 +79,9 @@ void CConfigurationTab::UpdateWholeView()
 	ui.checkBoxShowTime->setChecked(m_viewSettings->Visibility().time);
 	ui.checkBoxShowLegend->setChecked(m_viewSettings->Visibility().legend);
 
-	ui.widgetColorAxes->setColor(m_viewSettings->FontAxes().color);
-	ui.widgetColorTime->setColor(m_viewSettings->FontTime().color);
-	ui.widgetColorLegend->setColor(m_viewSettings->FontLegend().color);
+	ui.widgetColorAxes->SetColor(m_viewSettings->FontAxes().color);
+	ui.widgetColorTime->SetColor(m_viewSettings->FontTime().color);
+	ui.widgetColorLegend->SetColor(m_viewSettings->FontLegend().color);
 }
 
 void CConfigurationTab::RenderTypeChanged(bool _checked) const

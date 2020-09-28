@@ -14,12 +14,6 @@
    <string>Geometries Database</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>5</number>
-   </property>
-   <property name="margin">
-    <number>4</number>
-   </property>
    <item>
     <layout class="QHBoxLayout" name="vMainLayout" stretch="1,6">
      <item>
@@ -27,8 +21,14 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0">
          <item>
-          <widget class="QPushButton" name="newDatabase">
+          <widget class="QPushButton" name="buttonNewDatabase">
            <property name="toolTip">
+            <string>Create new database</string>
+           </property>
+           <property name="statusTip">
+            <string>Create new database</string>
+           </property>
+           <property name="whatsThis">
             <string>Create new database</string>
            </property>
            <property name="text">
@@ -44,7 +44,16 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="loadDatabase">
+          <widget class="QPushButton" name="buttonLoadDatabase">
+           <property name="toolTip">
+            <string>Load database</string>
+           </property>
+           <property name="statusTip">
+            <string>Load database</string>
+           </property>
+           <property name="whatsThis">
+            <string>Load database</string>
+           </property>
            <property name="text">
             <string>Load</string>
            </property>
@@ -58,7 +67,16 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="saveDatabase">
+          <widget class="QPushButton" name="buttonSaveDatabase">
+           <property name="toolTip">
+            <string>Save database</string>
+           </property>
+           <property name="statusTip">
+            <string>Save database</string>
+           </property>
+           <property name="whatsThis">
+            <string>Save database</string>
+           </property>
            <property name="text">
             <string>Save</string>
            </property>
@@ -72,7 +90,16 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="saveDatabaseAs">
+          <widget class="QPushButton" name="ButtonSaveAsDatabase">
+           <property name="toolTip">
+            <string>Save database as</string>
+           </property>
+           <property name="statusTip">
+            <string>Save database as</string>
+           </property>
+           <property name="whatsThis">
+            <string>Save database as</string>
+           </property>
            <property name="text">
             <string>Save as</string>
            </property>
@@ -94,37 +121,20 @@
         </layout>
        </item>
        <item>
-        <widget class="QListWidget" name="geometriesList"/>
+        <widget class="CQtList" name="listGeometries"/>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QPushButton" name="upGeometry">
-           <property name="text">
-            <string>Up</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="downGeometry">
-           <property name="text">
-            <string>Down</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="addGeometry">
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="buttonImportGeometry">
            <property name="toolTip">
-            <string>Import geometry from STL file (text format)</string>
+            <string>Import geometry from STL file</string>
+           </property>
+           <property name="statusTip">
+            <string>Import geometry from STL file</string>
+           </property>
+           <property name="whatsThis">
+            <string>Import geometry from STL file</string>
            </property>
            <property name="text">
             <string>Import</string>
@@ -138,9 +148,102 @@
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="deleteGeometry">
+         <item row="0" column="1">
+          <widget class="QPushButton" name="buttonUpGeometry">
            <property name="toolTip">
+            <string>Move geometry upwards</string>
+           </property>
+           <property name="statusTip">
+            <string>Move geometry upwards</string>
+           </property>
+           <property name="whatsThis">
+            <string>Move geometry upwards</string>
+           </property>
+           <property name="text">
+            <string>Up</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+             <normaloff>:/QT_GUI/Pictures/up.png</normaloff>:/QT_GUI/Pictures/up.png</iconset>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="buttonDownGeometry">
+           <property name="toolTip">
+            <string>Move geometry downwards</string>
+           </property>
+           <property name="statusTip">
+            <string>Move geometry downwards</string>
+           </property>
+           <property name="whatsThis">
+            <string>Move geometry downwards</string>
+           </property>
+           <property name="text">
+            <string>Down</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+             <normaloff>:/QT_GUI/Pictures/down.png</normaloff>:/QT_GUI/Pictures/down.png</iconset>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QPushButton" name="buttonScaleGeometry">
+           <property name="toolTip">
+            <string>Scale geometry</string>
+           </property>
+           <property name="statusTip">
+            <string>Scale geometry</string>
+           </property>
+           <property name="whatsThis">
+            <string>Scale geometry</string>
+           </property>
+           <property name="text">
+            <string>Scale</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QPushButton" name="buttonExportGeometry">
+           <property name="toolTip">
+            <string>Export geometry as STL file</string>
+           </property>
+           <property name="statusTip">
+            <string>Export geometry as STL file</string>
+           </property>
+           <property name="whatsThis">
+            <string>Export geometry as STL file</string>
+           </property>
+           <property name="text">
+            <string>Export</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="buttonDeleteGeometry">
+           <property name="toolTip">
+            <string>Remove geometry from database</string>
+           </property>
+           <property name="statusTip">
+            <string>Remove geometry from database</string>
+           </property>
+           <property name="whatsThis">
             <string>Remove geometry from database</string>
            </property>
            <property name="text">
@@ -149,16 +252,6 @@
            <property name="icon">
             <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
              <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButtonExport">
-           <property name="text">
-            <string>Export</string>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -174,18 +267,13 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <widget class="QTableWidget" name="selGeometryTable">
+           <widget class="CQtTable" name="tableGeometryInfo">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
             <attribute name="horizontalHeaderVisible">
              <bool>false</bool>
             </attribute>
-            <attribute name="horizontalHeaderHighlightSections">
-             <bool>true</bool>
-            </attribute>
-            <row>
-             <property name="text">
-              <string>Name</string>
-             </property>
-            </row>
             <row>
              <property name="text">
               <string>Faces number</string>
@@ -231,11 +319,6 @@
               <string/>
              </property>
             </item>
-            <item row="4" column="0">
-             <property name="text">
-              <string/>
-             </property>
-            </item>
            </widget>
           </item>
          </layout>
@@ -244,9 +327,9 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1">
        <item>
-        <widget class="CGeomOpenGLView" name="geomOpenGLView" native="true"/>
+        <widget class="COpenGLViewShader" name="viewer" native="true"/>
        </item>
       </layout>
      </item>
@@ -256,24 +339,35 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CGeomOpenGLView</class>
+   <class>COpenGLViewShader</class>
    <extends>QWidget</extends>
-   <header>GeomOpenGLView.h</header>
+   <header>OpenGLViewShader.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CQtTable</class>
+   <extends>QTableWidget</extends>
+   <header>QtTable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CQtList</class>
+   <extends>QListWidget</extends>
+   <header>QtList.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>newDatabase</tabstop>
-  <tabstop>loadDatabase</tabstop>
-  <tabstop>saveDatabase</tabstop>
-  <tabstop>saveDatabaseAs</tabstop>
-  <tabstop>geometriesList</tabstop>
-  <tabstop>upGeometry</tabstop>
-  <tabstop>downGeometry</tabstop>
-  <tabstop>addGeometry</tabstop>
-  <tabstop>deleteGeometry</tabstop>
-  <tabstop>pushButtonExport</tabstop>
-  <tabstop>selGeometryTable</tabstop>
+  <tabstop>buttonNewDatabase</tabstop>
+  <tabstop>buttonLoadDatabase</tabstop>
+  <tabstop>buttonSaveDatabase</tabstop>
+  <tabstop>ButtonSaveAsDatabase</tabstop>
+  <tabstop>listGeometries</tabstop>
+  <tabstop>buttonImportGeometry</tabstop>
+  <tabstop>buttonDeleteGeometry</tabstop>
+  <tabstop>buttonUpGeometry</tabstop>
+  <tabstop>buttonDownGeometry</tabstop>
+  <tabstop>buttonExportGeometry</tabstop>
+  <tabstop>buttonScaleGeometry</tabstop>
+  <tabstop>tableGeometryInfo</tabstop>
  </tabstops>
  <resources>
   <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>

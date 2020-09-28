@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "FileMerger.h"
+#include "MUSENFileFunctions.h"
 
 CFileMerger::CFileMerger(CSystemStructure* _pSystemStructure)
 {

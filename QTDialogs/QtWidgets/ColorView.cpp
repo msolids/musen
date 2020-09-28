@@ -11,21 +11,31 @@ CColorView::CColorView(QWidget* parent): QWidget(parent)
 	setMinimumSize(10, 10);
 }
 
-void CColorView::setColor(const CColor& _color)
+void CColorView::SetColor(const CColor& _color)
 {
-	m_actualColor.setRgbF(_color.r, _color.g, _color.b, _color.a);
-	update();
+	QColor color;
+	color.setRgbF(_color.r, _color.g, _color.b, _color.a);
+	SetColor(color);
 }
 
-void CColorView::setColor(const QColor& _color)
+void CColorView::SetColor(const QColor& _color)
 {
 	m_actualColor = _color;
 	update();
+	if(!signalsBlocked())
+		emit ColorChanged();
 }
 
 QColor CColorView::getColor() const
 {
 	return m_actualColor;
+}
+
+CColor CColorView::getColor2() const
+{
+	qreal r, g, b, f;
+	m_actualColor.getRgbF(&r, &g, &b, &f);
+	return {static_cast<float>(r), static_cast<float>(g), static_cast<float>(b), static_cast<float>(f)};
 }
 
 void CColorView::paintEvent(QPaintEvent* _event)
@@ -41,8 +51,8 @@ void CColorView::paintEvent(QPaintEvent* _event)
 void CColorView::mouseDoubleClickEvent(QMouseEvent* _event)
 {
 	const QColor color = QColorDialog::getColor(m_actualColor, this);
-	if (!color.isValid()) return;
-	m_actualColor = color;
-	update();
-	emit ColorChanged();
+	if (!color.isValid() || color == m_actualColor) return;
+	SetColor(color);
+	if (!signalsBlocked())
+		emit ColorEdited();
 }

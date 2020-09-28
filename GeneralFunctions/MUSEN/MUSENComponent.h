@@ -14,17 +14,15 @@
 class CMusenComponent
 {
 protected:
-	CSystemStructure* m_pSystemStructure;
+	CSystemStructure* m_pSystemStructure{ nullptr };
 
 public:
-	CMusenComponent() { m_pSystemStructure = nullptr; };
-	virtual ~CMusenComponent() {};
+	virtual ~CMusenComponent() = default;
 
 	virtual void SetSystemStructure(CSystemStructure* _pSystemStructure) { m_pSystemStructure = _pSystemStructure; }
 
 	// Loads all data from system structure's storage. MUST be called AFTER CSystemStructure::LoadFromFile()
-	virtual void LoadConfiguration() {};
+	virtual void LoadConfiguration() {}
 	// Saves all data to system structure's storage. MUST be called BEFORE CSystemStructure::SaveToFile()
-	virtual void SaveConfiguration() {};
+	virtual void SaveConfiguration() {}
 };
-

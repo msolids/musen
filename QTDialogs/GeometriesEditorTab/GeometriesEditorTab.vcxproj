@@ -89,8 +89,7 @@
     <ClCompile Include="GeometriesEditorTab.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="GeometriesEditorTab.h">
-    </QtMoc>
+    <QtMoc Include="GeometriesEditorTab.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="GeometriesEditorTab.ui">

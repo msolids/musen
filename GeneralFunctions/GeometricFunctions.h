@@ -11,6 +11,7 @@
 #include "MixedFunctions.h"
 #include "BasicTypes.h"
 #include "SceneTypes.h"
+#include "Triangle.h"
 #include <algorithm>
 
 // calculates the projection of a point onto a plane which is given by a one point and normal vector
@@ -352,7 +353,7 @@ inline CVector3 SpheresContactPoint(const CVector3& _P1, const CVector3& _P2, do
 	return _P1 + (_P2 - _P1)*_R1 / (_R1 + _R2);
 }
 
-inline SVolumeType GetBoundingBox(const std::vector<STriangleType>& _vTriangles)
+inline SVolumeType GetBoundingBox(const std::vector<CTriangle>& _vTriangles)
 {
 	SVolumeType bb;
 	bb.coordBeg.Init(0);

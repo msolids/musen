@@ -93,8 +93,7 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="objectsGeneratorTab.ui">
-    </QtUic>
+    <QtUic Include="ObjectsGeneratorTab.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AggloCompounds.h">

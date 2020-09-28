@@ -120,11 +120,11 @@ void SBondStruct::Resize(const size_t n)
 ////////// SSolidBondStruct
 
 void SSolidBondStruct::AddSolidBond(bool _active, unsigned _initIndex, size_t _leftID, size_t _rightID, double _diameter, double _crossCut, double _initialLength,
-	double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength)
+	CVector3 _vTangOverlap, double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength)
 {
 	AddBond(_active, _initIndex, _leftID, _rightID);
 
-	baseInfo.emplace_back(SBaseInfo{ _diameter, _crossCut, _initialLength, _axialMoment, _normalStiffness, _tangentialStiffness });
+	baseInfo.emplace_back(SBaseInfo{ _diameter, _crossCut, _initialLength, _axialMoment, _normalStiffness, _tangentialStiffness, _vTangOverlap });
 	strengthInfo.emplace_back(SStrength{ _normalStrength, _tangentialStrength });
 	kinematicsInfo.emplace_back();
 }

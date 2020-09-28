@@ -14,14 +14,15 @@ message ProtoGeomVect
 
 message ProtoGeometry
 {
-	string name = 1;
-	string key = 2;
+	string name   = 1;
+	string key    = 2;
 	double volume = 3;
+	double scale  = 5;
 
 	repeated ProtoGeomVect vertices = 4;
 }
 
 message ProtoGeometriesDB
 {
-	repeated ProtoGeometry Geometry = 1;
+	repeated ProtoGeometry geometry = 1;
 }

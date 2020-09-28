@@ -21,12 +21,34 @@
 
 namespace MUSENFileFunctions
 {
+	/// Checks whether the file already exists.
+	inline bool isFileExist(const std::string& _filePath)
+	{
+		struct stat info {};
+		return stat(_filePath.c_str(), &info) == 0;
+	}
+
+	/// Returns an extension of the file.
 	inline std::string getFileExt(const std::string& _filePath)
 	{
 		const size_t slashPos = _filePath.find_last_of("/\\");
 		const std::string lastWord = slashPos != std::string::npos ? _filePath.substr(slashPos + 1) : _filePath;
 		const size_t dotPos = lastWord.find_last_of('.');
 		return dotPos != std::string::npos ? lastWord.substr(dotPos + 1) : "";
+	}
+
+	/// Returns a name of the file without path and extension.
+	inline std::string getFileName(const std::string& _filePath)
+	{
+		const size_t slashPos = _filePath.find_last_of("/\\");
+		const std::string lastWord = slashPos != std::string::npos ? _filePath.substr(slashPos + 1) : _filePath;
+		return lastWord.substr(0, lastWord.find_last_of('.'));
+	}
+
+	/// Returns file path without file name and extension.
+	inline std::string FilePath(const std::string& _filePath)
+	{
+		return _filePath.substr(0, _filePath.find_last_of("/\\"));
 	}
 
 	inline size_t getFileSize(const std::string& _filePath)

@@ -4,64 +4,16 @@
 
 #include "BaseSimulator.h"
 
-CBaseSimulator::CBaseSimulator() : m_VerletList(m_Scene)
+CBaseSimulator::CBaseSimulator(const CBaseSimulator& _other) :
+	CMusenComponent{ _other }
 {
-	m_simulatorType = ESimulatorType::BASE;
-
-	m_dCurrentTime = 0;
-	m_dEndTime = DEFAULT_END_TIME;
-	m_initSimulationStep = DEFAULT_SIMULATION_STEP;
-	m_currSimulationStep = DEFAULT_SIMULATION_STEP;
-	m_dSavingStep = DEFAULT_SAVING_STEP;
-	m_dLastSavingTime = 0;
-
-	m_bPredictionStep = true;
-	m_nCellsMax = DEFAULT_MAX_CELLS;
-	m_dVerletDistanceCoeff = DEFAULT_VERLET_DISTANCE_COEFF;
-	m_bAutoAdjustVerletDistance = true;
-	m_bWallsVelocityChanged = true;
-	m_bConsiderAnisotropy = false;
-	m_bVariableTimeStep = false;
-	m_bVariableTimeStep = false;
-
-	m_nInactiveParticlesNumber = 0;
-	m_nBrockenBondsNumber = 0;
-	m_nBrockenLiquidBondsNumber = 0;
-	m_nGeneratedObjects = 0;
-
-	m_dMaxParticleVelocity = 0;
-	m_dMaxWallVelocity = 0;
-	m_partMoveLimit = 1e-8;
-	m_timeStepFactor = 1.01;
-
-	m_nCurrentStatus = ERunningStatus::IDLE;
-	m_vecExternalAccel = CVector3{ 0, 0, -GRAVITY_CONSTANT };
-
-	m_pModelManager = nullptr;
-	m_pGenerationManager = nullptr;
-
-	m_pPPModel = nullptr;
-	m_pPWModel = nullptr;
-	m_pSBModel = nullptr;
-	m_pLBModel = nullptr;
-	m_pEFModel = nullptr;
-
-	// selective saving
-	m_bSelectiveSaving = false;
-	m_SSelectiveSavingFlags.SetAll(true);
-}
-
-CBaseSimulator::CBaseSimulator(const CBaseSimulator& _simulator) : m_VerletList(m_Scene)
-{
-	m_dMaxParticleVelocity = 0;
-	m_dMaxWallVelocity = 0;
-
-	p_CopySimulatorData(_simulator);
+	CopySimulatorData(_other);
 }
 
 CBaseSimulator& CBaseSimulator::operator=(const CBaseSimulator& _simulator)
 {
-	p_CopySimulatorData(_simulator);
+	if (&_simulator != this)
+		CopySimulatorData(_simulator);
 	return *this;
 }
 
@@ -73,7 +25,7 @@ void CBaseSimulator::LoadConfiguration()
 	SetEndTime(sim.end_time());
 	SetInitSimulationStep(sim.simulation_step());
 	SetSavingStep(sim.saving_step());
-	SetExternalAccel(ProtoVectorToVector(sim.external_acceleration()));
+	SetExternalAccel(Proto2Val(sim.external_acceleration()));
 	SetType(static_cast<ESimulatorType>(sim.simulator_type()));
 	if (sim.max_cells_number())
 	{
@@ -86,30 +38,30 @@ void CBaseSimulator::LoadConfiguration()
 	SetTimeStepFactor(sim.time_step_factor());
 
 	// load selective saving parameters
-	m_bSelectiveSaving = m_pSystemStructure->GetSimulationInfo()->selective_saving();
+	m_selectiveSaving = m_pSystemStructure->GetSimulationInfo()->selective_saving();
 	if (m_pSystemStructure->GetSimulationInfo()->has_selective_saving_flags())
 	{
 		const ProtoSelectiveSaving& selectiveSaving = m_pSystemStructure->GetSimulationInfo()->selective_saving_flags();
 		// particles
-		m_SSelectiveSavingFlags.bCoordinates   = selectiveSaving.p_coord();
-		m_SSelectiveSavingFlags.bVelocity      = selectiveSaving.p_vel();
-		m_SSelectiveSavingFlags.bAngVelocity   = selectiveSaving.p_angvel();
-		m_SSelectiveSavingFlags.bQuaternion    = selectiveSaving.p_quatern();
-		m_SSelectiveSavingFlags.bForce         = selectiveSaving.p_force();
-		m_SSelectiveSavingFlags.bTensor        = selectiveSaving.p_tensor();
+		m_selectiveSavingFlags.bCoordinates   = selectiveSaving.p_coord();
+		m_selectiveSavingFlags.bVelocity      = selectiveSaving.p_vel();
+		m_selectiveSavingFlags.bAngVelocity   = selectiveSaving.p_angvel();
+		m_selectiveSavingFlags.bQuaternion    = selectiveSaving.p_quatern();
+		m_selectiveSavingFlags.bForce         = selectiveSaving.p_force();
+		m_selectiveSavingFlags.bTensor        = selectiveSaving.p_tensor();
 		// solid bonds
-		m_SSelectiveSavingFlags.bSBForce       = selectiveSaving.sb_force();
-		m_SSelectiveSavingFlags.bSBTangOverlap = selectiveSaving.sb_tangoverlap();
-		m_SSelectiveSavingFlags.bSBTotTorque   = selectiveSaving.sb_tottorque();
+		m_selectiveSavingFlags.bSBForce       = selectiveSaving.sb_force();
+		m_selectiveSavingFlags.bSBTangOverlap = selectiveSaving.sb_tangoverlap();
+		m_selectiveSavingFlags.bSBTotTorque   = selectiveSaving.sb_tottorque();
 		// liquid bonds
-		m_SSelectiveSavingFlags.bLBForce       = selectiveSaving.lb_force();
+		m_selectiveSavingFlags.bLBForce       = selectiveSaving.lb_force();
 		// triangular walls
-		m_SSelectiveSavingFlags.bTWPlaneCoord  = selectiveSaving.tw_coord();
-		m_SSelectiveSavingFlags.bTWForce       = selectiveSaving.tw_force();
-		m_SSelectiveSavingFlags.bTWVelocity    = selectiveSaving.tw_vel();
+		m_selectiveSavingFlags.bTWPlaneCoord  = selectiveSaving.tw_coord();
+		m_selectiveSavingFlags.bTWForce       = selectiveSaving.tw_force();
+		m_selectiveSavingFlags.bTWVelocity    = selectiveSaving.tw_vel();
 	}
 	else
-		m_SSelectiveSavingFlags.SetAll(true);
+		m_selectiveSavingFlags.SetAll(true);
 
 	// load additional stop criteria
 	const auto& protoSC = m_pSystemStructure->GetSimulationInfo()->stop_criteria();
@@ -123,38 +75,38 @@ void CBaseSimulator::SaveConfiguration()
 {
 	ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
 	ProtoModuleSimulator* pSim = protoMessage.mutable_simulator();
-	pSim->set_end_time(m_dEndTime);
+	pSim->set_end_time(m_endTime);
 	pSim->set_simulation_step(m_initSimulationStep);
-	pSim->set_saving_step(m_dSavingStep);
-	VectorToProtoVector(pSim->mutable_external_acceleration(), m_vecExternalAccel);
+	pSim->set_saving_step(m_savingStep);
+	Val2Proto(pSim->mutable_external_acceleration(), m_externalAcceleration);
 	pSim->set_simulator_type(static_cast<unsigned>(m_simulatorType));
-	pSim->set_max_cells_number(m_nCellsMax);
-	pSim->set_verlet_dist_coeff(m_dVerletDistanceCoeff);
-	pSim->set_verlet_auto_adjust(m_bAutoAdjustVerletDistance);
-	pSim->set_flexible_time_step(m_bVariableTimeStep);
+	pSim->set_max_cells_number(m_cellsMax);
+	pSim->set_verlet_dist_coeff(m_verletDistanceCoeff);
+	pSim->set_verlet_auto_adjust(m_autoAdjustVerletDistance);
+	pSim->set_flexible_time_step(m_variableTimeStep);
 	pSim->set_part_move_limit(m_partMoveLimit);
 	pSim->set_time_step_factor(m_timeStepFactor);
 
 	// save selective saving parameters
-	m_pSystemStructure->GetSimulationInfo()->set_selective_saving(m_bSelectiveSaving);
+	m_pSystemStructure->GetSimulationInfo()->set_selective_saving(m_selectiveSaving);
 	ProtoSelectiveSaving* selectiveSaving = m_pSystemStructure->GetSimulationInfo()->mutable_selective_saving_flags();
 	// particles
-	selectiveSaving->set_p_coord(m_SSelectiveSavingFlags.bCoordinates);
-	selectiveSaving->set_p_vel(m_SSelectiveSavingFlags.bVelocity);
-	selectiveSaving->set_p_angvel(m_SSelectiveSavingFlags.bAngVelocity);
-	selectiveSaving->set_p_quatern(m_SSelectiveSavingFlags.bQuaternion);
-	selectiveSaving->set_p_force(m_SSelectiveSavingFlags.bForce);
-	selectiveSaving->set_p_tensor(m_SSelectiveSavingFlags.bTensor);
+	selectiveSaving->set_p_coord(m_selectiveSavingFlags.bCoordinates);
+	selectiveSaving->set_p_vel(m_selectiveSavingFlags.bVelocity);
+	selectiveSaving->set_p_angvel(m_selectiveSavingFlags.bAngVelocity);
+	selectiveSaving->set_p_quatern(m_selectiveSavingFlags.bQuaternion);
+	selectiveSaving->set_p_force(m_selectiveSavingFlags.bForce);
+	selectiveSaving->set_p_tensor(m_selectiveSavingFlags.bTensor);
 	// solid bonds
-	selectiveSaving->set_sb_force(m_SSelectiveSavingFlags.bSBForce);
-	selectiveSaving->set_sb_tangoverlap(m_SSelectiveSavingFlags.bSBTangOverlap);
-	selectiveSaving->set_sb_tottorque(m_SSelectiveSavingFlags.bSBTotTorque);
+	selectiveSaving->set_sb_force(m_selectiveSavingFlags.bSBForce);
+	selectiveSaving->set_sb_tangoverlap(m_selectiveSavingFlags.bSBTangOverlap);
+	selectiveSaving->set_sb_tottorque(m_selectiveSavingFlags.bSBTotTorque);
 	// liquid bonds
-	selectiveSaving->set_lb_force(m_SSelectiveSavingFlags.bLBForce);
+	selectiveSaving->set_lb_force(m_selectiveSavingFlags.bLBForce);
 	// triangular walls
-	selectiveSaving->set_tw_coord(m_SSelectiveSavingFlags.bTWPlaneCoord);
-	selectiveSaving->set_tw_force(m_SSelectiveSavingFlags.bTWForce);
-	selectiveSaving->set_tw_vel(m_SSelectiveSavingFlags.bTWVelocity);
+	selectiveSaving->set_tw_coord(m_selectiveSavingFlags.bTWPlaneCoord);
+	selectiveSaving->set_tw_force(m_selectiveSavingFlags.bTWForce);
+	selectiveSaving->set_tw_vel(m_selectiveSavingFlags.bTWVelocity);
 
 	// save additional stop criteria
 	auto* protoSC = m_pSystemStructure->GetSimulationInfo()->mutable_stop_criteria();
@@ -166,14 +118,14 @@ void CBaseSimulator::SaveConfiguration()
 
 bool CBaseSimulator::GetVariableTimeStep() const
 {
-	return m_bVariableTimeStep;
+	return m_variableTimeStep;
 }
 
 void CBaseSimulator::SetVariableTimeStep(bool _bFlag)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
-	m_bVariableTimeStep = _bFlag;
-	if (m_nCurrentStatus == ERunningStatus::PAUSED)
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
+	m_variableTimeStep = _bFlag;
+	if (m_status == ERunningStatus::PAUSED)
 		m_currSimulationStep = m_initSimulationStep;
 }
 
@@ -184,7 +136,7 @@ double CBaseSimulator::GetPartMoveLimit() const
 
 void CBaseSimulator::SetPartMoveLimit(double _dx)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
 	m_partMoveLimit = _dx;
 }
 
@@ -195,43 +147,43 @@ double CBaseSimulator::GetTimeStepFactor() const
 
 void CBaseSimulator::SetTimeStepFactor(double _factor)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
 	m_timeStepFactor = _factor;
 }
 
 bool CBaseSimulator::IsSelectiveSavingEnabled() const
 {
-	return m_bSelectiveSaving;
+	return m_selectiveSaving;
 }
 
 SSelectiveSavingFlags CBaseSimulator::GetSelectiveSavingFlags() const
 {
-	return m_SSelectiveSavingFlags;
+	return m_selectiveSavingFlags;
 }
 
 const CModelManager* CBaseSimulator::GetModelManager() const
 {
-	return m_pModelManager;
+	return m_modelManager;
 }
 
 CModelManager* CBaseSimulator::GetModelManager()
 {
-	return m_pModelManager;
+	return m_modelManager;
 }
 
 void CBaseSimulator::SetModelManager(CModelManager* _pModelManager)
 {
-	m_pModelManager = _pModelManager;
+	m_modelManager = _pModelManager;
 }
 
 const CGenerationManager* CBaseSimulator::GetGenerationManager() const
 {
-	return m_pGenerationManager;
+	return m_generationManager;
 }
 
 void CBaseSimulator::SetGenerationManager(CGenerationManager* _pGenerationManager)
 {
-	m_pGenerationManager = _pGenerationManager;
+	m_generationManager = _pGenerationManager;
 }
 
 const CSystemStructure* CBaseSimulator::GetSystemStructure() const
@@ -251,27 +203,27 @@ void CBaseSimulator::SetType(const ESimulatorType& _type)
 
 ERunningStatus CBaseSimulator::GetCurrentStatus() const
 {
-	return m_nCurrentStatus;
+	return m_status;
 }
 
 void CBaseSimulator::SetCurrentStatus(const ERunningStatus& _nNewStatus)
 {
-	m_nCurrentStatus = _nNewStatus;
+	m_status = _nNewStatus;
 }
 
 double CBaseSimulator::GetCurrentTime() const
 {
-	return m_dCurrentTime;
+	return m_currentTime;
 }
 
 void CBaseSimulator::SetCurrentTime(double _dTime)
 {
-	m_dCurrentTime = _dTime;
+	m_currentTime = _dTime;
 }
 
 double CBaseSimulator::GetEndTime() const
 {
-	return m_dEndTime;
+	return m_endTime;
 }
 
 double CBaseSimulator::GetCurrSimulationStep() const
@@ -281,37 +233,37 @@ double CBaseSimulator::GetCurrSimulationStep() const
 
 double CBaseSimulator::GetSavingStep() const
 {
-	return m_dSavingStep;
+	return m_savingStep;
 }
 
 uint32_t CBaseSimulator::GetMaxCells() const
 {
-	return m_nCellsMax;
+	return m_cellsMax;
 }
 
 double CBaseSimulator::GetVerletCoeff() const
 {
-	return m_dVerletDistanceCoeff;
+	return m_verletDistanceCoeff;
 }
 
 bool CBaseSimulator::GetAutoAdjustFlag() const
 {
-	return m_bAutoAdjustVerletDistance;
+	return m_autoAdjustVerletDistance;
 }
 
 size_t CBaseSimulator::GetNumberOfInactiveParticles() const
 {
-	return m_nInactiveParticlesNumber;
+	return m_nInactiveParticles;
 }
 
 size_t CBaseSimulator::GetNumberOfBrockenBonds() const
 {
-	return m_nBrockenBondsNumber;
+	return m_nBrockenBonds;
 }
 
 size_t CBaseSimulator::GetNumberOfBrockenLiquidBonds() const
 {
-	return m_nBrockenLiquidBondsNumber;
+	return m_nBrockenLiquidBonds;
 }
 
 size_t CBaseSimulator::GetNumberOfGeneratedObjects() const
@@ -321,13 +273,13 @@ size_t CBaseSimulator::GetNumberOfGeneratedObjects() const
 
 double CBaseSimulator::GetMaxParticleVelocity() const
 {
-	return m_dMaxParticleVelocity;
+	return m_maxParticleVelocity;
 }
 
 void CBaseSimulator::SetEndTime(double _dEndTime)
 {
-	if ((m_nCurrentStatus != ERunningStatus::IDLE) && (m_nCurrentStatus != ERunningStatus::PAUSED)) return;
-	m_dEndTime = _dEndTime < 0 ? DEFAULT_END_TIME : _dEndTime;
+	if ((m_status != ERunningStatus::IDLE) && (m_status != ERunningStatus::PAUSED)) return;
+	m_endTime = _dEndTime < 0 ? DEFAULT_END_TIME : _dEndTime;
 }
 
 double CBaseSimulator::GetInitSimulationStep() const
@@ -337,48 +289,48 @@ double CBaseSimulator::GetInitSimulationStep() const
 
 void CBaseSimulator::SetInitSimulationStep(double _timeStep)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
 	m_initSimulationStep = _timeStep <= 0 ? DEFAULT_SIMULATION_STEP : _timeStep;
 }
 
 void CBaseSimulator::SetCurrSimulationStep(double _timeStep)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
 	m_currSimulationStep = _timeStep <= 0 ? DEFAULT_SIMULATION_STEP : _timeStep;
 }
 
 void CBaseSimulator::SetSavingStep(double _dSavingStep)
 {
-	if ((m_nCurrentStatus != ERunningStatus::IDLE) && (m_nCurrentStatus != ERunningStatus::PAUSED)) return;
-	m_dSavingStep = _dSavingStep <= 0 ? DEFAULT_SAVING_STEP : _dSavingStep;
+	if ((m_status != ERunningStatus::IDLE) && (m_status != ERunningStatus::PAUSED)) return;
+	m_savingStep = _dSavingStep <= 0 ? DEFAULT_SAVING_STEP : _dSavingStep;
 }
 
 void CBaseSimulator::SetMaxCells(uint32_t _nMaxCells)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
-	m_nCellsMax = _nMaxCells;
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
+	m_cellsMax = _nMaxCells;
 }
 
 void CBaseSimulator::SetVerletCoeff(double _dCoeff)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
-	m_dVerletDistanceCoeff = _dCoeff;
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
+	m_verletDistanceCoeff = _dCoeff;
 }
 
 void CBaseSimulator::SetAutoAdjustFlag(bool _bFlag)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
-	m_bAutoAdjustVerletDistance = _bFlag;
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
+	m_autoAdjustVerletDistance = _bFlag;
 }
 
 CVector3 CBaseSimulator::GetExternalAccel() const
 {
-	return m_vecExternalAccel;
+	return m_externalAcceleration;
 }
 
 void CBaseSimulator::SetExternalAccel(const CVector3& _accel)
 {
-	m_vecExternalAccel = _accel;
+	m_externalAcceleration = _accel;
 }
 
 std::string CBaseSimulator::IsDataCorrect() const
@@ -387,143 +339,84 @@ std::string CBaseSimulator::IsDataCorrect() const
 	m_pSystemStructure->UpdateAllObjectsCompoundsProperties();
 	if ( !m_pSystemStructure->IsAllCompoundsDefined().empty())
 		return m_pSystemStructure->IsAllCompoundsDefined();
-	return m_pGenerationManager->IsDataCorrect();
+	return m_generationManager->IsDataCorrect();
 }
 
-void CBaseSimulator::p_CopySimulatorData(const CBaseSimulator& _simulator)
+size_t CBaseSimulator::GenerateNewObjects()
 {
-	SetEndTime(_simulator.m_dEndTime);
-	SetInitSimulationStep(_simulator.m_initSimulationStep);
-	SetCurrSimulationStep(_simulator.m_currSimulationStep);
-	SetSavingStep(_simulator.m_dSavingStep);
-	SetMaxCells(_simulator.m_nCellsMax);
-	SetVerletCoeff(_simulator.m_dVerletDistanceCoeff);
-	SetAutoAdjustFlag(_simulator.m_bAutoAdjustVerletDistance);
-	SetSelectiveSaving(_simulator.m_bSelectiveSaving);
-	SetSelectiveSavingParameters(_simulator.m_SSelectiveSavingFlags);
-	SetVariableTimeStep(_simulator.m_bVariableTimeStep);
-	SetPartMoveLimit(_simulator.m_partMoveLimit);
-	SetTimeStepFactor(_simulator.m_timeStepFactor);
-
-	m_nInactiveParticlesNumber = _simulator.m_nInactiveParticlesNumber;
-	m_nBrockenBondsNumber = _simulator.m_nBrockenBondsNumber;
-	m_nBrockenLiquidBondsNumber = _simulator.m_nBrockenLiquidBondsNumber;
-	m_nGeneratedObjects = _simulator.m_nGeneratedObjects;
-
-	SetSystemStructure(_simulator.m_pSystemStructure);
-	SetCurrentStatus(_simulator.m_nCurrentStatus);
-	SetExternalAccel(_simulator.m_vecExternalAccel);
-
-	SetModelManager(_simulator.m_pModelManager);
-	SetGenerationManager(_simulator.m_pGenerationManager);
-
-	m_pPPModel = _simulator.m_pPPModel;
-	m_pPWModel = _simulator.m_pPWModel;
-	m_pSBModel = _simulator.m_pSBModel;
-	m_pLBModel = _simulator.m_pLBModel;
-	m_pEFModel = _simulator.m_pEFModel;
-
-	m_stopCriteria = _simulator.m_stopCriteria;
-	m_stopValues = _simulator.m_stopValues;
-}
-
-void CBaseSimulator::p_InitializeModels()
-{
-	m_pPPModel = dynamic_cast<CParticleParticleModel*>(m_pModelManager->GetModel(EMusenModelType::PP));
-	m_pPWModel = dynamic_cast<CParticleWallModel*>(m_pModelManager->GetModel(EMusenModelType::PW));
-	m_pSBModel = dynamic_cast<CSolidBondModel*>(m_pModelManager->GetModel(EMusenModelType::SB));
-	m_pLBModel = dynamic_cast<CLiquidBondModel*>(m_pModelManager->GetModel(EMusenModelType::LB));
-	m_pEFModel = dynamic_cast<CExternalForceModel*>(m_pModelManager->GetModel(EMusenModelType::EF));
-
-	m_models.clear();
-	if (m_pPPModel) m_models.push_back(m_pPPModel);
-	if (m_pPWModel) m_models.push_back(m_pPWModel);
-	if (m_pSBModel) m_models.push_back(m_pSBModel);
-	if (m_pLBModel) m_models.push_back(m_pLBModel);
-	if (m_pEFModel) m_models.push_back(m_pEFModel);
-
-	for (auto& model : m_models)
-		model->SetPBC(m_Scene.GetPBC());
-
-	m_VerletList.SetConnectedPPContact(m_pModelManager->GetConnectedPPContact());
-}
-
-size_t CBaseSimulator::p_GenerateNewObjects()
-{
-	size_t nNewParticles = m_pGenerationManager->GenerateObjects(m_dCurrentTime, m_Scene);
+	const size_t nNewParticles = m_generationManager->GenerateObjects(m_currentTime, m_scene);
 	if (nNewParticles > 0)
 	{
-		m_VerletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_Scene.GetMinParticleContactRadius(), m_Scene.GetMaxParticleContactRadius(),
-			m_nCellsMax, m_dVerletDistanceCoeff, m_bAutoAdjustVerletDistance);
-		m_VerletList.ResetCurrentData();
-		m_Scene.InitializeMaterials();
+		m_verletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_scene.GetMinParticleContactRadius(), m_scene.GetMaxParticleContactRadius(),
+			m_cellsMax, m_verletDistanceCoeff, m_autoAdjustVerletDistance);
+		m_verletList.ResetCurrentData();
+		m_scene.InitializeMaterials();
 		m_nGeneratedObjects += nNewParticles;
-		m_Scene.UpdateParticlesToBonds();
+		m_scene.UpdateParticlesToBonds();
 	}
 	return nNewParticles;
 }
 
 void CBaseSimulator::p_SaveData()
 {
-	if (m_bSelectiveSaving)
+	if (m_selectiveSaving)
 		m_pSystemStructure->GetSimulationInfo()->set_selective_saving(true);
 	else
 		m_pSystemStructure->GetSimulationInfo()->set_selective_saving(false);
 
-	if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bTensor)
+	if (!m_selectiveSaving || m_selectiveSavingFlags.bTensor)
 	{
-		m_vAddSavingDataPart.resize(m_Scene.GetTotalParticlesNumber());
+		m_additionalSavingData.resize(m_scene.GetTotalParticlesNumber());
 		PrepareAdditionalSavingData();
 	}
 
-	m_pSystemStructure->PrepareTimePointForWrite(m_dCurrentTime);
+	m_pSystemStructure->PrepareTimePointForWrite(m_currentTime);
 
 	// save particles properties
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
-	ParallelFor(m_Scene.GetTotalParticlesNumber(), [&](size_t i)
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
 		CPhysicalObject* pPart = m_pSystemStructure->GetObjectByIndex(particles.InitIndex(i));
-		if (!particles.Active(i) && !pPart->IsActive(m_dCurrentTime)) return;
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bCoordinates) pPart->SetCoordinates(m_Scene.GetObjectCoord(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bVelocity)    pPart->SetVelocity(m_Scene.GetObjectVel(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bAngVelocity) pPart->SetAngleVelocity(m_Scene.GetObjectAnglVel(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bForce)       pPart->SetForce(particles.Force(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bQuaternion)  pPart->SetOrientation(particles.Quaternion(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bTensor)      pPart->SetStressTensor(m_vAddSavingDataPart[i].sStressTensor);
-		pPart->SetObjectActivity(particles.Active(i) ? m_dCurrentTime : particles.EndActivity(i), particles.Active(i));
+		if (!particles.Active(i) && !pPart->IsActive(m_currentTime)) return;
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bCoordinates) pPart->SetCoordinates(m_scene.GetObjectCoord(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bVelocity)    pPart->SetVelocity(m_scene.GetObjectVel(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bAngVelocity) pPart->SetAngleVelocity(m_scene.GetObjectAnglVel(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bForce)       pPart->SetForce(particles.Force(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bQuaternion)  pPart->SetOrientation(particles.Quaternion(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bTensor)      pPart->SetStressTensor(m_additionalSavingData[i].stressTensor);
+		pPart->SetObjectActivity(particles.Active(i) ? m_currentTime : particles.EndActivity(i), particles.Active(i));
 	});
 
 	// save solid bonds properties
-	SSolidBondStruct& solidBonds = m_Scene.GetRefToSolidBonds();
-	ParallelFor(m_Scene.GetBondsNumber(), [&](size_t i)
+	SSolidBondStruct& solidBonds = m_scene.GetRefToSolidBonds();
+	ParallelFor(m_scene.GetBondsNumber(), [&](size_t i)
 	{
 		auto* pSBond = dynamic_cast<CSolidBond*>(m_pSystemStructure->GetObjectByIndex(solidBonds.InitIndex(i)));
-		if (!solidBonds.Active(i) && !pSBond->IsActive(m_dCurrentTime)) return;
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bSBForce)       pSBond->SetForce(solidBonds.TotalForce(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bSBTangOverlap) pSBond->SetTangentialOverlap(solidBonds.TangentialOverlap(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bSBTotTorque)   pSBond->SetTotalTorque(Length(solidBonds.NormalMoment(i) + solidBonds.TangentialMoment(i)));
-		pSBond->SetObjectActivity(solidBonds.Active(i) ? m_dCurrentTime : solidBonds.EndActivity(i), solidBonds.Active(i));
+		if (!solidBonds.Active(i) && !pSBond->IsActive(m_currentTime)) return;
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bSBForce)       pSBond->SetForce(solidBonds.TotalForce(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bSBTangOverlap) pSBond->SetTangentialOverlap(solidBonds.TangentialOverlap(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bSBTotTorque)   pSBond->SetTotalTorque(Length(solidBonds.NormalMoment(i) + solidBonds.TangentialMoment(i)));
+		pSBond->SetObjectActivity(solidBonds.Active(i) ? m_currentTime : solidBonds.EndActivity(i), solidBonds.Active(i));
 	});
 
 	// save liquid bonds properties
-	//std::vector<std::unique_ptr<SLiquidBondStruct>>& liquidBonds = m_Scene.GetRefToLiquidBonds();
-	ParallelFor(m_Scene.GetLiquidBondsNumber(), [&](size_t i)
+	SLiquidBondStruct& liqbond = m_scene.GetRefToLiquidBonds();
+	ParallelFor(m_scene.GetLiquidBondsNumber(), [&](size_t i)
 	{
-		SLiquidBondStruct& liqbond = m_Scene.GetRefToLiquidBonds();
 		CPhysicalObject* pLBond = m_pSystemStructure->GetObjectByIndex(liqbond.InitIndex(i));
-		if (!liqbond.Active(i) && !pLBond->IsActive(m_dCurrentTime)) return;
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bLBForce) pLBond->SetForce(liqbond.NormalForce(i) + liqbond.TangentialForce(i));
-		pLBond->SetObjectActivity(liqbond.Active(i) ? m_dCurrentTime : liqbond.EndActivity(i), liqbond.Active(i));
+		if (!liqbond.Active(i) && !pLBond->IsActive(m_currentTime)) return;
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bLBForce) pLBond->SetForce(liqbond.NormalForce(i) + liqbond.TangentialForce(i));
+		pLBond->SetObjectActivity(liqbond.Active(i) ? m_currentTime : liqbond.EndActivity(i), liqbond.Active(i));
 	});
 
 	// save wall properties
-	SWallStruct& walls = m_Scene.GetRefToWalls();
+	SWallStruct& walls = m_scene.GetRefToWalls();
 	ParallelFor(walls.Size(), [&](size_t i)
 	{
 		auto* pWall = dynamic_cast<CTriangularWall*>(m_pSystemStructure->GetObjectByIndex(walls.InitIndex(i)));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bTWPlaneCoord) pWall->SetPlaneCoord(walls.Vert1(i), walls.Vert2(i), walls.Vert3(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bTWForce)      pWall->SetForce(walls.Force(i));
-		if (!m_bSelectiveSaving || m_SSelectiveSavingFlags.bTWVelocity)   pWall->SetVelocity(walls.Vel(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bTWPlaneCoord) pWall->SetPlaneCoord(walls.Vert1(i), walls.Vert2(i), walls.Vert3(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bTWForce)      pWall->SetForce(walls.Force(i));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bTWVelocity)   pWall->SetVelocity(walls.Vel(i));
 	});
 
 	for (const auto& function : m_additionalSavingSteps)
@@ -535,27 +428,33 @@ void CBaseSimulator::PrintStatus() const
 	using namespace std::chrono;
 
 	// calculate progress
-	const double currProgress = m_dCurrentTime / m_dEndTime;
+	const double currProgress = m_currentTime / m_endTime;
 	const int64_t currDuration = duration_cast<milliseconds>(steady_clock::now() - m_chronoSimStart).count() - m_chronoPauseLength;
-	const int64_t remainingTime = static_cast<int64_t>(currDuration / currProgress) - currDuration;
+	const int64_t remainingTime = static_cast<int64_t>(static_cast<double>(currDuration) / currProgress) - currDuration;
 	std::time_t endTime = system_clock::to_time_t(system_clock::now() + milliseconds(remainingTime));
 
 	// print out status and progress
-	*p_out << "Current time [s]: " << m_dCurrentTime << std::endl;
-	*p_out << "\tMax particle velocity [m/s]:  " << m_dMaxParticleVelocity << std::endl;
+	*p_out << "Current time [s]: " << m_currentTime << std::endl;
+	*p_out << "\tMax particle velocity [m/s]:  " << m_maxParticleVelocity << std::endl;
 	*p_out << "\tCurrent progress:             " << Double2Percent(currProgress) << std::endl;
 	*p_out << "\tTime left [d:h:m:s]:          " << MsToTimeSpan(remainingTime) << std::endl;
 	*p_out << "\tWill finish at [d.m.y h:m:s]: " << std::put_time(std::localtime(&endTime), "%d.%m.%y %H:%M:%S") << std::endl;
 }
 
+void CBaseSimulator::MoveObjectsStep(double _timeStep, bool _predictionStep)
+{
+	MoveParticles(_predictionStep);
+	MoveWalls(_timeStep);
+}
+
 void CBaseSimulator::SetSelectiveSaving(bool _bSelectiveSaving)
 {
-	m_bSelectiveSaving = _bSelectiveSaving;
+	m_selectiveSaving = _bSelectiveSaving;
 }
 
 void CBaseSimulator::SetSelectiveSavingParameters(const SSelectiveSavingFlags& _SSelectiveSavingFlags)
 {
-	m_SSelectiveSavingFlags = _SSelectiveSavingFlags;
+	m_selectiveSavingFlags = _SSelectiveSavingFlags;
 }
 
 std::list<std::function<void()>>::iterator CBaseSimulator::AddSavingStep(const std::function<void()>& _function)
@@ -585,6 +484,155 @@ void CBaseSimulator::SetStopValues(const SStopValues& _values)
 	m_stopValues = _values;
 }
 
+void CBaseSimulator::Initialize()
+{
+	// time parameters
+	m_currentTime = 0;
+	m_lastSavingTime = m_currentTime;
+	m_isPredictionStep = true;
+	m_currSimulationStep = m_initSimulationStep;
+
+	// time-dependent values
+	m_wallsVelocityChanged = true;
+
+	// statistics
+	m_nInactiveParticles = 0;
+	m_nBrockenBonds = 0;
+	m_nBrockenLiquidBonds = 0;
+	m_nGeneratedObjects = 0;
+
+	// settings
+	m_considerAnisotropy = m_pSystemStructure->IsAnisotropyEnabled();
+
+	// delete old data
+	m_pSystemStructure->ClearAllStatesFrom(m_currentTime);
+
+	// scene
+	m_scene.SetSystemStructure(m_pSystemStructure);
+	m_scene.InitializeScene(m_currentTime, GetModelManager()->GetUtilizedVariables());
+
+	// generation manager
+	m_generationManager->Initialize();
+
+	// verlet list
+	m_verletList.InitializeList();
+	m_verletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_scene.GetMinParticleContactRadius(), m_scene.GetMaxParticleContactRadius(), m_cellsMax, m_verletDistanceCoeff, m_autoAdjustVerletDistance);
+	m_verletList.ResetCurrentData();
+
+	// models
+	InitializeModels();
+}
+
+void CBaseSimulator::InitializeModels()
+{
+	m_pPPModel = dynamic_cast<CParticleParticleModel*>(m_modelManager->GetModel(EMusenModelType::PP));
+	m_pPWModel = dynamic_cast<CParticleWallModel*>(m_modelManager->GetModel(EMusenModelType::PW));
+	m_pSBModel = dynamic_cast<CSolidBondModel*>(m_modelManager->GetModel(EMusenModelType::SB));
+	m_pLBModel = dynamic_cast<CLiquidBondModel*>(m_modelManager->GetModel(EMusenModelType::LB));
+	m_pEFModel = dynamic_cast<CExternalForceModel*>(m_modelManager->GetModel(EMusenModelType::EF));
+
+	m_models.clear();
+	if (m_pPPModel) m_models.push_back(m_pPPModel);
+	if (m_pPWModel) m_models.push_back(m_pPWModel);
+	if (m_pSBModel) m_models.push_back(m_pSBModel);
+	if (m_pLBModel) m_models.push_back(m_pLBModel);
+	if (m_pEFModel) m_models.push_back(m_pEFModel);
+
+	m_verletList.SetConnectedPPContact(m_modelManager->GetConnectedPPContact());
+
+	InitializeModelParameters();
+}
+
+void CBaseSimulator::InitializeModelParameters()
+{
+	for (auto& model : m_models)
+		model->SetPBC(m_scene.GetPBC());
+}
+
+void CBaseSimulator::Simulate()
+{
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
+	RandomSeed(); // needed for some contact models
+
+	if (m_status == ERunningStatus::IDLE)
+		Initialize();
+
+	// performance measurement
+	if (m_status == ERunningStatus::IDLE)
+	{
+		m_chronoPauseLength = 0;
+		m_chronoSimStart = std::chrono::steady_clock::now();
+	}
+	else if (m_status == ERunningStatus::PAUSED)
+		m_chronoPauseLength += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoPauseStart).count();
+
+	// start simulation
+	m_status = ERunningStatus::RUNNING;
+	StartSimulation();
+
+	// performance measurement
+	if (m_status == ERunningStatus::TO_BE_PAUSED)
+		m_chronoPauseStart = std::chrono::steady_clock::now();
+	else if (m_status == ERunningStatus::TO_BE_STOPPED)
+	{
+		// output performance statistic
+		const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoSimStart).count();
+		*p_out << "Elapsed time [d:h:m:s]: " << MsToTimeSpan(elapsedTime) << std::endl;
+	}
+
+	// set status
+	if (m_status == ERunningStatus::TO_BE_STOPPED)
+		m_status = ERunningStatus::IDLE;
+	else if (m_status == ERunningStatus::TO_BE_PAUSED)
+		m_status = ERunningStatus::PAUSED;
+}
+
+void CBaseSimulator::StartSimulation()
+{
+	while (m_status != ERunningStatus::TO_BE_STOPPED && m_status != ERunningStatus::TO_BE_PAUSED)
+	{
+		PreCalculationStep();
+		UpdateCollisionsStep(m_currSimulationStep);
+		CalculateForcesStep(m_currSimulationStep);
+		MoveObjectsStep(m_currSimulationStep, m_isPredictionStep);
+
+		if (m_isPredictionStep) // makes prediction step
+			m_isPredictionStep = false;
+		else
+			m_currentTime += m_currSimulationStep;
+
+		// analyze about possible end of interval
+		if (m_currentTime >= m_endTime)
+			m_status = ERunningStatus::TO_BE_STOPPED;
+	}
+
+	if (m_status == ERunningStatus::TO_BE_STOPPED)
+		FinalizeSimulation();
+}
+
+void CBaseSimulator::FinalizeSimulation()
+{
+	SaveData();
+	m_pSystemStructure->SaveToFile();
+}
+
+void CBaseSimulator::PreCalculationStep()
+{
+	const size_t newObjects = GenerateNewObjects();
+
+	if (std::fabs(m_currentTime - m_lastSavingTime) + 0.1 * m_currSimulationStep > m_savingStep || newObjects)
+	{
+		SaveData();
+		m_lastSavingTime = m_currentTime;
+		PrintStatus();
+		if (AdditionalStopCriterionMet())
+			m_status = ERunningStatus::TO_BE_STOPPED;
+	}
+
+	if (m_scene.m_PBC.bEnabled)
+		UpdatePBC();
+}
+
 bool CBaseSimulator::AdditionalStopCriterionMet()
 {
 	if (m_stopCriteria.empty()) return false;
@@ -595,11 +643,63 @@ bool CBaseSimulator::AdditionalStopCriterionMet()
 		{
 		case EStopCriteria::NONE: break;
 		case EStopCriteria::BROKEN_BONDS:
-			if (m_nBrockenBondsNumber > m_stopValues.maxBrokenBonds)
+			if (m_nBrockenBonds > m_stopValues.maxBrokenBonds)
 				return true;
 			break;
 		}
 	}
 
 	return false;
+}
+
+void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
+{
+	SetEndTime(_other.m_endTime);
+	SetInitSimulationStep(_other.m_initSimulationStep);
+	SetCurrSimulationStep(_other.m_currSimulationStep);
+	SetSavingStep(_other.m_savingStep);
+	SetMaxCells(_other.m_cellsMax);
+	SetVerletCoeff(_other.m_verletDistanceCoeff);
+	SetAutoAdjustFlag(_other.m_autoAdjustVerletDistance);
+	SetSelectiveSaving(_other.m_selectiveSaving);
+	SetSelectiveSavingParameters(_other.m_selectiveSavingFlags);
+	SetVariableTimeStep(_other.m_variableTimeStep);
+	SetPartMoveLimit(_other.m_partMoveLimit);
+	SetTimeStepFactor(_other.m_timeStepFactor);
+
+	m_nInactiveParticles = _other.m_nInactiveParticles;
+	m_nBrockenBonds = _other.m_nBrockenBonds;
+	m_nBrockenLiquidBonds = _other.m_nBrockenLiquidBonds;
+	m_nGeneratedObjects = _other.m_nGeneratedObjects;
+
+	SetSystemStructure(_other.m_pSystemStructure);
+	SetCurrentStatus(_other.m_status);
+	SetExternalAccel(_other.m_externalAcceleration);
+
+	SetModelManager(_other.m_modelManager);
+	SetGenerationManager(_other.m_generationManager);
+
+	m_pPPModel = _other.m_pPPModel;
+	m_pPWModel = _other.m_pPWModel;
+	m_pSBModel = _other.m_pSBModel;
+	m_pLBModel = _other.m_pLBModel;
+	m_pEFModel = _other.m_pEFModel;
+
+	m_stopCriteria = _other.m_stopCriteria;
+	m_stopValues = _other.m_stopValues;
+}
+
+void CBaseSimulator::SAdditionalSavingData::AddStress(const CVector3& _contVector, const CVector3& _force, double _volume)
+{
+	stressTensor.values[0][0] += _contVector.x * _force.x / _volume;
+	stressTensor.values[0][1] += _contVector.x * _force.y / _volume;
+	stressTensor.values[0][2] += _contVector.x * _force.z / _volume;
+
+	stressTensor.values[1][0] += _contVector.y * _force.x / _volume;
+	stressTensor.values[1][1] += _contVector.y * _force.y / _volume;
+	stressTensor.values[1][2] += _contVector.y * _force.z / _volume;
+
+	stressTensor.values[2][0] += _contVector.z * _force.x / _volume;
+	stressTensor.values[2][1] += _contVector.z * _force.y / _volume;
+	stressTensor.values[2][2] += _contVector.z * _force.z / _volume;
 }

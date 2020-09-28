@@ -4,292 +4,122 @@
 
 #include "CPUSimulator.h"
 
-CCPUSimulator::CCPUSimulator() : m_CollCalculator(m_Scene)
+CCPUSimulator::CCPUSimulator(const CBaseSimulator& _other) :
+	CBaseSimulator{ _other }
 {
-	InitializeSimulator();
-}
-
-CCPUSimulator::CCPUSimulator(const CBaseSimulator& _simulator) : m_CollCalculator(m_Scene)
-{
-	p_CopySimulatorData(_simulator);
-	InitializeSimulator();
-}
-
-void CCPUSimulator::InitializeSimulator()
-{
-	m_bAnalyzeCollisions = false;
-	m_CollCalculator.SetPointers(&m_VerletList, &m_CollisionsAnalyzer);
-
-	m_nThreadsNumber = GetThreadsNumber();
-	m_vTempCollPPArray.resize(m_nThreadsNumber);
-	m_vTempCollPWArray.resize(m_nThreadsNumber);
-	for (size_t i = 0; i < m_vTempCollPPArray.size(); i++)
-	{
-		m_vTempCollPPArray[i].resize(m_nThreadsNumber);
-		m_vTempCollPWArray[i].resize(m_nThreadsNumber);
-	}
-}
-
-void CCPUSimulator::LoadConfiguration()
-{
-	CBaseSimulator::LoadConfiguration();
-
-	const ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
-	if (!protoMessage.has_simulator()) return;
-	const ProtoModuleSimulator& sim = protoMessage.simulator();
-	EnableCollisionsAnalysis(sim.save_collisions());
-}
-
-void CCPUSimulator::SaveConfiguration()
-{
-	CBaseSimulator::SaveConfiguration();
-
-	ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
-	ProtoModuleSimulator* pSim = protoMessage.mutable_simulator();
-	pSim->set_save_collisions(m_bAnalyzeCollisions);
 }
 
 void CCPUSimulator::SetSystemStructure(CSystemStructure* _pSystemStructure)
 {
-	m_CollCalculator.SetSystemStructure(_pSystemStructure);
-	m_CollisionsAnalyzer.SetSystemStructure(_pSystemStructure);
+	m_collisionsCalculator.SetSystemStructure(_pSystemStructure);
+	m_collisionsAnalyzer.SetSystemStructure(_pSystemStructure);
 	m_pSystemStructure = _pSystemStructure;
 }
 
 void CCPUSimulator::EnableCollisionsAnalysis(bool _bEnable)
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE) return;
+	if (m_status != ERunningStatus::IDLE) return;
 
-	m_bAnalyzeCollisions = _bEnable;
-	m_CollCalculator.EnableCollisionsAnalysis(m_bAnalyzeCollisions);
+	m_analyzeCollisions = _bEnable;
+	m_collisionsCalculator.EnableCollisionsAnalysis(m_analyzeCollisions);
 }
 
 bool CCPUSimulator::IsCollisionsAnalysisEnabled() const
 {
-	return m_bAnalyzeCollisions;
+	return m_analyzeCollisions;
 }
 
-void CCPUSimulator::GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID)
+void CCPUSimulator::Initialize()
 {
-	_dMaxOverlap = 0;
-	_dAverageOverlap = 0;
-	size_t nCollNumber = 0;
-	for (const auto& collisions : m_CollCalculator.m_vCollMatrixPP)
-		for (const auto coll : collisions)
-		{
-			if ((coll->nSrcID < _nMaxParticleID) || (coll->nDstID < _nMaxParticleID))
-			{
-				_dMaxOverlap = std::max(_dMaxOverlap, coll->dNormalOverlap);
-				_dAverageOverlap += coll->dNormalOverlap;
-				nCollNumber++;
-			}
-		}
+	CBaseSimulator::Initialize();
 
-	const SParticleStruct& particles = m_Scene.GetRefToParticles();
-	for (const auto& collisions : m_CollCalculator.m_vCollMatrixPW)
-		for (const auto coll : collisions)
-		{
-			if (coll->nDstID < _nMaxParticleID)
-			{
-				const CVector3 vRc = _VIRTUAL_COORDINATE(particles.Coord(coll->nDstID), coll->nVirtShift, m_Scene.m_PBC) - coll->vContactVector;
-				const double dOverlap = particles.ContactRadius(coll->nDstID) - vRc.Length();
-				_dMaxOverlap = std::max(_dMaxOverlap, dOverlap);
-				_dAverageOverlap += dOverlap;
-				nCollNumber++;
-			}
-		}
+	// delete collisions data
+	m_collisionsCalculator.ClearCollMatrixes();
+	m_collisionsCalculator.ClearFinishedCollisionMatrixes();
+	if (m_analyzeCollisions)
+		m_collisionsAnalyzer.ResetAndClear();
 
-	if (nCollNumber)
-		_dAverageOverlap = _dAverageOverlap / nCollNumber;
+	// store particle coordinates
+	m_scene.SaveVerletCoords();
 }
 
-void CCPUSimulator::StartSimulation()
+void CCPUSimulator::InitializeModels()
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
-	RandomSeed(); // needed for some contact models
+	CBaseSimulator::InitializeModels();
 
-	if (m_nCurrentStatus == ERunningStatus::IDLE)
-	{
-		// set initial time
-		m_dCurrentTime = 0; // in the future it should be startTime
-		m_dLastSavingTime = m_dCurrentTime;
-		m_bPredictionStep = true;
-		m_currSimulationStep = m_initSimulationStep;
-
-		m_nInactiveParticlesNumber = 0;
-		m_nBrockenBondsNumber = 0;
-		m_nBrockenLiquidBondsNumber = 0;
-		m_nGeneratedObjects = 0;
-
-		// get flag of anisotropy
-		m_bConsiderAnisotropy = m_pSystemStructure->IsAnisotropyEnabled();
-
-		// delete old data
-		m_pSystemStructure->ClearAllStatesFrom(m_dCurrentTime);
-
-		// delete all collisions data
-		m_CollCalculator.ClearCollMatrixes();
-		m_CollCalculator.ClearFinishedCollisionMatrixes();
-		if (m_bAnalyzeCollisions)
-			m_CollisionsAnalyzer.ResetAndClear();
-
-		m_Scene.SetSystemStructure(m_pSystemStructure);
-		m_Scene.InitializeScene(m_dCurrentTime, GetModelManager()->GetUtilizedVariables());
-		m_Scene.SaveVerletCoords();
-		m_pGenerationManager->Initialize();
-
-		InitializeModels();
-
-		// initialize verlet list
-		m_VerletList.InitializeList();
-		m_VerletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_Scene.GetMinParticleContactRadius(), m_Scene.GetMaxParticleContactRadius(),
-								m_nCellsMax, m_dVerletDistanceCoeff, m_bAutoAdjustVerletDistance);
-		m_VerletList.ResetCurrentData();
-	}
-
-	// performance measurement
-	if (m_nCurrentStatus == ERunningStatus::IDLE)
-	{
-		m_chronoPauseLength = 0;
-		m_chronoSimStart = std::chrono::steady_clock::now();
-	}
-	else if (m_nCurrentStatus == ERunningStatus::PAUSED)
-		m_chronoPauseLength += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoPauseStart).count();
-
-	// start simulation
-	m_nCurrentStatus = ERunningStatus::RUNNING;
-	PerformSimulation();
-
-	// performance measurement
-	if (m_nCurrentStatus == ERunningStatus::TO_BE_PAUSED)
-		m_chronoPauseStart = std::chrono::steady_clock::now();
-	else if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED)
-	{
-		// output performance statistic
-		const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoSimStart).count();
-		*p_out << "Elapsed time [d:h:m:s]: " << MsToTimeSpan(elapsedTime) << std::endl;
-	}
-
-	// set status
-	if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED)
-		m_nCurrentStatus = ERunningStatus::IDLE;
-	else if (m_nCurrentStatus == ERunningStatus::TO_BE_PAUSED)
-		m_nCurrentStatus = ERunningStatus::PAUSED;
+	for (auto& model : m_models)
+		model->Initialize(
+			m_scene.GetPointerToParticles().get(),
+			m_scene.GetPointerToWalls().get(),
+			m_scene.GetPointerToSolidBonds().get(),
+			m_scene.GetPointerToLiquidBonds().get(),
+			m_scene.GetPointerToInteractProperties().get());
 }
 
-void CCPUSimulator::PerformSimulation()
+void CCPUSimulator::FinalizeSimulation()
 {
-	m_bWallsVelocityChanged = true;
+	CBaseSimulator::FinalizeSimulation();
 
-	while (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED && m_nCurrentStatus != ERunningStatus::TO_BE_PAUSED)
-	{
-		const size_t newObjects = GenerateNewObjects();
-
-		if (std::fabs(m_dCurrentTime - m_dLastSavingTime) + 0.1 * m_currSimulationStep > m_dSavingStep || newObjects)
-		{
-			SaveData();
-			m_dLastSavingTime = m_dCurrentTime;
-			PrintStatus();
-			if (AdditionalStopCriterionMet())
-			{
-				m_nCurrentStatus = ERunningStatus::TO_BE_STOPPED;
-				break;
-			}
-		}
-		if (m_bAnalyzeCollisions)
-			m_CollCalculator.SaveCollisions();
-
-		if (m_Scene.m_PBC.bEnabled)
-		{
-			m_Scene.m_PBC.UpdatePBC(m_dCurrentTime);
-			if (!m_Scene.m_PBC.vVel.IsZero()) // if velocity is non zero
-				InitializeModels(); // to set
-		}
-		LeapFrogStep(m_bPredictionStep);
-		if (m_bPredictionStep) // makes prediction step
-			m_bPredictionStep = false;
-		else
-			m_dCurrentTime += m_currSimulationStep;
-
-		// analyze about possible end of interval
-		if (m_dCurrentTime >= m_dEndTime)
-			m_nCurrentStatus = ERunningStatus::TO_BE_STOPPED;
-	}
-
-	if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED)	// save current state
-	{
-		SaveData();
-		m_pSystemStructure->SaveToFile();
-		if (m_bAnalyzeCollisions)
-			m_CollCalculator.SaveRestCollisions();
-	}
+	if (m_analyzeCollisions)
+		m_collisionsCalculator.SaveRestCollisions();
 }
 
-void CCPUSimulator::LeapFrogStep(bool _bPredictionStep /*= false*/)
+void CCPUSimulator::PreCalculationStep()
 {
-	InitializeStep(m_currSimulationStep);
-	CalculateForces(m_currSimulationStep);
-	MoveObjects(m_currSimulationStep, _bPredictionStep);
+	CBaseSimulator::PreCalculationStep();
+
+	if (m_analyzeCollisions)
+		m_collisionsCalculator.SaveCollisions();
 }
 
-void CCPUSimulator::InitializeStep(double _dTimeStep)
+void CCPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 {
-	m_Scene.ClearAllForcesAndMoments();
+	m_scene.ClearAllForcesAndMoments();
 
 	// if there is no contact model, then there is no necessity to calculate contacts
 	if (m_pPPModel || m_pPWModel)
 	{
 		UpdateVerletLists(_dTimeStep); // between PP and PW
-		m_CollCalculator.UpdateCollisionMatrixes(_dTimeStep, m_dCurrentTime);
+		m_collisionsCalculator.UpdateCollisionMatrixes(_dTimeStep, m_currentTime);
 	}
 }
 
-void CCPUSimulator::CalculateForces(double _dTimeStep)
+void CCPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
 	if (m_pEFModel) CalculateForcesEF(_dTimeStep);
 	if (m_pPPModel) CalculateForcesPP(_dTimeStep);
 	if (m_pPWModel) CalculateForcesPW(_dTimeStep);
 	if (m_pSBModel) CalculateForcesSB(_dTimeStep);
 	if (m_pLBModel) CalculateForcesLB(_dTimeStep);
-	m_CollCalculator.CalculateTotalStatisticsInfo();
-}
-
-void CCPUSimulator::MoveObjects(double _dTimeStep, bool _bPredictionStep /*= false*/)
-{
-	if (m_Scene.GetMultiSpheresNumber() == 0)
-		MoveParticles(_bPredictionStep);
-	else
-		MoveMultispheres(_dTimeStep, _bPredictionStep);
-
-	MoveWalls(m_currSimulationStep);
+	m_collisionsCalculator.CalculateTotalStatisticsInfo();
 }
 
 void CCPUSimulator::CalculateForcesPP(double _dTimeStep)
 {
-	m_pPPModel->Precalculate(m_dCurrentTime, _dTimeStep);
+	m_pPPModel->Precalculate(m_currentTime, _dTimeStep);
 
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
-	for (auto& vCollisions : m_vTempCollPPArray)
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	for (auto& vCollisions : m_tempCollPPArray)
 		for (auto& coll : vCollisions)
 			coll.clear();
 
-	ParallelFor(m_CollCalculator.m_vCollMatrixPP.size(), [&](size_t i)
+	ParallelFor(m_collisionsCalculator.m_vCollMatrixPP.size(), [&](size_t i)
 	{
-		const size_t nIndex = i%m_nThreadsNumber;
-		for (auto& pColl : m_CollCalculator.m_vCollMatrixPP[i])
+		const size_t nIndex = i%m_nThreads;
+		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
 		{
-			m_pPPModel->Calculate(m_dCurrentTime, _dTimeStep, pColl);
+			m_pPPModel->Calculate(m_currentTime, _dTimeStep, pColl);
 			particles.Force(i) += pColl->vTotalForce;
 			particles.Moment(i) += pColl->vResultMoment1;
 
-			m_vTempCollPPArray[nIndex][pColl->nDstID % m_nThreadsNumber].push_back(pColl);
+			m_tempCollPPArray[nIndex][pColl->nDstID % m_nThreads].push_back(pColl);
 		}
 	});
 
 	ParallelFor([&](size_t i)
 	{
-		for (size_t j = 0; j < m_nThreadsNumber; ++j)
-			for (auto pColl : m_vTempCollPPArray[j][i])
+		for (size_t j = 0; j < m_nThreads; ++j)
+			for (auto pColl : m_tempCollPPArray[j][i])
 			{
 				particles.Force(pColl->nDstID) -= pColl->vTotalForce;
 				particles.Moment(pColl->nDstID) += pColl->vResultMoment2;
@@ -299,52 +129,52 @@ void CCPUSimulator::CalculateForcesPP(double _dTimeStep)
 
 void CCPUSimulator::CalculateForcesPW(double _dTimeStep)
 {
-	m_pPWModel->Precalculate(m_dCurrentTime, _dTimeStep);
+	m_pPWModel->Precalculate(m_currentTime, _dTimeStep);
 
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
-	SWallStruct& walls = m_Scene.GetRefToWalls();
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	SWallStruct& walls = m_scene.GetRefToWalls();
 
-	for (auto& vCollisions : m_vTempCollPWArray)
+	for (auto& vCollisions : m_tempCollPWArray)
 		for (auto& coll : vCollisions)
 			coll.clear();
 
-	ParallelFor(m_CollCalculator.m_vCollMatrixPW.size(), [&](size_t i)
+	ParallelFor(m_collisionsCalculator.m_vCollMatrixPW.size(), [&](size_t i)
 	{
-		const size_t nIndex = i%m_nThreadsNumber;
-		for (auto& pColl : m_CollCalculator.m_vCollMatrixPW[i])
+		const size_t nIndex = i%m_nThreads;
+		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPW[i])
 		{
-			m_pPWModel->Calculate(m_dCurrentTime, _dTimeStep, pColl);
+			m_pPWModel->Calculate(m_currentTime, _dTimeStep, pColl);
 			particles.Force(i) += pColl->vTotalForce;
 			particles.Moment(i) += pColl->vResultMoment1;
-			m_vTempCollPWArray[nIndex][pColl->nSrcID % m_nThreadsNumber].push_back(pColl);
+			m_tempCollPWArray[nIndex][pColl->nSrcID % m_nThreads].push_back(pColl);
 		}
 	});
 
 	ParallelFor([&](size_t i)
 	{
-		for (size_t j = 0; j < m_nThreadsNumber; ++j)
-			for (auto& pColl : m_vTempCollPWArray[j][i])
+		for (size_t j = 0; j < m_nThreads; ++j)
+			for (auto& pColl : m_tempCollPWArray[j][i])
 				walls.Force(pColl->nSrcID) -= pColl->vTotalForce;
 	});
 }
 
 void CCPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
-	if (m_Scene.GetBondsNumber() == 0) return;
+	if (m_scene.GetBondsNumber() == 0) return;
 
-	m_pSBModel->Precalculate(m_dCurrentTime, _dTimeStep);
+	m_pSBModel->Precalculate(m_currentTime, _dTimeStep);
 
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
-	SSolidBondStruct& bonds = m_Scene.GetRefToSolidBonds();
-	std::vector<std::vector<unsigned>>& partToSolidBonds = *m_Scene.GetPointerToPartToSolidBonds();
-	std::vector<unsigned> vBrockenBonds(m_nThreadsNumber, 0);
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	SSolidBondStruct& bonds = m_scene.GetRefToSolidBonds();
+	std::vector<std::vector<unsigned>>& partToSolidBonds = *m_scene.GetPointerToPartToSolidBonds();
+	std::vector<unsigned> vBrockenBonds(m_nThreads, 0);
 
-	ParallelFor(m_Scene.GetBondsNumber(), [&](size_t i)
+	ParallelFor(m_scene.GetBondsNumber(), [&](size_t i)
 	{
 		if (bonds.Active(i))
-			m_pSBModel->Calculate(m_dCurrentTime, _dTimeStep, i, bonds, &vBrockenBonds[i% m_nThreadsNumber]);
+			m_pSBModel->Calculate(m_currentTime, _dTimeStep, i, bonds, &vBrockenBonds[i% m_nThreads]);
 	});
-	m_nBrockenBondsNumber += VectorSum(vBrockenBonds);
+	m_nBrockenBonds += VectorSum(vBrockenBonds);
 
 	ParallelFor(partToSolidBonds.size(), [&](size_t i)
 	{
@@ -368,22 +198,22 @@ void CCPUSimulator::CalculateForcesSB(double _dTimeStep)
 
 void CCPUSimulator::CalculateForcesLB(double _dTimeStep)
 {
-	if (m_Scene.GetLiquidBondsNumber() == 0) return;
+	if (m_scene.GetLiquidBondsNumber() == 0) return;
 
-	m_pLBModel->Precalculate(m_dCurrentTime, _dTimeStep);
+	m_pLBModel->Precalculate(m_currentTime, _dTimeStep);
 
-	SLiquidBondStruct& bonds = m_Scene.GetRefToLiquidBonds();
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
-	std::vector<unsigned> vBrockenBonds(m_nThreadsNumber, 0);
+	SLiquidBondStruct& bonds = m_scene.GetRefToLiquidBonds();
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	std::vector<unsigned> vBrockenBonds(m_nThreads, 0);
 
-	ParallelFor(m_Scene.GetLiquidBondsNumber(), [&](size_t i)
+	ParallelFor(m_scene.GetLiquidBondsNumber(), [&](size_t i)
 	{
 		if (bonds.Active(i))
-			m_pLBModel->Calculate(m_dCurrentTime, _dTimeStep,i, bonds, &vBrockenBonds[i%m_nThreadsNumber]);
+			m_pLBModel->Calculate(m_currentTime, _dTimeStep,i, bonds, &vBrockenBonds[i%m_nThreads]);
 	});
-	m_nBrockenLiquidBondsNumber += VectorSum(vBrockenBonds);
+	m_nBrockenLiquidBonds += VectorSum(vBrockenBonds);
 
-	for (size_t i = 0; i < m_Scene.GetLiquidBondsNumber(); ++i)
+	for (size_t i = 0; i < m_scene.GetLiquidBondsNumber(); ++i)
 		if (bonds.Active(i))
 		{
 			particles.Force(bonds.LeftID(i)) += bonds.NormalForce(i) + bonds.TangentialForce(i);
@@ -395,29 +225,29 @@ void CCPUSimulator::CalculateForcesLB(double _dTimeStep)
 
 void CCPUSimulator::CalculateForcesEF(double _dTimeStep)
 {
-	m_pEFModel->Precalculate(m_dCurrentTime, _dTimeStep);
+	m_pEFModel->Precalculate(m_currentTime, _dTimeStep);
 
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
+	SParticleStruct& particles = m_scene.GetRefToParticles();
 
 	ParallelFor(particles.Size(), [&](size_t i)
 	{
 		if (particles.Active(i))
-			m_pEFModel->Calculate(m_dCurrentTime, _dTimeStep,i, particles);
+			m_pEFModel->Calculate(m_currentTime, _dTimeStep,i, particles);
 	});
 }
 
 void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 {
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
+	SParticleStruct& particles = m_scene.GetRefToParticles();
 
 	// apply external acceleration
-	ParallelFor(m_Scene.GetTotalParticlesNumber(), [&](size_t i)
+	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
-		particles.Force(i) += m_vecExternalAccel * particles.Mass(i);
+		particles.Force(i) += m_externalAcceleration * particles.Mass(i);
 	});
 
 	// change current simulation time step
-	if (m_bVariableTimeStep)
+	if (m_variableTimeStep)
 	{
 		double maxStep = std::numeric_limits<double>::max();
 		for (size_t i = 0; i < particles.Size(); i++)
@@ -434,11 +264,11 @@ void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 	const double dTimeStep = !_bPredictionStep ? m_currSimulationStep : m_currSimulationStep / 2.;
 
 	// move particles
-	ParallelFor(m_Scene.GetTotalParticlesNumber(), [&](size_t i)
+	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
 		particles.Vel(i) += particles.Force(i) / particles.Mass(i) * dTimeStep;
 
-		if (m_bConsiderAnisotropy)
+		if (m_considerAnisotropy)
 		{
 			const CMatrix3 rotMatrix = particles.Quaternion(i).ToRotmat();
 			CVector3 vTemp = (rotMatrix.Transpose()*particles.Moment(i));
@@ -470,69 +300,70 @@ void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 
 void CCPUSimulator::MoveWalls(double _dTimeStep)
 {
-	SWallStruct& pWalls = m_Scene.GetRefToWalls();
-	m_bWallsVelocityChanged = false;
-	for (size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber(); i++)
+	SWallStruct& pWalls = m_scene.GetRefToWalls();
+	m_wallsVelocityChanged = false;
+	for (size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); i++)
 	{
-		SGeometryObject* pGeom = m_pSystemStructure->GetGeometry(i);
-		if (pGeom->vPlanes.empty()) continue;
+		CRealGeometry* pGeom = m_pSystemStructure->Geometry(i);
+		const auto& planes = pGeom->Planes();
+		if (planes.empty()) continue;
 
-		if (pGeom->bForceDepVel) // force
+		if (pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) // force
 		{
 			double dTotalForce = 0;
-			for (size_t j = 0; j < pGeom->vPlanes.size(); j++)
+			for (const auto& plane : planes)
 			{
-				size_t nIndex = m_Scene.m_vNewIndexes[pGeom->vPlanes[j]];
+				size_t nIndex = m_scene.m_vNewIndexes[plane];
 				dTotalForce += (pWalls.Force(nIndex).z);
 			}
-			pGeom->UpdateCurrentInterval(dTotalForce);
+			pGeom->UpdateMotionInfo(dTotalForce);
 		}
 		else
-			pGeom->UpdateCurrentInterval(m_dCurrentTime); // time
-		CVector3 vVel = pGeom->GetCurrentVel();
-		CVector3 vRotVel = pGeom->GetCurrentRotVel();
+			pGeom->UpdateMotionInfo(m_currentTime); // time
+		CVector3 vVel = pGeom->GetCurrentVelocity();
+		CVector3 vRotVel = pGeom->GetCurrentRotVelocity();
 		CVector3 vRotCenter;
-		if (pGeom->bRotateAroundCenter)
+		if (pGeom->RotateAroundCenter())
 		{
 			vRotCenter.Init(0);
-			for (size_t j = 0; j < pGeom->vPlanes.size(); j++)
+			for (const auto& plane : planes)
 			{
-				size_t nIndex = m_Scene.m_vNewIndexes[pGeom->vPlanes[j]];
-				vRotCenter += (pWalls.Vert1(nIndex) + pWalls.Vert2(nIndex) + pWalls.Vert3(nIndex)) / (3.0*pGeom->vPlanes.size());
+				size_t nIndex = m_scene.m_vNewIndexes[plane];
+				vRotCenter += (pWalls.Vert1(nIndex) + pWalls.Vert2(nIndex) + pWalls.Vert3(nIndex)) / (3.0*planes.size());
 			}
 		}
 		else
 			vRotCenter = pGeom->GetCurrentRotCenter();
 
-		if (m_dCurrentTime == 0)
-			m_bWallsVelocityChanged = true;
+		if (m_currentTime == 0)
+			m_wallsVelocityChanged = true;
 		else
 		{
-			if (!(pGeom->GetCurrentVel() - pGeom->GetCurrentVel()).IsZero())
-				m_bWallsVelocityChanged = true;
-			else if (!(pGeom->GetCurrentRotVel() - pGeom->GetCurrentRotVel()).IsZero())
-				m_bWallsVelocityChanged = true;
+			if (!(pGeom->GetCurrentVelocity() - pGeom->GetCurrentVelocity()).IsZero())
+				m_wallsVelocityChanged = true;
+			else if (!(pGeom->GetCurrentRotVelocity() - pGeom->GetCurrentRotVelocity()).IsZero())
+				m_wallsVelocityChanged = true;
 			else if (!(pGeom->GetCurrentRotCenter() - pGeom->GetCurrentRotCenter()).IsZero())
-				m_bWallsVelocityChanged = true;
+				m_wallsVelocityChanged = true;
 		}
 
-		if (!pGeom->vFreeMotion.IsZero() && pGeom->dMass)// solve newtons motion for wall
+		if (!pGeom->FreeMotion().IsZero() && pGeom->Mass())// solve newtons motion for wall
 		{
-			CVector3 vTotalForce = m_vecExternalAccel * pGeom->dMass;
+			CVector3 vTotalForce = m_externalAcceleration * pGeom->Mass();
 			CVector3 vTotalAverVel(0);
 			// calculate total force acting on wall
-			for (unsigned j = 0; j < pGeom->vPlanes.size(); j++)
+			for (const auto& plane : planes)
 			{
-				vTotalForce += pWalls.Force(m_Scene.m_vNewIndexes[pGeom->vPlanes[j]]);
-				vTotalAverVel += pWalls.Vel(m_Scene.m_vNewIndexes[pGeom->vPlanes[j]]) / static_cast<double>(pGeom->vPlanes.size());
+				vTotalForce += pWalls.Force(m_scene.m_vNewIndexes[plane]);
+				vTotalAverVel += pWalls.Vel(m_scene.m_vNewIndexes[plane]) / static_cast<double>(planes.size());
 			}
-			if (pGeom->vFreeMotion.x)
-				vVel.x = vTotalAverVel.x + _dTimeStep * vTotalForce.x / pGeom->dMass;
-			if (pGeom->vFreeMotion.y)
-				vVel.y = vTotalAverVel.y + _dTimeStep * vTotalForce.y / pGeom->dMass;
-			if (pGeom->vFreeMotion.z)
-				vVel.z = vTotalAverVel.z + _dTimeStep * vTotalForce.z / pGeom->dMass;
-			m_bWallsVelocityChanged = true;
+			if (pGeom->FreeMotion().x)
+				vVel.x = vTotalAverVel.x + _dTimeStep * vTotalForce.x / pGeom->Mass();
+			if (pGeom->FreeMotion().y)
+				vVel.y = vTotalAverVel.y + _dTimeStep * vTotalForce.y / pGeom->Mass();
+			if (pGeom->FreeMotion().z)
+				vVel.z = vTotalAverVel.z + _dTimeStep * vTotalForce.z / pGeom->Mass();
+			m_wallsVelocityChanged = true;
 		}
 
 		if (vVel.IsZero() && vRotVel.IsZero()) continue;
@@ -540,9 +371,9 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 		if (!vRotVel.IsZero())
 			RotMatrix = CQuaternion(vRotVel*_dTimeStep).ToRotmat();
 
-		ParallelFor(pGeom->vPlanes.size(), [&](size_t j)
+		ParallelFor(planes.size(), [&](size_t j)
 		{
-			size_t nIndex = m_Scene.m_vNewIndexes[pGeom->vPlanes[j]];
+			size_t nIndex = m_scene.m_vNewIndexes[planes[j]];
 			pWalls.Vel(nIndex) = vVel;
 			pWalls.RotVel(nIndex) = vRotVel;
 			pWalls.RotCenter(nIndex) = vRotCenter;
@@ -571,15 +402,15 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 
 void CCPUSimulator::MoveMultispheres(double _dTimeStep, bool _bPredictionStep)
 {
-	SMultiSphere& pMultispheres = m_Scene.GetRefToMultispheres();
-	SParticleStruct& pParticles = m_Scene.GetRefToParticles();
+	SMultiSphere& pMultispheres = m_scene.GetRefToMultispheres();
+	SParticleStruct& pParticles = m_scene.GetRefToParticles();
 
 	// move particles which does not correlated to any multisphere
 	ParallelFor(pMultispheres.Size(), [&](size_t i)
 	{
 		if (pParticles.MultiSphIndex(i) == -1)
 		{
-			pParticles.Force(i) += m_vecExternalAccel * pParticles.Mass(i);
+			pParticles.Force(i) += m_externalAcceleration * pParticles.Mass(i);
 			pParticles.Vel(i) += pParticles.Force(i) / pParticles.Mass(i) * _dTimeStep;
 			pParticles.AnglVel(i) += pParticles.Moment(i) / pParticles.InertiaMoment(i) * _dTimeStep;
 			if (!_bPredictionStep)
@@ -597,7 +428,7 @@ void CCPUSimulator::MoveMultispheres(double _dTimeStep, bool _bPredictionStep)
 			vTotalForce += pParticles.Force(pMultispheres.Indices(i)[j]);
 			vTotalMoment += (pParticles.Coord(pMultispheres.Indices(i)[j]) - pMultispheres.Center(i))*pParticles.Force(pMultispheres.Indices(i)[j]);
 		}
-		vTotalForce += m_vecExternalAccel * pMultispheres.Mass(i);
+		vTotalForce += m_externalAcceleration * pMultispheres.Mass(i);
 
 		pMultispheres.Velocity(i) += vTotalForce / pMultispheres.Mass(i)*_dTimeStep;
 		CVector3 vAngle = pMultispheres.InvLMatrix(i)*pMultispheres.RotVelocity(i)*_dTimeStep;
@@ -651,68 +482,50 @@ void CCPUSimulator::MoveMultispheres(double _dTimeStep, bool _bPredictionStep)
 	});
 }
 
-void CCPUSimulator::InitializeModels()
-{
-	p_InitializeModels();
-
-	for (auto& model : m_models)
-		model->Initialize(
-			m_Scene.GetPointerToParticles().get(),
-			m_Scene.GetPointerToWalls().get(),
-			m_Scene.GetPointerToSolidBonds().get(),
-			m_Scene.GetPointerToLiquidBonds().get(),
-			m_Scene.GetPointerToInteractProperties().get());
-}
-
-size_t CCPUSimulator::GenerateNewObjects()
-{
-	return p_GenerateNewObjects();
-}
-
 void CCPUSimulator::PrepareAdditionalSavingData()
 {
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
+	SParticleStruct& particles = m_scene.GetRefToParticles();
 
 	// reset previously calculated stresses
-	for (size_t i = 0; i < m_vAddSavingDataPart.size(); ++i)
-		m_vAddSavingDataPart[i].sStressTensor.Init(0);
+	for (size_t i = 0; i < m_additionalSavingData.size(); ++i)
+		m_additionalSavingData[i].stressTensor.Init(0);
 
 	// save stresses caused by solid bonds
-	SSolidBondStruct& solidBonds = m_Scene.GetRefToSolidBonds();
+	SSolidBondStruct& solidBonds = m_scene.GetRefToSolidBonds();
 	for (size_t i = 0; i < solidBonds.Size(); ++i)
 	{
 		CSolidBond* pSBond = static_cast<CSolidBond*>(m_pSystemStructure->GetObjectByIndex(solidBonds.InitIndex(i)));
-		if ((!solidBonds.Active(i)) && (!pSBond->IsActive(m_dCurrentTime)))
+		if ((!solidBonds.Active(i)) && (!pSBond->IsActive(m_currentTime)))
 			continue;
 		const size_t leftID = solidBonds.LeftID(i);
 		const size_t rightID = solidBonds.RightID(i);
 		CVector3 vConnVec = (particles.Coord(leftID) - particles.Coord(rightID)).Normalized();
-		m_vAddSavingDataPart[leftID].AddStress(-1 * vConnVec * particles.Radius(leftID), solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID), 3) / 6);
-		m_vAddSavingDataPart[rightID].AddStress(vConnVec * particles.Radius(rightID), -1 * solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
+		m_additionalSavingData[leftID].AddStress(-1 * vConnVec * particles.Radius(leftID), solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID), 3) / 6);
+		m_additionalSavingData[rightID].AddStress(vConnVec * particles.Radius(rightID), -1 * solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
 	}
 
 	// save stresses caused by particle-particle contact
-	for (size_t i = 0; i < m_CollCalculator.m_vCollMatrixPP.size(); i++)
+	for (size_t i = 0; i < m_collisionsCalculator.m_vCollMatrixPP.size(); i++)
 	{
-		for (auto& pColl : m_CollCalculator.m_vCollMatrixPP[i])
+		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
 		{
 			const size_t srcID = pColl->nSrcID;
 			const size_t dstID = pColl->nDstID;
 			CVector3 vConnVec = (particles.Coord(srcID) - particles.Coord(dstID)).Normalized();
 			const double srcRadius = particles.Radius(srcID);
 			const double dstRadius = particles.Radius(dstID);
-			m_vAddSavingDataPart[pColl->nSrcID].AddStress(-1 * vConnVec*srcRadius, pColl->vTotalForce, PI * pow(2 * srcRadius, 3) / 6);
-			m_vAddSavingDataPart[pColl->nDstID].AddStress(vConnVec*dstRadius, -1 * pColl->vTotalForce, PI * pow(2 * dstRadius, 3) / 6);
+			m_additionalSavingData[pColl->nSrcID].AddStress(-1 * vConnVec*srcRadius, pColl->vTotalForce, PI * pow(2 * srcRadius, 3) / 6);
+			m_additionalSavingData[pColl->nDstID].AddStress(vConnVec*dstRadius, -1 * pColl->vTotalForce, PI * pow(2 * dstRadius, 3) / 6);
 		}
 	};
 
 	// save stresses caused by particle-wall contacts
-	for (size_t i = 0; i < m_CollCalculator.m_vCollMatrixPW.size(); i++)
+	for (size_t i = 0; i < m_collisionsCalculator.m_vCollMatrixPW.size(); i++)
 	{
-		for (auto& pColl : m_CollCalculator.m_vCollMatrixPW[i])
+		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPW[i])
 		{
 			CVector3 vConnVec = (pColl->vContactVector - particles.Coord(pColl->nDstID)).Normalized();
-			m_vAddSavingDataPart[pColl->nDstID].AddStress(vConnVec*particles.Radius(pColl->nDstID), pColl->vTotalForce, PI * pow(2 * particles.Radius(pColl->nDstID), 3) / 6);
+			m_additionalSavingData[pColl->nDstID].AddStress(vConnVec*particles.Radius(pColl->nDstID), pColl->vTotalForce, PI * pow(2 * particles.Radius(pColl->nDstID), 3) / 6);
 		}
 	};
 }
@@ -721,71 +534,71 @@ void CCPUSimulator::SaveData()
 {
 	const clock_t t = clock();
 	p_SaveData();
-	m_VerletList.AddDisregardingTimeInterval(clock() - t);
+	m_verletList.AddDisregardingTimeInterval(clock() - t);
 }
 
 void CCPUSimulator::UpdateVerletLists(double _dTimeStep)
 {
 	// update max velocity
-	m_dMaxParticleVelocity = m_Scene.GetMaxParticleVelocity();
-	if (m_bWallsVelocityChanged)
-		m_dMaxWallVelocity = m_Scene.GetMaxWallVelocity();
+	m_maxParticleVelocity = m_scene.GetMaxParticleVelocity();
+	if (m_wallsVelocityChanged)
+		m_maxWallVelocity = m_scene.GetMaxWallVelocity();
 	CheckParticlesInDomain();
-	if (m_VerletList.IsNeedToBeUpdated(_dTimeStep, m_Scene.GetMaxPartVerletDistance(), m_dMaxWallVelocity))
+	if (m_verletList.IsNeedToBeUpdated(_dTimeStep, m_scene.GetMaxPartVerletDistance(), m_maxWallVelocity))
 	{
-		m_VerletList.UpdateList(m_dCurrentTime);
-		m_Scene.SaveVerletCoords();
+		m_verletList.UpdateList(m_currentTime);
+		m_scene.SaveVerletCoords();
 	}
 }
 
 void CCPUSimulator::CheckParticlesInDomain()
 {
 	SVolumeType simDomain = m_pSystemStructure->GetSimulationDomain();
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
-	SSolidBondStruct& solidBonds = m_Scene.GetRefToSolidBonds();
-	SLiquidBondStruct& liquidBonds = m_Scene.GetRefToLiquidBonds();
-	std::vector<size_t> vInactiveParticlesNum(m_Scene.GetTotalParticlesNumber());
-	ParallelFor(m_Scene.GetTotalParticlesNumber(), [&](size_t i)
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	SSolidBondStruct& solidBonds = m_scene.GetRefToSolidBonds();
+	SLiquidBondStruct& liquidBonds = m_scene.GetRefToLiquidBonds();
+	std::vector<size_t> vInactiveParticlesNum(m_scene.GetTotalParticlesNumber());
+	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
 		if ((particles.Active(i)) && (!IsPointInDomain(simDomain, particles.Coord(i)))) // remove particles situated not in the domain
 		{
 			particles.Active(i) = false;
-			particles.EndActivity(i) = m_dCurrentTime;
+			particles.EndActivity(i) = m_currentTime;
 			vInactiveParticlesNum[i]++;
 			for (size_t j = 0; j < solidBonds.Size(); ++j) // delete all bonds that connected to this particle
 				if ((solidBonds.Active(j)) && ((solidBonds.LeftID(j) == i) || (solidBonds.RightID(j) == i)))
 				{
 					solidBonds.Active(j) = false;
-					solidBonds.EndActivity(j) = m_dCurrentTime;
+					solidBonds.EndActivity(j) = m_currentTime;
 				}
 			for (size_t j = 0; j < liquidBonds.Size(); ++j) // delete all bonds that connected to this particle
 				if ((liquidBonds.Active(j)) && ((liquidBonds.LeftID(j) == i) || (liquidBonds.RightID(j) == i)))
 				{
 					liquidBonds.Active(j) = false;
-					liquidBonds.EndActivity(j) = m_dCurrentTime;
+					liquidBonds.EndActivity(j) = m_currentTime;
 				}
 		}
 	});
 
 	const size_t nNewInactiveParticles = VectorSum(vInactiveParticlesNum);
-	m_nInactiveParticlesNumber += nNewInactiveParticles;
+	m_nInactiveParticles += nNewInactiveParticles;
 	if (nNewInactiveParticles > 0)
-		m_Scene.UpdateParticlesToBonds();
+		m_scene.UpdateParticlesToBonds();
 }
 
 void CCPUSimulator::MoveParticlesOverPBC()
 {
-	const SPBC& pbc = m_Scene.m_PBC;
+	const SPBC& pbc = m_scene.m_PBC;
 	if (!pbc.bEnabled) return;
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
+	SParticleStruct& particles = m_scene.GetRefToParticles();
 
 	//use <unsigned char> in order to avoid problems with simultaneous writing from several threads
-	//std::vector<unsigned char> vBoundaryCrossed(m_Scene.GetTotalParticlesNumber());	// whether the particle crossed the PBC boundary
-	std::vector<uint8_t> vShifts(m_Scene.GetTotalParticlesNumber(), 0);	// whether the particle crossed the PBC boundary
+	//std::vector<unsigned char> vBoundaryCrossed(m_scene.GetTotalParticlesNumber());	// whether the particle crossed the PBC boundary
+	std::vector<uint8_t> vShifts(m_scene.GetTotalParticlesNumber(), 0);	// whether the particle crossed the PBC boundary
 
 	// TODO: It is unnecessary to analyze all particles for all crosses. Only those should be analyzed, who can cross boundary during current verlet step.
 	// shift particles if they crossed boundary
-	ParallelFor(m_Scene.GetTotalParticlesNumber(), [&](size_t i)
+	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
 		CVector3& vCoord = particles.Coord(i);
 		// particle crossed left boundary
@@ -799,46 +612,106 @@ void CCPUSimulator::MoveParticlesOverPBC()
 
 		if (vShifts[i])
 		{
-			vCoord += GetVectorFromVirtShift(vShifts[i], m_Scene.m_PBC.boundaryShift);
-			particles.CoordVerlet(i) += GetVectorFromVirtShift(vShifts[i], m_Scene.m_PBC.boundaryShift);
+			vCoord += GetVectorFromVirtShift(vShifts[i], m_scene.m_PBC.boundaryShift);
+			particles.CoordVerlet(i) += GetVectorFromVirtShift(vShifts[i], m_scene.m_PBC.boundaryShift);
 		}
 	});
 
 	// this can be in case when all contact models are turned off
-	if (m_VerletList.m_PPList.empty() && m_VerletList.m_PWList.empty()) return;
+	if (m_verletList.m_PPList.empty() && m_verletList.m_PWList.empty()) return;
 
-	ParallelFor(m_Scene.GetTotalParticlesNumber(), [&](size_t i)
+	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
 		// modify shift in possible particle-particle contacts
-		for (size_t j = 0; j < m_VerletList.m_PPList[i].size(); j++)
+		for (size_t j = 0; j < m_verletList.m_PPList[i].size(); j++)
 		{
 			const size_t srcID = i;
-			const size_t dstID = m_VerletList.m_PPList[i][j];
+			const size_t dstID = m_verletList.m_PPList[i][j];
 			if (vShifts[srcID])
-				m_VerletList.m_PPVirtShift[i][j] = AddVirtShift(m_VerletList.m_PPVirtShift[i][j], vShifts[srcID]);
+				m_verletList.m_PPVirtShift[i][j] = AddVirtShift(m_verletList.m_PPVirtShift[i][j], vShifts[srcID]);
 			if (vShifts[dstID])
-				m_VerletList.m_PPVirtShift[i][j] = SubstractVirtShift(m_VerletList.m_PPVirtShift[i][j], vShifts[dstID]);
+				m_verletList.m_PPVirtShift[i][j] = SubstractVirtShift(m_verletList.m_PPVirtShift[i][j], vShifts[dstID]);
 		}
 
 		// modify shift in existing particle-particle  collisions
-		for (size_t j = 0; j < m_CollCalculator.m_vCollMatrixPP[i].size(); j++)
+		for (size_t j = 0; j < m_collisionsCalculator.m_vCollMatrixPP[i].size(); j++)
 		{
-			const unsigned srcID = m_CollCalculator.m_vCollMatrixPP[i][j]->nSrcID;
-			const unsigned dstID = m_CollCalculator.m_vCollMatrixPP[i][j]->nDstID;
+			const unsigned srcID = m_collisionsCalculator.m_vCollMatrixPP[i][j]->nSrcID;
+			const unsigned dstID = m_collisionsCalculator.m_vCollMatrixPP[i][j]->nDstID;
 			if (vShifts[srcID])
-				m_CollCalculator.m_vCollMatrixPP[i][j]->nVirtShift = AddVirtShift(m_CollCalculator.m_vCollMatrixPP[i][j]->nVirtShift, vShifts[srcID]);
+				m_collisionsCalculator.m_vCollMatrixPP[i][j]->nVirtShift = AddVirtShift(m_collisionsCalculator.m_vCollMatrixPP[i][j]->nVirtShift, vShifts[srcID]);
 			if (vShifts[dstID])
-				m_CollCalculator.m_vCollMatrixPP[i][j]->nVirtShift = SubstractVirtShift(m_CollCalculator.m_vCollMatrixPP[i][j]->nVirtShift, vShifts[dstID]);
+				m_collisionsCalculator.m_vCollMatrixPP[i][j]->nVirtShift = SubstractVirtShift(m_collisionsCalculator.m_vCollMatrixPP[i][j]->nVirtShift, vShifts[dstID]);
 		}
 
 		// modify shift in possible particle-wall contacts
-		for (size_t j = 0; j < m_VerletList.m_PWList[i].size(); j++)
+		for (size_t j = 0; j < m_verletList.m_PWList[i].size(); j++)
 			if (vShifts[i])
-				m_VerletList.m_PWVirtShift[i][j] = SubstractVirtShift(m_VerletList.m_PWVirtShift[i][j], vShifts[i]);
+				m_verletList.m_PWVirtShift[i][j] = SubstractVirtShift(m_verletList.m_PWVirtShift[i][j], vShifts[i]);
 
 		// modify shift in existing particle-wall collisions
-		for (size_t j = 0; j < m_CollCalculator.m_vCollMatrixPW[i].size(); j++)
+		for (size_t j = 0; j < m_collisionsCalculator.m_vCollMatrixPW[i].size(); j++)
 			if (vShifts[i])
-				m_CollCalculator.m_vCollMatrixPW[i][j]->nVirtShift = SubstractVirtShift(m_CollCalculator.m_vCollMatrixPW[i][j]->nVirtShift, vShifts[i]);
+				m_collisionsCalculator.m_vCollMatrixPW[i][j]->nVirtShift = SubstractVirtShift(m_collisionsCalculator.m_vCollMatrixPW[i][j]->nVirtShift, vShifts[i]);
 	});
+}
+
+void CCPUSimulator::UpdatePBC()
+{
+	m_scene.m_PBC.UpdatePBC(m_currentTime);
+	if (!m_scene.m_PBC.vVel.IsZero())	// if velocity is not zero
+		InitializeModelParameters();	// set new PBC to all models
+}
+
+void CCPUSimulator::LoadConfiguration()
+{
+	CBaseSimulator::LoadConfiguration();
+
+	const ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
+	if (!protoMessage.has_simulator()) return;
+	const ProtoModuleSimulator& sim = protoMessage.simulator();
+	EnableCollisionsAnalysis(sim.save_collisions());
+}
+
+void CCPUSimulator::SaveConfiguration()
+{
+	CBaseSimulator::SaveConfiguration();
+
+	ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
+	ProtoModuleSimulator* pSim = protoMessage.mutable_simulator();
+	pSim->set_save_collisions(m_analyzeCollisions);
+}
+
+void CCPUSimulator::GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID)
+{
+	_dMaxOverlap = 0;
+	_dAverageOverlap = 0;
+	size_t nCollNumber = 0;
+	for (const auto& collisions : m_collisionsCalculator.m_vCollMatrixPP)
+		for (const auto coll : collisions)
+		{
+			if ((coll->nSrcID < _nMaxParticleID) || (coll->nDstID < _nMaxParticleID))
+			{
+				_dMaxOverlap = std::max(_dMaxOverlap, coll->dNormalOverlap);
+				_dAverageOverlap += coll->dNormalOverlap;
+				nCollNumber++;
+			}
+		}
+
+	const SParticleStruct& particles = m_scene.GetRefToParticles();
+	for (const auto& collisions : m_collisionsCalculator.m_vCollMatrixPW)
+		for (const auto coll : collisions)
+		{
+			if (coll->nDstID < _nMaxParticleID)
+			{
+				const CVector3 vRc = _VIRTUAL_COORDINATE(particles.Coord(coll->nDstID), coll->nVirtShift, m_scene.m_PBC) - coll->vContactVector;
+				const double dOverlap = particles.ContactRadius(coll->nDstID) - vRc.Length();
+				_dMaxOverlap = std::max(_dMaxOverlap, dOverlap);
+				_dAverageOverlap += dOverlap;
+				nCollNumber++;
+			}
+		}
+
+	if (nCollNumber)
+		_dAverageOverlap = _dAverageOverlap / nCollNumber;
 }

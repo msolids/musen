@@ -168,7 +168,7 @@ void CPackageGeneratorTab::UpdateSelectedGeneratorInfo()
 	m_bAvoidSignal = true;
 
 	const SPackage* pGen = m_pPackageGenerator->Generator(nSelectedRow);
-	ui.volumeTypesCombo->setCurrentIndex(static_cast<int>(m_pSystemStructure->GetAnalysisVolumeIndex(pGen->volumeKey)));
+	ui.volumeTypesCombo->setCurrentIndex(static_cast<int>(m_pSystemStructure->AnalysisVolumeIndex(pGen->volumeKey)));
 
 	// set correct index of material combo box
 	ui.mixtureCombo->setCurrentIndex(m_pMaterialsDB->GetMixtureIndex(pGen->mixtureKey));
@@ -230,8 +230,8 @@ void CPackageGeneratorTab::UpdateVolumesCombo()
 {
 	bool bSignalsFlag = ui.volumeTypesCombo->blockSignals(true);
 	ui.volumeTypesCombo->clear();
-	for (unsigned i = 0; i < m_pSystemStructure->GetAnalysisVolumesNumber(); ++i)
-		ui.volumeTypesCombo->insertItem(i, ss2qs(m_pSystemStructure->GetAnalysisVolume(i)->sName));
+	for (unsigned i = 0; i < m_pSystemStructure->AnalysisVolumesNumber(); ++i)
+		ui.volumeTypesCombo->insertItem(i, ss2qs(m_pSystemStructure->AnalysisVolume(i)->Name()));
 	ui.volumeTypesCombo->setCurrentIndex(-1);
 	ui.volumeTypesCombo->blockSignals(bSignalsFlag);
 }
@@ -342,7 +342,7 @@ void CPackageGeneratorTab::GenerationDataChanged()
 
 	int iVolume = ui.volumeTypesCombo->currentIndex();
 	if (iVolume >= 0)
-		pGen->volumeKey = m_pSystemStructure->GetAnalysisVolume(iVolume)->sKey;
+		pGen->volumeKey = m_pSystemStructure->AnalysisVolume(iVolume)->Key();
 
 	const CMixture* pMixture = m_pMaterialsDB->GetMixture(ui.mixtureCombo->currentIndex());
 	pGen->mixtureKey = pMixture ? pMixture->GetKey() : "";
@@ -393,9 +393,9 @@ void CPackageGeneratorTab::StartGeneration()
 			pGen->maxReachedOverlap = 0;
 			pGen->avrReachedOverlap = 0;
 
-			if ((pGen->active) && (!m_pSystemStructure->GetParticleIndicesInVolume(0, pGen->volumeKey, false).empty()))
-					if (QMessageBox::warning(this, "Confirmation", tr("Scene already contains particles placed in the volume '%1'. New generation into the same volumes can lead to uncertainties. Continue generation?").arg(ss2qs(m_pSystemStructure->GetAnalysisVolume(pGen->volumeKey)->sName)), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel) != QMessageBox::Yes)
-						return;
+			if ((pGen->active) && (!m_pSystemStructure->AnalysisVolume(pGen->volumeKey)->GetParticleIndicesInside(0, false).empty()))
+				if (QMessageBox::warning(this, "Confirmation", tr("Scene already contains particles placed in the volume '%1'. New generation into the same volumes can lead to uncertainties. Continue generation?").arg(ss2qs(m_pSystemStructure->AnalysisVolume(pGen->volumeKey)->Name())), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel) != QMessageBox::Yes)
+					return;
 		}
 
 		if (!m_pPackageGenerator->IsDataCorrect())

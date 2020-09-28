@@ -14,6 +14,7 @@
 #include <sstream>
 #include <numeric>
 #include <cuda_runtime.h>
+#include <map>
 
 #pragma warning(push)
 #pragma warning(disable: 26495)
@@ -44,19 +45,6 @@ struct SSelectiveSavingFlags
 	void SetAllSolidBonds(bool _flag) { bSBForce = bSBTangOverlap = bSBTotTorque = _flag; }
 	void SetAllLiquidBonds(bool _flag) { bLBForce = _flag; }
 	void SetAllWalls(bool _flag) { bTWPlaneCoord = bTWForce = bTWVelocity = _flag; }
-};
-
-struct STriangleType
-{
-	CVector3 p1, p2, p3;
-	STriangleType() = default;
-	STriangleType(double _val) : p1{ CVector3{ _val } }, p2{ CVector3{ _val } }, p3{ CVector3{ _val } } {}
-	STriangleType(CVector3 _v1, CVector3 _v2, CVector3 _v3) : p1{ _v1 }, p2{ _v2 }, p3{ _v3 } {}
-	void Shift(const CVector3& _offs) { p1 += _offs; p2 += _offs; p3 += _offs; }
-	STriangleType Shifted(const CVector3& _offs) const { return STriangleType{ p1 + _offs, p2 + _offs, p3 + _offs }; }
-	void Rotate(const CVector3& _center, const CMatrix3& _rot) { p1 = _center + _rot * (p1 - _center); p2 = _center + _rot * (p2 - _center); p3 = _center + _rot * (p3 - _center); }
-	void InvertOrientation() { std::swap(p2, p3); }
-	CVector3 Normal() const { return (p2 - p1) * (p3 - p1); }
 };
 
 //type definition for the volume borders coordinates
@@ -144,6 +132,26 @@ struct SPBC
 		boundaryShift = currentDomain.coordEnd - currentDomain.coordBeg;
 	}
 };
+
+// TODO: remove "VOLUME_"
+enum class EVolumeShape : unsigned
+{
+	VOLUME_SPHERE = 0,
+	VOLUME_BOX = 1,
+	VOLUME_CYLINDER = 2,
+	VOLUME_HOLLOW_SPHERE = 3,
+	VOLUME_STL = 5
+};
+
+inline std::map<EVolumeShape, std::string> AllStandardVolumeTypes()
+{
+	return std::map<EVolumeShape, std::string>{
+		{ EVolumeShape::VOLUME_BOX,				"Box" },
+		{ EVolumeShape::VOLUME_CYLINDER,		"Cylinder" },
+		{ EVolumeShape::VOLUME_HOLLOW_SPHERE,	"Hollow sphere" },
+		{ EVolumeShape::VOLUME_SPHERE,			"Sphere" },
+		{ EVolumeShape::VOLUME_STL,				"STL" } };
+}
 
 /// Macros to get virtual properties from models.
 

@@ -33,6 +33,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 
 	if      (key == "NEW_JOB" || key == "JOB")	m_jobs.push_back({});
 	else if (key == "SOURCE_FILE")							m_jobs.back().sourceFileName = GetRestOfLine(&ss);
+	else if (key == "LOG_FILE")							m_jobs.back().logFileName = GetRestOfLine(&ss);
 	else if (key == "RESULT_FILE" || key == "RESULTS_FILE")	m_jobs.back().resultFileName = GetRestOfLine(&ss);
 	else if (key == "COMPONENT")
 	{

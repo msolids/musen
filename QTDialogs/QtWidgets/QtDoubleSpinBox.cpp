@@ -23,16 +23,32 @@ CQtDoubleSpinBox::CQtDoubleSpinBox(double _value, QWidget* _parent)
 void CQtDoubleSpinBox::Initialize()
 {
 	// set validator to limit input to floating point numbers only
-	lineEdit()->setValidator(new QDoubleValidator{ this });
+	auto* validator = new QDoubleValidator{ this };
+	auto loc = lineEdit()->validator()->locale();
+	loc.setNumberOptions(QLocale::RejectGroupSeparator);
+	validator->setLocale(loc);
+	lineEdit()->setValidator(validator);
 
 	// connect signals
-	connect(lineEdit(), &QLineEdit::textChanged,			this, &CQtDoubleSpinBox::textChanged);
-	connect(this,		&QAbstractSpinBox::editingFinished,	this, &CQtDoubleSpinBox::valueChanged);
+	connect(lineEdit(), &QLineEdit::textChanged,			this, &CQtDoubleSpinBox::TextChanged);
+	connect(this,		&QAbstractSpinBox::editingFinished,	this, &CQtDoubleSpinBox::CheckEndEmitValueChanged);
+}
+void CQtDoubleSpinBox::AllowOnlyPositive(bool _flag)
+{
+	auto* validator = new QDoubleValidator{ this };
+	if (_flag)
+	{
+		const auto* old = dynamic_cast<const QDoubleValidator*>(lineEdit()->validator());
+		validator->setRange(0, std::numeric_limits<double>::max(), old->decimals());
+		validator->setNotation(old->notation());
+		validator->setLocale(old->locale());
+	}
+	lineEdit()->setValidator(validator);
 }
 
-void CQtDoubleSpinBox::SetValue(double _value) const
+void CQtDoubleSpinBox::SetValue(double _value)
 {
-	lineEdit()->setText(QString::number(_value));
+	SetText(QString::number(_value));
 }
 
 double CQtDoubleSpinBox::GetValue() const
@@ -40,12 +56,20 @@ double CQtDoubleSpinBox::GetValue() const
 	return text().toDouble();
 }
 
-void CQtDoubleSpinBox::SetText(const QString& _text) const
+void CQtDoubleSpinBox::SetText(const QString& _text)
 {
-	QString copy = _text;
+	const int pos = lineEdit()->cursorPosition();
+	ValidateTextAndSet(_text);
+	lineEdit()->setCursorPosition(pos);
+	m_oldText = text();
+}
+
+void CQtDoubleSpinBox::ValidateTextAndSet(const QString& _text) const
+{
+	QString text = _text;
 	int i = 0;
-	if (lineEdit()->validator()->validate(copy, i) != QValidator::Invalid)
-		lineEdit()->setText(copy);
+	if (lineEdit()->validator()->validate(text, i) != QValidator::Invalid)
+		lineEdit()->setText(text);
 }
 
 void CQtDoubleSpinBox::ChangeValue(EOperation _type) const
@@ -59,8 +83,8 @@ void CQtDoubleSpinBox::ChangeValue(EOperation _type) const
 	const double value = part.toDouble();					// double value of a selected part
 	pos += TrimZeros(str, pos);								// remove leading zeros
 	if (mantissa &&															// if mantissa is selected...
-		pos >= 0 && part[pos] == '0' && part.left(pos).toDouble() == 0 ||	// ...and all values to the left are zero...
-		value == 0)															// ...or the whole selected value is zero...
+		pos >= 0 && part[pos] == '0' && part.left(pos).toDouble() == 0.0 ||	// ...and all values to the left are zero...
+		value == 0.0)														// ...or the whole selected value is zero...
 	{
 		pos += Increment(str, pos);											// ...increment it...
 		switch (_type)
@@ -86,7 +110,7 @@ void CQtDoubleSpinBox::ChangeValue(EOperation _type) const
 		}
 	}
 	pos += TrimZeros(str, pos);				// remove leading zeros
-	lineEdit()->setText(str);				// set new value
+	ValidateTextAndSet(str);				// set new value
 	lineEdit()->setCursorPosition(pos + 1);	// set new cursor position
 }
 
@@ -228,6 +252,27 @@ QAbstractSpinBox::StepEnabled CQtDoubleSpinBox::stepEnabled() const
 	return StepUpEnabled | StepDownEnabled;
 }
 
+void CQtDoubleSpinBox::keyPressEvent(QKeyEvent* _event)
+{
+	if (_event->key() == Qt::Key_Enter)
+	{
+		// discard selection and put the cursor back
+		const int pos = lineEdit()->cursorPosition();
+		QAbstractSpinBox::keyPressEvent(_event);
+		lineEdit()->setCursorPosition(pos);
+	}
+	else
+		QAbstractSpinBox::keyPressEvent(_event);
+}
+
+void CQtDoubleSpinBox::CheckEndEmitValueChanged()
+{
+	if (text() == m_oldText) return;
+
+	m_oldText = text();
+	emit ValueChanged();
+}
+
 void CQtDoubleSpinBox::stepBy(int _steps)
 {
 	if (_steps > 0)
@@ -236,6 +281,5 @@ void CQtDoubleSpinBox::stepBy(int _steps)
 	else if (_steps < 0)
 		for (int i = 0; i > _steps; --i)
 			ChangeValue(EOperation::DECREASE);
-	if (_steps)
-		emit valueChanged();
+	CheckEndEmitValueChanged();
 }

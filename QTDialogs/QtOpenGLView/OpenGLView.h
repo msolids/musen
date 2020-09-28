@@ -137,7 +137,7 @@ private:
 	void DrawLegendText(QPainter& _painter) const;
 
 	static void DrawQuad(const CVector3& _v1, const CVector3& _v2, const CVector3& _v3, const CVector3& _v4, const CColor& _color); // CCW
-	void DrawTriangularPlane(const STriangleType& _triangle, const CVector3& _normal, const CColor& _color) const;
+	void DrawTriangularPlane(const CTriangle& _triangle, const CVector3& _normal, const CColor& _color) const;
 
 	// Sets new viewport according to given parameters and updates perspective projection matrix accordingly.
 	void UpdatePerspective() override;

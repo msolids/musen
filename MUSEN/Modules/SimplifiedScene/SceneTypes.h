@@ -217,8 +217,9 @@ private:
 		CVector3	prevBond{ 0 };
 
 		SBaseInfo() = default;
-		SBaseInfo(double _diameter, double _crossCut, double _initialLength, double _axialMoment, double _normalStiffness, double _tangentialStiffness)
-			: diameter{ _diameter }, crossCut{ _crossCut }, initialLength{ _initialLength }, axialMoment{ _axialMoment }, normalStiffness{ _normalStiffness }, tangentialStiffness{ _tangentialStiffness } {}
+		SBaseInfo(double _diameter, double _crossCut, double _initialLength, double _axialMoment, double _normalStiffness, double _tangentialStiffness, CVector3 _vTangOverlap)
+			: diameter{ _diameter }, crossCut{ _crossCut }, initialLength{ _initialLength }, axialMoment{ _axialMoment }, 
+			normalStiffness{ _normalStiffness }, tangentialStiffness{ _tangentialStiffness }, tangentialOverlap{ _vTangOverlap }{}
 	};
 
 	struct SStrength
@@ -277,8 +278,8 @@ public:
 	ADD_GET_SET(TangentialPlasticStrain,	tangentialPlasticStrain)
 	ADD_GET_SET(ThermalConductivity,		thermalConductivity)
 
-	void AddSolidBond(bool _active, unsigned _initIndex, size_t _leftID, size_t _rightID, double _diameter, double _crossCut, double _initialLength, double _axialMoment,
-		double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength);
+	void AddSolidBond(bool _active, unsigned _initIndex, size_t _leftID, size_t _rightID, double _diameter, double _crossCut, double _initialLength, 
+		CVector3 _vTangOverlap, double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength);
 	void AddViscosity(double _viscosity);
 	void AddTimeThermExpCoeff(double _timeThermExpCoeff);
 	void AddYieldStrength(double _yieldStrength);

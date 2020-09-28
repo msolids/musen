@@ -389,24 +389,43 @@ void CExportAsText::Export()
 	// save info about geometries
 	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
 	{
-		for (size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i)
+		for (size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i)
 		{
-			const SGeometryObject* geometry = m_pSystemStructure->GetGeometry(i);
+			const CRealGeometry* geometry = m_pSystemStructure->Geometry(i);
 			if (!geometry) continue;
 			if (m_geometriesFlags.baseInfo)
-				txtOutFile << E2I(ETXTCommands::GEOMETRY) << " " << geometry->sName << " " << geometry->sKey << " "
-			    << geometry->dMass << " " << geometry->vFreeMotion << std::endl;
+				txtOutFile << E2I(ETXTCommands::GEOMETRY) << " " << geometry->Name() << " " << geometry->Key() << " "
+			    << geometry->Mass() << " " << geometry->FreeMotion() << std::endl;
 			if (m_geometriesFlags.tdProperties)
 			{
-				txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << geometry->vIntervals.size();
-				for (const auto& interval : geometry->vIntervals)
-					txtOutFile << " " << interval.dCriticalValue << " " << interval.vVel << " "	<< interval.vRotCenter << " " << interval.vRotVel;
+				switch (geometry->Motion()->MotionType())
+				{
+				case CGeometryMotion::EMotionType::TIME_DEPENDENT:
+				{
+					const auto intervals = geometry->Motion()->GetTimeIntervals();
+					txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << intervals.size();
+					for (const auto& interval : intervals)
+						txtOutFile << " " << interval.timeEnd << " " << interval.motion.velocity << " " << interval.motion.rotationCenter << " " << interval.motion.rotationVelocity;
+					break;
+				}
+				case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+				{
+					const auto intervals = geometry->Motion()->GetForceIntervals();
+					txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << intervals.size();
+					for (const auto& interval : intervals)
+						txtOutFile << " " << interval.forceLimit << " " << interval.motion.velocity << " " << interval.motion.rotationCenter << " " << interval.motion.rotationVelocity;
+					break;
+				}
+				case CGeometryMotion::EMotionType::NONE:
+					txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << 0;
+					break;
+				}
 				txtOutFile << std::endl;
 			}
 			if (m_geometriesFlags.wallsList)
 			{
-				txtOutFile << E2I(ETXTCommands::GEOMETRY_PLANES) << " " << geometry->vPlanes.size();
-				for (size_t plane : geometry->vPlanes)
+				txtOutFile << E2I(ETXTCommands::GEOMETRY_PLANES) << " " << geometry->Planes().size();
+				for (auto plane : geometry->Planes())
 					txtOutFile << " " << plane;
 				txtOutFile << std::endl;
 			}

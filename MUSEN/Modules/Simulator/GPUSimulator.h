@@ -26,47 +26,49 @@ class CGPUSimulator : public CBaseSimulator
 		unsigned nActivePartNum;
 		double dMaxSquaredPartDist;
 		double dMaxWallVel;
-	} *m_pDispatchedResults_d, *m_pDispatchedResults_h;
+	};
 
-	CCUDADefines* m_cudaDefines{ nullptr };
-	CGPU m_gpu;
-	CSimplifiedSceneGPU m_SceneGPU;
-
-	SInteractProps* m_pInteractProps;		// List of interaction properties according to current simplified scene.
+	CCUDADefines* m_cudaDefines{ new CCUDADefines{} };
+	CGPU m_gpu{ m_cudaDefines };
+	CSimplifiedSceneGPU m_sceneGPU{ m_cudaDefines };
+	SInteractProps* m_pInteractProps{ nullptr };		// List of interaction properties according to current simplified scene.
+	SDispatchedResults* m_pDispatchedResults_d{ nullptr };
+	SDispatchedResults* m_pDispatchedResults_h{ nullptr };
 
 public:
 	CGPUSimulator();
-	CGPUSimulator(const CBaseSimulator& _simulator);
-	~CGPUSimulator();
+	explicit CGPUSimulator(const CBaseSimulator& _other);
+	CGPUSimulator(const CGPUSimulator& _other) = delete;
+	CGPUSimulator(CGPUSimulator&& _other) = delete;
+	CGPUSimulator& operator=(const CGPUSimulator& _other) = delete;
+	CGPUSimulator& operator=(CGPUSimulator&& _other) = delete;
+	~CGPUSimulator() override;
 
 	void SetExternalAccel(const CVector3& _accel) override;
 
-	// Returns all current maximal and average overlap between particles with particle indexes smaller than _nMaxParticleID.
-	void GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID) override;
+	CSimplifiedSceneGPU& GetPointerToSceneGPU() { return m_sceneGPU; }
 
-	CSimplifiedSceneGPU& GetPointerToSceneGPU() { return m_SceneGPU; }
-
-	void StartSimulation() override;
-
+	void Initialize() override;
 	void InitializeModelParameters() override; // Sets model parameters to GPU memory.
 
-private:
-	void PerformSimulation();
-	void LeapFrogStep(bool _bPredictionStep);
-	void InitializeStep(double _dTimeStep) override;
-	void CalculateForces(double _dTimeStep) override;
-	void MoveObjects(double _dTimeStep, bool _bPredictionStep = false) override;
+	void UpdateCollisionsStep(double _dTimeStep) override;
 
+	void CalculateForcesStep(double _dTimeStep) override;
 	void CalculateForcesPP(double _dTimeStep) override;
 	void CalculateForcesPW(double _dTimeStep) override;
 	void CalculateForcesSB(double _dTimeStep) override;
 	void CalculateForcesEF(double _dTimeStep) override;
 
-	void MoveParticles(bool _bPredictionStep);
-	void MoveWalls(double _dTimeStep);
+	void MoveParticles(bool _bPredictionStep = false) override;
+	void MoveWalls(double _dTimeStep) override;
 
-	void InitializeModels();
-	void GenerateNewObjects();		// Generates new objects if necessary.
+	// Returns all current maximal and average overlap between particles with particle indexes smaller than _nMaxParticleID.
+	void GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID) override;
+
+private:
+	size_t GenerateNewObjects() override;	// Generates new objects if necessary.
+	void UpdatePBC() override;				// Updates moving PBC.
+
 	void PrepareAdditionalSavingData() override;
 	void SaveData() override;
 	void UpdateVerletLists(double _dTimeStep);
@@ -78,7 +80,7 @@ private:
 
 	void CUDAInitializeWalls();			// create or update information about walls for GPU
 
-	void InitializeSimulator();
+	void Construct(); // Constructs the simulator.
 
 	// Check that all particles have correct coordinates and update coordinates of virtual particles.
 	// If some real particles crossed the PBC boundaries, returns true (meaning the need to update verlet lists).

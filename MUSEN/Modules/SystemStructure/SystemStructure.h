@@ -14,100 +14,7 @@
 #include "MaterialsDatabase.h"
 #include "ProtoFunctions.h"
 #include "DemStorage.h"
-
-struct SGeometryObject
-{
-	struct SInterval
-	{
-		double dCriticalValue;
-		CVector3 vVel;
-		CVector3 vRotVel;
-		CVector3 vRotCenter;
-	}; // time dependent velocity
-
-	std::string sName;
-	std::string sKey;
-	double dMass;						// if 0 then newtons law will not be calculated
-	CVector3 vFreeMotion;				// if some component equal to true
-	std::vector <size_t> vPlanes;		// indexes of triangular planes which are included into this object
-	std::vector<SInterval> vIntervals;	// time or force dependent velocities of planes
-	EVolumeType nVolumeType;			// sphere, box, etc.
-	std::vector<double> vProps;
-	CMatrix3 mRotation;
-	CColor color;						// user defined color of the geometry.
-	bool bRotateAroundCenter;			// true if it is necessary to ratote around center
-	bool bForceDepVel;		// if true - then vTDVel should be considered as force-dependent values
-	size_t nCurrentInterval;			// in force-dependent motion several vleocity intervals can be defined - this is an index of current interval
-
-
-	void UpdateCurrentInterval(double _dNewCriticalValue)
-	{
-		if ( nCurrentInterval+1 < vIntervals.size() )
-			if (!bForceDepVel) // time
-			{
-				if (vIntervals[nCurrentInterval].dCriticalValue <= _dNewCriticalValue)
-					nCurrentInterval++;
-			}
-			else // force
-			{
-				if (nCurrentInterval == 0) // first interval
-				{
-					if (vIntervals[nCurrentInterval].dCriticalValue < _dNewCriticalValue)
-						nCurrentInterval++;
-				}
-				else
-				{
-					if (vIntervals[nCurrentInterval-1].dCriticalValue > vIntervals[nCurrentInterval].dCriticalValue)
-					{
-						if (vIntervals[nCurrentInterval].dCriticalValue > _dNewCriticalValue)
-							nCurrentInterval++;
-					}
-					else
-					{
-						if (vIntervals[nCurrentInterval].dCriticalValue < _dNewCriticalValue)
-							nCurrentInterval++;
-					}
-				}
-			}
-	}
-
-	CVector3 GetCurrentVel( )
-	{
-		if (vIntervals.empty())
-			return CVector3(0);
-		return vIntervals[nCurrentInterval].vVel;
-	}
-
-	CVector3 GetCurrentRotVel( )
-	{
-		if (vIntervals.empty())
-			return CVector3(0);
-		return vIntervals[nCurrentInterval].vRotVel;
-	}
-
-	CVector3 GetCurrentRotCenter( )
-	{
-		if (vIntervals.empty())
-			return CVector3(0);
-		return vIntervals[nCurrentInterval].vRotCenter;
-	}
-
-	void AddTimePoint()
-	{
-		if (!vIntervals.empty())
-			vIntervals.push_back(vIntervals.back());
-		else
-		{
-			SInterval tempValue;
-			tempValue.dCriticalValue = 0;
-			tempValue.vRotCenter.Init(0);
-			tempValue.vRotVel.Init(0);
-			tempValue.vVel.Init(0);
-			vIntervals.push_back(tempValue);
-		}
-	}
-
-};
+#include "RealGeometry.h"
 
 class CDemStorage;
 
@@ -128,8 +35,8 @@ public:
 private:
 	std::vector<CPhysicalObject*> objects;				// all physical objects in the system
 	std::vector<std::vector<size_t>> m_Multispheres;
-	std::vector<SGeometryObject*> m_Geometries;			// List of defined real geometries.
-	std::vector<CAnalysisVolume*> m_AnalysisVolumes;	// List of defined analysis volumes.
+	std::vector<std::unique_ptr<CRealGeometry>> m_geometries;			// List of defined real geometries.
+	std::vector<std::unique_ptr<CAnalysisVolume>> m_analysisVolumes;	// List of defined analysis volumes.
 
 	//////////////////////////////////////////////////////////////////////////
 	/// Simulation and scene settings
@@ -193,10 +100,12 @@ public:
 
 	std::vector<CPhysicalObject*> GetAllActiveObjects(double _dTime, unsigned _nObjectType = UNKNOWN_OBJECT);
 	std::vector<CSphere*> GetAllSpheres(double _time, bool _onlyActive = true);
-	std::vector<CSolidBond*> GetAllSolidBonds(double _time, bool _onlyActive = true);
-	std::vector<CLiquidBond*> GetAllLiquidBonds(double _time, bool _onlyActive = true);
-	std::vector<CBond*> GetAllBonds(double _time, bool _onlyActive = true);
+	std::vector<const CSphere*> GetAllSpheres(double _time, bool _onlyActive = true) const;
+	std::vector<CSolidBond*> GetAllSolidBonds(double _time, bool _onlyActive = true) const;
+	std::vector<CLiquidBond*> GetAllLiquidBonds(double _time, bool _onlyActive = true) const;
+	std::vector<CBond*> GetAllBonds(double _time, bool _onlyActive = true) const;
 	std::vector<CTriangularWall*> GetAllWalls(double _time, bool _onlyActive = true);
+	std::vector<const CTriangularWall*> GetAllWalls(double _time, bool _onlyActive = true) const;
 	std::vector<CTriangularWall*> GetAllWallsForGeometry(double _time, const std::string& _geometryKey, bool _onlyActive = true);
 
 	bool IsParticlesExist() const;		// Returns whether particles are defined on scene.
@@ -226,7 +135,7 @@ public:
 	// returns the volume of the bond
 	double GetBondVolume(double _dTime, size_t _nBondID);
 	CVector3 GetBondVelocity(double _dTime, size_t _nBondID);
-	CVector3 GetBondCoordinate(double _dTime, size_t _nBondID);
+	CVector3 GetBondCoordinate(double _dTime, size_t _nBondID) const;
 	CVector3 GetBond(double _dTime, size_t _nBondID) const;
 
 	// return the maximal time for which the objects have been defined
@@ -236,6 +145,7 @@ public:
 	std::vector<double> GetAllTimePointsOldFormat();
 
 	// return maximal/minimal values of coordinates for specified time point
+	SVolumeType GetBoundingBox(double _time = 0) const;
 	CVector3 GetMaxCoordinate(const double _dTime = 0);
 	CVector3 GetMinCoordinate(const double _dTime = 0);
 
@@ -330,136 +240,92 @@ public:
 	// Sets the flag to consider the contact radius of particles.
 	void EnableContactRadius(bool _bEnable);
 
+	// TODO: remove unused
 	//////////////////////////////////////////////////////////////////////////
 	/// Functions to work with real geometries
 
 	// Returns number of defined real geometries.
-	size_t GetGeometriesNumber() const;
+	size_t GeometriesNumber() const;
 	// Returns pointers to a all real geometry.
-	std::vector<SGeometryObject*> GetAllGeometries() const;
+	std::vector<CRealGeometry*> AllGeometries();
+	// Returns pointers to a all real geometry.
+	std::vector<const CRealGeometry*> AllGeometries() const;
 	// Returns constant pointer to a specified real geometry.
-	const SGeometryObject* GetGeometry(size_t _iGeometry) const;
+	const CRealGeometry* Geometry(size_t _index) const;
 	// Returns pointer to a specified real geometry.
-	SGeometryObject* GetGeometry(size_t _iGeometry);
+	CRealGeometry* Geometry(size_t _index);
 	// Returns constant pointer to a specified real geometry.
-	const SGeometryObject* GetGeometry(const std::string& _sKey) const;
+	const CRealGeometry* Geometry(const std::string& _key) const;
 	// Returns pointer to a specified real geometry.
-	SGeometryObject* GetGeometry(const std::string& _sKey);
+	CRealGeometry* Geometry(const std::string& _key);
 	// Returns constant pointer to a specified real geometry.
-	const SGeometryObject* GetGeometryByName(const std::string& _name) const;
+	const CRealGeometry* GeometryByName(const std::string& _name) const;
 	// Returns pointer to a specified real geometry.
-	SGeometryObject* GetGeometryByName(const std::string& _name);
-	// Returns index of a specified real geometry or std::numeric_limits<size_t>::max() if geometry with such key has not been defined.
-	size_t GetGeometryIndex(const std::string& _sKey) const;
-	// Returns a list of valid triangular walls belonging to a specified real geometry.
-	std::vector<CTriangularWall*> GetGeometryWalls(size_t _iGeometry);
-	// Returns a list of valid triangular walls belonging to a specified real geometry.
-	std::vector<const CTriangularWall*> GetGeometryWalls(size_t _iGeometry) const;
+	CRealGeometry* GeometryByName(const std::string& _name);
+	// Returns index of a specified real geometry or -1 if geometry with such key has not been defined.
+	size_t GeometryIndex(const std::string& _key) const;
 
 	// Adds new real geometry and returns pointer to it.
-	SGeometryObject* AddGeometry();
+	CRealGeometry* AddGeometry();
 	// Adds new real geometry with provided mesh and returns pointer to it.
-	SGeometryObject* AddGeometry(const CTriangularMesh& _mesh);
+	CRealGeometry* AddGeometry(const CTriangularMesh& _mesh);
 	// Adds new real geometry of specified type with selected parameters and returns pointer to it.
-	SGeometryObject* AddGeometry(const EVolumeType& _type, const std::vector<double>& _params, const CVector3& _center, const CMatrix3& _rotation, size_t _accuracy = 0);
+	CRealGeometry* AddGeometry(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center);
 	// Removes specified geometry.
-	void DeleteGeometry(size_t _iGeometry);
+	void DeleteGeometry(size_t _index);
+	// Removes specified geometry.
+	void DeleteGeometry(const std::string& _key);
 	// Removes all geometries.
 	void DeleteAllGeometries();
 	// Moves selected geometry upwards in the list of geometries.
-	void UpGeometry(size_t _iGeometry);
+	void UpGeometry(const std::string& _key);
 	// Moves selected geometry downwards in the list of geometries.
-	void DownGeometry(size_t _iGeometry);
+	void DownGeometry(const std::string& _key);
 
-	// Returns center of a specified real geometry.
-	CVector3 GetGeometryCenter(double _dTime, size_t _iGeometry) const;
-	// Moves geometry to a point with specified coordinates.
-	void SetGeometryCenter(double _dTime, size_t _iGeometry, const CVector3& _vCoord);
-	// Sets compound as the material of all related planes for specified geometry.
-	void SetGeometryMaterial(size_t _iGeometry, const CCompound* _pCompound);
-	// Sets compound as the material of all related planes for specified geometry.
-	void SetGeometryMaterial(const std::string& _sKey, const CCompound* _pCompound);
-	// Scales specified geometry by the given factor.
-	void ScaleGeometry(double _dTime, size_t _iGeometry, double _factor);
-	// Rotates specified geometry according to the given rotational matrix.
-	void RotateGeometry(double _dTime, size_t _iGeometry, const CMatrix3& _rotation);
+	// Returns all unique keys of real geometries.
+	std::vector<std::string> GeometriesKeys() const;
 
 	//////////////////////////////////////////////////////////////////////////
 	/// Functions to work with analysis volumes
 
 	// Returns number of defined analysis volumes.
-	size_t GetAnalysisVolumesNumber() const;
+	size_t AnalysisVolumesNumber() const;
 	// Returns pointers to all specified analysis volumes.
-	std::vector<CAnalysisVolume*> GetAllAnalysisVolumes() const;
+	std::vector<CAnalysisVolume*> AllAnalysisVolumes();
+	// Returns pointers to all specified analysis volumes.
+	std::vector<const CAnalysisVolume*> AllAnalysisVolumes() const;
 	// Returns constant pointer to a specified analysis volume.
-	const CAnalysisVolume* GetAnalysisVolume(size_t _iVolume) const;
+	const CAnalysisVolume* AnalysisVolume(size_t _index) const;
 	// Returns pointer to a specified analysis volume.
-	CAnalysisVolume* GetAnalysisVolume(size_t _iVolume);
+	CAnalysisVolume* AnalysisVolume(size_t _index);
 	// Returns constant pointer to a specified analysis volume.
-	const CAnalysisVolume* GetAnalysisVolume(const std::string& _volumeKey) const;
+	const CAnalysisVolume* AnalysisVolume(const std::string& _key) const;
 	// Returns pointer to a specified analysis volume.
-	CAnalysisVolume* GetAnalysisVolume(const std::string& _volumeKey);
-	// Returns constant pointer to a specified analysis volume.
-	const CAnalysisVolume* GetAnalysisVolumeByName(const std::string& _volumeName) const;
-	// Returns pointer to a specified analysis volume.
-	CAnalysisVolume* GetAnalysisVolumeByName(const std::string& _volumeName);
-	// Returns index of a specified analysis volume or std::numeric_limits<size_t>::max() if volume with such key has not been defined.
-	size_t GetAnalysisVolumeIndex(const std::string& _volumeKey) const;
+	CAnalysisVolume* AnalysisVolume(const std::string& _key);
+	// Returns constant pointer to a first analysis volume. with the specified name.
+	const CAnalysisVolume* AnalysisVolumeByName(const std::string& _name) const;
+	// Returns pointer to a first analysis volume. with the specified name.
+	CAnalysisVolume* AnalysisVolumeByName(const std::string& _name);
+	// Returns index of a specified analysis volume or -1 if volume with such key has not been defined.
+	size_t AnalysisVolumeIndex(const std::string& _key) const;
 
-	// Returns vector of indices of all particles placed in the volume.
-	std::vector<size_t> GetParticleIndicesInVolume(double _time, size_t _iVolume, bool _bTotallyInVolume = true);
-	// Returns vector of indices of all particles placed in the volume.
-	std::vector<size_t> GetParticleIndicesInVolume(double _time, const std::string& _volumeKey, bool _bTotallyInVolume = true);
-	// Returns vector of all particles placed in the volume.
-	std::vector<CSphere*> GetParticlesInVolume(double _time, const std::string& _volumeKey, bool _bTotallyInVolume = true);
-	// Returns vector of indices of solid bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<size_t> GetSolidBondIndicesInVolume(double _time, size_t _iVolume);
-	// Returns vector of indices of solid bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<size_t> GetSolidBondIndicesInVolume(double _time, const std::string& _volumeKey);
-	// Returns vector of solid bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<CSolidBond*> GetSolidBondsInVolume(double _time, const std::string& _volumeKey);
-	// Returns vector of indices of liquid bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<size_t> GetLiquidBondIndicesInVolume(double _time, size_t _iVolume);
-	// Returns vector of indices of liquid bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<size_t> GetLiquidBondIndicesInVolume(double _time, const std::string& _volumeKey);
-	// Returns vector of liquid bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<CLiquidBond*> GetLiquidBondsInVolume(double _time, const std::string& _volumeKey);
-	// Returns vector of indices of bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<size_t> GetBondIndicesInVolume(double _time, size_t _iVolume);
-	// Returns vector of indices of bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<size_t> GetBondIndicesInVolume(double _time, const std::string& _volumeKey);
-	// Returns vector of bonds placed in the volume. Middle point between two aligned particles is used as bond's coordinate.
-	std::vector<CBond*> GetBondsInVolume(double _time, const std::string& _volumeKey);
-	// Returns vector of indices of walls placed in the volume. A wall is in the volume only of all its edges are inside.
-	std::vector<size_t> GetWallIndicesInVolume(double _time, size_t _iVolume);
-	// Returns vector of indices of walls placed in the volume. A wall is in the volume only of all its edges are inside.
-	std::vector<size_t> GetWallIndicesInVolume(double _time, const std::string& _volumeKey);
-	// Returns vector of walls placed in the volume. A wall is in the volume only of all its edges are inside.
-	std::vector<CTriangularWall*> GetWallsInVolume(double _time, const std::string& _volumeKey);
-	// Finds all coordinates situated in the volume and returns their indexes.
-	std::vector<size_t> GetObjectIndicesInVolume(double _time, const std::vector<CVector3>& _coords, size_t _iVolume);
-
-	// Adds new analysis volume and returns pointer to it.
+	// Adds a new analysis volume and returns a pointer to it.
 	CAnalysisVolume* AddAnalysisVolume();
-	// Adds new analysis volume with provided mesh and returns pointer to it.
+	// Adds a new analysis volume with provided mesh and returns a pointer to it.
 	CAnalysisVolume* AddAnalysisVolume(const CTriangularMesh& _mesh);
-	// Adds new analysis volume of specified type with selected parameters and returns pointer to it.
-	CAnalysisVolume* AddAnalysisVolume(const EVolumeType& _type, const std::vector<double>& _params, const CVector3& _center, const CMatrix3& _rotation, size_t _accuracy = 0);
+	// Adds a new analysis volume of specified type with selected parameters and returns a pointer to it.
+	CAnalysisVolume* AddAnalysisVolume(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center);
 	// Removes specified analysis volume.
-	void DeleteAnalysisVolume(size_t _iVolume);
+	void DeleteAnalysisVolume(size_t _index);
+	// Removes specified analysis volume.
+	void DeleteAnalysisVolume(const std::string& _key);
 	// Moves selected analysis volume upwards in the list of analysis volumes.
-	void UpAnalysisVolume(size_t _iVolume);
+	void UpAnalysisVolume(const std::string& _key);
 	// Moves selected analysis volume downwards in the list of analysis volumes.
-	void DownAnalysisVolume(size_t _iVolume);
+	void DownAnalysisVolume(const std::string& _key);
 
-	// Returns center of a specified analysis volume.
-	CVector3 GetAnalysisVolumeCenter(size_t _iVolume, double _dTime ) const;
-	// Moves analysis volume to a point with specified coordinates.
-	void SetAnalysisVolumeCenter(size_t _iVolume, const CVector3& _vCoord);
-	// Scales specified analysis volume by the given factor.
-	void ScaleAnalysisVolume(size_t _iVolume, double _factor);
-	// Rotates specified analysis volume according to the given rotational matrix.
-	void RotateAnalysisVolume(size_t _iVolume, const CMatrix3& _rotation);
+	// Returns all unique keys of analysis volumes.
+	std::vector<std::string> AnalysisVolumesKeys() const;
 
 	// Clears all time-dependent data for zero time point.
 	void ClearAllTDData();

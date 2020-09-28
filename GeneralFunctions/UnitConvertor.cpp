@@ -46,6 +46,9 @@ CUnitConvertor::CUnitConvertor()
 	m_vProperties.push_back(EUnitType::ANGULAR_VELOCITY);
 	m_vDefaultUnitType.push_back( 0 ); // rad/s
 
+	m_vProperties.push_back(EUnitType::ANGLE);
+	m_vDefaultUnitType.push_back( 0 ); // °
+
 	m_vSelectedUnitType.resize( m_vDefaultUnitType.size() );
 	for ( unsigned i=0; i < m_vSelectedUnitType.size(); i++ )
 		m_vSelectedUnitType[ i ] = m_vDefaultUnitType[ i ];
@@ -71,6 +74,7 @@ std::string CUnitConvertor::GetPropertyName(EUnitType _nPropType)
 	case EUnitType::PSD_q3           : return "q3";
 	case EUnitType::STRESS           : return "Stress";
 	case EUnitType::ANGULAR_VELOCITY : return "Angular velocity";
+	case EUnitType::ANGLE            : return "Angle";
 	}
 	return "";
 }
@@ -115,7 +119,7 @@ void CUnitConvertor::RestoreDefaultUnits()
 		m_vSelectedUnitType[ i ] = m_vDefaultUnitType[ i ];
 }
 
-std::vector<std::string> CUnitConvertor::GetPossibleUnitsByIndex( unsigned _nPropertyIndex )
+std::vector<std::string> CUnitConvertor::GetPossibleUnitsByIndex( unsigned _nPropertyIndex)  const
 {
 	std::vector<std::string> vResultVector;
 	if ( _nPropertyIndex >= m_vProperties.size() )
@@ -202,9 +206,14 @@ std::vector<std::string> CUnitConvertor::GetPossibleUnitsByIndex( unsigned _nPro
 		vResultVector.push_back("KPa");
 		vResultVector.push_back("MPa");   // default value
 		vResultVector.push_back("GPa");
+		break;
 	case EUnitType::ANGULAR_VELOCITY:
 		vResultVector.push_back("rad/s"); // default value
 		vResultVector.push_back("rpm");
+		break;
+	case EUnitType::ANGLE:
+		vResultVector.push_back("°"); // default value
+		vResultVector.push_back("rad");
 		break;
 	}
 	return vResultVector;
@@ -229,6 +238,7 @@ double CUnitConvertor::GetValue(EUnitType _nPropertyType, double _dValueSI) cons
 	case EUnitType::PSD_q3: return _dValueSI/GetParticleDiameter( 1 );
 	case EUnitType::STRESS: return GetStress( _dValueSI );
 	case EUnitType::ANGULAR_VELOCITY: return GetAngVelocity( _dValueSI );
+	case EUnitType::ANGLE: return GetAngle( _dValueSI );
 	case EUnitType::NONE: return _dValueSI;
 	}
 	return 0;
@@ -253,12 +263,13 @@ double CUnitConvertor::GetValueSI(EUnitType _nPropertyType, double _dValue) cons
 	case EUnitType::PSD_q3: return _dValue * GetParticleDiameter(1);
 	case EUnitType::STRESS: return GetStressSI(_dValue);
 	case EUnitType::ANGULAR_VELOCITY: return GetAngVelocitySI(_dValue);
+	case EUnitType::ANGLE: return GetAngleSI(_dValue);
 	case EUnitType::NONE: return _dValue;
 	}
 	return 0;
 }
 
-std::string CUnitConvertor::GetSelectedUnit(EUnitType _nPropertyType)
+std::string CUnitConvertor::GetSelectedUnit(EUnitType _nPropertyType) const
 {
 	std::string sTemp = "1/";
 	if (_nPropertyType == EUnitType::PSD_q0 || _nPropertyType == EUnitType::PSD_q3)
@@ -312,15 +323,15 @@ double CUnitConvertor::GetMassStream( double _dMassStreamSI ) const
 	return 0;
 }
 
-double CUnitConvertor::GetMass( double _dMassStreamSI ) const
+double CUnitConvertor::GetMass( double _dMassSI ) const
 {
 	int nIndex = GetPropIndex(EUnitType::MASS);
 	if (nIndex < 0) return 0;
 	switch (m_vSelectedUnitType[nIndex])
 	{
-	case 0:		return _dMassStreamSI * 1000; // [g]
-	case 1:		return _dMassStreamSI; //[kg]
-	case 2:		return _dMassStreamSI / 1000; // [t]
+	case 0:		return _dMassSI * 1000; // [g]
+	case 1:		return _dMassSI; //[kg]
+	case 2:		return _dMassSI / 1000; // [t]
 	}
 	return 0;
 }
@@ -406,6 +417,18 @@ double CUnitConvertor::GetAngVelocity(double _dVelocitySI) const
 	{
 	case 0:		return _dVelocitySI; // [rad/s]
 	case 1:		return _dVelocitySI * 9.54929658551369; // [rpm]
+	}
+	return 0;
+}
+
+double CUnitConvertor::GetAngle(double _dAngleSI) const
+{
+	int nIndex = GetPropIndex(EUnitType::ANGLE);
+	if (nIndex < 0) return 0;
+	switch (m_vSelectedUnitType[nIndex])
+	{
+	case 0:		return _dAngleSI; // [°]
+	case 1:		return _dAngleSI * 0.01745329251994; // [rad]
 	}
 	return 0;
 }
@@ -577,6 +600,16 @@ double CUnitConvertor::GetAngVelocitySI(double _dValue) const
 	{
 	case 0:		return _dValue; // [rad/s]
 	case 1:		return _dValue / 9.54929658551369; // [rpm]
+	}
+	return 0;
+}
+
+double CUnitConvertor::GetAngleSI(double _dValue) const
+{
+	switch (m_vSelectedUnitType[GetPropIndex(EUnitType::ANGLE)])
+	{
+	case 0:		return _dValue; // [°]
+	case 1:		return _dValue / 0.01745329251994; // [rad]
 	}
 	return 0;
 }

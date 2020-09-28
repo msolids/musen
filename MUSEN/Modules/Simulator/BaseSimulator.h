@@ -24,13 +24,64 @@ public:
 		size_t maxBrokenBonds{ 0 }; // EStopCriteria::BROKEN_BONDS
 	};
 
+protected:
+	struct SAdditionalSavingData
+	{
+		CMatrix3 stressTensor;
+		void AddStress(const CVector3& _contVector, const CVector3& _force, double _volume);
+	};
+
+	double m_currentTime{ 0.0 };							// Current time where simulator is situated.
+	double m_endTime{ DEFAULT_END_TIME };					// Last time point which must be simulated.
+	double m_initSimulationStep{ DEFAULT_SIMULATION_STEP }; // Initial simulation time step.
+	double m_currSimulationStep{ DEFAULT_SIMULATION_STEP }; // Current simulation time step; can change during the simulation.
+	double m_savingStep{ DEFAULT_SAVING_STEP };				// Current saving time interval.
+	double m_lastSavingTime{ 0.0 };							// Last time point when data has been saved.
+	bool m_isPredictionStep{ true };						// Determines whether current simulation step is a prediction step.
+
+	ERunningStatus m_status{ ERunningStatus::IDLE };			// Current status of the simulator - IDLE, RUNNING, etc.
+	CVector3 m_externalAcceleration{ 0, 0, -GRAVITY_CONSTANT };	// Value of external acceleration in the system.
+
+	size_t m_nInactiveParticles{ 0 };								// Number of particles which lost their activity during simulation.
+	size_t m_nBrockenBonds{ 0 };									// Number of the broken bonds.
+	size_t m_nBrockenLiquidBonds{ 0 };								// Number of the ruptured liquid bonds.
+	size_t m_nGeneratedObjects{ 0 };								// Number of generated objects.
+	double m_maxParticleVelocity{ 0 };								// Maximal velocity of particle which is used to calculate verlet list.
+	double m_maxWallVelocity{ 0 };									// Maximal velocity of walls.
+	bool m_wallsVelocityChanged{ true };							// Need to recalculate maximal wall velocity.
+	uint32_t m_cellsMax{ DEFAULT_MAX_CELLS };						// Maximum allowed number of cells in each direction of verlet list.
+	double m_verletDistanceCoeff{ DEFAULT_VERLET_DISTANCE_COEFF };	// A coefficient to calculate verlet distance within a verlet list.
+	bool m_autoAdjustVerletDistance{ true };						// If set to true - the verlet distance will be automatically adjusted during the simulation.
+	bool m_considerAnisotropy{ false };								// Consider anisotropy of non-spherical objects during the simulation.
+	bool m_variableTimeStep{ false };								// Use variable or constant simulation time step.
+	double m_partMoveLimit{ 1e-8 };									// Max movement of particles over a single time step; is used to calculate flexible time step.
+	double m_timeStepFactor{ 1.01 };								// Factor used to increase current simulation time step if flexible time step is used.
+
+	CGenerationManager* m_generationManager{ nullptr };
+	CSimplifiedScene m_scene;				// simplified scene
+	CVerletList m_verletList{ m_scene };	// verlet lists
+
+	CParticleParticleModel* m_pPPModel{ nullptr };
+	CParticleWallModel* m_pPWModel{ nullptr };
+	CSolidBondModel* m_pSBModel{ nullptr };
+	CLiquidBondModel* m_pLBModel{ nullptr };
+	CExternalForceModel* m_pEFModel{ nullptr };
+	std::vector<CAbstractDEMModel*> m_models;	// All active models.
+
+	std::vector<SAdditionalSavingData> m_additionalSavingData;
+
+	// For performance analysis in console
+	std::chrono::steady_clock::time_point m_chronoSimStart;
+	std::chrono::steady_clock::time_point m_chronoPauseStart;
+	int64_t m_chronoPauseLength{ 0 }; // [ms]
+
 private:
-	ESimulatorType m_simulatorType;	// Type of current simulator.
-	CModelManager* m_pModelManager;
+	ESimulatorType m_simulatorType{ ESimulatorType::BASE };	// Type of current simulator.
+	CModelManager* m_modelManager{ nullptr };
 
 	// selective saving
-	bool m_bSelectiveSaving;
-	SSelectiveSavingFlags m_SSelectiveSavingFlags;
+	bool m_selectiveSaving{ false };
+	SSelectiveSavingFlags m_selectiveSavingFlags;
 
 	// additional saving steps
 	std::list<std::function<void()>> m_additionalSavingSteps; // List of additional steps called during saving.
@@ -39,72 +90,12 @@ private:
 	std::vector<EStopCriteria> m_stopCriteria;	// Active additional simulation stop criteria.
 	SStopValues m_stopValues;					// Values for additional simulation stop criteria.
 
-protected:
-	struct SAdditionalSavingDataPart
-	{
-		CMatrix3 sStressTensor;
-		void AddStress(const CVector3& _vContVector, const CVector3& _vForce, double _dVolume )
-		{
-			sStressTensor.values[0][0] += _vContVector.x*_vForce.x / _dVolume;
-			sStressTensor.values[0][1] += _vContVector.x*_vForce.y / _dVolume;
-			sStressTensor.values[0][2] += _vContVector.x*_vForce.z / _dVolume;
-
-			sStressTensor.values[1][0] += _vContVector.y*_vForce.x / _dVolume;
-			sStressTensor.values[1][1] += _vContVector.y*_vForce.y / _dVolume;
-			sStressTensor.values[1][2] += _vContVector.y*_vForce.z / _dVolume;
-
-			sStressTensor.values[2][0] += _vContVector.z*_vForce.x / _dVolume;
-			sStressTensor.values[2][1] += _vContVector.z*_vForce.y / _dVolume;
-			sStressTensor.values[2][2] += _vContVector.z*_vForce.z / _dVolume;
-		}
-	};
-
-	double m_dCurrentTime;		 // Current time where simulator is situated.
-	double m_dEndTime;			 // Last time point which must be simulated.
-	double m_initSimulationStep; // Initial simulation time step.
-	double m_currSimulationStep; // Current simulation time step; can change during the simulation.
-	double m_dSavingStep;		 // Current saving time interval.
-	double m_dLastSavingTime;	 // Last time point when data has been saved.
-	bool m_bPredictionStep;		 // Determines whether current simulation step is a prediction step.
-	CVector3 m_vecExternalAccel; // Value of external acceleration in the system.
-
-	ERunningStatus m_nCurrentStatus;		// Current Status - IDLE, etc.
-	size_t m_nInactiveParticlesNumber;		// Number of particles which lost their activity during simulation.
-	unsigned m_nBrockenBondsNumber;			// Number of the broken bonds.
-	unsigned m_nBrockenLiquidBondsNumber;	// Number of the ruptured liquid bonds.
-	unsigned m_nGeneratedObjects;			// Number of generated objects.
-	double m_dMaxParticleVelocity;			// Maximal velocity of particle which is used to calculate verlet list.
-	double m_dMaxWallVelocity;				// Maximal velocity of walls.
-	bool m_bWallsVelocityChanged;			// Need to recalculate maximal wall velocity.
-	uint32_t m_nCellsMax;					// Maximum allowed number of cells in each direction of verlet list.
-	double m_dVerletDistanceCoeff;			// A coefficient to calculate verlet distance within a verlet list.
-	bool m_bAutoAdjustVerletDistance;		// If set to true - the verlet distance will be automatically adjusted during the simulation.
-	bool m_bConsiderAnisotropy;				// Consider anisotropy of non-spherical objects during the simulation.
-	bool m_bVariableTimeStep;				// Use variable or constant simulation time step.
-	double m_partMoveLimit;					// Max movement of particles over a single time step; is used to calculate flexible time step.
-	double m_timeStepFactor;		        // Factor used to increase current simulation time step if flexible time step is used.
-
-	CGenerationManager* m_pGenerationManager;
-	CSimplifiedScene m_Scene;	// simplified scene
-	CVerletList m_VerletList;	// verlet lists
-
-	CParticleParticleModel* m_pPPModel;
-	CParticleWallModel* m_pPWModel;
-	CSolidBondModel* m_pSBModel;
-	CLiquidBondModel* m_pLBModel;
-	CExternalForceModel* m_pEFModel;
-	std::vector<CAbstractDEMModel*> m_models;	// All active models.
-	std::vector<SAdditionalSavingDataPart> m_vAddSavingDataPart;
-
-	// For performance analysis in console
-	std::chrono::steady_clock::time_point m_chronoSimStart;
-	std::chrono::steady_clock::time_point m_chronoPauseStart;
-	int64_t m_chronoPauseLength{ 0 }; // [ms]
-
 public:
-	CBaseSimulator();
-	CBaseSimulator(const CBaseSimulator& _simulator);
-	virtual ~CBaseSimulator() = default;
+	CBaseSimulator() = default;
+	CBaseSimulator(const CBaseSimulator& _other);
+	CBaseSimulator(CBaseSimulator&& _other) = delete;
+	CBaseSimulator& operator=(CBaseSimulator&& _other) = delete;
+	~CBaseSimulator() override = default;
 
 	CBaseSimulator& operator =(const CBaseSimulator& _simulator);
 
@@ -156,20 +147,37 @@ public:
 	size_t GetNumberOfGeneratedObjects() const;
 	double GetMaxParticleVelocity() const;
 	// Returns all current maximal and average overlap between particles with particle indexes smaller than _nMaxParticleID.
-	virtual void GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID) {};
+	virtual void GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID) {}
 
 	CVector3 GetExternalAccel() const;
 	virtual void SetExternalAccel(const CVector3& _accel);
 
 	std::string IsDataCorrect() const;	// Checks data correctness.
 
-	virtual void InitializeModelParameters() {}
+	virtual void Initialize();					// Initializes simulator before start.
+	virtual void InitializeModels();			// Initializes all selected models.
+	virtual void InitializeModelParameters();	// Initializes parameters used in models.
 
-	virtual void StartSimulation() {}
+	virtual void Simulate();
+	virtual void StartSimulation();		// Starts the simulation procedure.
+	virtual void FinalizeSimulation();	// Is called after the simulation is finished.
 
-	CSimplifiedScene& GetPointerToSimplifiedScene() { return m_Scene; }
+	virtual void PreCalculationStep();
+	virtual void UpdateCollisionsStep(double _timeStep) {}
+	virtual void CalculateForcesStep(double _timeStep) {}
+	virtual void CalculateForcesPP(double _timeStep) {}
+	virtual void CalculateForcesPW(double _timeStep) {}
+	virtual void CalculateForcesSB(double _timeStep) {}
+	virtual void CalculateForcesLB(double _timeStep) {}
+	virtual void CalculateForcesEF(double _timeStep) {}
 
-	virtual void PrepareAdditionalSavingData()=0;
+	virtual void MoveObjectsStep(double _timeStep, bool _predictionStep = false);
+	virtual void MoveParticles(bool _predictionStep = false) {}
+	virtual void MoveWalls(double _timeStep) {}
+
+	CSimplifiedScene& GetPointerToSimplifiedScene() { return m_scene; }
+
+	virtual void PrepareAdditionalSavingData() {}
 
 	void SetSelectiveSaving(bool _bSelectiveSaving);
 	void SetSelectiveSavingParameters(const SSelectiveSavingFlags& _SSelectiveSavingFlags);
@@ -182,24 +190,15 @@ public:
 	void SetStopValues(const SStopValues& _values);
 
 protected:
-	virtual void InitializeStep(double _timeStep) {}
-	virtual void CalculateForces(double _timeStep) {}
-	virtual void MoveObjects(double _timeStep, bool _predictionStep = false) {}
-
-	virtual void CalculateForcesPP(double _timeStep) {}
-	virtual void CalculateForcesPW(double _timeStep) {}
-	virtual void CalculateForcesSB(double _timeStep) {}
-	virtual void CalculateForcesLB(double _timeStep) {}
-	virtual void CalculateForcesEF(double _timeStep) {}
-
 	virtual void SaveData() {}
 
-	void p_CopySimulatorData(const CBaseSimulator& _simulator);
-
-	void p_InitializeModels();		// Initializes all selected models.
-	size_t p_GenerateNewObjects();	// Generates new objects if necessary, returns number of generated objects.
+	virtual size_t GenerateNewObjects();	// Generates new objects if necessary, returns number of generated objects.
+	virtual void UpdatePBC() {}				// Updates moving PBC.
 	void p_SaveData();				// Saves current state of simplified scene into system structure.
 	void PrintStatus() const;		// Prints the current simulation status into console.
 
 	bool AdditionalStopCriterionMet(); // Checks whether any additional stop criterion is met.
+
+private:
+	void CopySimulatorData(const CBaseSimulator& _other); // Copies content of the given simulator.
 };

@@ -65,7 +65,7 @@ public:
 	void AddNewAgglomerate(SAgglomerate& _pAgglomerate);
 	unsigned GetAgglomNumber() { return (unsigned)m_vAgglomerates.size(); }
 
-	SAgglomerate* GetAgglomerate(unsigned _nIndex);
+	SAgglomerate* GetAgglomerate(size_t _nIndex);
 	SAgglomerate* GetAgglomerate(const std::string& _sKey);
 	int GetAgglomerateIndex(const std::string& _sKey);
 

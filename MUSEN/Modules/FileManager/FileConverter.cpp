@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "FileConverter.h"
+#include "MUSENFileFunctions.h"
 
 CFileConverter::CFileConverter(const std::string& _sFileName)
 {

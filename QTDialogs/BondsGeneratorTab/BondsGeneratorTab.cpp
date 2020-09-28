@@ -302,7 +302,7 @@ void CBondsGeneratorTab::UpdateGenerationStatistics() const
 	for (int i = 0; i < static_cast<int>(m_generator->GeneratorsNumber()); ++i)
 	{
 		ui.tableClasses->item(i, EColumn::NUMBER)->setText(QString::number(m_generator->Generator(i)->generatedBonds));
-		ui.tableClasses->SetProgressBarValue(i, EColumn::PROGRESS, static_cast<int>(m_generator->Generator(i)->completeness));
+		ui.tableClasses->SetProgressBar(i, EColumn::PROGRESS, static_cast<int>(m_generator->Generator(i)->completeness));
 	}
 }
 

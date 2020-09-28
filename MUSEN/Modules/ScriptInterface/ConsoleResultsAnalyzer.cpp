@@ -307,13 +307,13 @@ CConsoleResultsAnalyzer::EProcessResultType CConsoleResultsAnalyzer::SetGeometry
 {
 	const CSystemStructure* systemStructure = _analyzer.GetSystemStructure();
 	// try to find a geometry by key
-	const SGeometryObject* geometry = systemStructure->GetGeometry(_inputString);
+	const CRealGeometry* geometry = systemStructure->Geometry(_inputString);
 	// try to find a geometry by name
 	if (!geometry)
-		geometry = systemStructure->GetGeometryByName(_inputString);
+		geometry = systemStructure->GeometryByName(_inputString);
 	// check that something found
 	if (!geometry)
 		return WriteError(EProcessResultType::WrongInput, "Unknown geometry name or key: " + _inputString);
-	_analyzer.m_nGeometryIndex = systemStructure->GetGeometryIndex(geometry->sKey);
+	_analyzer.m_nGeometryIndex = systemStructure->GeometryIndex(geometry->Key());
 	return EProcessResultType::Success;
 }

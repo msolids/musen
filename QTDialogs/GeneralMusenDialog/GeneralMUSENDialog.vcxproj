@@ -91,7 +91,6 @@
     <ClCompile Include="..\..\MUSEN\MUSEN\x64\Release\GeneralMusenDialog\moc\moc_GeneralMUSENDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ColorView.cpp" />
     <ClCompile Include="GeneralMUSENDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -101,7 +100,6 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="ColorView.h" />
     <ClInclude Include="qtOperations.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -57,7 +57,7 @@ void CViewOptionsTab::InitializeConnections() const
 
 	// slicing
 	connect(ui.groupBoxSlices,		&QGroupBox::toggled,				this, &CViewOptionsTab::OnSlicingChanged);
-	connect(ui.spinBoxSliceCoords,  &CQtDoubleSpinBox::valueChanged,	this, &CViewOptionsTab::OnSlicingChanged);
+	connect(ui.spinBoxSliceCoords,  &CQtDoubleSpinBox::ValueChanged,	this, &CViewOptionsTab::OnSlicingChanged);
 	connect(&m_slicingGroup, QOverload<int, bool>::of(&QButtonGroup::buttonToggled), [=](int, bool _checked) { if (_checked) OnSlicingChanged(); });
 
 	////////// PAGE 2 - Visibility //////////
@@ -379,12 +379,12 @@ void CViewOptionsTab::UpdateCuttingVolumes() const
 	ui.listCuttingVolumes->setEnabled(cuttingSettings.cutByVolumes);
 	ui.listCuttingVolumes->clear();
 
-	for (const auto& volume : m_pSystemStructure->GetAllAnalysisVolumes())
+	for (const auto& volume : m_pSystemStructure->AllAnalysisVolumes())
 	{
-		QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(volume->sName), ui.listCuttingVolumes);
-		item->setData(Qt::UserRole, QString::fromStdString(volume->sKey));
+		QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(volume->Name()), ui.listCuttingVolumes);
+		item->setData(Qt::UserRole, QString::fromStdString(volume->Key()));
 		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-		item->setCheckState(SetContains(cuttingSettings.volumes, volume->sKey) ? Qt::Checked : Qt::Unchecked);
+		item->setCheckState(SetContains(cuttingSettings.volumes, volume->Key()) ? Qt::Checked : Qt::Unchecked);
 		ui.listCuttingVolumes->addItem(item);
 	}
 }
@@ -431,7 +431,7 @@ void CViewOptionsTab::UpdateParticlesVisibility() const
 
 void CViewOptionsTab::UpdateBondsVisibility() const
 {
-	/*[[maybe_unused]]*/ CQtSignalBlocker blocker({ ui.groupBoxShowBonds, ui.listBondsMaterials });
+	/*[[maybe_unused]]*/ CQtSignalBlocker blocker({ ui.groupBoxShowBonds, ui.listBondsMaterials, ui.colorBrokenBonds });
 
 	const CViewSettings::SVisibility visibilitySettings = m_viewSettings->Visibility();
 	const auto visibleBondMaterials = m_viewSettings->VisibleBondMaterials();
@@ -456,7 +456,7 @@ void CViewOptionsTab::UpdateBondsVisibility() const
 	ui.groupBoxBrokenBonds->setChecked(brokenBondsSettings.show);
 	ShowConvValue(ui.lineEditTimeBegBrokenBonds, brokenBondsSettings.startTime, EUnitType::TIME);
 	ShowConvValue(ui.lineEditTimeEndBrokenBonds, brokenBondsSettings.endTime,	EUnitType::TIME);
-	ui.colorBrokenBonds->setColor(brokenBondsSettings.color);
+	ui.colorBrokenBonds->SetColor(brokenBondsSettings.color);
 }
 
 void CViewOptionsTab::UpdateGeometriesVisibility() const
@@ -471,12 +471,12 @@ void CViewOptionsTab::UpdateGeometriesVisibility() const
 
 	// geometries
 	ui.listGeometries->clear();
-	for (const auto& geometry : m_pSystemStructure->GetAllGeometries())
+	for (const auto& geometry : m_pSystemStructure->AllGeometries())
 	{
-		QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(geometry->sName), ui.listGeometries);
-		item->setData(Qt::UserRole, QString::fromStdString(geometry->sKey));
+		QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(geometry->Name()), ui.listGeometries);
+		item->setData(Qt::UserRole, QString::fromStdString(geometry->Key()));
 		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-		item->setCheckState(SetContains(visibleGeometries, geometry->sKey) ? Qt::Checked : Qt::Unchecked);
+		item->setCheckState(SetContains(visibleGeometries, geometry->Key()) ? Qt::Checked : Qt::Unchecked);
 		ui.listGeometries->addItem(item);
 	}
 
@@ -497,12 +497,12 @@ void CViewOptionsTab::UpdateVolumesVisibility() const
 
 	// volumes
 	ui.listVolumes->clear();
-	for (const auto& volume : m_pSystemStructure->GetAllAnalysisVolumes())
+	for (const auto& volume : m_pSystemStructure->AllAnalysisVolumes())
 	{
-		QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(volume->sName), ui.listVolumes);
-		item->setData(Qt::UserRole, QString::fromStdString(volume->sKey));
+		QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(volume->Name()), ui.listVolumes);
+		item->setData(Qt::UserRole, QString::fromStdString(volume->Key()));
 		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-		item->setCheckState(SetContains(visibleVolumes, volume->sKey) ? Qt::Checked : Qt::Unchecked);
+		item->setCheckState(SetContains(visibleVolumes, volume->Key()) ? Qt::Checked : Qt::Unchecked);
 		ui.listVolumes->addItem(item);
 	}
 }
@@ -534,8 +534,8 @@ void CViewOptionsTab::SelectAllGeometries() const
 {
 	auto visibleGeometries = m_viewSettings->VisibleGeometries();
 	visibleGeometries.clear();
-	for (const auto& geometry : m_pSystemStructure->GetAllGeometries())
-		visibleGeometries.insert(geometry->sKey);
+	for (const auto& geometry : m_pSystemStructure->AllGeometries())
+		visibleGeometries.insert(geometry->Key());
 	m_viewSettings->VisibleGeometries(visibleGeometries);
 }
 
@@ -543,8 +543,8 @@ void CViewOptionsTab::SelectAllVolumes() const
 {
 	auto visibleVolumes = m_viewSettings->VisibleVolumes();
 	visibleVolumes.clear();
-	for (const auto& volume : m_pSystemStructure->GetAllAnalysisVolumes())
-		visibleVolumes.insert(volume->sKey);
+	for (const auto& volume : m_pSystemStructure->AllAnalysisVolumes())
+		visibleVolumes.insert(volume->Key());
 	m_viewSettings->VisibleVolumes(visibleVolumes);
 }
 
@@ -712,9 +712,9 @@ void CViewOptionsTab::UpdateColoringComponent() const
 void CViewOptionsTab::UpdateColoringColors() const
 {
 	/*[[maybe_unused]]*/ CQtSignalBlocker blocker({ ui.colorMin, ui.colorMid, ui.colorMax });
-	ui.colorMin->setColor(m_viewSettings->Coloring().minColor);
-	ui.colorMid->setColor(m_viewSettings->Coloring().midColor);
-	ui.colorMax->setColor(m_viewSettings->Coloring().maxColor);
+	ui.colorMin->SetColor(m_viewSettings->Coloring().minColor);
+	ui.colorMid->SetColor(m_viewSettings->Coloring().midColor);
+	ui.colorMax->SetColor(m_viewSettings->Coloring().maxColor);
 }
 
 void CViewOptionsTab::UpdateLabels() const

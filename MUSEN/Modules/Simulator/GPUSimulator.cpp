@@ -6,21 +6,13 @@
 
 CGPUSimulator::CGPUSimulator()
 {
-	m_cudaDefines = new CCUDADefines;
-	m_cudaDefines->Initialize();
-	m_gpu.SetCudaDefines(m_cudaDefines);
-	m_SceneGPU.SetCudaDefines(m_cudaDefines);
-	InitializeSimulator();
+	Construct();
 }
 
-CGPUSimulator::CGPUSimulator(const CBaseSimulator& _simulator)
+CGPUSimulator::CGPUSimulator(const CBaseSimulator& _other) :
+	CBaseSimulator{ _other }
 {
-	m_cudaDefines = new CCUDADefines;
-	m_cudaDefines->Initialize();
-	m_gpu.SetCudaDefines(m_cudaDefines);
-	m_SceneGPU.SetCudaDefines(m_cudaDefines);
-	p_CopySimulatorData(_simulator);
-	InitializeSimulator();
+	Construct();
 }
 
 CGPUSimulator::~CGPUSimulator()
@@ -32,167 +24,55 @@ CGPUSimulator::~CGPUSimulator()
 	CUDA_FREE_H(m_pDispatchedResults_h);
 }
 
-void CGPUSimulator::InitializeSimulator()
+void CGPUSimulator::Construct()
 {
-	m_gpu.SetExternalAccel(m_vecExternalAccel);
-	m_gpu.SetPBC(m_Scene.m_PBC);
-	m_gpu.SetAnisotropyFlag(m_bConsiderAnisotropy);
+	CGPU::SetExternalAccel(m_externalAcceleration);
+	m_gpu.SetAnisotropyFlag(m_considerAnisotropy);
+	m_gpu.SetPBC(m_scene.m_PBC);
 
 	CUDA_MALLOC_D(&m_pDispatchedResults_d, sizeof(SDispatchedResults));
 	CUDA_MALLOC_H(&m_pDispatchedResults_h, sizeof(SDispatchedResults));
-
-	m_pInteractProps = nullptr;
 }
 
 void CGPUSimulator::SetExternalAccel(const CVector3& _accel)
 {
 	CBaseSimulator::SetExternalAccel(_accel);
-	m_gpu.SetExternalAccel(m_vecExternalAccel);
+	CGPU::SetExternalAccel(m_externalAcceleration);
 }
 
-void CGPUSimulator::GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID)
+void CGPUSimulator::Initialize()
 {
-	m_gpu.GetOverlapsInfo(m_SceneGPU.GetPointerToParticles(), _nMaxParticleID, _dMaxOverlap, _dAverageOverlap);
+	CBaseSimulator::Initialize();
+
+	CGPU::SetSimulationDomain(m_pSystemStructure->GetSimulationDomain());
+
+	// get flag of anisotropy
+	CGPU::SetAnisotropyFlag(m_considerAnisotropy);
+
+	// Initialize scene, PBC, models on GPU
+	m_sceneGPU.InitializeScene(m_scene, m_pSystemStructure);
+
+	// store particle coordinates
+	m_sceneGPU.CUDASaveVerletCoords();
+
+	m_gpu.SetPBC(m_scene.m_PBC);
+
+	CUDAInitializeWalls();
+	m_gpu.InitializeCollisions();
+	CUDAInitializeMaterials();
 }
 
-void CGPUSimulator::StartSimulation()
+void CGPUSimulator::InitializeModelParameters()
 {
-	if (m_nCurrentStatus != ERunningStatus::IDLE && m_nCurrentStatus != ERunningStatus::PAUSED) return;
-	RandomSeed(); // needed for some contact models
-
-	if (m_nCurrentStatus == ERunningStatus::IDLE)
-	{
-		// set initial time
-		m_dCurrentTime = 0; // in the future it should be startTime
-		m_dLastSavingTime = m_dCurrentTime;
-		m_bPredictionStep = true;
-		m_currSimulationStep = m_initSimulationStep;
-
-		m_nInactiveParticlesNumber = 0;
-		m_nBrockenBondsNumber = 0;
-		m_nBrockenLiquidBondsNumber = 0;
-		m_nGeneratedObjects = 0;
-
-		m_gpu.SetSimulationDomain(m_pSystemStructure->GetSimulationDomain());
-
-		// get flag of anisotropy
-		m_bConsiderAnisotropy = m_pSystemStructure->IsAnisotropyEnabled();
-		m_gpu.SetAnisotropyFlag(m_bConsiderAnisotropy);
-
-		// delete old data
-		m_pSystemStructure->ClearAllStatesFrom(m_dCurrentTime);
-
-		// Initialize scene on CPU
-		m_Scene.SetSystemStructure(m_pSystemStructure);
-		m_Scene.InitializeScene(m_dCurrentTime,GetModelManager()->GetUtilizedVariables());
-
-		// Initialize scene, PBC, models on GPU
-		m_SceneGPU.CUDASaveVerletCoords();
-		m_SceneGPU.InitializeScene(m_Scene, m_pSystemStructure);
-		m_gpu.SetPBC(m_Scene.m_PBC);
-		InitializeModels();
-
-		m_pGenerationManager->Initialize();
-
-		// initialize verlet list
-		m_VerletList.InitializeList();
-		m_VerletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_Scene.GetMinParticleContactRadius(), m_Scene.GetMaxParticleContactRadius(),
-								m_nCellsMax, m_dVerletDistanceCoeff, m_bAutoAdjustVerletDistance);
-		m_VerletList.ResetCurrentData();
-
-		CUDAInitializeWalls();
-		m_gpu.InitializeCollisions();
-		CUDAInitializeMaterials();
-	}
-
-	// performance measurement
-	if (m_nCurrentStatus == ERunningStatus::IDLE)
-	{
-		m_chronoPauseLength = 0;
-		m_chronoSimStart = std::chrono::steady_clock::now();
-	}
-	else if (m_nCurrentStatus == ERunningStatus::PAUSED)
-		m_chronoPauseLength += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoPauseStart).count();
-
-	// start simulation
-	m_nCurrentStatus = ERunningStatus::RUNNING;
-	PerformSimulation();
-
-	// performance measurement
-	if (m_nCurrentStatus == ERunningStatus::TO_BE_PAUSED)
-		m_chronoPauseStart = std::chrono::steady_clock::now();
-	else if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED)
-	{
-		// output performance statistic
-		const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoSimStart).count();
-		*p_out << "Elapsed time [d:h:m:s]: " << MsToTimeSpan(elapsedTime) << std::endl;
-	}
-
-	// set status
-	if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED)
-		m_nCurrentStatus = ERunningStatus::IDLE;
-	else if (m_nCurrentStatus == ERunningStatus::TO_BE_PAUSED)
-		m_nCurrentStatus = ERunningStatus::PAUSED;
+	CBaseSimulator::InitializeModelParameters();
+	for (auto& model : m_models)
+		model->InitializeGPU(m_cudaDefines);
 }
 
-void CGPUSimulator::PerformSimulation()
-{
-	m_bWallsVelocityChanged = true;
-
-	while (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED && m_nCurrentStatus != ERunningStatus::TO_BE_PAUSED)
-	{
-		GenerateNewObjects();
-
-		if (fabs(m_dCurrentTime - m_dLastSavingTime) + 0.1 * m_currSimulationStep > m_dSavingStep)
-		{
-			SaveData();
-			m_dLastSavingTime = m_dCurrentTime;
-			PrintStatus();
-			if (AdditionalStopCriterionMet())
-			{
-				m_nCurrentStatus = ERunningStatus::TO_BE_STOPPED;
-				break;
-			}
-		}
-
-		if (m_Scene.m_PBC.bEnabled)
-		{
-			m_Scene.m_PBC.UpdatePBC(m_dCurrentTime);
-			if (!m_Scene.m_PBC.vVel.IsZero()) // if velocity is non zero
-			{
-				InitializeModels();
-				m_gpu.SetPBC(m_Scene.m_PBC);
-			}
-		}
-		LeapFrogStep(m_bPredictionStep);
-		if (m_bPredictionStep) // makes prediction step
-			m_bPredictionStep = false;
-		else
-			m_dCurrentTime += m_currSimulationStep;
-
-		// analyze about possible end of interval
-		if (m_dCurrentTime >= m_dEndTime)
-			m_nCurrentStatus = ERunningStatus::TO_BE_STOPPED;
-	}
-
-	if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED)	// save current state
-	{
-		SaveData();
-		m_pSystemStructure->SaveToFile();
-	}
-}
-
-void CGPUSimulator::LeapFrogStep(bool _bPredictionStep)
-{
-	InitializeStep(m_currSimulationStep);
-	CalculateForces(m_currSimulationStep);
-	MoveObjects(m_currSimulationStep, _bPredictionStep);
-}
-
-void CGPUSimulator::InitializeStep(double _dTimeStep)
+void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 {
 	// clear all forces and moment on GPU
-	m_SceneGPU.ClearAllForcesAndMoments();
+	m_sceneGPU.ClearAllForcesAndMoments();
 
 	// if there is no contact model, then there is no necessity to calculate contacts
 	if (m_pPPModel || m_pPWModel)
@@ -202,7 +82,7 @@ void CGPUSimulator::InitializeStep(double _dTimeStep)
 	}
 }
 
-void CGPUSimulator::CalculateForces(double _dTimeStep)
+void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
 	if (m_pPPModel) CalculateForcesPP(_dTimeStep);
 	if (m_pPWModel) CalculateForcesPW(_dTimeStep);
@@ -212,144 +92,138 @@ void CGPUSimulator::CalculateForces(double _dTimeStep)
 	cudaStreamQuery(0);
 }
 
-void CGPUSimulator::MoveObjects(double _dTimeStep, bool _bPredictionStep)
-{
-	MoveParticles(_bPredictionStep); // Recalculation of time step
-	MoveWalls(_dTimeStep);
-}
-
 void CGPUSimulator::CalculateForcesPP(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPP.collisions.nElements) return;
-	m_pPPModel->CalculatePPForceGPU(m_dCurrentTime, _dTimeStep, m_pInteractProps, m_SceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
+	m_pPPModel->CalculatePPForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
 }
 
 void CGPUSimulator::CalculateForcesPW(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPW.collisions.nElements) return;
-	m_pPWModel->CalculatePWForceGPU(m_dCurrentTime, _dTimeStep, m_pInteractProps,
-		m_SceneGPU.GetPointerToParticles(), m_SceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
-	m_gpu.GatherForcesFromPWCollisions(m_SceneGPU.GetPointerToParticles(), m_SceneGPU.GetPointerToWalls());
+	m_pPWModel->CalculatePWForceGPU(m_currentTime, _dTimeStep, m_pInteractProps,
+		m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
+	m_gpu.GatherForcesFromPWCollisions(m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls());
 }
 
 void CGPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
-	if (m_Scene.GetBondsNumber() == 0) return;
-	m_pSBModel->CalculateSBForceGPU(m_dCurrentTime, _dTimeStep, m_SceneGPU.GetPointerToParticles(), m_SceneGPU.GetPointerToSolidBonds());
+	if (m_scene.GetBondsNumber() == 0) return;
+	m_pSBModel->CalculateSBForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
 }
 
 void CGPUSimulator::CalculateForcesEF(double _dTimeStep)
 {
-	m_pEFModel->CalculateEFForceGPU(m_dCurrentTime, _dTimeStep, m_SceneGPU.GetPointerToParticles());
+	m_pEFModel->CalculateEFForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
 }
 
 void CGPUSimulator::MoveParticles(bool _bPredictionStep)
 {
-	if (!m_vecExternalAccel.IsZero())
-		m_gpu.ApplyExternalAcceleration(m_SceneGPU.GetPointerToParticles());
+	if (!m_externalAcceleration.IsZero())
+		m_gpu.ApplyExternalAcceleration(m_sceneGPU.GetPointerToParticles());
 	if (!_bPredictionStep)
 	{
-		if (m_bVariableTimeStep)
-			m_currSimulationStep = m_gpu.CalculateNewTimeStep(m_currSimulationStep, m_initSimulationStep, m_partMoveLimit, m_timeStepFactor, m_SceneGPU.GetPointerToParticles());
-		m_gpu.MoveParticles(m_currSimulationStep, m_initSimulationStep, m_SceneGPU.GetPointerToParticles(), m_bVariableTimeStep);
+		if (m_variableTimeStep)
+			m_currSimulationStep = m_gpu.CalculateNewTimeStep(m_currSimulationStep, m_initSimulationStep, m_partMoveLimit, m_timeStepFactor, m_sceneGPU.GetPointerToParticles());
+		m_gpu.MoveParticles(m_currSimulationStep, m_initSimulationStep, m_sceneGPU.GetPointerToParticles(), m_variableTimeStep);
 	}
 	else
-		m_gpu.MoveParticlesPrediction(m_currSimulationStep / 2., m_SceneGPU.GetPointerToParticles());
+		m_gpu.MoveParticlesPrediction(m_currSimulationStep / 2., m_sceneGPU.GetPointerToParticles());
 
 	MoveParticlesOverPBC(); // move virtual particles and check boundaries
 }
 
 void CGPUSimulator::MoveWalls(double _dTimeStep)
 {
-	m_bWallsVelocityChanged = false;
+	m_wallsVelocityChanged = false;
 	// analysis of transition to new interval
-	for (unsigned iGeom = 0; iGeom < m_pSystemStructure->GetGeometriesNumber(); ++iGeom)
+	for (unsigned iGeom = 0; iGeom < m_pSystemStructure->GeometriesNumber(); ++iGeom)
 	{
-		SGeometryObject* pGeom = m_pSystemStructure->GetGeometry(iGeom);
+		CRealGeometry* pGeom = m_pSystemStructure->Geometry(iGeom);
 
-		if (pGeom->vPlanes.empty()) continue;
-		if (pGeom->bForceDepVel) // force
+		if (pGeom->Planes().empty()) continue;
+		if (pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) // force
 		{
-			const CVector3 vTotalForce = m_gpu.CalculateTotalForceOnWall(iGeom, m_SceneGPU.GetPointerToWalls());
-			pGeom->UpdateCurrentInterval(vTotalForce.z);
+			const CVector3 vTotalForce = m_gpu.CalculateTotalForceOnWall(iGeom, m_sceneGPU.GetPointerToWalls());
+			pGeom->UpdateMotionInfo(vTotalForce.z);
 		}
 		else
-			pGeom->UpdateCurrentInterval(m_dCurrentTime); // time
+			pGeom->UpdateMotionInfo(m_currentTime); // time
 
-		CVector3 vVel = pGeom->GetCurrentVel();
-		CVector3 vRotVel = pGeom->GetCurrentRotVel();
+		CVector3 vVel = pGeom->GetCurrentVelocity();
+		CVector3 vRotVel = pGeom->GetCurrentRotVelocity();
 		CVector3 vRotCenter = pGeom->GetCurrentRotCenter();
 
-		if (m_dCurrentTime == 0 || vVel != pGeom->GetCurrentVel() || vRotVel != pGeom->GetCurrentRotVel() || vRotCenter != pGeom->GetCurrentRotCenter())
-			m_bWallsVelocityChanged = true;
+		if (m_currentTime == 0 || vVel != pGeom->GetCurrentVelocity() || vRotVel != pGeom->GetCurrentRotVelocity() || vRotCenter != pGeom->GetCurrentRotCenter())
+			m_wallsVelocityChanged = true;
 
-		if ( !pGeom->vFreeMotion.IsZero() )
-			m_bWallsVelocityChanged = true;
+		if ( !pGeom->FreeMotion().IsZero() )
+			m_wallsVelocityChanged = true;
 
-		if (vRotVel.IsZero() && pGeom->vFreeMotion.IsZero() && vVel.IsZero()) continue;
+		if (vRotVel.IsZero() && pGeom->FreeMotion().IsZero() && vVel.IsZero()) continue;
 		CMatrix3 RotMatrix;
 		if (!vRotVel.IsZero())
 			RotMatrix = CQuaternion(vRotVel*_dTimeStep).ToRotmat();
 
-		m_gpu.MoveWalls(_dTimeStep, iGeom, vVel, vRotVel, vRotCenter, RotMatrix, pGeom->vFreeMotion,
-			pGeom->bForceDepVel, pGeom->bRotateAroundCenter, pGeom->dMass, m_SceneGPU.GetPointerToWalls(), m_vecExternalAccel);
+		m_gpu.MoveWalls(_dTimeStep, iGeom, vVel, vRotVel, vRotCenter, RotMatrix, pGeom->FreeMotion(),
+			pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT, pGeom->RotateAroundCenter(), pGeom->Mass(), m_sceneGPU.GetPointerToWalls(), m_externalAcceleration);
 	}
 }
 
-void CGPUSimulator::InitializeModels()
-{
-	p_InitializeModels();
-	InitializeModelParameters();
-}
-
-void CGPUSimulator::InitializeModelParameters()
-{
-	for (auto& model : m_models)
-		model->InitializeGPU(m_cudaDefines);
-}
-
-void CGPUSimulator::GenerateNewObjects()
+size_t CGPUSimulator::GenerateNewObjects()
 {
 	// TODO: find why contacts are not being detected. Check generation of agglomerates.
-	//if (!m_pGenerationManager->IsNeedToBeGenerated(m_dCurrentTime)) return; // no need to generate new objects
+	//if (!m_generationManager->IsNeedToBeGenerated(m_currentTime)) return; // no need to generate new objects
 
 	//// get actual data from device
-	//m_SceneGPU.CUDAParticlesGPU2CPU(&m_Scene);
-	//m_SceneGPU.CUDABondsGPU2CPU(&m_Scene);
-	//m_SceneGPU.CUDAWallsGPU2CPU(&m_Scene);
-
-	//if (p_GenerateNewObjects()) // new objects have been generated
+	//m_sceneGPU.CUDAParticlesGPU2CPU(&m_scene);
+	//m_sceneGPU.CUDABondsGPU2CPU(&m_scene);
+	//m_sceneGPU.CUDAWallsGPU2CPU(&m_scene);
+	//
+	//const size_t newObjects = CBaseSimulator::GenerateNewObjects();
+	//if (newObjects) // new objects have been generated
 	//{
 	//	// update data on device
-	//	m_SceneGPU.CUDAParticlesCPU2GPU(&m_Scene);
-	//	m_SceneGPU.CUDABondsCPU2GPU(&m_Scene);
+	//	m_sceneGPU.CUDAParticlesCPU2GPU(&m_scene);
+	//	m_sceneGPU.CUDABondsCPU2GPU(&m_scene);
 
 	//	CUDAInitializeMaterials();
 	//}
+	return 0;
+}
+
+void CGPUSimulator::UpdatePBC()
+{
+	m_scene.m_PBC.UpdatePBC(m_currentTime);
+	if (!m_scene.m_PBC.vVel.IsZero())	// if velocity is not zero
+	{
+		InitializeModelParameters();	// set new PBC to all models
+		m_gpu.SetPBC(m_scene.m_PBC);	// set new PBC to GPU scene
+	}
 }
 
 void CGPUSimulator::PrepareAdditionalSavingData()
 {
-	SParticleStruct& particles = m_Scene.GetRefToParticles();
-	SSolidBondStruct& bonds = m_Scene.GetRefToSolidBonds();
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	SSolidBondStruct& bonds = m_scene.GetRefToSolidBonds();
 
 	static SGPUCollisions PPCollisions(SBasicGPUStruct::EMemType::HOST), PWCollisions(SBasicGPUStruct::EMemType::HOST);
 	m_gpu.CopyCollisionsGPU2CPU(PPCollisions, PWCollisions);
 
 	// reset previously calculated stresses
-	for (auto& data : m_vAddSavingDataPart)
-		data.sStressTensor.Init(0);
+	for (auto& data : m_additionalSavingData)
+		data.stressTensor.Init(0);
 
 	// save stresses caused by solid bonds
 	for (size_t i = 0; i < bonds.Size(); i++)
 	{
 		CSolidBond* pSBond = dynamic_cast<CSolidBond*>(m_pSystemStructure->GetObjectByIndex(bonds.InitIndex(i)));
-		if (!bonds.Active(i) && !pSBond->IsActive(m_dCurrentTime)) continue;
+		if (!bonds.Active(i) && !pSBond->IsActive(m_currentTime)) continue;
 		const size_t leftID  = bonds.LeftID(i);
 		const size_t rightID = bonds.RightID(i);
 		CVector3 vConnVec = (particles.Coord(leftID) - particles.Coord(rightID)).Normalized();
-		m_vAddSavingDataPart[bonds.LeftID(i)].AddStress(-1 * vConnVec * particles.Radius(leftID), bonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID), 3) / 6);
-		m_vAddSavingDataPart[bonds.RightID(i)].AddStress(vConnVec * particles.Radius(rightID), -1 * bonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
+		m_additionalSavingData[bonds.LeftID(i)].AddStress(-1 * vConnVec * particles.Radius(leftID), bonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID), 3) / 6);
+		m_additionalSavingData[bonds.RightID(i)].AddStress(vConnVec * particles.Radius(rightID), -1 * bonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
 	}
 
 	// save stresses caused by particle-particle contact
@@ -359,8 +233,8 @@ void CGPUSimulator::PrepareAdditionalSavingData()
 		const size_t srcID = PPCollisions.SrcIDs[i];
 		const size_t dstID = PPCollisions.DstIDs[i];
 		CVector3 vConnVec = (particles.Coord(srcID) - particles.Coord(dstID)).Normalized();
-		m_vAddSavingDataPart[PPCollisions.SrcIDs[i]].AddStress(-1 * vConnVec*particles.Radius(srcID), PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(srcID), 3) / 6);
-		m_vAddSavingDataPart[PPCollisions.DstIDs[i]].AddStress(vConnVec*particles.Radius(dstID), -1 * PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(dstID), 3) / 6);
+		m_additionalSavingData[PPCollisions.SrcIDs[i]].AddStress(-1 * vConnVec*particles.Radius(srcID), PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(srcID), 3) / 6);
+		m_additionalSavingData[PPCollisions.DstIDs[i]].AddStress(vConnVec*particles.Radius(dstID), -1 * PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(dstID), 3) / 6);
 	};
 
 	// save stresses caused by particle-wall contacts
@@ -368,7 +242,7 @@ void CGPUSimulator::PrepareAdditionalSavingData()
 	{
 		if (!PWCollisions.ActivityFlags[i]) continue;
 		CVector3 vConnVec = (PWCollisions.ContactVectors[i] - particles.Coord(PWCollisions.DstIDs[i])).Normalized();
-		m_vAddSavingDataPart[PWCollisions.DstIDs[i]].AddStress(vConnVec* particles.Radius(PWCollisions.DstIDs[i]), PWCollisions.TotalForces[i], PI * pow(2 * particles.Radius(PWCollisions.DstIDs[i]), 3) / 6);
+		m_additionalSavingData[PWCollisions.DstIDs[i]].AddStress(vConnVec* particles.Radius(PWCollisions.DstIDs[i]), PWCollisions.TotalForces[i], PI * pow(2 * particles.Radius(PWCollisions.DstIDs[i]), 3) / 6);
 	};
 }
 
@@ -376,67 +250,67 @@ void CGPUSimulator::SaveData()
 {
 	clock_t t = clock();
 	cudaDeviceSynchronize();
-	m_SceneGPU.CUDABondsGPU2CPU( m_Scene );
-	m_SceneGPU.CUDAParticlesGPU2CPUAllData(m_Scene);
-	m_SceneGPU.CUDAWallsGPU2CPUAllData(m_Scene);
-	m_nBrockenBondsNumber = m_SceneGPU.GetBrokenBondsNumber();
-	m_dMaxParticleVelocity = m_SceneGPU.GetMaxPartVelocity();
+	m_sceneGPU.CUDABondsGPU2CPU( m_scene );
+	m_sceneGPU.CUDAParticlesGPU2CPUAllData(m_scene);
+	m_sceneGPU.CUDAWallsGPU2CPUAllData(m_scene);
+	m_nBrockenBonds = m_sceneGPU.GetBrokenBondsNumber();
+	m_maxParticleVelocity = m_sceneGPU.GetMaxPartVelocity();
 	p_SaveData();
 
-	m_VerletList.AddDisregardingTimeInterval(clock() - t);
+	m_verletList.AddDisregardingTimeInterval(clock() - t);
 }
 
 void CGPUSimulator::UpdateVerletLists(double _dTimeStep)
 {
 	CUDAUpdateGlobalCPUData();
-	if (m_VerletList.IsNeedToBeUpdated(_dTimeStep, sqrt(m_pDispatchedResults_h->dMaxSquaredPartDist) , m_dMaxWallVelocity))
+	if (m_verletList.IsNeedToBeUpdated(_dTimeStep, sqrt(m_pDispatchedResults_h->dMaxSquaredPartDist) , m_maxWallVelocity))
 	{
-		m_SceneGPU.CUDAParticlesGPU2CPUVerletData(m_Scene);
-		m_SceneGPU.CUDAWallsGPU2CPUVerletData(m_Scene);
-		m_VerletList.UpdateList(m_dCurrentTime);
+		m_sceneGPU.CUDAParticlesGPU2CPUVerletData(m_scene);
+		m_sceneGPU.CUDAWallsGPU2CPUVerletData(m_scene);
+		m_verletList.UpdateList(m_currentTime);
 
 		static STempStorage storePP, storePW; // to reuse memory
-		CUDAUpdateVerletLists(m_VerletList.m_PPList, m_VerletList.m_PPVirtShift, m_gpu.m_CollisionsPP, storePP, true);
-		CUDAUpdateVerletLists(m_VerletList.m_PWList, m_VerletList.m_PWVirtShift, m_gpu.m_CollisionsPW, storePW, false);
-		m_SceneGPU.CUDASaveVerletCoords();
+		CUDAUpdateVerletLists(m_verletList.m_PPList, m_verletList.m_PPVirtShift, m_gpu.m_CollisionsPP, storePP, true);
+		CUDAUpdateVerletLists(m_verletList.m_PWList, m_verletList.m_PWVirtShift, m_gpu.m_CollisionsPW, storePW, false);
+		m_sceneGPU.CUDASaveVerletCoords();
 	}
 }
 
 void CGPUSimulator::CUDAUpdateGlobalCPUData()
 {
 	// check that all particles are remains in simulation domain
-	m_gpu.CheckParticlesInDomain(m_dCurrentTime, m_SceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
+	m_gpu.CheckParticlesInDomain(m_currentTime, m_sceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
 
 	// update max velocities
-	m_SceneGPU.GetMaxSquaredPartDist(&m_pDispatchedResults_d->dMaxSquaredPartDist);
-	if (m_bWallsVelocityChanged)
-		m_SceneGPU.GetMaxWallVelocity(&m_pDispatchedResults_d->dMaxWallVel);
+	m_sceneGPU.GetMaxSquaredPartDist(&m_pDispatchedResults_d->dMaxSquaredPartDist);
+	if (m_wallsVelocityChanged)
+		m_sceneGPU.GetMaxWallVelocity(&m_pDispatchedResults_d->dMaxWallVel);
 
 	CUDA_MEMCPY_D2H(m_pDispatchedResults_h, m_pDispatchedResults_d, sizeof(SDispatchedResults));
 
-	const bool bNewInactiveParticles = (m_nInactiveParticlesNumber != m_SceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum);
-	if (bNewInactiveParticles && m_SceneGPU.GetBondsNumber())
+	const bool bNewInactiveParticles = (m_nInactiveParticles != m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum);
+	if (bNewInactiveParticles && m_sceneGPU.GetBondsNumber())
 	{
-		m_gpu.CheckBondsActivity(m_dCurrentTime, m_SceneGPU.GetPointerToParticles(), m_SceneGPU.GetPointerToSolidBonds());
-		m_SceneGPU.CUDABondsActivityGPU2CPU(m_Scene);
-		m_Scene.UpdateParticlesToBonds();
+		m_gpu.CheckBondsActivity(m_currentTime, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
+		m_sceneGPU.CUDABondsActivityGPU2CPU(m_scene);
+		m_scene.UpdateParticlesToBonds();
 	}
 
-	m_nInactiveParticlesNumber = m_SceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum;
-	if (m_bWallsVelocityChanged)
-		m_dMaxWallVelocity = m_pDispatchedResults_h->dMaxWallVel;
+	m_nInactiveParticles = m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum;
+	if (m_wallsVelocityChanged)
+		m_maxWallVelocity = m_pDispatchedResults_h->dMaxWallVel;
 }
 
 void CGPUSimulator::CUDAUpdateActiveCollisions()
 {
-	m_gpu.UpdateActiveCollisionsPP(m_SceneGPU.GetPointerToParticles());
-	m_gpu.UpdateActiveCollisionsPW(m_SceneGPU.GetPointerToParticles(), m_SceneGPU.GetPointerToWalls());
+	m_gpu.UpdateActiveCollisionsPP(m_sceneGPU.GetPointerToParticles());
+	m_gpu.UpdateActiveCollisionsPW(m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls());
 }
 
 void CGPUSimulator::CUDAUpdateVerletLists(const std_matr_u& _verletListCPU, const std_matr_u8& _verletListShiftsCPU,
 	CGPU::SCollisionsHolder& _collisions, STempStorage& _store, bool _bPPVerlet)
 {
-	const size_t nParticles = m_Scene.GetTotalParticlesNumber();
+	const size_t nParticles = m_scene.GetTotalParticlesNumber();
 	// calculate total number of possible contacts
 	size_t nCollsions = 0;
 	for (const auto& colls : _verletListCPU)
@@ -456,14 +330,14 @@ void CGPUSimulator::CUDAUpdateVerletLists(const std_matr_u& _verletListCPU, cons
 	{
 		std::copy(_verletListCPU[i].begin(), _verletListCPU[i].end(), _store.hvVerletDst.begin() + _store.hvVerletPartInd[i]);
 		std::fill(_store.hvVerletSrc.begin() + _store.hvVerletPartInd[i], _store.hvVerletSrc.begin() + _store.hvVerletPartInd[i] + _verletListCPU[i].size(), static_cast<unsigned>(i));
-		if (m_Scene.m_PBC.bEnabled)
+		if (m_scene.m_PBC.bEnabled)
 			std::copy(_verletListShiftsCPU[i].begin(), _verletListShiftsCPU[i].end(), _store.hvVirtShifts.begin() + _store.hvVerletPartInd[i]);
 	});
 
 	// update verlet lists on device
-	m_gpu.UpdateVerletLists(_bPPVerlet, m_SceneGPU.GetPointerToParticles(), m_SceneGPU.GetPointerToWalls(), _store.hvVerletSrc, _store.hvVerletDst, _store.hvVerletPartInd,
+	m_gpu.UpdateVerletLists(_bPPVerlet, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), _store.hvVerletSrc, _store.hvVerletDst, _store.hvVerletPartInd,
 		_store.hvVirtShifts, _collisions.vVerletSrc, _collisions.vVerletDst, _collisions.vVerletPartInd, _collisions.collisions);
-	m_gpu.SortByDst(_bPPVerlet ? m_Scene.GetTotalParticlesNumber() : m_Scene.GetWallsNumber(),
+	m_gpu.SortByDst(_bPPVerlet ? m_scene.GetTotalParticlesNumber() : m_scene.GetWallsNumber(),
 		_collisions.vVerletSrc, _collisions.vVerletDst, _collisions.vVerletCollInd_DstSorted, _collisions.vVerletPartInd_DstSorted);
 }
 
@@ -474,7 +348,7 @@ void CGPUSimulator::CUDAInitializeMaterials()
 		CUDA_FREE_D(m_pInteractProps);
 		m_pInteractProps = NULL;
 	}
-	size_t nCompounds = m_Scene.GetCompoundsNumber();
+	size_t nCompounds = m_scene.GetCompoundsNumber();
 	m_gpu.SetCompoundsNumber( nCompounds );
 	if (!nCompounds) return;
 
@@ -484,7 +358,7 @@ void CGPUSimulator::CUDAInitializeMaterials()
 
 	for (unsigned i = 0; i < nCompounds; ++i)
 		for (unsigned j = 0; j < nCompounds; ++j)
-			pInteractPropsHost[i*nCompounds + j] = m_Scene.GetInteractProp(i*nCompounds + j);
+			pInteractPropsHost[i*nCompounds + j] = m_scene.GetInteractProp(i*nCompounds + j);
 
 	CUDA_MEMCPY_H2D(m_pInteractProps, pInteractPropsHost, sizeof(SInteractProps)*nCompounds*nCompounds);
 	CUDA_FREE_H(pInteractPropsHost);
@@ -493,19 +367,25 @@ void CGPUSimulator::CUDAInitializeMaterials()
 
 void CGPUSimulator::CUDAInitializeWalls()
 {
-	std::vector<std::vector<unsigned>> vvWallsInGeom(m_pSystemStructure->GetGeometriesNumber());
-	for (size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i)
+	std::vector<std::vector<unsigned>> vvWallsInGeom(m_pSystemStructure->GeometriesNumber());
+	for (size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i)
 	{
-		const SGeometryObject* pGeom = m_pSystemStructure->GetGeometry(i);
-		vvWallsInGeom[i].resize(pGeom->vPlanes.size());
-		for (size_t j = 0; j < pGeom->vPlanes.size(); ++j)
-			vvWallsInGeom[i][j] = static_cast<unsigned>(m_Scene.m_vNewIndexes[pGeom->vPlanes[j]]);
+		const CRealGeometry* pGeom = m_pSystemStructure->Geometry(i);
+		const auto& planes = pGeom->Planes();
+		vvWallsInGeom[i].resize(planes.size());
+		for (size_t j = 0; j < planes.size(); ++j)
+			vvWallsInGeom[i][j] = static_cast<unsigned>(m_scene.m_vNewIndexes[planes[j]]);
 	}
-	m_gpu.InitializeWalls(vvWallsInGeom, m_Scene.m_adjacentWalls);
+	m_gpu.InitializeWalls(vvWallsInGeom, m_scene.m_adjacentWalls);
 }
 
 void CGPUSimulator::MoveParticlesOverPBC()
 {
-	if (!m_Scene.m_PBC.bEnabled) return;
-	m_gpu.MoveParticlesOverPBC(m_SceneGPU.GetPointerToParticles());
+	if (!m_scene.m_PBC.bEnabled) return;
+	m_gpu.MoveParticlesOverPBC(m_sceneGPU.GetPointerToParticles());
+}
+
+void CGPUSimulator::GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID)
+{
+	m_gpu.GetOverlapsInfo(m_sceneGPU.GetPointerToParticles(), _nMaxParticleID, _dMaxOverlap, _dAverageOverlap);
 }

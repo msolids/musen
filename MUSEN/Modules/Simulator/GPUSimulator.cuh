@@ -60,7 +60,8 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	/// Setters for constant GPU memory
 
-	void SetCudaDefines(const CCUDADefines* _cudaDefines);
+	CGPU(const CCUDADefines* _cudaDefines);
+
 	static void SetExternalAccel(const CVector3& _acceleration);
 	static void SetSimulationDomain(const SVolumeType& _domain);
 	void SetPBC(const SPBC& _PBCInfo);

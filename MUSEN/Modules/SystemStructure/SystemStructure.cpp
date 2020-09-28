@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "SystemStructure.h"
+#include "MeshGenerator.h"
 
 CSystemStructure::CSystemStructure()
 {
@@ -76,9 +77,7 @@ void CSystemStructure::DeleteAllObjects()
 			delete objects[i];
 			m_storage->RemoveObject(i);
 		}
-	for (unsigned long i = 0; i < m_AnalysisVolumes.size(); i++)
-		delete m_AnalysisVolumes[i];
-	m_AnalysisVolumes.clear();
+	m_analysisVolumes.clear();
 	m_Multispheres.clear();
 	objects.clear();
 }
@@ -227,7 +226,16 @@ std::vector<CSphere*> CSystemStructure::GetAllSpheres(double _time, bool _onlyAc
 	return res;
 }
 
-std::vector<CSolidBond*> CSystemStructure::GetAllSolidBonds(double _time, bool _onlyActive/* = true*/)
+std::vector<const CSphere*> CSystemStructure::GetAllSpheres(double _time, bool _onlyActive) const
+{
+	std::vector<const CSphere*> res;
+	for (const auto& o : objects)
+		if (o && dynamic_cast<const CSphere*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+			res.push_back(dynamic_cast<const CSphere*>(o));
+	return res;
+}
+
+std::vector<CSolidBond*> CSystemStructure::GetAllSolidBonds(double _time, bool _onlyActive/* = true*/) const
 {
 	std::vector<CSolidBond*> res;
 	for (auto& o : objects)
@@ -236,7 +244,7 @@ std::vector<CSolidBond*> CSystemStructure::GetAllSolidBonds(double _time, bool _
 	return res;
 }
 
-std::vector<CLiquidBond*> CSystemStructure::GetAllLiquidBonds(double _time, bool _onlyActive/* = true*/)
+std::vector<CLiquidBond*> CSystemStructure::GetAllLiquidBonds(double _time, bool _onlyActive/* = true*/) const
 {
 	std::vector<CLiquidBond*> res;
 	for (auto& o : objects)
@@ -245,7 +253,7 @@ std::vector<CLiquidBond*> CSystemStructure::GetAllLiquidBonds(double _time, bool
 	return res;
 }
 
-std::vector<CBond*> CSystemStructure::GetAllBonds(double _time, bool _onlyActive/* = true*/)
+std::vector<CBond*> CSystemStructure::GetAllBonds(double _time, bool _onlyActive/* = true*/) const
 {
 	std::vector<CBond*> res;
 	for (auto& o : objects)
@@ -263,12 +271,21 @@ std::vector<CTriangularWall*> CSystemStructure::GetAllWalls(double _time, bool _
 	return res;
 }
 
+std::vector<const CTriangularWall*> CSystemStructure::GetAllWalls(double _time, bool _onlyActive/* = true*/) const
+{
+	std::vector<const CTriangularWall*> res;
+	for (const auto& o : objects)
+		if (o && dynamic_cast<const CTriangularWall*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+			res.push_back(dynamic_cast<const CTriangularWall*>(o));
+	return res;
+}
+
 std::vector<CTriangularWall*> CSystemStructure::GetAllWallsForGeometry(double _time, const std::string& _geometryKey, bool _onlyActive/* = true*/)
 {
-	const auto geometry = GetGeometry(_geometryKey);
+	const auto geometry = Geometry(_geometryKey);
 	std::vector<CTriangularWall*> res;
-	res.reserve(geometry->vPlanes.size());
-	for (size_t iWall : geometry->vPlanes)
+	res.reserve(geometry->Planes().size());
+	for (size_t iWall : geometry->Planes())
 	{
 		auto* wall = dynamic_cast<CTriangularWall*>(GetObjectByIndex(iWall));
 		if (wall && (_onlyActive && wall->IsActive(_time) || !_onlyActive))
@@ -524,21 +541,18 @@ void CSystemStructure::ImportFromEDEMTextFormat(const std::string& _sFileName)
 
 void CSystemStructure::ExportGeometriesToSTL(const std::string& _sFileName, double _dTime)
 {
-	if (m_Geometries.empty()) return;
+	if (m_geometries.empty()) return;
 
 	CTriangularMesh geometry;
-	geometry.sName = m_sDEMFileName + " " + std::to_string(_dTime) + "s";
-	for (size_t i = 0; i < m_Geometries.size(); ++i)
-	{
-		for (size_t j = 0; j < m_Geometries[i]->vPlanes.size(); ++j)
+	geometry.SetName(m_sDEMFileName + " " + std::to_string(_dTime) + "s");
+	for (const auto& g : m_geometries)
+		for (const auto& plane : g->Planes())
 		{
-			CTriangularWall* pWall = static_cast<CTriangularWall*>(objects[m_Geometries[i]->vPlanes[j]]);
+			CTriangularWall* pWall = static_cast<CTriangularWall*>(objects[plane]);
 			if (!pWall || !pWall->IsActive(_dTime)) continue;
-			geometry.vTriangles.push_back(pWall->GetCoords(_dTime));
+			geometry.AddTriangle(pWall->GetCoords(_dTime));
 		}
-	}
-	CSTLFileHandler writer;
-	writer.WriteToFile(geometry, _sFileName);
+	CSTLFileHandler::WriteToFile(geometry, _sFileName);
 }
 
 void CSystemStructure::CreateFromSystemStructure(CSystemStructure* _pSource, double _dTime)
@@ -551,16 +565,16 @@ void CSystemStructure::CreateFromSystemStructure(CSystemStructure* _pSource, dou
 	EnableAnisotropy(_pSource->IsAnisotropyEnabled());
 	EnableContactRadius(_pSource->IsContactRadiusEnabled());
 
-	for (unsigned i = 0; i < _pSource->GetGeometriesNumber(); i++)
+	for (unsigned i = 0; i < _pSource->GeometriesNumber(); i++)
 	{
-		SGeometryObject* pNewObject = AddGeometry();
-		*pNewObject = *_pSource->GetGeometry(i);
+		CRealGeometry* pNewObject = AddGeometry();
+		*pNewObject = *_pSource->Geometry(i);
 	}
 
-	for (unsigned i = 0; i < _pSource->GetAnalysisVolumesNumber(); ++i)
+	for (unsigned i = 0; i < _pSource->AnalysisVolumesNumber(); ++i)
 	{
 		CAnalysisVolume* pNewVolume = AddAnalysisVolume();
-		*pNewVolume = *_pSource->GetAnalysisVolume(i);
+		*pNewVolume = *_pSource->AnalysisVolume(i);
 	}
 
 	bool bIsNewFormat = false;
@@ -848,7 +862,7 @@ CVector3 CSystemStructure::GetBondVelocity(double _dTime, size_t _nBondID)
 
 }
 
-CVector3 CSystemStructure::GetBondCoordinate(double _dTime, size_t _nBondID)
+CVector3 CSystemStructure::GetBondCoordinate(double _dTime, size_t _nBondID) const
 {
 	CVector3 vResult(0, 0, 0);
 	if (objects[_nBondID] == NULL) return vResult;
@@ -991,57 +1005,17 @@ void CSystemStructure::FlushToStorage() // Setting values to the protofile
 			objects[i]->Save();
 
 	ProtoSimulationInfo* si = m_storage->SimulationInfo();
-	// save info about geometries
-	si->clear_geomobjects();
-	for (unsigned i = 0; i < m_Geometries.size(); i++)
-	{
-		SGeometryObject* pGeom = m_Geometries[i];
-		ProtoGeometryInfo* pGeomInfo = si->add_geomobjects();
-		pGeomInfo->set_name(pGeom->sName);
-		pGeomInfo->set_key(pGeom->sKey);
-		pGeomInfo->set_mass(pGeom->dMass);
-		pGeomInfo->set_rotate_aroundmasscenter(pGeom->bRotateAroundCenter);
-		pGeomInfo->set_forcedependentvel(pGeom->bForceDepVel);
-		VectorToProtoVector(pGeomInfo->mutable_vfreemotion(), pGeom->vFreeMotion);
-		for (unsigned j = 0; j < pGeom->vPlanes.size(); j++)
-			pGeomInfo->add_planes(pGeom->vPlanes[j]);
-		for (unsigned j = 0; j < pGeom->vIntervals.size(); j++)
-		{
-			ProtoTimeDepVel* pTDVel = pGeomInfo->add_tdval();
-			pTDVel->set_time(pGeom->vIntervals[j].dCriticalValue);
-			VectorToProtoVector(pTDVel->mutable_velocity(), pGeom->vIntervals[j].vVel);
-			VectorToProtoVector(pTDVel->mutable_rotcenter(), pGeom->vIntervals[j].vRotCenter);
-			VectorToProtoVector(pTDVel->mutable_rotvelocity(), pGeom->vIntervals[j].vRotVel);
-		}
-		pGeomInfo->set_type((int)pGeom->nVolumeType);
-		for (unsigned j = 0; j < pGeom->vProps.size(); j++)
-			pGeomInfo->add_props(pGeom->vProps[j]);
-		MatrixToProtoMatrix(pGeomInfo->mutable_rotation(), pGeom->mRotation);
-		ColorToProtoColor(pGeomInfo->mutable_color(), pGeom->color);
-	}
+	si->set_version(1);
 
-	// save info about analysisVolumes
-	si->clear_analysisvolumes();
-	for (unsigned i = 0; i < m_AnalysisVolumes.size(); i++)
-	{
-		CAnalysisVolume* pVol = m_AnalysisVolumes[i];
-		ProtoAnalysisVolumeInfo* pVolInfo = si->add_analysisvolumes();
-		pVolInfo->set_name(pVol->sName);
-		pVolInfo->set_key(pVol->sKey);
-		pVolInfo->set_type((int)pVol->nVolumeType);
-		for (unsigned j = 0; j < pVol->vProps.size(); j++)
-			pVolInfo->add_vprops(pVol->vProps[j]);
-		for (unsigned j = 0; j < pVol->vTriangles.size(); j++)
-			TriangleToProtoTriangle(pVolInfo->add_triangles(), pVol->vTriangles[j]);
-		for (unsigned j = 0; j < pVol->m_vIntervals.size(); j++)
-		{
-			ProtoTimeDepVel * pTDVel = pVolInfo->add_tdval();
-			pTDVel->set_time(pVol->m_vIntervals[j].dTime);
-			VectorToProtoVector(pTDVel->mutable_velocity(), pVol->m_vIntervals[j].vVel);
-		}
-		MatrixToProtoMatrix(pVolInfo->mutable_rotation(), pVol->mRotation);
-		ColorToProtoColor(pVolInfo->mutable_color(), pVol->color);
-	}
+	// save info about real geometries
+	si->clear_real_geometry();
+	for (auto& realGeometry : m_geometries)
+		realGeometry->SaveToProto(*si->add_real_geometry());
+
+	// save info about analysis volumes
+	si->clear_analysis_volume();
+	for (auto& analysisVolume : m_analysisVolumes)
+		analysisVolume->SaveToProto(*si->add_analysis_volume());
 
 	// save info about multispheres
 	si->clear_multispheres();
@@ -1052,16 +1026,16 @@ void CSystemStructure::FlushToStorage() // Setting values to the protofile
 			protoMultiSphere->add_id(m_Multispheres[i][j]);
 	}
 
-	VectorToProtoVector(si->mutable_simulation_volume_min(), m_SimulationDomain.coordBeg);
-	VectorToProtoVector(si->mutable_simulation_volume_max(), m_SimulationDomain.coordEnd);
+	Val2Proto(si->mutable_simulation_volume_min(), m_SimulationDomain.coordBeg);
+	Val2Proto(si->mutable_simulation_volume_max(), m_SimulationDomain.coordEnd);
 
 	si->set_periodic_conditions_enabled(m_PBC.bEnabled);
 	si->set_periodic_conditions_x(m_PBC.bX);
 	si->set_periodic_conditions_y(m_PBC.bY);
 	si->set_periodic_conditions_z(m_PBC.bZ);
-	VectorToProtoVector(si->mutable_periodic_conditions_min(), m_PBC.initDomain.coordBeg);
-	VectorToProtoVector(si->mutable_periodic_conditions_max(), m_PBC.initDomain.coordEnd);
-	VectorToProtoVector(si->mutable_periodic_conditions_vel(), m_PBC.vVel);
+	Val2Proto(si->mutable_periodic_conditions_min(), m_PBC.initDomain.coordBeg);
+	Val2Proto(si->mutable_periodic_conditions_max(), m_PBC.initDomain.coordEnd);
+	Val2Proto(si->mutable_periodic_conditions_vel(), m_PBC.vVel);
 
 	si->set_anisotripy(m_bAnisotropy);
 	si->set_contact_radius(m_bContactRadius);
@@ -1131,87 +1105,34 @@ CSystemStructure::ELoadFileResult CSystemStructure::LoadFromFile(const std::stri
 
 	// load info about simulation
 	const ProtoSimulationInfo* si = m_storage->SimulationInfo();
-	m_SimulationDomain.coordBeg = ProtoVectorToVector(si->simulation_volume_min());
-	m_SimulationDomain.coordEnd = ProtoVectorToVector(si->simulation_volume_max());
+	m_SimulationDomain.coordBeg = Proto2Val(si->simulation_volume_min());
+	m_SimulationDomain.coordEnd = Proto2Val(si->simulation_volume_max());
 
 	m_PBC.bEnabled = si->periodic_conditions_enabled();
 	m_PBC.bX = si->periodic_conditions_x();
 	m_PBC.bY = si->periodic_conditions_y();
 	m_PBC.bZ = si->periodic_conditions_z();
-	m_PBC.SetDomain(ProtoVectorToVector(si->periodic_conditions_min()), ProtoVectorToVector(si->periodic_conditions_max()));
-	m_PBC.vVel = ProtoVectorToVector(si->periodic_conditions_vel());
+	m_PBC.SetDomain(Proto2Val(si->periodic_conditions_min()), Proto2Val(si->periodic_conditions_max()));
+	m_PBC.vVel = Proto2Val(si->periodic_conditions_vel());
 
 	m_bAnisotropy = si->anisotripy();
 	m_bContactRadius = si->contact_radius();
 
-	// load info about geometries
-	for (int i = 0; i < si->geomobjects_size(); i++)
-	{
-		SGeometryObject* pGeometryObject = AddGeometry();
-		const ProtoGeometryInfo& geomInfo = si->geomobjects(i);
-		pGeometryObject->sName = geomInfo.name();
-		pGeometryObject->sKey = geomInfo.key();
-		pGeometryObject->dMass = geomInfo.mass();
-		pGeometryObject->vFreeMotion = ProtoVectorToVector(geomInfo.vfreemotion());
-		pGeometryObject->bRotateAroundCenter = geomInfo.rotate_aroundmasscenter();
-		pGeometryObject->bForceDepVel = geomInfo.forcedependentvel();
-		pGeometryObject->vPlanes.resize(geomInfo.planes_size());
-		for (unsigned j = 0; j < pGeometryObject->vPlanes.size(); j++)
-			pGeometryObject->vPlanes[j] = geomInfo.planes(j);
-		pGeometryObject->vIntervals.resize(geomInfo.tdval_size());
-		for (unsigned j = 0; j < pGeometryObject->vIntervals.size(); j++)
-		{
-			const ProtoTimeDepVel& tdvProto = geomInfo.tdval(j);
-			pGeometryObject->vIntervals[j].dCriticalValue = tdvProto.time();
-			pGeometryObject->vIntervals[j].vRotCenter = ProtoVectorToVector(tdvProto.rotcenter());
-			pGeometryObject->vIntervals[j].vVel = ProtoVectorToVector(tdvProto.velocity());
-			pGeometryObject->vIntervals[j].vRotVel = ProtoVectorToVector(tdvProto.rotvelocity());
-		}
-
-		pGeometryObject->nVolumeType = static_cast<EVolumeType>(geomInfo.type());
-		pGeometryObject->vProps.resize(geomInfo.props_size());
-		for (unsigned j = 0; j < pGeometryObject->vProps.size(); j++)
-			pGeometryObject->vProps[j] = geomInfo.props(j);
-		pGeometryObject->mRotation = ProtoMatrixToMatrix(geomInfo.rotation());
-
-		if (geomInfo.has_color())
-			pGeometryObject->color = ProtoColorToColor(geomInfo.color());
-		else // compatibility
-			pGeometryObject->color = CColor(0.5, 0.5, 1.0);
-	}
+	// load info about real geometries
+	if (si->version() == 0) // for compatibility with older versions
+		for (const auto& geometry : si->real_geometry_v0())
+			AddGeometry()->LoadFromProto_v0(geometry);
+	else
+		for (const auto& geometry : si->real_geometry())
+			AddGeometry()->LoadFromProto(geometry);
 
 	// load info about analysis volumes
-	for (int i = 0; i < m_storage->SimulationInfo()->analysisvolumes_size(); i++)
-	{
-		CAnalysisVolume* pVol = AddAnalysisVolume();
-		ProtoAnalysisVolumeInfo volInfo = m_storage->SimulationInfo()->analysisvolumes(i);
-		pVol->sName = volInfo.name();
-		pVol->sKey = volInfo.key();
-		pVol->nVolumeType = static_cast<EVolumeType>(volInfo.type());
-		pVol->vProps.resize(volInfo.vprops_size());
-		for (unsigned j = 0; j < pVol->vProps.size(); j++)
-			pVol->vProps[j] = volInfo.vprops(j);
-		pVol->vTriangles.resize(volInfo.triangles_size());
-		for (unsigned j = 0; j < pVol->vTriangles.size(); j++)
-			pVol->vTriangles[j] = ProtoTriangleToTriangle(volInfo.triangles(j));
-		if (volInfo.has_rotation())
-			pVol->mRotation = ProtoMatrixToMatrix(volInfo.rotation());
-		else if (pVol->nVolumeType != EVolumeType::VOLUME_STL) // compatibility with older versions
-			pVol->vTriangles = CTriangularMesh::GenerateMesh(pVol->nVolumeType, pVol->vProps, ProtoVectorToVector(volInfo.vcenter()), CMatrix3::Diagonal()).vTriangles;
-		if (volInfo.has_color())
-			pVol->color = ProtoColorToColor(volInfo.color());
-		else // compatibility
-			pVol->color = CColor(0.6f, 1.0f, 0.6f, 1.0f);
-
-		pVol->m_vIntervals.resize(volInfo.tdval_size());
-
-		for (unsigned j = 0; j < pVol->m_vIntervals.size(); j++)
-		{
-			const ProtoTimeDepVel& tdvProto = volInfo.tdval(j);
-			pVol->m_vIntervals[j].dTime = tdvProto.time();
-			pVol->m_vIntervals[j].vVel = ProtoVectorToVector(tdvProto.velocity());
-		}
-	}
+	if (si->version() == 0) // for compatibility with older versions
+		for (const auto& volume : si->analysis_volume_v0())
+			AddAnalysisVolume()->LoadFromProto_v0(volume);
+	else
+		for (const auto& volume : si->analysis_volume())
+			AddAnalysisVolume()->LoadFromProto(volume);
 
 	// load info about multispheres
 	for (int i = 0; i < m_storage->SimulationInfo()->multispheres_size(); i++)
@@ -1344,6 +1265,29 @@ std::vector<double> CSystemStructure::GetAllTimePoints() const
 std::vector<double> CSystemStructure::GetAllTimePointsOldFormat()
 {
 	return m_storage->GetAllTimePointsOldFormat();
+}
+
+SVolumeType CSystemStructure::GetBoundingBox(double _time) const
+{
+	SVolumeType bb{ CVector3{ std::numeric_limits<double>::max() }, CVector3{ -std::numeric_limits<double>::max() } };
+
+	for (const auto& part : GetAllSpheres(_time, true))
+	{
+		const CVector3 coord = part->GetCoordinates(_time);
+		bb.coordBeg = Min(bb.coordBeg, coord - part->GetRadius());
+		bb.coordEnd = Max(bb.coordEnd, coord + part->GetRadius());
+	}
+
+	for (const auto& wall : GetAllWalls(_time, true))
+	{
+		const auto coords = wall->GetCoords(_time);
+		bb.coordBeg = Min(bb.coordBeg, coords.p1, coords.p2, coords.p3);
+		bb.coordEnd = Max(bb.coordEnd, coords.p1, coords.p2, coords.p3);
+	}
+
+	if (bb.coordBeg.x ==  std::numeric_limits<double>::max()) bb.coordBeg = CVector3{ 0 };
+	if (bb.coordEnd.x == -std::numeric_limits<double>::max()) bb.coordEnd = CVector3{ 0 };
+	return bb;
 }
 
 CVector3 CSystemStructure::GetMaxCoordinate(const double _dTime)
@@ -1603,10 +1547,10 @@ std::string CSystemStructure::IsAllCompoundsDefined() const
 				return "Materials not for all bonds are defined in database";
 		}
 	// check materials for geometries
-	for (size_t i = 0; i < m_Geometries.size(); i++)
-		for (size_t j = 0; j < m_Geometries[i]->vPlanes.size(); j++)
-			if ((objects[m_Geometries[i]->vPlanes[j]]) && (m_MaterialDatabase.GetCompoundIndex(objects[m_Geometries[i]->vPlanes[j]]->GetCompoundKey()) < 0))
-				return "Undefined material for geometry: " + m_Geometries[i]->sName;
+	for (size_t i = 0; i < m_geometries.size(); i++)
+		for (const auto& plane : m_geometries[i]->Planes())
+			if ((objects[plane]) && (m_MaterialDatabase.GetCompoundIndex(objects[plane]->GetCompoundKey()) < 0))
+				return "Undefined material for geometry: " + m_geometries[i]->Name();
 	return "";
 }
 
@@ -1688,550 +1632,276 @@ void CSystemStructure::EnableContactRadius(bool _bEnable)
 	m_bContactRadius = _bEnable;
 }
 
-size_t CSystemStructure::GetGeometriesNumber() const
+size_t CSystemStructure::GeometriesNumber() const
 {
-	return m_Geometries.size();
+	return m_geometries.size();
 }
 
-std::vector<SGeometryObject*> CSystemStructure::GetAllGeometries() const
+std::vector<CRealGeometry*> CSystemStructure::AllGeometries()
 {
-	return m_Geometries;
+	std::vector<CRealGeometry*> res;
+	res.reserve(m_geometries.size());
+	for (auto& g : m_geometries)
+		res.push_back(g.get());
+	return res;
 }
 
-const SGeometryObject* CSystemStructure::GetGeometry(size_t _iGeometry) const
+std::vector<const CRealGeometry*> CSystemStructure::AllGeometries() const
 {
-	if (_iGeometry < m_Geometries.size())
-		return m_Geometries[_iGeometry];
-	else
-		return nullptr;
+	std::vector<const CRealGeometry*> res;
+	res.reserve(m_geometries.size());
+	for (const auto& g : m_geometries)
+		res.push_back(g.get());
+	return res;
 }
 
-SGeometryObject* CSystemStructure::GetGeometry(size_t _iGeometry)
+const CRealGeometry* CSystemStructure::Geometry(size_t _index) const
 {
-	return const_cast<SGeometryObject*>(static_cast<const CSystemStructure&>(*this).GetGeometry(_iGeometry));
+	if (_index >= m_geometries.size()) return nullptr;
+	return m_geometries[_index].get();
 }
 
-const SGeometryObject* CSystemStructure::GetGeometry(const std::string& _sKey) const
+CRealGeometry* CSystemStructure::Geometry(size_t _index)
 {
-	for (auto g : m_Geometries)
-		if (g->sKey == _sKey)
-			return g;
+	return const_cast<CRealGeometry*>(static_cast<const CSystemStructure&>(*this).Geometry(_index));
+}
+
+const CRealGeometry* CSystemStructure::Geometry(const std::string& _key) const
+{
+	for (const auto& g : m_geometries)
+		if (g->Key() == _key)
+			return g.get();
 	return nullptr;
 }
 
-SGeometryObject* CSystemStructure::GetGeometry(const std::string& _sKey)
+CRealGeometry* CSystemStructure::Geometry(const std::string& _key)
 {
-	return const_cast<SGeometryObject*>(static_cast<const CSystemStructure&>(*this).GetGeometry(_sKey));
+	return const_cast<CRealGeometry*>(static_cast<const CSystemStructure&>(*this).Geometry(_key));
 }
 
-const SGeometryObject* CSystemStructure::GetGeometryByName(const std::string& _name) const
+const CRealGeometry* CSystemStructure::GeometryByName(const std::string& _name) const
 {
-	for (auto g : m_Geometries)
-		if (g->sName == _name)
-			return g;
+	for (const auto& g : m_geometries)
+		if (g->Name() == _name)
+			return g.get();
 	return nullptr;
 }
 
-SGeometryObject* CSystemStructure::GetGeometryByName(const std::string& _name)
+CRealGeometry* CSystemStructure::GeometryByName(const std::string& _name)
 {
-	return const_cast<SGeometryObject*>(static_cast<const CSystemStructure&>(*this).GetGeometryByName(_name));
+	return const_cast<CRealGeometry*>(static_cast<const CSystemStructure&>(*this).GeometryByName(_name));
 }
 
-size_t CSystemStructure::GetGeometryIndex(const std::string& _sKey) const
+size_t CSystemStructure::GeometryIndex(const std::string& _key) const
 {
-	for (size_t i = 0; i < m_Geometries.size(); ++i)
-		if (m_Geometries[i]->sKey == _sKey)
+	for (size_t i = 0; i < m_geometries.size(); ++i)
+		if (m_geometries[i]->Key() == _key)
 			return i;
-	return (std::numeric_limits<size_t>::max)();
+	return size_t(-1);
 }
 
-std::vector<CTriangularWall*> CSystemStructure::GetGeometryWalls(size_t _iGeometry)
+CRealGeometry* CSystemStructure::AddGeometry()
 {
-	std::vector<CTriangularWall*> vRes;
-
-	if (_iGeometry >= m_Geometries.size()) return vRes;
-
-	vRes.reserve(m_Geometries[_iGeometry]->vPlanes.size());
-	for (size_t i = 0; i < m_Geometries[_iGeometry]->vPlanes.size(); ++i)
-	{
-		CTriangularWall* pWall = static_cast<CTriangularWall*>(GetObjectByIndex(m_Geometries[_iGeometry]->vPlanes[i]));
-		if (pWall) vRes.push_back(pWall);
-	}
-	return vRes;
+	m_geometries.push_back(std::make_unique<CRealGeometry>(this));
+	m_geometries.back()->SetKey(GenerateUniqueKey(GeometriesKeys()));
+	return m_geometries.back().get();
 }
 
-std::vector<const CTriangularWall*> CSystemStructure::GetGeometryWalls(size_t _iGeometry) const
+CRealGeometry* CSystemStructure::AddGeometry(const CTriangularMesh& _mesh)
 {
-	std::vector<const CTriangularWall*> vRes;
-
-	if (_iGeometry >= m_Geometries.size()) return vRes;
-
-	vRes.reserve(m_Geometries[_iGeometry]->vPlanes.size());
-	for (size_t i = 0; i < m_Geometries[_iGeometry]->vPlanes.size(); ++i)
-	{
-		const CTriangularWall* pWall = static_cast<const CTriangularWall*>(GetObjectByIndex(m_Geometries[_iGeometry]->vPlanes[i]));
-		if (pWall)	vRes.push_back(pWall);
-	}
-	return vRes;
+	CRealGeometry* geometry = AddGeometry();
+	geometry->SetMesh(_mesh);
+	geometry->SetName(_mesh.Name());
+	geometry->StoreShape(EVolumeShape::VOLUME_STL);
+	return geometry;
 }
 
-SGeometryObject* CSystemStructure::AddGeometry()
+CRealGeometry* CSystemStructure::AddGeometry(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center)
 {
-	SGeometryObject* pGeometry = new SGeometryObject;
-	pGeometry->sKey = GenerateNewKey();
-	pGeometry->sName = "Unspecified";
-	pGeometry->dMass = 0;
-	pGeometry->vFreeMotion.Init(0, 0, 0);
-	pGeometry->nVolumeType = EVolumeType::VOLUME_STL;
-	pGeometry->mRotation = CMatrix3::Diagonal();
-	pGeometry->color = CColor(0.5f, 0.5f, 1.0f);
-	pGeometry->bRotateAroundCenter = false;
-	pGeometry->bForceDepVel = false;
-	pGeometry->nCurrentInterval = 0;
-	m_Geometries.push_back(pGeometry);
-	return pGeometry;
+	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Diagonal());
+	CRealGeometry* geometry = AddGeometry(mesh);
+	geometry->StoreShape(_type);
+	geometry->SetSizes(_sizes);
+	return geometry;
 }
 
-
-
-SGeometryObject* CSystemStructure::AddGeometry(const CTriangularMesh& _mesh)
+void CSystemStructure::DeleteGeometry(size_t _index)
 {
-	SGeometryObject* pGeometry = AddGeometry();
-	pGeometry->sName = _mesh.sName;
-	pGeometry->nVolumeType = EVolumeType::VOLUME_STL;
-
-	for (auto tri : _mesh.vTriangles)
-	{
-		CTriangularWall* pWall = static_cast<CTriangularWall*>(AddObject(TRIANGULAR_WALL));
-		pWall->SetPlaneCoord(0, tri);
-		pGeometry->vPlanes.push_back(pWall->m_lObjectID);
-	}
-
-	return pGeometry;
+	if (_index >= m_geometries.size()) return;
+	DeleteObjects(m_geometries[_index]->Planes());
+	m_geometries.erase(m_geometries.begin() + _index);
 }
 
-SGeometryObject* CSystemStructure::AddGeometry(const EVolumeType& _type, const std::vector<double>& _params, const CVector3& _center, const CMatrix3& _rotation, size_t _accuracy /*= 0*/)
+void CSystemStructure::DeleteGeometry(const std::string& _key)
 {
-	const CTriangularMesh mesh = CTriangularMesh::GenerateMesh(_type, _params, _center, _rotation, _accuracy);
-
-	SGeometryObject* pGeometry = AddGeometry(mesh);
-	pGeometry->nVolumeType = _type;
-	pGeometry->vProps = _params;
-	pGeometry->mRotation = _rotation * pGeometry->mRotation;
-
-	return pGeometry;
-}
-
-void CSystemStructure::DeleteGeometry(size_t _iGeometry)
-{
-	if (_iGeometry >= m_Geometries.size()) return;
-	DeleteObjects(m_Geometries[_iGeometry]->vPlanes);
-	delete m_Geometries[_iGeometry];
-	m_Geometries.erase(m_Geometries.begin() + _iGeometry);
+	for (size_t i = 0; i < m_geometries.size(); ++i)
+		if (m_geometries[i]->Key() == _key)
+		{
+			DeleteGeometry(i);
+			break;
+		}
 }
 
 void CSystemStructure::DeleteAllGeometries()
 {
-	for (auto& g : m_Geometries)
-	{
-		for (auto& p : g->vPlanes)
-			if (p < objects.size())
-			{
-				delete objects[p];
-				objects[p] = nullptr;
-			}
-		delete g;
-	}
-	m_Geometries.clear();
+	for (auto& g : m_geometries)
+		DeleteObjects(g->Planes());
+	m_geometries.clear();
 	Compress();
 }
 
-void CSystemStructure::UpGeometry(size_t _iGeometry)
+void CSystemStructure::UpGeometry(const std::string& _key)
 {
-	if (_iGeometry < m_Geometries.size() && _iGeometry != 0)
-		std::iter_swap(m_Geometries.begin() + _iGeometry, m_Geometries.begin() + _iGeometry - 1);
+	const size_t index = GeometryIndex(_key);
+	if (index < m_geometries.size() && index != 0)
+		std::iter_swap(m_geometries.begin() + index, m_geometries.begin() + index - 1);
 }
 
-void CSystemStructure::DownGeometry(size_t _iGeometry)
+void CSystemStructure::DownGeometry(const std::string& _key)
 {
-	if ((_iGeometry < m_Geometries.size()) && (_iGeometry != (m_Geometries.size() - 1)))
-		std::iter_swap(m_Geometries.begin() + _iGeometry, m_Geometries.begin() + _iGeometry + 1);
+	const size_t index = GeometryIndex(_key);
+	if (index < m_geometries.size() && index != m_geometries.size() - 1)
+		std::iter_swap(m_geometries.begin() + index, m_geometries.begin() + index + 1);
 }
 
-CVector3 CSystemStructure::GetGeometryCenter(double _dTime, size_t _iGeometry) const
+std::vector<std::string> CSystemStructure::GeometriesKeys() const
 {
-	CVector3 vCenter(0, 0, 0);
-	for (auto wall : GetGeometryWalls(_iGeometry))
-		vCenter += (wall->GetCoordVertex1(_dTime) + wall->GetCoordVertex2(_dTime) + wall->GetCoordVertex3(_dTime)) / (3.0*m_Geometries[_iGeometry]->vPlanes.size());
-	return vCenter;
+	std::vector<std::string> res;
+	for (const auto& g : m_geometries)
+		res.push_back(g->Key());
+	return res;
 }
 
-void CSystemStructure::SetGeometryCenter(double _dTime, size_t _iGeometry, const CVector3& _vCoord)
+size_t CSystemStructure::AnalysisVolumesNumber() const
 {
-	if (m_Geometries.size() <= _iGeometry) return;
-	CVector3 vOldCenter = GetGeometryCenter(_dTime, _iGeometry);
-	for (auto& wall : GetGeometryWalls(_iGeometry))
-	{
-		CVector3 vVert1 = wall->GetCoordVertex1(_dTime) - vOldCenter + _vCoord;
-		CVector3 vVert2 = wall->GetCoordVertex2(_dTime) - vOldCenter + _vCoord;
-		CVector3 vVert3 = wall->GetCoordVertex3(_dTime) - vOldCenter + _vCoord;
-		wall->SetPlaneCoord(_dTime, vVert1, vVert2, vVert3);
-	}
+	return m_analysisVolumes.size();
 }
 
-void CSystemStructure::SetGeometryMaterial(size_t _iGeometry, const CCompound* _pCompound)
+std::vector<CAnalysisVolume*> CSystemStructure::AllAnalysisVolumes()
 {
-	for (auto& wall : GetGeometryWalls(_iGeometry))
-		wall->SetCompound(_pCompound);
+	std::vector<CAnalysisVolume*> res;
+	res.reserve(m_analysisVolumes.size());
+	for (auto& v : m_analysisVolumes)
+		res.push_back(v.get());
+	return res;
 }
 
-void CSystemStructure::SetGeometryMaterial(const std::string& _sKey, const CCompound* _pCompound)
+std::vector<const CAnalysisVolume*> CSystemStructure::AllAnalysisVolumes() const
 {
-	SetGeometryMaterial(GetGeometryIndex(_sKey), _pCompound);
+	std::vector<const CAnalysisVolume*> res;
+	res.reserve(m_analysisVolumes.size());
+	for (const auto& v : m_analysisVolumes)
+		res.push_back(v.get());
+	return res;
 }
 
-void CSystemStructure::ScaleGeometry(double _dTime, size_t _iGeometry, double _factor)
+const CAnalysisVolume* CSystemStructure::AnalysisVolume(size_t _index) const
 {
-	if (!GetGeometry(_iGeometry)) return;
-
-	CVector3 vCenter = GetGeometryCenter(_dTime, _iGeometry);
-	for (auto& wall : GetGeometryWalls(_iGeometry))
-		wall->SetPlaneCoord(0,
-			vCenter + (wall->GetCoordVertex1(_dTime) - vCenter)*_factor,
-			vCenter + (wall->GetCoordVertex2(_dTime) - vCenter)*_factor,
-			vCenter + (wall->GetCoordVertex3(_dTime) - vCenter)*_factor);
-	for (auto& p : GetGeometry(_iGeometry)->vProps)
-		p *= _factor;
+	if (_index >= m_analysisVolumes.size()) return nullptr;
+	return m_analysisVolumes[_index].get();
 }
 
-void CSystemStructure::RotateGeometry(double _dTime, size_t _iGeometry, const CMatrix3& _rotation)
+CAnalysisVolume* CSystemStructure::AnalysisVolume(size_t _index)
 {
-	if (!GetGeometry(_iGeometry)) return;
-
-	CVector3 vCenter = GetGeometryCenter(_dTime, _iGeometry);
-	for (auto& wall : GetGeometryWalls(_iGeometry))
-	{
-		wall->SetPlaneCoord(_dTime,
-			vCenter + _rotation * (wall->GetCoordVertex1(_dTime) - vCenter),
-			vCenter + _rotation * (wall->GetCoordVertex2(_dTime) - vCenter),
-			vCenter + _rotation * (wall->GetCoordVertex3(_dTime) - vCenter));
-	}
-	GetGeometry(_iGeometry)->mRotation = _rotation * GetGeometry(_iGeometry)->mRotation;
+	return const_cast<CAnalysisVolume*>(static_cast<const CSystemStructure&>(*this).AnalysisVolume(_index));
 }
 
-size_t CSystemStructure::GetAnalysisVolumesNumber() const
+const CAnalysisVolume* CSystemStructure::AnalysisVolume(const std::string& _key) const
 {
-	return m_AnalysisVolumes.size();
-}
-
-std::vector<CAnalysisVolume*> CSystemStructure::GetAllAnalysisVolumes() const
-{
-	return m_AnalysisVolumes;
-}
-
-const CAnalysisVolume* CSystemStructure::GetAnalysisVolume(size_t _iVolume) const
-{
-	if (_iVolume < m_AnalysisVolumes.size())
-		return m_AnalysisVolumes[_iVolume];
+	for (const auto& v : m_analysisVolumes)
+		if (v->Key() == _key)
+			return v.get();
 	return nullptr;
 }
 
-CAnalysisVolume* CSystemStructure::GetAnalysisVolume(size_t _iVolume)
+CAnalysisVolume* CSystemStructure::AnalysisVolume(const std::string& _key)
 {
-	return const_cast<CAnalysisVolume*>(static_cast<const CSystemStructure&>(*this).GetAnalysisVolume(_iVolume));
+	return const_cast<CAnalysisVolume*>(static_cast<const CSystemStructure&>(*this).AnalysisVolume(_key));
 }
 
-const CAnalysisVolume* CSystemStructure::GetAnalysisVolume(const std::string& _volumeKey) const
+const CAnalysisVolume* CSystemStructure::AnalysisVolumeByName(const std::string& _name) const
 {
-	for (auto g : m_AnalysisVolumes)
-		if (g->sKey == _volumeKey)
-			return g;
+	for (const auto& v : m_analysisVolumes)
+		if (v->Name() == _name)
+			return v.get();
 	return nullptr;
 }
 
-CAnalysisVolume* CSystemStructure::GetAnalysisVolume(const std::string& _volumeKey)
+CAnalysisVolume* CSystemStructure::AnalysisVolumeByName(const std::string& _name)
 {
-	return const_cast<CAnalysisVolume*>(static_cast<const CSystemStructure&>(*this).GetAnalysisVolume(_volumeKey));
+	return const_cast<CAnalysisVolume*>(static_cast<const CSystemStructure&>(*this).AnalysisVolumeByName(_name));
 }
 
-const CAnalysisVolume* CSystemStructure::GetAnalysisVolumeByName(const std::string& _volumeName) const
+size_t CSystemStructure::AnalysisVolumeIndex(const std::string& _key) const
 {
-	for (auto g : m_AnalysisVolumes)
-		if (g->sName == _volumeName)
-			return g;
-	return nullptr;
-}
-
-CAnalysisVolume* CSystemStructure::GetAnalysisVolumeByName(const std::string& _volumeName)
-{
-	return const_cast<CAnalysisVolume*>(static_cast<const CSystemStructure&>(*this).GetAnalysisVolumeByName(_volumeName));
-}
-
-size_t CSystemStructure::GetAnalysisVolumeIndex(const std::string& _volumeKey) const
-{
-	for (size_t i = 0; i < m_AnalysisVolumes.size(); ++i)
-		if (m_AnalysisVolumes[i]->sKey == _volumeKey)
+	for (size_t i = 0; i < m_analysisVolumes.size(); ++i)
+		if (m_analysisVolumes[i]->Key() == _key)
 			return i;
-	return std::numeric_limits<size_t>::max();
-}
-
-std::vector<size_t> CSystemStructure::GetParticleIndicesInVolume(double _time, size_t _iVolume, bool _bTotallyInVolume /*= true*/)
-{
-	const CAnalysisVolume* volume = GetAnalysisVolume(_iVolume);
-	if (!volume) return {};
-
-	const auto particles = GetAllSpheres(_time);
-	std::vector<size_t> IDs;		IDs.reserve(particles.size());
-	std::vector<double> radiuses;	radiuses.reserve(particles.size());
-	std::vector<CVector3> coords;	coords.reserve(particles.size());
-	for (const auto& p : particles)
-	{
-		IDs.push_back(p->m_lObjectID);
-		if (_bTotallyInVolume)
-			radiuses.push_back(p->GetRadius());
-		coords.push_back(p->GetCoordinates(_time));
-	}
-
-	return CInsideVolumeChecker{ volume, _time }.GetSpheresTotallyInside(coords, radiuses, IDs);
-}
-
-std::vector<size_t> CSystemStructure::GetParticleIndicesInVolume(double _time, const std::string& _volumeKey, bool _bTotallyInVolume /*= true*/)
-{
-	return GetParticleIndicesInVolume(_time, GetAnalysisVolumeIndex(_volumeKey), _bTotallyInVolume);
-}
-
-std::vector<CSphere*> CSystemStructure::GetParticlesInVolume(double _time, const std::string& _volumeKey, bool _bTotallyInVolume)
-{
-	const std::vector<size_t> indices = GetParticleIndicesInVolume(_time, _volumeKey, _bTotallyInVolume);
-	std::vector<CSphere*> res;
-	res.reserve(indices.size());
-	for (size_t i : indices)
-		res.push_back(dynamic_cast<CSphere*>(objects[i]));
-	return res;
-}
-
-std::vector<size_t> CSystemStructure::GetSolidBondIndicesInVolume(double _time, size_t _iVolume)
-{
-	const CAnalysisVolume* volume = GetAnalysisVolume(_iVolume);
-	if (!volume) return {};
-
-	const auto bonds = GetAllSolidBonds(_time);
-	std::vector<size_t> IDs;		IDs.reserve(bonds.size());
-	std::vector<CVector3> coords;	coords.reserve(bonds.size());
-	for (const auto& b : bonds)
-	{
-		IDs.push_back(b->m_lObjectID);
-		coords.push_back(GetBondCoordinate(_time, b->m_lObjectID));
-	}
-
-	return CInsideVolumeChecker{ volume, _time }.GetObjectsInside(coords, IDs);
-}
-
-std::vector<size_t> CSystemStructure::GetSolidBondIndicesInVolume(double _time, const std::string& _volumeKey)
-{
-	return GetSolidBondIndicesInVolume(_time, GetAnalysisVolumeIndex(_volumeKey));
-}
-
-std::vector<CSolidBond*> CSystemStructure::GetSolidBondsInVolume(double _time, const std::string& _volumeKey)
-{
-	const std::vector<size_t> indices = GetSolidBondIndicesInVolume(_time, _volumeKey);
-	std::vector<CSolidBond*> res;
-	res.reserve(indices.size());
-	for (size_t i : indices)
-		res.push_back(dynamic_cast<CSolidBond*>(objects[i]));
-	return res;
-}
-
-std::vector<size_t> CSystemStructure::GetLiquidBondIndicesInVolume(double _time, size_t _iVolume)
-{
-	const CAnalysisVolume* volume = GetAnalysisVolume(_iVolume);
-	if (!volume) return {};
-
-	const auto bonds = GetAllLiquidBonds(_time);
-	std::vector<size_t> IDs;		IDs.reserve(bonds.size());
-	std::vector<CVector3> coords;	coords.reserve(bonds.size());
-	for (const auto& b : bonds)
-	{
-		IDs.push_back(b->m_lObjectID);
-		coords.push_back(GetBondCoordinate(_time, b->m_lObjectID));
-	}
-
-	return CInsideVolumeChecker{ volume, _time }.GetObjectsInside(coords, IDs);
-}
-
-std::vector<size_t> CSystemStructure::GetLiquidBondIndicesInVolume(double _time, const std::string& _volumeKey)
-{
-	return GetLiquidBondIndicesInVolume(_time, GetAnalysisVolumeIndex(_volumeKey));
-}
-
-std::vector<CLiquidBond*> CSystemStructure::GetLiquidBondsInVolume(double _time, const std::string& _volumeKey)
-{
-	const std::vector<size_t> indices = GetLiquidBondIndicesInVolume(_time, _volumeKey);
-	std::vector<CLiquidBond*> res;
-	res.reserve(indices.size());
-	for (size_t i : indices)
-		res.push_back(dynamic_cast<CLiquidBond*>(objects[i]));
-	return res;
-}
-
-std::vector<size_t> CSystemStructure::GetBondIndicesInVolume(double _time, size_t _iVolume)
-{
-	const CAnalysisVolume* volume = GetAnalysisVolume(_iVolume);
-	if (!volume) return {};
-
-	const auto bonds = GetAllBonds(_time);
-	std::vector<size_t> IDs;		IDs.reserve(bonds.size());
-	std::vector<CVector3> coords;	coords.reserve(bonds.size());
-	for (const auto& b : bonds)
-	{
-		IDs.push_back(b->m_lObjectID);
-		coords.push_back(GetBondCoordinate(_time, b->m_lObjectID));
-	}
-
-	return CInsideVolumeChecker{ volume, _time }.GetObjectsInside(coords, IDs);
-}
-
-std::vector<size_t> CSystemStructure::GetBondIndicesInVolume(double _time, const std::string& _volumeKey)
-{
-	return GetBondIndicesInVolume(_time, GetAnalysisVolumeIndex(_volumeKey));
-}
-
-std::vector<CBond*> CSystemStructure::GetBondsInVolume(double _time, const std::string& _volumeKey)
-{
-	const std::vector<size_t> indices = GetBondIndicesInVolume(_time, _volumeKey);
-	std::vector<CBond*> res;
-	res.reserve(indices.size());
-	for (size_t i : indices)
-		res.push_back(dynamic_cast<CBond*>(objects[i]));
-	return res;
-}
-
-std::vector<size_t> CSystemStructure::GetWallIndicesInVolume(double _time, size_t _iVolume)
-{
-	const CAnalysisVolume* volume = GetAnalysisVolume(_iVolume);
-	if (!volume) return {};
-
-	const auto walls = GetAllWalls(_time);
-	std::vector<size_t> vWallsID;		vWallsID.reserve(walls.size());
-	std::vector<CVector3> vWallsCoordX;	vWallsCoordX.reserve(walls.size());
-	std::vector<CVector3> vWallsCoordY;	vWallsCoordY.reserve(walls.size());
-	std::vector<CVector3> vWallsCoordZ;	vWallsCoordZ.reserve(walls.size());
-	for (const auto& w : walls)
-	{
-		vWallsID.push_back(w->m_lObjectID);
-		const STriangleType t = w->GetCoords(_time);
-		vWallsCoordX.push_back(t.p1);
-		vWallsCoordY.push_back(t.p2);
-		vWallsCoordZ.push_back(t.p3);
-	}
-	const CInsideVolumeChecker insideVolumeChecher(volume, _time);
-	const std::vector<size_t> resultsIDx = insideVolumeChecher.GetObjectsInside(vWallsCoordX, vWallsID);
-	const std::vector<size_t> resultsIDy = insideVolumeChecher.GetObjectsInside(vWallsCoordY, vWallsID);
-	const std::vector<size_t> resultsIDz = insideVolumeChecher.GetObjectsInside(vWallsCoordZ, vWallsID);
-	return VectorIntersection({ resultsIDx, resultsIDy, resultsIDz });
-}
-
-std::vector<size_t> CSystemStructure::GetWallIndicesInVolume(double _time, const std::string& _volumeKey)
-{
-	return GetWallIndicesInVolume(_time, GetAnalysisVolumeIndex(_volumeKey));
-}
-
-std::vector<CTriangularWall*> CSystemStructure::GetWallsInVolume(double _time, const std::string& _volumeKey)
-{
-	const std::vector<size_t> indices = GetWallIndicesInVolume(_time, _volumeKey);
-	std::vector<CTriangularWall*> res;
-	res.reserve(indices.size());
-	for (size_t i : indices)
-		res.push_back(dynamic_cast<CTriangularWall*>(objects[i]));
-	return res;
-}
-
-std::vector<size_t> CSystemStructure::GetObjectIndicesInVolume(double _time, const std::vector<CVector3>& _coords, size_t _iVolume)
-{
-	const CAnalysisVolume* volume = GetAnalysisVolume(_iVolume);
-	if (!volume) return {};
-
-	return CInsideVolumeChecker{ GetAnalysisVolume(_iVolume), _time }.GetObjectsInside(_coords);
+	return size_t(-1);
 }
 
 CAnalysisVolume* CSystemStructure::AddAnalysisVolume()
 {
-	CAnalysisVolume* pNewVolume = new CAnalysisVolume();
-	pNewVolume->sKey = GenerateNewKey();
-	pNewVolume->sName = "Unspecified";
-	pNewVolume->nVolumeType = EVolumeType::VOLUME_STL;
-	pNewVolume->mRotation = CMatrix3::Diagonal();
-	pNewVolume->color = CColor(0.6f, 1.0f, 0.6f, 1.0f);
-	m_AnalysisVolumes.push_back(pNewVolume);
-	return pNewVolume;
+	m_analysisVolumes.push_back(std::make_unique<CAnalysisVolume>(this));
+	m_analysisVolumes.back()->SetKey(GenerateUniqueKey(AnalysisVolumesKeys()));
+	return m_analysisVolumes.back().get();
 }
 
 CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const CTriangularMesh& _mesh)
 {
-	CAnalysisVolume* pVolume = AddAnalysisVolume();
-	pVolume->sName = _mesh.sName;
-	pVolume->nVolumeType = EVolumeType::VOLUME_STL;
-	pVolume->vTriangles = _mesh.vTriangles;
-	return pVolume;
+	CAnalysisVolume* volume = AddAnalysisVolume();
+	volume->SetMesh(_mesh);
+	volume->SetName(_mesh.Name());
+	volume->StoreShape(EVolumeShape::VOLUME_STL);
+	return volume;
 }
 
-CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const EVolumeType& _type, const std::vector<double>& _params, const CVector3& _center, const CMatrix3& _rotation, size_t _accuracy /*= 0*/)
+CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center)
 {
-	const CTriangularMesh mesh = CTriangularMesh::GenerateMesh(_type, _params, _center, _rotation, _accuracy);
+	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Diagonal());
 
-	CAnalysisVolume* pVolume = AddAnalysisVolume(mesh);
-	pVolume->nVolumeType = _type;
-	pVolume->vProps = _params;
-	pVolume->mRotation = _rotation * pVolume->mRotation;
-
-	return pVolume;
+	CAnalysisVolume* volume = AddAnalysisVolume(mesh);
+	volume->StoreShape(_type);
+	volume->SetSizes(_sizes);
+	return volume;
 }
 
-void CSystemStructure::DeleteAnalysisVolume(size_t _iVolume)
+void CSystemStructure::DeleteAnalysisVolume(size_t _index)
 {
-	if (_iVolume >= m_AnalysisVolumes.size()) return;
-	delete m_AnalysisVolumes[_iVolume];
-	m_AnalysisVolumes.erase(m_AnalysisVolumes.begin() + _iVolume);
+	if (_index >= m_analysisVolumes.size()) return;
+	m_analysisVolumes.erase(m_analysisVolumes.begin() + _index);
 }
 
-void CSystemStructure::UpAnalysisVolume(size_t _iVolume)
+void CSystemStructure::DeleteAnalysisVolume(const std::string& _key)
 {
-	if (_iVolume < m_AnalysisVolumes.size() && _iVolume != 0)
-		std::iter_swap(m_AnalysisVolumes.begin() + _iVolume, m_AnalysisVolumes.begin() + _iVolume - 1);
+	for (size_t i = 0; i < m_analysisVolumes.size(); ++i)
+		if (m_analysisVolumes[i]->Key() == _key)
+		{
+			DeleteAnalysisVolume(i);
+			break;
+		}
 }
 
-void CSystemStructure::DownAnalysisVolume(size_t _iVolume)
+void CSystemStructure::UpAnalysisVolume(const std::string& _key)
 {
-	if ((_iVolume < m_AnalysisVolumes.size()) && (_iVolume != (m_AnalysisVolumes.size() - 1)))
-		std::iter_swap(m_AnalysisVolumes.begin() + _iVolume, m_AnalysisVolumes.begin() + _iVolume + 1);
+	const size_t index = AnalysisVolumeIndex(_key);
+	if (index < m_analysisVolumes.size() && index != 0)
+		std::iter_swap(m_analysisVolumes.begin() + index, m_analysisVolumes.begin() + index - 1);
 }
 
-CVector3 CSystemStructure::GetAnalysisVolumeCenter(size_t _iVolume, double _dTime) const
+void CSystemStructure::DownAnalysisVolume(const std::string& _key)
 {
-	const CAnalysisVolume* pVolume = GetAnalysisVolume(_iVolume);
-	if (!pVolume) return CVector3(0);
-	return pVolume->GetCenter(_dTime);
+	const size_t index = AnalysisVolumeIndex(_key);
+	if ((index < m_analysisVolumes.size()) && (index != (m_analysisVolumes.size() - 1)))
+		std::iter_swap(m_analysisVolumes.begin() + index, m_analysisVolumes.begin() + index + 1);
 }
 
-void CSystemStructure::SetAnalysisVolumeCenter(size_t _iVolume, const CVector3& _vCoord)
+std::vector<std::string> CSystemStructure::AnalysisVolumesKeys() const
 {
-	CAnalysisVolume* pVolume = GetAnalysisVolume(_iVolume);
-	if (!pVolume) return;
-	pVolume->SetCenter(_vCoord);
-}
-
-void CSystemStructure::ScaleAnalysisVolume(size_t _iVolume, double _factor)
-{
-	CAnalysisVolume* pVolume = GetAnalysisVolume(_iVolume);
-	if (!pVolume) return;
-	pVolume->Scale(_factor);
-}
-
-void CSystemStructure::RotateAnalysisVolume(size_t _iVolume, const CMatrix3& _rotation)
-{
-	CAnalysisVolume* pVolume = GetAnalysisVolume(_iVolume);
-	if (!pVolume) return;
-	pVolume->Rotate(_rotation);
+	std::vector<std::string> res;
+	for (const auto& v : m_analysisVolumes)
+		res.push_back(v->Key());
+	return res;
 }
 
 void CSystemStructure::ClearAllTDData()

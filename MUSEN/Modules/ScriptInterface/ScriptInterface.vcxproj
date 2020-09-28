@@ -68,6 +68,7 @@
     <ClInclude Include="ArgumentsParser.h" />
     <ClInclude Include="ConsoleResultsAnalyzer.h" />
     <ClInclude Include="ConsoleSimulator.h" />
+    <ClInclude Include="ResultsComparer.h" />
     <ClInclude Include="ScriptAnalyzer.h" />
     <ClInclude Include="ScriptJob.h" />
     <ClInclude Include="ScriptRunner.h" />
@@ -77,6 +78,7 @@
     <ClCompile Include="ArgumentsParser.cpp" />
     <ClCompile Include="ConsoleResultsAnalyzer.cpp" />
     <ClCompile Include="ConsoleSimulator.cpp" />
+    <ClCompile Include="ResultsComparer.cpp" />
     <ClCompile Include="ScriptAnalyzer.cpp" />
     <ClCompile Include="ScriptRunner.cpp" />
     <ClCompile Include="TriState.cpp" />

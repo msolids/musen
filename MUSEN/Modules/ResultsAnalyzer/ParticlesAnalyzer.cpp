@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "ParticlesAnalyzer.h"
+#include "GeometricFunctions.h"
 
 CParticlesAnalyzer::CParticlesAnalyzer()
 {

@@ -4,9 +4,6 @@
     <ClCompile Include="GeneralMUSENDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ColorView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\MUSEN\MUSEN\x64\Debug\GeneralMusenDialog\moc\moc_GeneralMUSENDialog.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -36,9 +33,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="ColorView.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="GeneralMUSENDialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>

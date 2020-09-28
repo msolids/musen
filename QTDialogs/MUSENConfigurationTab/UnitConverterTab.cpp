@@ -29,9 +29,9 @@ void CUnitConvertorTab::SetPointers( CSystemStructure* _pSystemStructure, CUnitC
 	m_pUnitConvertor = _pUnitConvertor;
 	ui.table->setRowCount(m_pUnitConvertor->GetPropertiesNumber());
 
+	m_pUnitConvertor->SetSelectedUnitType(EUnitType::TEMPERATURE, m_pSettings->value(UC_TEMPERATURE_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::MASS, m_pSettings->value(UC_MASS_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::MASS_STREAM, m_pSettings->value(UC_MASS_STREAM_UNIT).toInt());
-	m_pUnitConvertor->SetSelectedUnitType(EUnitType::TEMPERATURE, m_pSettings->value(UC_TEMPERATURE_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::TIME, m_pSettings->value(UC_TIME_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::LENGTH, m_pSettings->value(UC_LENGTH_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::PARTICLE_DIAMETER, m_pSettings->value(UC_PARTICLE_DIAMETER_UNIT).toInt());
@@ -39,7 +39,10 @@ void CUnitConvertorTab::SetPointers( CSystemStructure* _pSystemStructure, CUnitC
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::VELOCITY, m_pSettings->value(UC_VELOCITY_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::FORCE, m_pSettings->value(UC_FORCE_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::VOLUME, m_pSettings->value(UC_VOLUME_UNIT).toInt());
+	m_pUnitConvertor->SetSelectedUnitType(EUnitType::SURFACE, m_pSettings->value(UC_SURFACE_UNIT).toInt());
+	m_pUnitConvertor->SetSelectedUnitType(EUnitType::STRESS, m_pSettings->value(UC_STRESS_UNIT).toInt());
 	m_pUnitConvertor->SetSelectedUnitType(EUnitType::ANGULAR_VELOCITY, m_pSettings->value(UC_ANGULAR_VELOCITY_UNIT).toInt());
+	m_pUnitConvertor->SetSelectedUnitType(EUnitType::ANGLE, m_pSettings->value(UC_ANGLE_UNIT).toInt());
 
 	for (int i = 0; i < ui.table->rowCount(); i++)
 	{
@@ -63,9 +66,9 @@ void CUnitConvertorTab::SetPointers( CSystemStructure* _pSystemStructure, CUnitC
 
 void CUnitConvertorTab::SaveConfiguration()
 {
+	m_pSettings->setValue(UC_TEMPERATURE_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::TEMPERATURE));
 	m_pSettings->setValue(UC_MASS_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::MASS));
 	m_pSettings->setValue(UC_MASS_STREAM_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::MASS_STREAM));
-	m_pSettings->setValue(UC_TEMPERATURE_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::TEMPERATURE));
 	m_pSettings->setValue(UC_TIME_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::TIME));
 	m_pSettings->setValue(UC_LENGTH_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::LENGTH));
 	m_pSettings->setValue(UC_PARTICLE_DIAMETER_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::PARTICLE_DIAMETER));
@@ -73,7 +76,10 @@ void CUnitConvertorTab::SaveConfiguration()
 	m_pSettings->setValue(UC_VELOCITY_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::VELOCITY));
 	m_pSettings->setValue(UC_FORCE_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::FORCE));
 	m_pSettings->setValue(UC_VOLUME_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::VOLUME));
+	m_pSettings->setValue(UC_SURFACE_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::SURFACE));
+	m_pSettings->setValue(UC_STRESS_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::STRESS));
 	m_pSettings->setValue(UC_ANGULAR_VELOCITY_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::ANGULAR_VELOCITY));
+	m_pSettings->setValue(UC_ANGLE_UNIT, m_pUnitConvertor->GetSelectedUnitType(EUnitType::ANGLE));
 }
 
 void CUnitConvertorTab::LoadConfiguration()

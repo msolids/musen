@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "ClearSpecificTimePoints.h"
+#include "MUSENFileFunctions.h"
 
 CClearSpecificTimePoints::CClearSpecificTimePoints(CSystemStructure* _pSystemStructure)
 {

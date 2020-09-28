@@ -5,38 +5,37 @@
 #pragma once
 #include "GeneralMUSENDialog.h"
 #include "ui_ObjectsGeneratorTab.h"
-#include "AgglomeratesDatabase.h"
 #include "AggloCompounds.h"
 
 class CObjectsGeneratorTab : public CMusenDialog
 {
 	Q_OBJECT
 
+	Ui::ObjectsGeneratorTab ui{};
+
+	CGenerationManager* m_generationManager;
+	CAggloCompounds m_aggloCompounds{ this };
+
 public:
-	CObjectsGeneratorTab(CGenerationManager* _pGenerationManager, QWidget *parent = 0);
+	CObjectsGeneratorTab(CGenerationManager* _generationManager, QWidget* _parent = nullptr);
 
-private:
-	Ui::objectsGeneratorTab ui;
-
-	CGenerationManager* m_pGenerationManager;
-	CAggloCompounds* m_pAggloCompounds;
-	std::vector<double> m_vMagnitudes;
+	void UpdateWholeView() override;
 
 private:
 	void InitializeConnections() const;
-	void UpdateGeneratorsList();
+	void UpdateGeneratorsList() const;
 
 private slots:
-	void GeneratorWasChanged();
-	void UpdateSelectedGenerator();
-	void SetParameters();
+	void AddGenerator();
+	void DeleteGenerator();
+
+	void GeneratorChanged() const;
 	void GeneratorTypeChanged();
 	void VelocityTypeChanged();
 
-	void DeleteGenerator();
-	void AddGenerator();
+	void UpdateSelectedGenerator();
+	void SetParameters();
 
-	void UpdateWholeView();
 	void SetupAggloCompounds();
-	void NewAgglomerateChosen(int _nIndex);
+	void NewAgglomerateChosen(int _index) const;
 };

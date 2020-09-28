@@ -4,20 +4,17 @@
 
 #include "InsideVolumeChecker.h"
 
-CInsideVolumeChecker::CInsideVolumeChecker()
-{}
-
-CInsideVolumeChecker::CInsideVolumeChecker(const CAnalysisVolume* _pVolume, const double _dTime)
+CInsideVolumeChecker::CInsideVolumeChecker(const CAnalysisVolume* _volume, double _time)
 {
-	SetTriangles(_pVolume->vTriangles, _pVolume->GetShift(_dTime));
+	SetTriangles(_volume->Mesh(_time).Triangles());
 }
 
-CInsideVolumeChecker::CInsideVolumeChecker(const std::vector<STriangleType> &_vTriangles, const CVector3& _vShift)
+CInsideVolumeChecker::CInsideVolumeChecker(const std::vector<CTriangle>& _triangles)
 {
-	SetTriangles(_vTriangles, _vShift);
+	SetTriangles(_triangles);
 }
 
-inline std::pair<int, int> CInsideVolumeChecker::GetIndexByPoint(const CVector3& point) const
+std::pair<int, int> CInsideVolumeChecker::GetIndexByPoint(const CVector3& point) const
 {
 	int y = static_cast<int>((point.y - m_vMin.y) / (m_vMax.y - m_vMin.y) * MAX_INDEXES);
 	int z = static_cast<int>((point.z - m_vMin.z) / (m_vMax.z - m_vMin.z) * MAX_INDEXES);
@@ -27,13 +24,10 @@ inline std::pair<int, int> CInsideVolumeChecker::GetIndexByPoint(const CVector3&
 	return std::make_pair(y, z);
 }
 
-void CInsideVolumeChecker::SetTriangles(const std::vector<STriangleType> &vTriangles, const CVector3& _vShift)
+void CInsideVolumeChecker::SetTriangles(const std::vector<CTriangle>& _triangles)
 {
-	if (vTriangles.empty()) return;
-	m_Triangles = vTriangles;
-	if (!_vShift.IsZero())
-		for (unsigned i = 0; i < m_Triangles.size(); i++)
-			m_Triangles[i].Shift(_vShift);
+	if ( _triangles.empty() ) return;
+	m_Triangles = _triangles;
 
 	for (size_t i = 0; i < m_Triangles.size(); i++)
 	{
@@ -116,7 +110,7 @@ void CInsideVolumeChecker::IsPointInside(const CVector3& point, bool &isInside, 
 
 	for (unsigned j = 0; j < indexes.size(); j++)
 	{
-		STriangleType triangle = m_Triangles[indexes[j]];
+		CTriangle triangle = m_Triangles[ indexes[ j ] ];
 		triangle.p1 -= point;
 		triangle.p2 -= point;
 		triangle.p3 -= point;
@@ -250,7 +244,7 @@ std::vector<size_t> CInsideVolumeChecker::p_GetObjectsInside(const std::vector<C
 	}
 }
 
-void CInsideVolumeChecker::TryIntersectWithXAxis(const STriangleType &triangle, bool &isIntersecting, bool &isOnEdge) const
+void CInsideVolumeChecker::TryIntersectWithXAxis( const CTriangle &triangle, bool &isIntersecting, bool &isOnEdge ) const
 {
 	double e = 1e-20;
 	CVector3 p1, p2, p3;

@@ -48,13 +48,13 @@ bool CPackageGenerator::IsDataCorrect() const
 		if (!g.active) continue;
 
 		// check generation volume
-		const CAnalysisVolume* volume = m_pSystemStructure->GetAnalysisVolume(g.volumeKey);
+		const CAnalysisVolume* volume = m_pSystemStructure->AnalysisVolume(g.volumeKey);
 		if (!volume)
 		{
 			m_errorMessage = "Error in generator '" + g.name + "': generation volume not available or not specified";
 			return false;
 		}
-		if (!volume->IsFaceNormalsConsistent())
+		if (!volume->Mesh(0).IsFaceNormalsConsistent())
 		{
 			m_errorMessage = "Error in generator '" + g.name + "': generation volume is corrupted";
 			return false;
@@ -104,7 +104,7 @@ void CPackageGenerator::StartGeneration()
 		const double maxRadius = simulator->GetSystemStructure()->GetMaxParticleDiameter() / 2;	// max radius of particles
 
 		// make prediction step and the first simulation step
-		simulator->StartSimulation();
+		simulator->Simulate();
 		UpdateReachedOverlap(generator);
 
 		// data helper to support simulation
@@ -123,7 +123,7 @@ void CPackageGenerator::StartGeneration()
 		{
 			simulator->GetModelManager()->SetModelParameters(EMusenModelType::PP, "NORMAL_FORCE_COEFF " + Double2String(normForceCoeff));
 			simulator->InitializeModelParameters();
-			simulator->InitializeStep(timeStep);
+			simulator->UpdateCollisionsStep(timeStep);
 
 			if (iteration % 10 == 0)
 			{
@@ -135,7 +135,7 @@ void CPackageGenerator::StartGeneration()
 			helper->LimitVelocities();
 
 			simulator->CalculateForcesPP(timeStep);
-			simulator->MoveObjects(timeStep);
+			simulator->MoveObjectsStep(timeStep);
 
 			// reset old velocities
 			if (minRadius != maxRadius) // often it is a case
@@ -152,9 +152,9 @@ void CPackageGenerator::StartGeneration()
 				helper->SaveVelocities();
 
 				simulator->SetCurrentTime(simulator->GetCurrentTime() + timeStep);
-				simulator->InitializeStep(timeStep);
+				simulator->UpdateCollisionsStep(timeStep);
 				simulator->CalculateForcesPW(timeStep);
-				simulator->MoveObjects(timeStep);
+				simulator->MoveObjectsStep(timeStep);
 				simulator->SetCurrentTime(simulator->GetCurrentTime() + timeStep);
 
 				if (maxRelVel < 0.01 && normForceCoeff < 0.05) 	// set new force coefficients
@@ -211,12 +211,12 @@ void CPackageGenerator::Initialize(SPackage& _generator) const
 
 void CPackageGenerator::SetupSimulationDomain(SPackage& _generator, CSystemStructure& _scene) const
 {
-	SVolumeType domain = m_pSystemStructure->GetAnalysisVolume(_generator.volumeKey)->BoundingBox(0);
+	SVolumeType domain = m_pSystemStructure->AnalysisVolume(_generator.volumeKey)->BoundingBox(0);
 
 	// increase simulation domain to cover all existing geometries
 	if (!_generator.insideGeometry)
-		for (size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i)
-			for (const auto& wall : m_pSystemStructure->GetGeometryWalls(i))
+		for (const auto& g : m_pSystemStructure->AllGeometries())
+			for (const auto& wall : g->Walls())
 			{
 				domain.coordBeg = Min(domain.coordBeg, wall->GetCoordVertex1(0), wall->GetCoordVertex2(0), wall->GetCoordVertex3(0));
 				domain.coordEnd = Max(domain.coordEnd, wall->GetCoordVertex1(0), wall->GetCoordVertex2(0), wall->GetCoordVertex3(0));
@@ -268,7 +268,7 @@ void CPackageGenerator::PlaceParticlesInitially(SPackage& _generator, CSystemStr
 	CParticleFilter filter{ *m_pSystemStructure , _generator };
 
 	// setup random generator
-	SVolumeType bbox = m_pSystemStructure->GetAnalysisVolume(_generator.volumeKey)->BoundingBox(0);	// bounding box of the generation volume
+	SVolumeType bbox = m_pSystemStructure->AnalysisVolume(_generator.volumeKey)->BoundingBox(0);	// bounding box of the generation volume
 	std::mt19937_64 randGen{ std::random_device{}() };
 	std::uniform_real_distribution<double> randDistrX(bbox.coordBeg.x, bbox.coordEnd.x);
 	std::uniform_real_distribution<double> randDistrY(bbox.coordBeg.y, bbox.coordEnd.y);
@@ -323,7 +323,7 @@ void CPackageGenerator::AddParticles(CSystemStructure& _scene, std::vector<size_
 
 void CPackageGenerator::AddOverlayedParticles(SPackage& _generator, CSystemStructure& _scene) const
 {
-	const std::vector<size_t> existingParticles = m_pSystemStructure->GetParticleIndicesInVolume(0, _generator.volumeKey, false);
+	const std::vector<const CSphere*> existingParticles = m_pSystemStructure->AnalysisVolume(_generator.volumeKey)->GetParticlesInside(0, false);
 	if (existingParticles.empty()) return;
 
 	CCompound* compound = _scene.m_MaterialDatabase.AddCompound("Overlap"); // create compound for overlapping particles
@@ -333,9 +333,8 @@ void CPackageGenerator::AddOverlayedParticles(SPackage& _generator, CSystemStruc
 		_scene.m_MaterialDatabase.SetInteractionValue(std::to_string(i), "Overlap", PROPERTY_RESTITUTION_COEFFICIENT, 0.2);
 
 	// add overlapping particles
-	for (auto id : existingParticles)
+	for (const auto& oldParticle : existingParticles)
 	{
-		const auto* oldParticle = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(id));
 		auto* newParticle = dynamic_cast<CSphere*>(_scene.AddObject(SPHERE));
 		newParticle->SetRadius(oldParticle->GetRadius());
 		newParticle->SetContactRadius(oldParticle->GetContactRadius());
@@ -348,20 +347,20 @@ void CPackageGenerator::AddOverlayedParticles(SPackage& _generator, CSystemStruc
 void CPackageGenerator::AddGeometries(SPackage& _generator, CSystemStructure& _scene) const
 {
 	// add generation volume as a real geometry
-	const CAnalysisVolume* volume = m_pSystemStructure->GetAnalysisVolume(_generator.volumeKey);
-	SGeometryObject* geometry = _scene.AddGeometry(volume->CreateInvertedMesh());	// add corresponding real volume
-	CCompound* wallCompound = _scene.m_MaterialDatabase.AddCompound("Wall");		// create compound for walls
-	_scene.SetGeometryMaterial(geometry->sKey, wallCompound);						// set material
+	const CAnalysisVolume* volume = m_pSystemStructure->AnalysisVolume(_generator.volumeKey);
+	CRealGeometry* geometry = _scene.AddGeometry(volume->Mesh(0).CreateInvertedMesh());	// add corresponding real volume
+	CCompound* wallCompound = _scene.m_MaterialDatabase.AddCompound("Wall");			// create compound for walls
+	geometry->SetMaterial(wallCompound->GetKey());										// set material
 
 	// add existing geometries
 	if (!_generator.insideGeometry)
-		for (size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i)
+		for (const auto& g : m_pSystemStructure->AllGeometries())
 		{
-			std::vector<STriangleType> triangles;
-			for (const auto& wall : m_pSystemStructure->GetGeometryWalls(i))
+			std::vector<CTriangle> triangles;
+			for (const auto& wall : g->Walls())
 				triangles.push_back(wall->GetCoords(0));
-			geometry = _scene.AddGeometry(CTriangularMesh{ m_pSystemStructure->GetGeometry(i)->sName, triangles });
-			_scene.SetGeometryMaterial(geometry->sKey, wallCompound);
+			geometry = _scene.AddGeometry(CTriangularMesh{ g->Name(), triangles });
+			geometry->SetMaterial(wallCompound->GetKey());
 		}
 }
 
@@ -428,7 +427,7 @@ std::vector<size_t> CPackageGenerator::ParticlesPerFraction(const SPackage& _gen
 {
 	const CMixture* mixture = m_pSystemStructure->m_MaterialDatabase.GetMixture(_generator.mixtureKey);
 	std::vector<size_t> res(mixture->FractionsNumber());
-	const double volumeToFill = m_pSystemStructure->GetAnalysisVolume(_generator.volumeKey)->Volume();
+	const double volumeToFill = m_pSystemStructure->AnalysisVolume(_generator.volumeKey)->Volume();
 	const double targetSolidVolume = (1.0 - _generator.targetPorosity) * volumeToFill;
 	double volume = 0.0;
 	for (size_t i = 0; i < mixture->FractionsNumber(); ++i)
@@ -481,7 +480,7 @@ void CPackageGenerator::LoadConfiguration()
 		pack.targetMaxOverlap = gen.max_overlap();
 		pack.maxIterations    = gen.max_iterations();
 		pack.insideGeometry   = gen.inside_geometry();
-		pack.initVelocity     = ProtoVectorToVector(gen.init_velocity());
+		pack.initVelocity     = Proto2Val(gen.init_velocity());
 	}
 }
 
@@ -502,7 +501,7 @@ void CPackageGenerator::SaveConfiguration()
 		pack->set_max_overlap(generator.targetMaxOverlap);
 		pack->set_max_iterations(generator.maxIterations);
 		pack->set_inside_geometry(generator.insideGeometry);
-		VectorToProtoVector(pack->mutable_init_velocity(), generator.initVelocity);
+		Val2Proto(pack->mutable_init_velocity(), generator.initVelocity);
 	}
 }
 
@@ -511,7 +510,7 @@ size_t CPackageGenerator::ParticlesToGenerate(size_t _index) const
 	const SPackage* gen = Generator(_index);
 	if (!gen) return 0;
 	if (!m_pSystemStructure->m_MaterialDatabase.GetMixture(gen->mixtureKey)) return 0;
-	if (!m_pSystemStructure->GetAnalysisVolume(gen->volumeKey)) return 0;
+	if (!m_pSystemStructure->AnalysisVolume(gen->volumeKey)) return 0;
 	std::vector<size_t> numbers = ParticlesPerFraction(*gen);
 	return std::accumulate(numbers.begin(), numbers.end(), static_cast<size_t>(0));
 }

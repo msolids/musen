@@ -85,7 +85,16 @@
     <QtMoc />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ColorView.cpp" />
+    <ClCompile Include="QtListSpinBox.cpp" />
+    <ClCompile Include="QtTree.cpp">
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
+      <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
+      <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
+    </ClCompile>
     <ClCompile Include="QtDoubleSpinBox.cpp" />
+    <ClCompile Include="TableItemSpinBox.cpp" />
     <ClCompile Include="QtList.cpp" />
     <ClCompile Include="QtSignalBlocker.cpp" />
     <ClCompile Include="QtTable.cpp" />
@@ -95,7 +104,11 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="QtListSpinBox.h" />
+    <ClInclude Include="QtTree.h" />
     <QtMoc Include="QtList.h" />
+    <QtMoc Include="ColorView.h" />
+    <QtMoc Include="TableItemSpinBox.h" />
     <QtMoc Include="QtDoubleSpinBox.h" />
     <ClInclude Include="QtSignalBlocker.h" />
   </ItemGroup>

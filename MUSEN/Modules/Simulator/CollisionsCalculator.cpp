@@ -4,23 +4,18 @@
 
 #include "CollisionsCalculator.h"
 
-CCollisionsCalculator::CCollisionsCalculator(CSimplifiedScene& _Scene) : m_Scene(_Scene)
+CCollisionsCalculator::CCollisionsCalculator(CSimplifiedScene& _scene, CVerletList& _list, CCollisionsAnalyzer& _analyzer) :
+	m_Scene{ _scene },
+	m_verletList{ _list },
+	m_collisionsAnalyzer{ _analyzer }
+
 {
-	m_bAnalyzeCollisions = false;
-	m_pVerletList = nullptr;
-	m_pCollisionsAnalyzer = nullptr;
 }
 
 CCollisionsCalculator::~CCollisionsCalculator()
 {
 	ClearCollMatrixes();
 	ClearFinishedCollisionMatrixes();
-}
-
-void CCollisionsCalculator::SetPointers(CVerletList* _pList, CCollisionsAnalyzer* _pCollAnalyzer)
-{
-	m_pVerletList = _pList;
-	m_pCollisionsAnalyzer = _pCollAnalyzer;
 }
 
 void CCollisionsCalculator::ClearCollMatrixes()
@@ -114,9 +109,9 @@ void CCollisionsCalculator::UpdateCollisionMatrixes( double _dTimeStep, double _
 				m_vCollMatrixPW[i][j]->bContactStillExist = false;
 		});
 
-	ParallelFor(m_pVerletList->m_PPList.size(), [&](size_t i)
+	ParallelFor(m_verletList.m_PPList.size(), [&](size_t i)
 	{
-		for (size_t j = 0; j < m_pVerletList->m_PPList[i].size(); ++j)
+		for (size_t j = 0; j < m_verletList.m_PPList[i].size(); ++j)
 			CheckPPCollision(i, j, _dCurrentTime);
 		CheckPWCollisions( i, _dCurrentTime );
 	});
@@ -134,13 +129,13 @@ void CCollisionsCalculator::UpdateCollisionMatrixes( double _dTimeStep, double _
 
 void CCollisionsCalculator::CheckPWCollisions( size_t _nParticle, double _dCurrentTime )
 {
-	if ( m_pVerletList->m_PWList[ _nParticle ].empty() ) return;
+	if ( m_verletList.m_PWList[ _nParticle ].empty() ) return;
 	const SParticleStruct& pParticles = m_Scene.GetRefToParticles();
 	const SWallStruct& pWalls = m_Scene.GetRefToWalls();
 
 	std::vector<EIntersectionType> vIntersectionType;
 	std::vector<CVector3> vContactPoint;
-	m_pVerletList->GetPWContacts( _nParticle, vIntersectionType, vContactPoint );
+	m_verletList.GetPWContacts( _nParticle, vIntersectionType, vContactPoint );
 
 	auto& partColls = m_vCollMatrixPW[_nParticle]; // vector of collisions for particle _nParticle
 
@@ -148,17 +143,17 @@ void CCollisionsCalculator::CheckPWCollisions( size_t _nParticle, double _dCurre
 	for (size_t iWall = 0; iWall < vIntersectionType.size(); ++iWall)
 	{
 		if (vIntersectionType[iWall] == EIntersectionType::NO_CONTACT) continue;
-		const unsigned nWall = m_pVerletList->m_PWList[_nParticle][iWall];
+		const unsigned nWall = m_verletList.m_PWList[_nParticle][iWall];
 		SCollision* pCollision = nullptr;
 		// check if this collision have been exists in the previous contact
 		for (auto pOldColl : partColls)
 		{
 			// collision between these particles already exists, it stays virtual, or stays real, or changes its virtuality
-			if (pOldColl->nSrcID == nWall && (!m_Scene.m_PBC.bEnabled || pOldColl->nVirtShift == m_pVerletList->m_PWVirtShift[_nParticle][iWall]))
+			if (pOldColl->nSrcID == nWall && (!m_Scene.m_PBC.bEnabled || pOldColl->nVirtShift == m_verletList.m_PWVirtShift[_nParticle][iWall]))
 			{
 				pCollision = pOldColl;
 				if (m_Scene.m_PBC.bEnabled)
-					pCollision->nVirtShift = m_pVerletList->m_PWVirtShift[_nParticle][iWall]; // update shift info in case if real collision became virtual or vice versa
+					pCollision->nVirtShift = m_verletList.m_PWVirtShift[_nParticle][iWall]; // update shift info in case if real collision became virtual or vice versa
 				break; // such contact was in previous step
 			}
 		}
@@ -171,7 +166,7 @@ void CCollisionsCalculator::CheckPWCollisions( size_t _nParticle, double _dCurre
 			pCollision->pSave = nullptr;
 			pCollision->nInteractProp = static_cast<uint16_t>(pWalls.CompoundIndex(nWall) * m_Scene.GetCompoundsNumber() + pParticles.CompoundIndex(_nParticle));
 			if (m_Scene.m_PBC.bEnabled)
-				pCollision->nVirtShift = m_pVerletList->m_PWVirtShift[_nParticle][iWall];
+				pCollision->nVirtShift = m_verletList.m_PWVirtShift[_nParticle][iWall];
 
 			// TODO: to conform with new PBC
 			if ( m_bAnalyzeCollisions )
@@ -245,13 +240,13 @@ void CCollisionsCalculator::CheckPWCollisions( size_t _nParticle, double _dCurre
 void CCollisionsCalculator::CheckPPCollision(size_t _iPart1, size_t _iPart2, double _dCurrentTime)
 {
 	const size_t nPart1 = _iPart1;
-	const size_t nPart2 = m_pVerletList->m_PPList[_iPart1][_iPart2];
-	const bool bVirtContact = m_Scene.m_PBC.bEnabled && (m_pVerletList->m_PPVirtShift[_iPart1][_iPart2] != 0);
+	const size_t nPart2 = m_verletList.m_PPList[_iPart1][_iPart2];
+	const bool bVirtContact = m_Scene.m_PBC.bEnabled && (m_verletList.m_PPVirtShift[_iPart1][_iPart2] != 0);
 	const SParticleStruct& pParticles = m_Scene.GetRefToParticles();
 
 	const CVector3 vContactVector = !bVirtContact ?
 		pParticles.Coord(nPart2) - pParticles.Coord(nPart1) :
-		GetVirtualProperty(pParticles.Coord(nPart2), m_pVerletList->m_PPVirtShift[_iPart1][_iPart2], m_Scene.m_PBC) - pParticles.Coord(nPart1);
+		GetVirtualProperty(pParticles.Coord(nPart2), m_verletList.m_PPVirtShift[_iPart1][_iPart2], m_Scene.m_PBC) - pParticles.Coord(nPart1);
 	const double dSquaredDistance = SquaredLength(vContactVector);
 	if ((pParticles.ContactRadius(nPart1) + pParticles.ContactRadius(nPart2))*(pParticles.ContactRadius(nPart1) + pParticles.ContactRadius(nPart2)) > dSquaredDistance)
 	{
@@ -259,11 +254,11 @@ void CCollisionsCalculator::CheckPPCollision(size_t _iPart1, size_t _iPart2, dou
 		// check if this collision have been existed in the previous contact
 		for (auto pOldColl : m_vCollMatrixPP[nPart1])
 		{
-			if (pOldColl->nDstID == nPart2 && (!m_Scene.m_PBC.bEnabled || pOldColl->nVirtShift == m_pVerletList->m_PPVirtShift[_iPart1][_iPart2]))
+			if (pOldColl->nDstID == nPart2 && (!m_Scene.m_PBC.bEnabled || pOldColl->nVirtShift == m_verletList.m_PPVirtShift[_iPart1][_iPart2]))
 			{
 				pCollision = pOldColl;
 				if (m_Scene.m_PBC.bEnabled)
-					pCollision->nVirtShift = m_pVerletList->m_PPVirtShift[_iPart1][_iPart2]; // update shift info in case if real collision became virtual or vice versa
+					pCollision->nVirtShift = m_verletList.m_PPVirtShift[_iPart1][_iPart2]; // update shift info in case if real collision became virtual or vice versa
 				break; // such contact was in previous step
 			}
 		}
@@ -278,7 +273,7 @@ void CCollisionsCalculator::CheckPPCollision(size_t _iPart1, size_t _iPart2, dou
 			pCollision->dEquivRadius = pParticles.ContactRadius(nPart1)*pParticles.ContactRadius(nPart2) / (pParticles.ContactRadius(nPart1) + pParticles.ContactRadius(nPart2));
 			pCollision->dEquivMass = pParticles.Mass(nPart1)*pParticles.Mass(nPart2) / (pParticles.Mass(nPart1) + pParticles.Mass(nPart2));
 			if (m_Scene.m_PBC.bEnabled)
-				pCollision->nVirtShift = bVirtContact ? m_pVerletList->m_PPVirtShift[_iPart1][_iPart2] : 0;
+				pCollision->nVirtShift = bVirtContact ? m_verletList.m_PPVirtShift[_iPart1][_iPart2] : 0;
 
 			// TODO: to conform with new PBC
 			if (m_bAnalyzeCollisions)
@@ -315,10 +310,11 @@ void CCollisionsCalculator::CheckPPCollision(size_t _iPart1, size_t _iPart2, dou
 int CCollisionsCalculator::GetGeometryIndex( unsigned _nWallIndex ) const
 {
 	const unsigned ind = m_Scene.GetRefToWalls().InitIndex(_nWallIndex);
-	for ( size_t i = 0; i < m_pSystemStructure->GetGeometriesNumber(); ++i )
+	for ( size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i )
 	{
-		SGeometryObject *pGeo = m_pSystemStructure->GetGeometry(i);
-		if ( std::find( pGeo->vPlanes.begin(), pGeo->vPlanes.end(), ind ) != pGeo->vPlanes.end() )
+		CRealGeometry *pGeo = m_pSystemStructure->Geometry(i);
+		const auto& planes = pGeo->Planes();
+		if ( std::find(planes.begin(), planes.end(), ind ) != planes.end() )
 			return static_cast<int>(i);
 	}
 	return -1;
@@ -362,7 +358,7 @@ void CCollisionsCalculator::SaveCollisions()
 	if ( m_bAnalyzeCollisions && (m_vFinishedCollisionsPP.size() + m_vFinishedCollisionsPW.size() > COLLISIONS_NUMBER_TO_SAVE))
 	{
 		RecalculateSavedIDs();
-		m_pCollisionsAnalyzer->AddCollisions( m_vFinishedCollisionsPP, m_vFinishedCollisionsPW );
+		m_collisionsAnalyzer.AddCollisions( m_vFinishedCollisionsPP, m_vFinishedCollisionsPW );
 		ClearFinishedCollisionMatrix( m_vFinishedCollisionsPP );
 		ClearFinishedCollisionMatrix( m_vFinishedCollisionsPW );
 	}
@@ -390,8 +386,8 @@ void CCollisionsCalculator::SaveRestCollisions()
 	RemoveOldCollisions( m_vCollMatrixPW );
 
 	RecalculateSavedIDs();
-	m_pCollisionsAnalyzer->AddCollisions( m_vFinishedCollisionsPP, m_vFinishedCollisionsPW );
-	m_pCollisionsAnalyzer->Finalize();
+	m_collisionsAnalyzer.AddCollisions( m_vFinishedCollisionsPP, m_vFinishedCollisionsPW );
+	m_collisionsAnalyzer.Finalize();
 
 	ClearFinishedCollisionMatrix( m_vFinishedCollisionsPP );
 	ClearFinishedCollisionMatrix( m_vFinishedCollisionsPW );
@@ -415,13 +411,13 @@ void CCollisionsCalculator::CopyFinishedPPCollisions()
 	//			{
 	//				unsigned iSrc = m_vCollMatrixPP[i][j]->nSrcID;
 	//				unsigned iDst = m_vCollMatrixPP[i][j]->nDstID;
-	//				const bool srcIsReal = iSrc <= m_Scene.GetRealParticlesNumber();
-	//				const bool dstIsReal = iDst <= m_Scene.GetRealParticlesNumber();
+	//				const bool srcIsReal = iSrc <= m_scene.GetRealParticlesNumber();
+	//				const bool dstIsReal = iDst <= m_scene.GetRealParticlesNumber();
 	//				if (srcIsReal && dstIsReal)	// real with real
 	//					m_vFinishedCollisionsPP.push_back(m_vCollMatrixPP[i][j]);
 	//				else // virtual with real (virtual with virtual is not possible)
 	//				{
-	//					std::vector<SParticleStruct>& parts = m_Scene.GetRefToParticles();
+	//					std::vector<SParticleStruct>& parts = m_scene.GetRefToParticles();
 	//					unsigned iReal = srcIsReal ? iSrc : iDst;	// index of a real particle
 	//					unsigned iRealOfVirtual = srcIsReal ? parts[iDst].nInitIndex : parts[iSrc].nInitIndex; // real index of virtual particle
 	//					if (iReal <= iRealOfVirtual)	// to omit duplication of collision

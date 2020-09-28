@@ -1,0 +1,299 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
+#include "RealGeometry.h"
+
+#include "MeshGenerator.h"
+#include "SystemStructure.h"
+
+CRealGeometry::CRealGeometry(CSystemStructure* _systemStructure) :
+	m_systemStructure{ _systemStructure }
+{
+	SetColor(CColor{ 0.5f, 0.5f, 1.0f, 1.0f });
+}
+
+size_t CRealGeometry::TrianglesNumber() const
+{
+	return m_planes.size();
+}
+
+std::vector<size_t> CRealGeometry::Planes() const
+{
+	return m_planes;
+}
+
+CBasicVector3<bool> CRealGeometry::FreeMotion() const
+{
+	return m_freeMotion;
+}
+
+double CRealGeometry::Mass() const
+{
+	return m_mass;
+}
+
+bool CRealGeometry::RotateAroundCenter() const
+{
+	return m_rotateAroundCenter;
+}
+
+CVector3 CRealGeometry::Center(double _time) const
+{
+	m_systemStructure->PrepareTimePointForRead(_time);
+	CVector3 center{ 0.0 };
+	for (const auto& wall : Walls())
+		center += (wall->GetCoordVertex1() + wall->GetCoordVertex2() + wall->GetCoordVertex3()) / (3.0 * static_cast<double>(m_planes.size()));
+	return center;
+}
+
+std::string CRealGeometry::Material() const
+{
+	if (m_planes.empty()) return {};
+	return m_systemStructure->GetObjectByIndex(m_planes.front())->GetCompoundKey();
+}
+
+SVolumeType CRealGeometry::BoundingBox(double _time) const
+{
+	SVolumeType bb{ CVector3{ 0 }, CVector3{ 0 } };
+	if (TrianglesNumber() == 0) return bb;
+	m_systemStructure->PrepareTimePointForRead(_time);
+	const auto walls = Walls();
+	bb.coordEnd = bb.coordBeg = walls.front()->GetCoordVertex1();
+	for (const auto& w : walls)
+	{
+		const auto t = w->GetCoords();
+		bb.coordBeg = Min(bb.coordBeg, t.p1, t.p2, t.p3);
+		bb.coordEnd = Max(bb.coordEnd, t.p1, t.p2, t.p3);
+	}
+	return bb;
+}
+
+void CRealGeometry::SetMesh(const CTriangularMesh& _mesh)
+{
+	const auto& triangles = _mesh.Triangles();
+	m_systemStructure->DeleteObjects(m_planes);
+	m_planes.clear();
+	m_planes.reserve(triangles.size());
+	auto walls = m_systemStructure->AddSeveralObjects(TRIANGULAR_WALL, triangles.size());
+	m_systemStructure->PrepareTimePointForWrite(0.0);
+	for (size_t i = 0; i < walls.size(); ++i)
+	{
+		auto* wall = dynamic_cast<CTriangularWall*>(walls[i]);
+		wall->SetPlaneCoord(triangles[i]);
+		m_planes.push_back(wall->m_lObjectID);
+	}
+
+}
+
+void CRealGeometry::SetPlanes(const std::vector<size_t>& _planes)
+{
+	m_planes = _planes;
+}
+
+void CRealGeometry::SetFreeMotion(const CBasicVector3<bool>& _flags)
+{
+	m_freeMotion = _flags;
+}
+
+void CRealGeometry::SetMass(double _mass)
+{
+	m_mass = _mass;
+}
+
+void CRealGeometry::SetRotateAroundCenter(bool _flag)
+{
+	m_rotateAroundCenter = _flag;
+}
+
+void CRealGeometry::SetSizes(const CGeometrySizes& _sizes)
+{
+	if (m_sizes == _sizes) return;
+	if (Shape() != EVolumeShape::VOLUME_STL)
+	{
+		CBaseGeometry::SetSizes(_sizes);
+		const auto mesh = CMeshGenerator::GenerateMesh(Shape(), _sizes, Center(), RotationMatrix(), Accuracy());
+		SetMesh(mesh);
+	}
+	else
+	{
+		// get current bounding box
+		const auto bb = BoundingBox();
+		// divide entry-wise new sizes by old sizes to get an elongation factor in each direction
+		const CVector3 factors = CVector3{ _sizes.Width(), _sizes.Depth(), _sizes.Height() } / (bb.coordEnd - bb.coordBeg);
+		// resize
+		ScaleSTL(factors);
+	}
+}
+
+void CRealGeometry::SetAccuracy(size_t _value)
+{
+	if (Shape() == EVolumeShape::VOLUME_STL) return;
+	if (_value == Accuracy()) return;
+	const auto mesh = CMeshGenerator::GenerateMesh(Shape(), Sizes(), Center(), RotationMatrix(), _value);
+	SetMesh(mesh);
+}
+
+void CRealGeometry::Shift(const CVector3& _offset)
+{
+	m_systemStructure->PrepareTimePointForRead(0.0);
+	m_systemStructure->PrepareTimePointForWrite(0.0);
+	for (auto& wall : Walls())
+		wall->SetPlaneCoord(wall->GetCoords().Shifted(_offset));
+}
+
+void CRealGeometry::SetCenter(const CVector3& _coord)
+{
+	Shift(_coord - Center());
+}
+
+void CRealGeometry::SetMaterial(const std::string& _compoundKey)
+{
+	for (auto& wall : Walls())
+		wall->SetCompoundKey(_compoundKey);
+}
+
+void CRealGeometry::Scale(double _factor)
+{
+	m_systemStructure->PrepareTimePointForRead(0.0);
+	m_systemStructure->PrepareTimePointForWrite(0.0);
+	const CVector3 center = Center();
+	for (auto& wall : Walls())
+		wall->SetPlaneCoord(wall->GetCoords().Scaled(center, _factor / ScalingFactor()));
+	CBaseGeometry::Scale(_factor);
+}
+
+void CRealGeometry::ScaleSTL(const CVector3& _factors)
+{
+	CBaseGeometry::ScaleSTL(_factors);
+	if (Shape() != EVolumeShape::VOLUME_STL) return;
+	m_systemStructure->PrepareTimePointForRead(0.0);
+	m_systemStructure->PrepareTimePointForWrite(0.0);
+	const CVector3 center = Center();
+	for (auto& wall : Walls())
+		wall->SetPlaneCoord(wall->GetCoords().Scaled(center, _factors));
+}
+
+void CRealGeometry::Rotate(const CMatrix3& _rotation)
+{
+	CBaseGeometry::Rotate(_rotation);
+	m_systemStructure->PrepareTimePointForRead(0.0);
+	m_systemStructure->PrepareTimePointForWrite(0.0);
+	const CVector3 center = Center();
+	for (auto& wall : Walls())
+		wall->SetPlaneCoord(wall->GetCoords().Rotated(center, _rotation));
+}
+
+void CRealGeometry::UpdateMotionInfo(double _dependentValue)
+{
+	Motion()->UpdateMotionInfo(_dependentValue);
+}
+
+CVector3 CRealGeometry::GetCurrentVelocity() const
+{
+	return Motion()->GetCurrentMotion().velocity;
+}
+
+CVector3 CRealGeometry::GetCurrentRotVelocity() const
+{
+	return Motion()->GetCurrentMotion().rotationVelocity;
+}
+
+CVector3 CRealGeometry::GetCurrentRotCenter() const
+{
+	return Motion()->GetCurrentMotion().rotationCenter;
+}
+
+void CRealGeometry::SaveToProto(ProtoRealGeometry& _proto) const
+{
+	_proto.set_version(0);
+	CBaseGeometry::SaveToProto(*_proto.mutable_base_geometry());
+	for (const auto& plane : m_planes)
+		_proto.add_planes(plane);
+	Val2Proto(_proto.mutable_free_motion(), m_freeMotion);
+	_proto.set_mass(m_mass);
+	_proto.set_rotate_around_center(m_rotateAroundCenter);
+}
+
+void CRealGeometry::LoadFromProto(const ProtoRealGeometry& _proto)
+{
+	CBaseGeometry::LoadFromProto(_proto.base_geometry());
+	m_planes = Proto2Val<size_t>(_proto.planes());
+	m_freeMotion = Proto2Val(_proto.free_motion());
+	m_mass = _proto.mass();
+	m_rotateAroundCenter = _proto.rotate_around_center();
+}
+
+void CRealGeometry::LoadFromProto_v0(const ProtoRealGeometry_v0& _proto)
+{
+	SetName(_proto.name());
+	SetKey(_proto.key());
+	m_mass = _proto.mass();
+	m_freeMotion = Proto2Val(_proto.vfreemotion());
+	m_rotateAroundCenter = _proto.rotate_aroundmasscenter();
+	if (_proto.tdval_size() == 0)
+		Motion()->SetMotionType(CGeometryMotion::EMotionType::NONE);
+	else if (_proto.forcedependentvel())
+		Motion()->SetMotionType(CGeometryMotion::EMotionType::FORCE_DEPENDENT);
+	else
+		Motion()->SetMotionType(CGeometryMotion::EMotionType::TIME_DEPENDENT);
+	m_planes = Proto2Val<size_t>(_proto.planes());
+	Motion()->Clear();
+	switch (Motion()->MotionType())
+	{
+	case CGeometryMotion::EMotionType::TIME_DEPENDENT:
+	{
+		double prev = 0.0;
+		for (const auto& td : _proto.tdval())
+		{
+			Motion()->AddTimeInterval(CGeometryMotion::STimeMotionInterval{ prev, td.time(),
+				CGeometryMotion::SMotionInfo{Proto2Val(td.velocity()), Proto2Val(td.rotvelocity()), Proto2Val(td.rotcenter())} });
+			prev = td.time();
+		}
+		if (Motion()->GetTimeIntervals().size() == 1 && prev == 0.0)
+		{
+			const CGeometryMotion::SMotionInfo motion = Motion()->GetTimeIntervals().front().motion;
+			Motion()->ChangeTimeInterval(0, { 0.0, 99.0, motion });
+		}
+		break;
+	}
+	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+	{
+		bool prev = true;
+		for (const auto& td : _proto.tdval())
+		{
+			Motion()->AddForceInterval(CGeometryMotion::SForceMotionInterval{ td.time(), prev ? CGeometryMotion::SForceMotionInterval::ELimitType::MAX : CGeometryMotion::SForceMotionInterval::ELimitType::MIN,
+				CGeometryMotion::SMotionInfo{Proto2Val(td.velocity()), Proto2Val(td.rotvelocity()), Proto2Val(td.rotcenter())} });
+			prev = !prev;
+		}
+		break;
+	}
+	case CGeometryMotion::EMotionType::NONE: break;
+	}
+
+	StoreShape(static_cast<EVolumeShape>(_proto.type()));
+	m_sizes.SetRelevantSizes(Proto2Val<double>(_proto.props()), Shape());
+	StoreRotationMatrix(Proto2Val(_proto.rotation()));
+	// TODO: introduce global color
+	SetColor(_proto.has_color() ? Proto2Val(_proto.color()) : CColor(0.5, 0.5, 1.0));
+}
+
+std::vector<CTriangularWall*> CRealGeometry::Walls()
+{
+	std::vector<CTriangularWall*> walls;
+	walls.reserve(m_planes.size());
+	for (auto iPlane : m_planes)
+		if (auto* wall = dynamic_cast<CTriangularWall*>(m_systemStructure->GetObjectByIndex(iPlane)))
+			walls.push_back(wall);
+	return walls;
+}
+
+std::vector<const CTriangularWall*> CRealGeometry::Walls() const
+{
+	std::vector<const CTriangularWall*> walls;
+	walls.reserve(m_planes.size());
+	for (auto iPlane : m_planes)
+		if (const auto* wall = dynamic_cast<const CTriangularWall*>(m_systemStructure->GetObjectByIndex(iPlane)))
+			walls.push_back(wall);
+	return walls;
+}

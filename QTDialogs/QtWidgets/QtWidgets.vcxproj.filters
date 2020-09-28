@@ -24,7 +24,19 @@
     <ClCompile Include="QtList.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ColorView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="QtDoubleSpinBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TableItemSpinBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QtTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QtListSpinBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,12 +47,24 @@
     <QtMoc Include="QtList.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="ColorView.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
     <QtMoc Include="QtDoubleSpinBox.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="TableItemSpinBox.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="QtListSpinBox.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QtSignalBlocker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QtTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

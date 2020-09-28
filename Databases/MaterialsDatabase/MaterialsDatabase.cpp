@@ -132,7 +132,7 @@ size_t CMaterialsDatabase::CompoundsNumber() const
 CCompound* CMaterialsDatabase::AddCompound(const std::string& _sCompoundKey /*= "" */)
 {
 	// confirm the uniqueness of the key
-	std::string sKey = GenerateUniqueString(_sCompoundKey, GetCompoundsKeys());
+	std::string sKey = GenerateUniqueKey(_sCompoundKey, GetCompoundsKeys());
 	// add new compound
 	m_vCompounds.push_back(new CCompound(sKey));
 	// add corresponding interactions
@@ -143,7 +143,7 @@ CCompound* CMaterialsDatabase::AddCompound(const std::string& _sCompoundKey /*= 
 CCompound* CMaterialsDatabase::AddCompound(const CCompound& _compound)
 {
 	// generate unique key
-	std::string sKey = GenerateUniqueString(_compound.GetKey(), GetCompoundsKeys());
+	std::string sKey = GenerateUniqueKey(_compound.GetKey(), GetCompoundsKeys());
 	// add new compound
 	m_vCompounds.push_back(new CCompound(_compound));
 	// set key
@@ -189,6 +189,20 @@ const CCompound* CMaterialsDatabase::GetCompound(const std::string& _sCompoundKe
 		if (m_vCompounds[i]->GetKey() == _sCompoundKey)
 			return m_vCompounds[i];
 	return nullptr;
+}
+
+std::vector<CCompound*> CMaterialsDatabase::GetCompounds()
+{
+	return m_vCompounds;
+}
+
+std::vector<const CCompound*> CMaterialsDatabase::GetCompounds() const
+{
+	std::vector<const CCompound*> res;
+	res.reserve(m_vCompounds.size());
+	for (const auto& c : m_vCompounds)
+		res.push_back(c);
+	return res;
 }
 
 int CMaterialsDatabase::GetCompoundIndex(const std::string& _sCompoundKey) const
@@ -427,7 +441,7 @@ size_t CMaterialsDatabase::MixturesNumber() const
 CMixture* CMaterialsDatabase::AddMixture(const std::string& _sMixtureKey /*= "" */)
 {
 	// confirm the uniqueness of the key
-	std::string sKey = GenerateUniqueString(_sMixtureKey, GetMixturesKeys());
+	std::string sKey = GenerateUniqueKey(_sMixtureKey, GetMixturesKeys());
 	// add new mixture
 	m_vMixtures.push_back(new CMixture(sKey));
 	return m_vMixtures.back();
@@ -436,7 +450,7 @@ CMixture* CMaterialsDatabase::AddMixture(const std::string& _sMixtureKey /*= "" 
 CMixture* CMaterialsDatabase::AddMixture(const CMixture& _mixture)
 {
 	// generate unique key
-	std::string sKey = GenerateUniqueString(_mixture.GetKey(), GetMixturesKeys());
+	std::string sKey = GenerateUniqueKey(_mixture.GetKey(), GetMixturesKeys());
 	// add new mixture
 	m_vMixtures.push_back(new CMixture(_mixture));
 	// set key
@@ -559,6 +573,25 @@ void CMaterialsDatabase::DownMixture(size_t _iMixture)
 {
 	if ((_iMixture < m_vMixtures.size()) && (_iMixture != (m_vMixtures.size() - 1)))
 		std::iter_swap(m_vMixtures.begin() + _iMixture, m_vMixtures.begin() + _iMixture + 1);
+}
+
+std::string CMaterialsDatabase::IsDataCorrect() const
+{
+	for (const auto& c : m_vCompounds)
+	{
+		if (c->GetPropertyValue(PROPERTY_DENSITY) < 0.0)
+			return "Negative density in material '" + c->GetName() + "' is not allowed.";
+		if (c->GetPropertyValue(PROPERTY_THERMAL_CONDUCTIVITY) == 0.0)
+			return "Zero thermal conductivity in material '" + c->GetName() + "' is not allowed.";
+		if (c->GetPropertyValue(PROPERTY_YOUNG_MODULUS) == 0.0)
+			return "Zero Young modulus in material '" + c->GetName() + "' is not allowed.";
+		if (!IsInRange(c->GetPropertyValue(PROPERTY_POISSON_RATIO), 0.0, 0.5))
+			return "Poisson ratio outside the range [0..0.5] in material '" + c->GetName() + "' is not allowed.";
+		if (c->GetPropertyValue(PROPERTY_SURFACE_TENSION) < 0.0)
+			return "Negative surface tension in material '" + c->GetName() + "' is not allowed.";
+	}
+
+	return "";
 }
 
 CInteraction* CMaterialsDatabase::AddInteraction(const std::string& _sCompoundKey1, const std::string& _sCompoundKey2)

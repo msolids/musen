@@ -19,7 +19,6 @@ struct SJob
 		EXPORT_TO_TEXT     = 5,
 		IMPORT_FROM_TEXT   = 6,
 		COMPARE_FILES      = 7,
-		AUTO_TESTING       = 8,
 	};
 
 	struct SPackageGenerator
@@ -74,6 +73,7 @@ struct SJob
 
 	std::string sourceFileName;
 	std::string resultFileName;
+	std::string logFileName;
 	std::string agglomeratesDBFileName;
 
 	std::map<EMusenModelType, SModel> models{

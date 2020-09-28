@@ -18,7 +18,6 @@ CObjectsGenerator::CObjectsGenerator(CAgglomeratesDatabase* _pAgglomD, CMaterial
 	m_dStartGenerationTime = 0;
 	m_dEndGenerationTime = 1.0;
 	m_dUpdateStep = 1e-3;
-	m_dGenerationRate = 100;
 	m_dVelMagnitude = 0;
 	m_bVisible = false;
 	m_bActive = true;
@@ -37,11 +36,11 @@ void CObjectsGenerator::Initialize()
 	case 4: seed *= 2; break;
 	case 3: seed *= seed; break;
 	case 2: seed += seed*seed; break;
-	case 1: seed = seed/2;
+	case 1: seed = seed / 2; break;
 	case 0: break;
 	}
 	srand( seed );
-	if ( m_pAgglomDB->GetAgglomerate( m_sAgglomerateKey )==NULL ) return;
+	if (!m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey)) return;
 	m_PreLoadedAgglomerate = *m_pAgglomDB->GetAgglomerate( m_sAgglomerateKey );
 
 	if ( !m_bGenerateMixture) // shift agglomerate center of mass into point with coord 0 and automatically scale it
@@ -58,9 +57,17 @@ void CObjectsGenerator::Initialize()
 		{
 			m_PreLoadedAgglomerate.vParticles[i].vecCoord = (m_PreLoadedAgglomerate.vParticles[i].vecCoord - vCenterOfMass)*m_dAgglomerateScaleFactor;				// NOTE: this changes agglomerate DB in RAM -> will affect all calls to it
 			m_PreLoadedAgglomerate.vParticles[i].dRadius *= m_dAgglomerateScaleFactor;
+			m_PreLoadedAgglomerate.vParticles[i].dContactRadius *= m_dAgglomerateScaleFactor;
 		}
 		for (unsigned i = 0; i < m_PreLoadedAgglomerate.vBonds.size(); i++)
 			m_PreLoadedAgglomerate.vBonds[i].dRadius *= m_dAgglomerateScaleFactor;
+	}
+
+	switch (m_rateType)
+	{
+	case ERateType::GENERATION_RATE:	m_dGenerationRate = m_rateValue;													break;
+	case ERateType::OBJECTS_PER_STEP:	m_dGenerationRate = m_rateValue / m_dUpdateStep;									break;
+	case ERateType::OBJECTS_TOTAL:		m_dGenerationRate = m_rateValue / (m_dEndGenerationTime - m_dStartGenerationTime);	break;
 	}
 }
 
@@ -72,14 +79,19 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 	unsigned nNewObjects = (unsigned)floor((_dCurrentTime - m_dLastGenerationTime)*m_dGenerationRate);
 	if ( nNewObjects < 1 ) return 0;
 
-	CAnalysisVolume* pGenVolume = _pSystemStructure->GetAnalysisVolume( m_sVolumeKey );
-	if ( pGenVolume == NULL ) return 0;
+	SPBC m_PBC = _Scene.GetPBC();
 
-	SVolumeType boundingBox = pGenVolume->BoundingBox(_dCurrentTime);
+	CAnalysisVolume* pGenVolume = _pSystemStructure->AnalysisVolume( m_sVolumeKey );
+	if ( pGenVolume == nullptr ) return 0;
+
+	const SVolumeType boundingBox = pGenVolume->BoundingBox(_dCurrentTime);
+	const double maxRadius = _Scene.GetMaxParticleContactRadius();
+	// enlarge bounding box by maximum contact radius to account for particles just out of box possibly colliding with inserted ones
+	const SVolumeType boundingBoxContactSearch{ boundingBox.coordBeg - maxRadius, boundingBox.coordEnd + maxRadius };
 	std::vector<unsigned> vPartInVolume; // vector of indexes (in simplified scene) of all particles situated in the specified volume
 	std::vector<unsigned> vWallsInVolume; // vector of indexes (in simplified scene) of all walls situated in the specified volume
-	_Scene.GetAllParticlesInVolume( boundingBox, &vPartInVolume );
-	_Scene.GetAllWallsInVolume( boundingBox, &vWallsInVolume );
+	_Scene.GetAllParticlesInVolume(boundingBoxContactSearch, &vPartInVolume );
+	_Scene.GetAllWallsInVolume(boundingBoxContactSearch, &vWallsInVolume );
 
 	SWallStruct& pWalls = _Scene.GetRefToWalls();
 	std::vector<CVector3> vCoordNewPart;
@@ -90,43 +102,49 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 	size_t nCreatedParticles = 0;
 	CInsideVolumeChecker insideChecker( pGenVolume, _dCurrentTime );
 
-	// for checking that new object are not situtated in any real volume
-	std::vector<CInsideVolumeChecker> vInRealVolumeCheckers;
+	// for checking that new object are not situated in any real volume
+	std::vector<std::unique_ptr<CInsideVolumeChecker>> vInRealVolumeCheckers;
 	if ( !m_bInsideGeometries )
-		for (unsigned i = 0; i < _pSystemStructure->GetGeometriesNumber(); i++)
+		for (unsigned i = 0; i < _pSystemStructure->GeometriesNumber(); i++)
 		{
-			SGeometryObject* pGeom = _pSystemStructure->GetGeometry(i);
-			std::vector<STriangleType> vTriangles;
-			for (size_t i = 0; i < pGeom->vPlanes.size(); ++i)
+			CRealGeometry* pGeom = _pSystemStructure->Geometry(i);
+			std::vector<CTriangle> vTriangles;
+			for (const auto& plane : pGeom->Planes())
 			{
-				size_t nIndex = _Scene.m_vNewIndexes[pGeom->vPlanes[i]];
-				vTriangles.push_back(STriangleType{ pWalls.Vert1(nIndex),  pWalls.Vert2(nIndex),  pWalls.Vert3(nIndex) });
+				size_t nIndex = _Scene.m_vNewIndexes[plane];
+				vTriangles.emplace_back(pWalls.Vert1(nIndex),  pWalls.Vert2(nIndex),  pWalls.Vert3(nIndex));
 			}
-			CInsideVolumeChecker newChecker;
-			newChecker.SetTriangles(vTriangles, CVector3(0));
-			vInRealVolumeCheckers.push_back(newChecker);
+			vInRealVolumeCheckers.emplace_back(new CInsideVolumeChecker{ vTriangles });
 		}
 
-	for ( unsigned i = 0; i <nNewObjects; i++ )
+	// internal agglomerate collisions (to check against in IsOverlapped)
+	unsigned intAgglColl = 0;
+	if (!m_bGenerateMixture)
+		for (size_t i = 0; i < m_PreLoadedAgglomerate.vParticles.size() - 1; i++)
+			for (size_t j = i + 1; j < m_PreLoadedAgglomerate.vParticles.size(); j++)
+				if (SquaredLength(m_PreLoadedAgglomerate.vParticles[i].vecCoord - m_PreLoadedAgglomerate.vParticles[j].vecCoord) < pow(m_PreLoadedAgglomerate.vParticles[i].dContactRadius + m_PreLoadedAgglomerate.vParticles[j].dContactRadius, 2))
+					intAgglColl++;
+
+	for ( unsigned iObj = 0; iObj <nNewObjects; iObj++ )
 	{
-		unsigned nMaxAttempt = 30;
+		int nMaxAttempt = static_cast<int>(m_maxIterations);
 		bool bSuccess = false;
 		while ( (nMaxAttempt > 0) && (!bSuccess) )
 		{
 			// generate single object
-			GenerateNewObject(&vCoordNewPart, &vQuatNewPart, &vRadiiNewPart, &vContRadiiNewPart, &vMaterialsKey, boundingBox);
+			GenerateNewObject(&vCoordNewPart, &vQuatNewPart, &vRadiiNewPart, &vContRadiiNewPart, &vMaterialsKey, boundingBox, m_PBC, _dCurrentTime);
 			bSuccess = true;
 
 			std::vector<size_t> vID = insideChecker.GetSpheresTotallyInside(vCoordNewPart, vRadiiNewPart);
 			if ( vID.size() != vCoordNewPart.size() ) // not all particles in volume
 				bSuccess = false;
 			if ( bSuccess )
-				bSuccess = !IsOverlapped( vCoordNewPart, vContRadiiNewPart, vPartInVolume, vWallsInVolume, _Scene );
+				bSuccess = !IsOverlapped( vCoordNewPart, vContRadiiNewPart, vPartInVolume, vWallsInVolume, _Scene, intAgglColl );
 
 			if (( bSuccess ) && (!m_bInsideGeometries))
-				for (size_t j = 0; j < vInRealVolumeCheckers.size(); j++)
+				for (const auto& checker : vInRealVolumeCheckers)
 				{
-					vID = vInRealVolumeCheckers[j].GetSpheresTotallyInside(vCoordNewPart, vRadiiNewPart);
+					vID = checker->GetSpheresTotallyInside(vCoordNewPart, vRadiiNewPart);
 					if (!vID.empty()) // some objects in the volume
 					{
 						bSuccess = false;
@@ -137,7 +155,7 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 		}
 		if ( bSuccess ) // add new objects (due to successful addition of particles )
 		{
-			nCreatedParticles += (unsigned)vCoordNewPart.size();
+			nCreatedParticles += vCoordNewPart.size();
 			std::vector<size_t> vTempNewIndexes;
 			CVector3 initVelocity;
 			if (m_bRandomVelocity)
@@ -154,18 +172,18 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 			}
 
 			const std::vector<size_t> vFreeIDs = _pSystemStructure->GetFreeIDs(vCoordNewPart.size());
-			for ( size_t j = 0; j < vCoordNewPart.size(); j++ )  // add particles
+			for ( size_t i = 0; i < vCoordNewPart.size(); i++ )  // add particles
 			{
-				CSphere* pNewSphere = (CSphere*)_pSystemStructure->AddObject(SPHERE, vFreeIDs[j]);
+				auto* pNewSphere = dynamic_cast<CSphere*>(_pSystemStructure->AddObject(SPHERE, vFreeIDs[i]));
 				vTempNewIndexes.push_back( pNewSphere->m_lObjectID );
-				pNewSphere->SetRadius(vRadiiNewPart[j]);
-				pNewSphere->SetContactRadius(vContRadiiNewPart[j]);
+				pNewSphere->SetRadius(vRadiiNewPart[i]);
+				pNewSphere->SetContactRadius(vContRadiiNewPart[i]);
 				if (m_bGenerateMixture) // this is sphere
-					pNewSphere->SetCompound(m_pMaterialsDB->GetCompound(vMaterialsKey[j]));
+					pNewSphere->SetCompound(m_pMaterialsDB->GetCompound(vMaterialsKey[i]));
 				else // this is agglomerate
-					pNewSphere->SetCompound(m_pMaterialsDB->GetCompound(m_partMaterials[m_PreLoadedAgglomerate.vParticles[j].sCompoundAlias]));
-				pNewSphere->SetCoordinates( _dCurrentTime, vCoordNewPart[ j ] );
-				pNewSphere->SetOrientation(_dCurrentTime, vQuatNewPart[j]);
+					pNewSphere->SetCompound(m_pMaterialsDB->GetCompound(m_partMaterials[m_PreLoadedAgglomerate.vParticles[i].sCompoundAlias]));
+				pNewSphere->SetCoordinates( _dCurrentTime, vCoordNewPart[ i ] );
+				pNewSphere->SetOrientation(_dCurrentTime, vQuatNewPart[i]);
 				if (m_bRandomVelocity)
 					pNewSphere->SetVelocity(_dCurrentTime, initVelocity);
 				else
@@ -176,6 +194,7 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 				vPartInVolume.push_back( (unsigned)_Scene.GetTotalParticlesNumber()-1 );
 			}
 			if (!m_bGenerateMixture) // this is agglomerate or multisphere
+			{
 				if ( m_PreLoadedAgglomerate.nType == MULTISPHERE )
 				{
 					_pSystemStructure->AddMultisphere( vTempNewIndexes );
@@ -187,18 +206,20 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 					const std::vector<size_t> vFreeIDsBonds = _pSystemStructure->GetFreeIDs(m_PreLoadedAgglomerate.vBonds.size());
 					for (size_t j = 0; j < m_PreLoadedAgglomerate.vBonds.size(); ++j)
 					{
-						CSolidBond* pNewBond = static_cast<CSolidBond*>(_pSystemStructure->AddObject(SOLID_BOND, vFreeIDsBonds[j]));
+						auto* pNewBond = dynamic_cast<CSolidBond*>(_pSystemStructure->AddObject(SOLID_BOND, vFreeIDsBonds[j]));
 						const SAggloBond& bond = m_PreLoadedAgglomerate.vBonds[j];
 						pNewBond->SetDiameter(2 * bond.dRadius);
 						pNewBond->SetCompound(m_pMaterialsDB->GetCompound(m_bondMaterials[bond.sCompoundAlias]));
-						pNewBond->m_nLeftObjectID = vTempNewIndexes[bond.nLeftID];
-						pNewBond->m_nRightObjectID = vTempNewIndexes[bond.nRightID];
+						pNewBond->m_nLeftObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nLeftID]);
+						pNewBond->m_nRightObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nRightID]);
 						pNewBond->SetStartActivityTime(_dCurrentTime);
 						pNewBond->SetEndActivityTime(1e+300);
 						pNewBond->SetInitialLength(_pSystemStructure->GetBond(_dCurrentTime, pNewBond->m_lObjectID).Length());
+						pNewBond->SetTangentialOverlap(_dCurrentTime, CVector3{ 0.0 });
 						_Scene.AddSolidBond(pNewBond->m_lObjectID, _dCurrentTime);
 					}
 				}
+			}
 		}
 	}
 	m_dLastGenerationTime = _dCurrentTime;
@@ -210,13 +231,13 @@ bool CObjectsGenerator::IsNeedToBeGenerated(double _dCurrentTime) const
 	if (!m_bActive) return false;
 	if ((_dCurrentTime < m_dStartGenerationTime) || (_dCurrentTime > m_dEndGenerationTime)) return false;
 	if (_dCurrentTime < m_dLastGenerationTime + m_dUpdateStep) return false;
-	unsigned nNewObjects = (unsigned)floor((_dCurrentTime - m_dLastGenerationTime)*m_dGenerationRate);
+	const unsigned nNewObjects = (unsigned)floor((_dCurrentTime - m_dLastGenerationTime)*m_dGenerationRate);
 	if (nNewObjects < 1) return false;
 	return true;
 }
 
 void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart, std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad,
-	std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox)
+	std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox, SPBC& _PBC, const double _dCurrentTime)
 {
 	CVector3 newCoord;
 	CQuaternion rotQuat;
@@ -225,12 +246,25 @@ void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, st
 	_pPartRad->clear();
 	_pPartContRad->clear();
 	_sMaterialsKey->clear();
-	CreateRandomPoint( &newCoord, _boundBox );
-	if ( m_bGenerateMixture )
+
+	// account for case when pbc is smaller than bounding box
+	SVolumeType boundBoxInclPBC = _boundBox;
+	CVector3 pbcSides{ (double)_PBC.bX, (double)_PBC.bY, (double)_PBC.bZ };
+	if (_PBC.bEnabled)
+		for (size_t i = 0; i < pbcSides.Size(); ++i)
+			if (pbcSides[i] != 0.0)
+			{
+				if (boundBoxInclPBC.coordBeg[i] < _PBC.currentDomain.coordBeg[i])
+					boundBoxInclPBC.coordBeg[i] = _PBC.currentDomain.coordBeg[i];
+				if (boundBoxInclPBC.coordEnd[i] > _PBC.currentDomain.coordEnd[i])
+					boundBoxInclPBC.coordEnd[i] = _PBC.currentDomain.coordEnd[i];
+			}
+	CreateRandomPoint(&newCoord, boundBoxInclPBC);
+	if (m_bGenerateMixture)
 	{
 		const CMixture* pMixture = m_pMaterialsDB->GetMixture(m_sMixtureKey);
 		if (!pMixture) return;
-		double dRand = ((double)rand()) / RAND_MAX; // generate random value
+		const double dRand = ((double)rand()) / RAND_MAX; // generate random value
 		double dTempSum = 0;
 		size_t nIndex = 0;
 		while (nIndex < pMixture->FractionsNumber())
@@ -240,7 +274,7 @@ void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, st
 			nIndex++;
 		}
 
-		_pCoordPart->push_back( newCoord );
+		_pCoordPart->push_back(newCoord);
 		rotQuat.RandomGenerator();
 		_pQuatPart->push_back(rotQuat);
 		_pPartRad->push_back(pMixture->GetFractionDiameter(nIndex) / 2.0);
@@ -250,61 +284,68 @@ void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, st
 	else
 	{
 		rotQuat.RandomGenerator();
-		for (size_t i = 0; i<m_PreLoadedAgglomerate.vParticles.size(); i++)
+		for (const auto& particle : m_PreLoadedAgglomerate.vParticles)
 		{
-			// NO ROTATION
-			/*_pCoordPart->push_back(newCoord + m_PreLoadedAgglomerate.vParticles[i].vecCoord);
-			_pQuatPart->push_back(m_PreLoadedAgglomerate.vParticles[i].qQuaternion);*/
-
-			// ROTATION WITH QUATERNION
-			_pCoordPart->push_back(newCoord + QuatRotateVector(rotQuat, m_PreLoadedAgglomerate.vParticles[i].vecCoord));
-			CQuaternion partNewQuat = rotQuat * m_PreLoadedAgglomerate.vParticles[i].qQuaternion;
+			CVector3 partNewCoord = newCoord + QuatRotateVector(rotQuat, particle.vecCoord);
+			if (_PBC.bEnabled && !_PBC.IsCoordInPBC(partNewCoord, _dCurrentTime)) // if PBC is enabled in certain direction, move back into PBC domain
+				for (size_t i = 0; i < pbcSides.Size(); ++i)
+					if (pbcSides[i] != 0.0)
+					{
+						while (partNewCoord[i] < _PBC.currentDomain.coordBeg[i])
+							partNewCoord[i] += _PBC.boundaryShift[i];
+						while (partNewCoord[i] > _PBC.currentDomain.coordEnd[i])
+							partNewCoord[i] -= _PBC.boundaryShift[i];
+					}
+			_pCoordPart->push_back(partNewCoord);
+			CQuaternion partNewQuat = rotQuat * particle.qQuaternion;
 			partNewQuat.Normalize();
 			_pQuatPart->push_back(partNewQuat);
 
-			_pPartRad->push_back(m_PreLoadedAgglomerate.vParticles[i].dRadius);
-			_pPartContRad->push_back(m_PreLoadedAgglomerate.vParticles[i].dContactRadius);
+			_pPartRad->push_back(particle.dRadius);
+			_pPartContRad->push_back(particle.dContactRadius);
 			_sMaterialsKey->push_back(""); // for agglomerates specified separately
 		}
 	}
 }
 
-void inline CObjectsGenerator::CreateRandomPoint(CVector3* _pResult, const SVolumeType& _boundBox)
+void CObjectsGenerator::CreateRandomPoint(CVector3* _pResult, const SVolumeType& _boundBox)
 {
-	CVector3 vSize = _boundBox.coordEnd-_boundBox.coordBeg;
+	const CVector3 vSize = _boundBox.coordEnd-_boundBox.coordBeg;
 	_pResult->x = _boundBox.coordBeg.x + (double)(rand() + 1)*vSize.x/RAND_MAX;
 	_pResult->y = _boundBox.coordBeg.y + (double)(rand() + 1)*vSize.y/RAND_MAX;
 	_pResult->z = _boundBox.coordBeg.z + (double)(rand() + 1)*vSize.z/RAND_MAX;
 }
 
-void CObjectsGenerator::CreateRandomAngle( CVector3* _pResult )				// probably does not create uniform distribution over all possible rotations -> use CreateRandomQuaternion
-{
-	_pResult->x = ((double)(rand() + 1)*360/RAND_MAX)*PI/180.0;
-	_pResult->y = ((double)(rand() + 1)*360/RAND_MAX)*PI/180.0;
-	_pResult->z = ((double)(rand() + 1)*360/RAND_MAX)*PI/180.0;
-}
-
 bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _vCoordPart, const std::vector<double>& _vPartContRad, const std::vector<unsigned>& _vExistedPartID,
-	const std::vector<unsigned>& _nExistedWallsID, const CSimplifiedScene& _Scene)
+	const std::vector<unsigned>& _nExistedWallsID, const CSimplifiedScene& _Scene, const unsigned intAgglColl) const
 {
+	const SPBC m_PBC = _Scene.GetPBC();
 	const SParticleStruct& parts = _Scene.GetRefToParticles();
 	const SWallStruct& walls = _Scene.GetRefToWalls();
 
-	bool bOverlap = false;
-	// firstly check PP overlap
-	for ( unsigned i = 0; i < _vExistedPartID.size(); i++ )
-		for ( unsigned j = 0; j< _vCoordPart.size(); j++ )
-			if ( !bOverlap )
-				if ( SquaredLength( _vCoordPart[ j ], parts.Coord(_vExistedPartID[i])) < pow( parts.ContactRadius(_vExistedPartID[i]) + _vPartContRad[ j ], 2 ) )
-					bOverlap = true;
+	// check internal agglomerate overlap if applicable
+	if (intAgglColl > 0)
+	{
+		unsigned curAgglColl = 0;
+		for (unsigned i = 0; i < _vCoordPart.size() - 1; i++)
+			for (unsigned j = i + 1; j < _vCoordPart.size(); j++)
+				if (SquaredLength(GetSolidBond(_vCoordPart[i], _vCoordPart[j], m_PBC)) < pow(_vPartContRad[i] + _vPartContRad[j], 2))
+					curAgglColl++;
+		if (curAgglColl != intAgglColl)
+			return true;
+	}
 
-	if ( bOverlap ) return true;
+	// check PP overlap
+	for (auto id : _vExistedPartID)
+		for ( unsigned j = 0; j< _vCoordPart.size(); j++ )
+				if ( SquaredLength(GetSolidBond(_vCoordPart[j], parts.Coord(id), m_PBC)) < pow( parts.ContactRadius(id) + _vPartContRad[ j ], 2 ) )
+					return true;
+
 	// check PW overlap
-	CVector3 vContactPoint;
-	for (unsigned i = 0; i < _nExistedWallsID.size(); i++)
+	for (auto id : _nExistedWallsID)
 		for (unsigned j = 0; j < _vCoordPart.size(); j++)
-			if (!bOverlap)
-				if (IsSphereIntersectTriangle(walls.Coordinates(_nExistedWallsID[i]), walls.NormalVector(_nExistedWallsID[i]), _vCoordPart[j], _vPartContRad[j]).first != EIntersectionType::NO_CONTACT)
-					bOverlap = true;
-	return bOverlap;
+				if (IsSphereIntersectTriangle(walls.Coordinates(id), walls.NormalVector(id), _vCoordPart[j], _vPartContRad[j]).first != EIntersectionType::NO_CONTACT)
+					return true;
+
+	return false;
 }

@@ -12,15 +12,15 @@ class CInsideVolumeChecker
 {
 private:
 	static const int MAX_INDEXES = 20;
-	std::vector<STriangleType> m_Triangles;
+	std::vector<CTriangle> m_Triangles;
 	std::vector<size_t> m_vIndexes[MAX_INDEXES][MAX_INDEXES];
 	CVector3 m_vMax, m_vMin;
 
 public:
-	CInsideVolumeChecker();
-	CInsideVolumeChecker(const CAnalysisVolume* _pVolume, const double _dTime);
-	CInsideVolumeChecker(const std::vector<STriangleType> &vTriangles, const CVector3& _vShift);
-	void SetTriangles(const std::vector<STriangleType> &vTriangles, const CVector3& _vShift);
+	CInsideVolumeChecker() = default;
+	CInsideVolumeChecker(const CAnalysisVolume* _volume, double _time);
+	CInsideVolumeChecker(const std::vector<CTriangle>& _triangles);
+	void SetTriangles(const std::vector<CTriangle>& _triangles);
 
 	/// Returns spheres, which are totally or partially inside the volume.
 	std::vector<size_t> GetObjectsInside(const std::vector<CVector3>& _vCoords, const std::vector<size_t>& _vIDs = std::vector<size_t>()) const;
@@ -35,5 +35,5 @@ private:
 	void IsSphereInside(const CVector3& pos, double radius, bool &isInside, bool &isPartInside, bool &isUndefined) const;
 	void IsPointInside(const CVector3& point, bool &isInside, bool &isUndefined) const;
 	inline std::pair<int, int> GetIndexByPoint(const CVector3& point) const;
-	void TryIntersectWithXAxis( const STriangleType &triangle, bool &isIntersecting, bool &isOnEdge ) const;
+	void TryIntersectWithXAxis( const CTriangle &triangle, bool &isIntersecting, bool &isOnEdge ) const;
 };

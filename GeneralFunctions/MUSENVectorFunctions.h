@@ -27,8 +27,7 @@ template<typename T> T InterpolatedValue(const std::vector<double>& _xValues, co
 }
 
 // return the sum of all elements of vector
-template<typename T>
-T inline VectorSum(const std::vector<T>& _vVec)
+template<typename T> T VectorSum(const std::vector<T>& _vVec)
 {
 	T sum = 0;
 	for (size_t i = 0; i < _vVec.size(); ++i)
@@ -37,19 +36,25 @@ T inline VectorSum(const std::vector<T>& _vVec)
 }
 
 // Return the lowest element in vector.
-template<typename T>
-T VectorMin(const std::vector<T>& _vec)
+template<typename T> T VectorMin(const std::vector<T>& _vec)
 {
 	if (_vec.empty()) return T{};
 	return *std::min_element(_vec.begin(), _vec.end());
 }
 
 // Return the greatest element in vector.
-template<typename T>
-T VectorMax(const std::vector<T>& _vec)
+template<typename T> T VectorMax(const std::vector<T>& _vec)
 {
 	if (_vec.empty()) return T{};
 	return *std::max_element(_vec.begin(), _vec.end());
+}
+
+// Returns a vector with reserved size.
+template<typename T> std::vector<T> ReservedVector(size_t _size)
+{
+	std::vector<T> res;
+	res.reserve(_size);
+	return res;
 }
 
 // return the index of maximal value in the vector

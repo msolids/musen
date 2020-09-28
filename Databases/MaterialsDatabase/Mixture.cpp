@@ -6,7 +6,7 @@
 
 CMixture::CMixture(const std::string& _sKey /*= "" */)
 {
-	m_sUniqueKey = _sKey.empty() ? GenerateNewKey() : _sKey;
+	m_sUniqueKey = _sKey.empty() ? GenerateKey() : _sKey;
 	m_sMixtureName = MIXTURE_UNDEFINED_NAME;
 }
 

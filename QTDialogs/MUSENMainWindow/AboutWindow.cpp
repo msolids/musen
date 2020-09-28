@@ -1,3 +1,7 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
 #include "AboutWindow.h"
 #include "MUSENVersion.h"
 #include <QDateTime>
@@ -19,10 +23,10 @@ CAboutWindow::CAboutWindow(const QString& _buildVersion, QWidget* _parent)
 	m_otherDevelopers = { "Nicolas Depta", "Serhii Dranyshnikov", "Kolja Jarolin", "Ihor Khlopov", "Vadim Yanushkevich" };
 
 	m_libraries = {
-		{ "Qt 5.12.3", "http://www.qt.io/", "Copyright 2019, The Qt Company", "LGPLv3 License", "https://doc.qt.io/qt-5/lgpl.html" },
-		{ "Protocol Buffers v3.9.1", "https://developers.google.com/protocol-buffers/", "Copyright 2019, Google Inc.", "BSD License", "https://github.com/protocolbuffers/protobuf/blob/master/LICENSE" },
-		{ "zlib 1.2.11", "http://www.zlib.net/", "Copyright 2017, Jean-loup Gailly and Mark Adler", "zlib License", "https://www.zlib.net/zlib_license.html" },
-		{ "CUDA 10.0", "https://developer.nvidia.com/cuda-zone", "Copyright 2019, Nvidia Corporation", "NVIDIA License", "https://developer.download.nvidia.com/compute/cuda/10.0/Prod/docs/sidebar/EULA.pdf" },
+		{ "Qt 5.12.3", "http://www.qt.io/", "Copyright 2019, The Qt Company", "LGPLv3 license", "https://doc.qt.io/qt-5/lgpl.html" },
+		{ "Protocol Buffers v3.9.1", "https://developers.google.com/protocol-buffers/", "Copyright 2019, Google Inc.", "BSD license", "https://github.com/protocolbuffers/protobuf/blob/master/LICENSE" },
+		{ "zlib 1.2.11", "http://www.zlib.net/", "Copyright 2017, Jean-loup Gailly and Mark Adler", "zlib license", "https://www.zlib.net/zlib_license.html" },
+		{ "CUDA 10.0", "https://developer.nvidia.com/cuda-zone", "Copyright 2019, Nvidia Corporation", "NVIDIA license", "https://developer.download.nvidia.com/compute/cuda/10.0/Prod/docs/sidebar/EULA.pdf" },
 		{ "Inno Setup 6.0.2", "http://www.jrsoftware.org/isinfo.php", "Copyright 2019, Jordan Russell", "Modified BSD license", "http://www.jrsoftware.org/files/is/license.txt" } };
 
 	SetHeaderText(_buildVersion);
@@ -46,9 +50,9 @@ void CAboutWindow::SetHeaderText(const QString& _buildVersion) const
 		"<br/>"
 		"Copyright " + QString::number(QDate::currentDate().year()) + ", " + m_headerTeamName + "<br/>"
 		"<br/>"
-		"Contact: <a href=\"mailto:"+ m_headerContactEmail + R"("><span style=" text - decoration: underline; color:#0000ff; ">)" + m_headerContactPerson + "</span></a><br/>"
+		"Contact: <a href=\"mailto:"+ m_headerContactEmail + R"("><span style="text-decoration: underline; color:#0000ff; ">)" + m_headerContactPerson + "</span></a><br/>"
 		"<br/>"
-		"Check for updates <a href=\"" + m_headerUpdatesLink + R"("><span style=" text-decoration: underline; color:#0000ff;">here</span></a><br/>)"
+		"Check for updates <a href=\"" + m_headerUpdatesLink + "\"><span style=\"text-decoration: underline; color:#0000ff;\">here</span></a><br/>"
 	);
 
 	ui.labelText->setText(description);

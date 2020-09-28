@@ -7,7 +7,7 @@
 CCompound::CCompound(const std::string& _sKey /*= "" */)
 {
 	// set basic data
-	m_sUniqueKey = _sKey.empty() ? GenerateNewKey() : _sKey;
+	m_sUniqueKey = _sKey.empty() ? GenerateKey() : _sKey;
 	m_sCompoundName = COMPOUND_UNDEFINED_NAME;
 	m_sAuthorName = COMPOUND_UNDEFINED_AUTHOR;
 

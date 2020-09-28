@@ -17,7 +17,7 @@ void CTriangularWall::SetPlaneCoord(double _time, const CVector3& _vert1, const 
 	SetAngleVelocity(_time, _vert3);
 }
 
-void CTriangularWall::SetPlaneCoord(double _time, const STriangleType& _triangle) const
+void CTriangularWall::SetPlaneCoord(double _time, const CTriangle& _triangle) const
 {
 	SetPlaneCoord(_time, _triangle.p1, _triangle.p2, _triangle.p3);
 }
@@ -29,7 +29,7 @@ void CTriangularWall::SetPlaneCoord(const CVector3& _vert1, const CVector3& _ver
 	SetAngleVelocity(_vert3);
 }
 
-void CTriangularWall::SetPlaneCoord(const STriangleType& _triangle) const
+void CTriangularWall::SetPlaneCoord(const CTriangle& _triangle) const
 {
 	SetPlaneCoord(_triangle.p1, _triangle.p2, _triangle.p3);
 }

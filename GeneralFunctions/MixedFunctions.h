@@ -3,9 +3,11 @@
    See LICENSE file for license and warranty information. */
 
 #pragma once
-#include "BasicGPUFunctions.cuh"
+
 #include <iomanip>
 #include <sstream>
+#include <vector>
+#include <climits>
 
 class CColor
 {
@@ -55,6 +57,13 @@ double inline ClampFunction( double _dValue, double _dMin, double _dMax )
 	if ( _dValue > _dMax )
 		return _dMax;
 	return _dValue;
+}
+
+// Determines whether the value is in range [min..max].
+template<typename T>
+bool IsInRange(T _value, T _min, T _max)
+{
+	return (_min <= _value && _value <= _max);
 }
 
 bool inline IsNaN(double _dVal)
@@ -122,10 +131,32 @@ inline SDate CurrentDate()
 	return SDate(now.tm_year + 1900, now.tm_mon + 1, now.tm_mday);
 }
 
-/// Converts enumerator value to its underlying integral type.
-template<typename E> constexpr auto E2I(E e) -> typename std::underlying_type<E>::type
+// Converts enumerator value to its underlying integral type.
+template<typename E> constexpr typename std::underlying_type<E>::type E2I(E e)
 {
 	return static_cast<typename std::underlying_type<E>::type>(e);
+}
+
+// Converts vector of enumerators to the vector of its underlying integral type.
+template <typename E> std::vector<typename std::underlying_type<E>::type> E2I(const std::vector<E>& _enums)
+{
+	using integral_type = typename std::underlying_type<E>::type;
+	std::vector<integral_type> res;
+	res.reserve(_enums.size());
+	for (const auto& e : _enums)
+		res.push_back(static_cast<integral_type>(e));
+	return res;
+}
+
+
+// casts vector of TI to a vector of TO
+template<typename TO, typename TI> constexpr auto vector_cast(const std::vector<TI>& _vector)
+{
+	std::vector<TO> res;
+	res.reserve(_vector.size());
+	for (const auto& val : _vector)
+		res.push_back(static_cast<TO>(val));
+	return res;
 }
 
 enum class ESimulatorType : unsigned { BASE = 0, CPU = 1, GPU = 2 };

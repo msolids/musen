@@ -218,24 +218,35 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 			// info about geometries
 			case ETXTCommands::GEOMETRY:
 			{
-				SGeometryObject* pGeometry = m_pSystemStructure->AddGeometry();
-				tempStream >> pGeometry->sName >> pGeometry->sKey >> pGeometry->dMass >> pGeometry->vFreeMotion;
+				CRealGeometry* pGeometry = m_pSystemStructure->AddGeometry();
+				pGeometry->SetName(GetValueFromStream<std::string>(&tempStream));
+				pGeometry->SetKey(GetValueFromStream<std::string>(&tempStream));
+				pGeometry->SetMass(GetValueFromStream<double>(&tempStream));
+				pGeometry->SetFreeMotion(GetValueFromStream<CBasicVector3<bool>>(&tempStream));
 				break;
 			}
 			case ETXTCommands::GEOMETRY_PLANES:
 			{
-				SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(m_pSystemStructure->GetGeometriesNumber() - 1);
-				pGeometry->vPlanes.resize(GetValueFromStream<unsigned>(&tempStream));
-				for (auto& plane : pGeometry->vPlanes)
+				CRealGeometry* pGeometry = m_pSystemStructure->Geometry(m_pSystemStructure->GeometriesNumber() - 1);
+				std::vector<size_t> planes(GetValueFromStream<size_t>(&tempStream));
+				for (auto& plane : planes)
 					tempStream >> plane;
+				pGeometry->SetPlanes(planes);
 				break;
 			}
 			case ETXTCommands::GEOMETRY_TDVEL:
 			{
-				SGeometryObject* pGeometry = m_pSystemStructure->GetGeometry(m_pSystemStructure->GetGeometriesNumber() - 1);
-				pGeometry->vIntervals.resize(GetValueFromStream<unsigned>(&tempStream));
-				for (auto& interval : pGeometry->vIntervals)
-					tempStream >> interval.dCriticalValue >> interval.vVel >> interval.vRotCenter >> interval.vRotVel;
+				CRealGeometry* pGeometry = m_pSystemStructure->Geometry(m_pSystemStructure->GeometriesNumber() - 1);
+				const size_t nIntervals = GetValueFromStream<unsigned>(&tempStream);
+				pGeometry->Motion()->Clear();
+				double prevTime = 0, time;
+				CVector3 vel, rotCenter, rotVel;
+				for (size_t i = 0; i < nIntervals; ++i)
+				{
+					tempStream >> time >> vel >> rotCenter >> rotVel;
+					pGeometry->Motion()->AddTimeInterval(CGeometryMotion::STimeMotionInterval{ prevTime, time, CGeometryMotion::SMotionInfo{vel, rotVel, rotCenter} });
+					prevTime = time;
+				}
 				break;
 			}
 			// info about materials

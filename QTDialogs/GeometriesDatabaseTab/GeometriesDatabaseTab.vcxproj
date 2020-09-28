@@ -75,6 +75,9 @@
     </Link>
     <QtMoc />
     <QtUic />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\QtOpenGLView;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile />
@@ -84,15 +87,15 @@
     </Link>
     <QtMoc />
     <QtUic />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\QTDialogs\QtOpenGLView;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GeometriesDatabaseTab.cpp" />
-    <ClCompile Include="GeomOpenGLView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="GeometriesDatabaseTab.h">
-    </QtMoc>
-    <QtMoc Include="GeomOpenGLView.h">
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

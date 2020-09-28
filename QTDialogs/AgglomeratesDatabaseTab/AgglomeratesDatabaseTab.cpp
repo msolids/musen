@@ -66,7 +66,7 @@ void CAgglomeratesDatabaseTab::AddAgglomerate()
 {
 	// add current system structure as agglomerate
 	SAgglomerate* pNewAgglomerate = new SAgglomerate;
-	pNewAgglomerate->sKey = GenerateNewKey();
+	pNewAgglomerate->sKey = GenerateKey();
 	pNewAgglomerate->sName = "New agglomerate";
 	std::vector<unsigned> newSpheresIndexes( m_pSystemStructure->GetTotalObjectsCount() ); // new indexes of spheres in the new array
 	QSet<QString> partCompounds, bondCompounds;

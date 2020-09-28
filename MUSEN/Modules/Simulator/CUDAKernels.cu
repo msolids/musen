@@ -126,31 +126,26 @@ namespace CUDAKernels
 		{
 			const unsigned iWall = _wallsInGeom[i];
 
-			CVector3 vel{0}, vRotCenter;
-			if (_bRotateAroundCenter)
-				vRotCenter = _vCalculatedCenter[0];
-			else
-				vRotCenter = _definedRotCenter;
-			if (_freeMotion.x == 0 && _freeMotion.y == 0 && _freeMotion.z == 0)
-				vel = _vel;
-			else
+			CVector3 vRotCenter = _bRotateAroundCenter ? _vCalculatedCenter[0] : _definedRotCenter;
+			CVector3 vel = _vel;
+			if (!_freeMotion.IsZero())
 			{
-				if (_freeMotion.x != 0) vel.x = (_wallVel[iWall].x + _totalForce->x*_timeStep / _dMass + _vExternalAccel.x*_timeStep);
-				if (_freeMotion.y != 0) vel.y = (_wallVel[iWall].y + _totalForce->y*_timeStep / _dMass + _vExternalAccel.y*_timeStep);
-				if (_freeMotion.z != 0) vel.z = (_wallVel[iWall].z + _totalForce->z*_timeStep / _dMass + _vExternalAccel.z*_timeStep);
+				if (_freeMotion.x != 0.0) vel.x = (_wallVel[iWall].x + _totalForce->x*_timeStep / _dMass + _vExternalAccel.x*_timeStep);
+				if (_freeMotion.y != 0.0) vel.y = (_wallVel[iWall].y + _totalForce->y*_timeStep / _dMass + _vExternalAccel.y*_timeStep);
+				if (_freeMotion.z != 0.0) vel.z = (_wallVel[iWall].z + _totalForce->z*_timeStep / _dMass + _vExternalAccel.z*_timeStep);
 			}
 
 			_wallVel[iWall] = vel;
 			_wallRotVel[iWall] = _rotVel;
 			_wallRotCenter[iWall] = vRotCenter;
-			if (vel.x != 0 || vel.y != 0 || vel.z != 0)
+			if (vel.x != 0.0 || vel.y != 0.0 || vel.z != 0.0)
 			{
 				_vertex1[iWall] += vel * _timeStep;
 				_vertex2[iWall] += vel * _timeStep;
 				_vertex3[iWall] += vel * _timeStep;
 			}
 
-			if (_rotVel.x != 0 || _rotVel.y != 0 || _rotVel.z != 0)
+			if (_rotVel.x != 0.0 || _rotVel.y != 0.0 || _rotVel.z != 0.0)
 			{
 				_vertex1[iWall] = vRotCenter + _rotMatrix * (_vertex1[iWall] - vRotCenter);
 				_vertex2[iWall] = vRotCenter + _rotMatrix * (_vertex2[iWall] - vRotCenter);

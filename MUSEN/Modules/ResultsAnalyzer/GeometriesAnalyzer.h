@@ -7,7 +7,7 @@
 
 class CGeometriesAnalyzer : public CResultsAnalyzer
 {
-	SGeometryObject* m_pObject;	/// The geometry for which everything is calculated.
+	CRealGeometry* m_pObject;	/// The geometry for which everything is calculated.
 	CVector3 m_vInitPosition;	/// The geometry's initial position.
 
 	typedef std::function<void(const double& _timePoint)> calcFunction_type;
