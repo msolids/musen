@@ -371,6 +371,21 @@ void CSimulatorTab::StartSimulation()
 			ui.statusMessage->setText(ss2qs("Collision saving cannot be used with periodic boundaries"));
 			return;
 		}
+
+	// check motion of geometries is properly configured
+	for (const auto& g : m_pSystemStructure->AllGeometries())
+		if (!g->Motion()->IsValid())
+		{
+			ui.statusMessage->setText("Error in geometry " + QString::fromStdString(g->Name()) + ". " + QString::fromStdString(g->Motion()->ErrorMessage()));
+			return;
+		}
+	for (const auto& v : m_pSystemStructure->AllAnalysisVolumes())
+		if (!v->Motion()->IsValid())
+		{
+			ui.statusMessage->setText("Error in volume " + QString::fromStdString(v->Name()) + ". " + QString::fromStdString(v->Motion()->ErrorMessage()));
+			return;
+		}
+
 	m_SimIntervalTimer.start();
 
 	m_pDEMThreadNew = new CSimulatorThread();

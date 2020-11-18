@@ -46,7 +46,7 @@ private:
 	void keyPressEvent(QKeyEvent* _event) override;
 
 	void CheckEndEmitValueChanged();	// Emits the signal if the text had been changes since last emission.
-	
+
 signals:
 	void TextChanged();
 	void ValueChanged();

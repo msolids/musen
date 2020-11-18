@@ -24,7 +24,7 @@ void CQtDoubleSpinBox::Initialize()
 {
 	// set validator to limit input to floating point numbers only
 	auto* validator = new QDoubleValidator{ this };
-	auto loc = lineEdit()->validator()->locale();
+	QLocale loc{ QLocale::English }; // forces using dot '.' as a decimal separator
 	loc.setNumberOptions(QLocale::RejectGroupSeparator);
 	validator->setLocale(loc);
 	lineEdit()->setValidator(validator);

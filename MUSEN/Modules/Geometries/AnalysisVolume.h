@@ -17,7 +17,6 @@ class CBond;
 class CTriangularWall;
 class CGeometrySizes;
 
-// TODO: move the same to CBaseGeometry
 class CAnalysisVolume : public CBaseGeometry
 {
 	CTriangularMesh m_mesh;	// Triangular mesh.
@@ -34,18 +33,15 @@ public:
 	SVolumeType BoundingBox(double _time = 0.0) const override;	// Returns bounding box of the volume.
 	double MaxInscribedDiameter() const;						// Returns maximum diameter of a sphere that can be placed in this volume. For STL, is calculated via volume.
 
-	// TODO: maybe delete, put into constructor
-	void SetMesh(const CTriangularMesh& _mesh);				// Sets new mesh.
+	void SetMesh(const CTriangularMesh& _mesh) override;	// Sets new mesh.
 	void SetCenter(const CVector3& _center) override;		// Sets new center of the volume at time point 0.
-	// TODO: move to base.
-	void SetSizes(const CGeometrySizes& _sizes) override;	// Sets new geometry specific size parameters.
 	void SetAccuracy(size_t _value) override;				// Sets new accuracy of a non-STL shape.
 	void Shift(const CVector3& _offset) override;			// Shifts the volume at time point 0.
 	void Scale(double _factor) override;					// Scales sizes of the volume by the given factor at time point 0.
-	void ScaleSTL(const CVector3& _factors) override;		// Scales sizes of the STL volume by the given factors different in each dimension at time point 0.
+	void DeformSTL(const CVector3& _factors) override;		// Scales sizes of the STL volume by the given factors different in each dimension at time point 0.
 	void Rotate(const CMatrix3& _rotation) override;		// Rotates volume by the specified rotation matrix at time point 0.
 
-	// TODO: import/export text as internal methods
+	// TODO: import/export as text as internal methods
 	void SaveToProto(ProtoAnalysisVolume& _proto) const;			// Save to protobuf message.
 	void LoadFromProto(const ProtoAnalysisVolume& _proto);			// Load from protobuf message.
 	void LoadFromProto_v0(const ProtoAnalysisVolume_v0& _proto);	// Load from protobuf message. Compatibility version.

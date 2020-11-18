@@ -1697,7 +1697,7 @@ size_t CSystemStructure::GeometryIndex(const std::string& _key) const
 	for (size_t i = 0; i < m_geometries.size(); ++i)
 		if (m_geometries[i]->Key() == _key)
 			return i;
-	return size_t(-1);
+	return static_cast<size_t>(-1);
 }
 
 CRealGeometry* CSystemStructure::AddGeometry()
@@ -1712,7 +1712,7 @@ CRealGeometry* CSystemStructure::AddGeometry(const CTriangularMesh& _mesh)
 	CRealGeometry* geometry = AddGeometry();
 	geometry->SetMesh(_mesh);
 	geometry->SetName(_mesh.Name());
-	geometry->StoreShape(EVolumeShape::VOLUME_STL);
+	geometry->SetShape(EVolumeShape::VOLUME_STL);
 	return geometry;
 }
 
@@ -1720,26 +1720,17 @@ CRealGeometry* CSystemStructure::AddGeometry(const EVolumeShape& _type, const CG
 {
 	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Diagonal());
 	CRealGeometry* geometry = AddGeometry(mesh);
-	geometry->StoreShape(_type);
+	geometry->SetShape(_type);
 	geometry->SetSizes(_sizes);
 	return geometry;
 }
 
-void CSystemStructure::DeleteGeometry(size_t _index)
-{
-	if (_index >= m_geometries.size()) return;
-	DeleteObjects(m_geometries[_index]->Planes());
-	m_geometries.erase(m_geometries.begin() + _index);
-}
-
 void CSystemStructure::DeleteGeometry(const std::string& _key)
 {
-	for (size_t i = 0; i < m_geometries.size(); ++i)
-		if (m_geometries[i]->Key() == _key)
-		{
-			DeleteGeometry(i);
-			break;
-		}
+	const size_t index = GeometryIndex(_key);
+	if (index >= m_geometries.size()) return;
+	DeleteObjects(m_geometries[index]->Planes());
+	m_geometries.erase(m_geometries.begin() + index);
 }
 
 void CSystemStructure::DeleteAllGeometries()
@@ -1837,7 +1828,7 @@ size_t CSystemStructure::AnalysisVolumeIndex(const std::string& _key) const
 	for (size_t i = 0; i < m_analysisVolumes.size(); ++i)
 		if (m_analysisVolumes[i]->Key() == _key)
 			return i;
-	return size_t(-1);
+	return static_cast<size_t>(-1);
 }
 
 CAnalysisVolume* CSystemStructure::AddAnalysisVolume()
@@ -1852,7 +1843,7 @@ CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const CTriangularMesh& _mes
 	CAnalysisVolume* volume = AddAnalysisVolume();
 	volume->SetMesh(_mesh);
 	volume->SetName(_mesh.Name());
-	volume->StoreShape(EVolumeShape::VOLUME_STL);
+	volume->SetShape(EVolumeShape::VOLUME_STL);
 	return volume;
 }
 
@@ -1861,25 +1852,16 @@ CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const EVolumeShape& _type, 
 	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Diagonal());
 
 	CAnalysisVolume* volume = AddAnalysisVolume(mesh);
-	volume->StoreShape(_type);
+	volume->SetShape(_type);
 	volume->SetSizes(_sizes);
 	return volume;
 }
 
-void CSystemStructure::DeleteAnalysisVolume(size_t _index)
-{
-	if (_index >= m_analysisVolumes.size()) return;
-	m_analysisVolumes.erase(m_analysisVolumes.begin() + _index);
-}
-
 void CSystemStructure::DeleteAnalysisVolume(const std::string& _key)
 {
-	for (size_t i = 0; i < m_analysisVolumes.size(); ++i)
-		if (m_analysisVolumes[i]->Key() == _key)
-		{
-			DeleteAnalysisVolume(i);
-			break;
-		}
+	const size_t index = AnalysisVolumeIndex(_key);
+	if (index >= m_analysisVolumes.size()) return;
+	m_analysisVolumes.erase(m_analysisVolumes.begin() + index);
 }
 
 void CSystemStructure::UpAnalysisVolume(const std::string& _key)

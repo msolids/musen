@@ -248,6 +248,9 @@
     <ProjectReference Include="..\Modules\FileManager\FileManager.vcxproj">
       <Project>{436428f0-1018-47a2-b055-f2079b53ddf4}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Modules\Geometries\Geometries.vcxproj">
+      <Project>{448b6049-5d64-4f31-be4f-73e480afe80b}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Modules\ObjectsGenerator\ObjectsGenerator.vcxproj">
       <Project>{14f35bd5-786f-4f75-8450-8feb8d9ffc12}</Project>
     </ProjectReference>

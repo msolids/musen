@@ -231,7 +231,7 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 				std::vector<size_t> planes(GetValueFromStream<size_t>(&tempStream));
 				for (auto& plane : planes)
 					tempStream >> plane;
-				pGeometry->SetPlanes(planes);
+				pGeometry->SetPlanesIndices(planes);
 				break;
 			}
 			case ETXTCommands::GEOMETRY_TDVEL:

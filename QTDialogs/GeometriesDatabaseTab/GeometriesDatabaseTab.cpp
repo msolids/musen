@@ -58,18 +58,18 @@ void CGeometriesDatabaseTab::Initialize()
 void CGeometriesDatabaseTab::SetupScaleButton()
 {
 	auto* scaleMenu = new QMenu(this);
-	auto* action_m  = new QAction("to [m]",  this);
-	auto* action_mm = new QAction("to [mm]", this);
-	auto* action_um = new QAction("to [um]", this);
-	auto* action_nm = new QAction("to [nm]", this);
-	scaleMenu->addAction(action_m);
-	scaleMenu->addAction(action_mm);
-	scaleMenu->addAction(action_um);
-	scaleMenu->addAction(action_nm);
-	connect(action_m,  &QAction::triggered, this, [=]() { ScaleGeometry(1.0); });
-	connect(action_mm, &QAction::triggered, this, [=]() { ScaleGeometry(1e-3); });
-	connect(action_um, &QAction::triggered, this, [=]() { ScaleGeometry(1e-6); });
-	connect(action_nm, &QAction::triggered, this, [=]() { ScaleGeometry(1e-9); });
+	auto* action1 = new QAction("x1000",  this);
+	auto* action2 = new QAction("x10",    this);
+	auto* action3 = new QAction("x0.1",   this);
+	auto* action4 = new QAction("x0.001", this);
+	scaleMenu->addAction(action1);
+	scaleMenu->addAction(action2);
+	scaleMenu->addAction(action3);
+	scaleMenu->addAction(action4);
+	connect(action1, &QAction::triggered, this, [=]() { ScaleGeometry(1e+3); });
+	connect(action2, &QAction::triggered, this, [=]() { ScaleGeometry(1e+1); });
+	connect(action3, &QAction::triggered, this, [=]() { ScaleGeometry(1e-1); });
+	connect(action4, &QAction::triggered, this, [=]() { ScaleGeometry(1e-3); });
 	ui.buttonScaleGeometry->setMenu(scaleMenu);
 }
 

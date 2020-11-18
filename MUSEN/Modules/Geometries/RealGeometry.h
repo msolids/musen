@@ -17,7 +17,6 @@ class CRealGeometry : public CBaseGeometry
 	std::vector<size_t> m_planes;				// Indexes of triangular planes which belong to this geometry.
 	CBasicVector3<bool> m_freeMotion{ false };	// Directions in which free motion is allowed.
 	double m_mass{ 0.0 };						// Mass of the geometry if free motion is enabled.
-	// TODO: calculate rotation center internally even if the flag is enabled
 	bool m_rotateAroundCenter{ false };			// Whether the rotation is around center.
 
 	CSystemStructure* m_systemStructure{ nullptr };	// Pointer to a system structure.
@@ -34,21 +33,19 @@ public:
 	std::string Material() const;								// Returns material of the geometry.
 	SVolumeType BoundingBox(double _time = 0.0) const override;	// Returns bounding box of the geometry at the given time point.
 
-	// TODO: maybe delete, put into constructor
-	void SetMesh(const CTriangularMesh& _mesh);				// Creates a new geometry form the mesh.
+	void SetMesh(const CTriangularMesh& _mesh) override;	// Creates a new geometry form the mesh.
 	// TODO: remove
-	void SetPlanes(const std::vector<size_t>& _planes);		// Sets indexes of triangular planes which belong to this geometry.
-	void SetFreeMotion(const CBasicVector3<bool>& _flags);	// Sets directions in which free motion is allowed.
-	void SetMass(double _mass);								// Sets mass of the geometry.
-	void SetRotateAroundCenter(bool _flag);					// Sets whether the rotation is around center.
-	void SetSizes(const CGeometrySizes& _sizes) override;	// Sets new geometry specific size parameters.
-	void SetAccuracy(size_t _value) override;				// Sets new accuracy of a non-STL shape.
-	void Shift(const CVector3& _offset) override; 			// Shifts the geometry by the specified coordinates at time point 0.
-	void SetCenter(const CVector3& _coord) override; 		// Moves geometry to a point with specified coordinates at time point 0.
-	void SetMaterial(const std::string& _compoundKey);		// Sets material for all related planes of the geometry.
-	void Scale(double _factor) override;					// Scales sizes of the geometry by the given factor at time point 0.
-	void ScaleSTL(const CVector3& _factors) override;		// Scales sizes of the STL geometry by the given factors different in each dimension at time point 0.
-	void Rotate(const CMatrix3& _rotation) override;		// Rotates the geometry according to the given rotational matrix at time point 0.
+	void SetPlanesIndices(const std::vector<size_t>& _planes);	// Sets indexes of triangular planes which belong to this geometry.
+	void SetFreeMotion(const CBasicVector3<bool>& _flags);		// Sets directions in which free motion is allowed.
+	void SetMass(double _mass);									// Sets mass of the geometry.
+	void SetRotateAroundCenter(bool _flag);						// Sets whether the rotation is around center.
+	void SetAccuracy(size_t _value) override;					// Sets new accuracy of a non-STL shape.
+	void Shift(const CVector3& _offset) override; 				// Shifts the geometry by the specified coordinates at time point 0.
+	void SetCenter(const CVector3& _coord) override; 			// Moves geometry to a point with specified coordinates at time point 0.
+	void SetMaterial(const std::string& _compoundKey);			// Sets material for all related planes of the geometry.
+	void Scale(double _factor) override;						// Scales sizes of the geometry by the given factor at time point 0.
+	void DeformSTL(const CVector3& _factors) override;			// Scales sizes of the STL geometry by the given factors different in each dimension at time point 0.
+	void Rotate(const CMatrix3& _rotation) override;			// Rotates the geometry according to the given rotational matrix at time point 0.
 
 	void UpdateMotionInfo(double _dependentValue);	// Updates current motion characteristics according to the current time or force.
 	CVector3 GetCurrentVelocity() const;			// Returns current translational velocity.

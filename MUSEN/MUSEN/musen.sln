@@ -255,6 +255,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplifiedScene", "..\Modul
 		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Geometries", "..\Modules\Geometries\Geometries.vcxproj", "{448B6049-5D64-4F31-BE4F-73E480AFE80B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -493,6 +495,10 @@ Global
 		{B6D40BF0-EE28-4396-AA29-264153415498}.Debug|x64.Build.0 = Debug|x64
 		{B6D40BF0-EE28-4396-AA29-264153415498}.Release|x64.ActiveCfg = Release|x64
 		{B6D40BF0-EE28-4396-AA29-264153415498}.Release|x64.Build.0 = Release|x64
+		{448B6049-5D64-4F31-BE4F-73E480AFE80B}.Debug|x64.ActiveCfg = Debug|x64
+		{448B6049-5D64-4F31-BE4F-73E480AFE80B}.Debug|x64.Build.0 = Debug|x64
+		{448B6049-5D64-4F31-BE4F-73E480AFE80B}.Release|x64.ActiveCfg = Release|x64
+		{448B6049-5D64-4F31-BE4F-73E480AFE80B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -560,9 +566,10 @@ Global
 		{24F35BD5-786F-4F75-8450-8FEB8D97AC12} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
 		{436428F0-1018-47A2-B055-F2079B53DDF4} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
 		{B6D40BF0-EE28-4396-AA29-264153415498} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
+		{448B6049-5D64-4F31-BE4F-73E480AFE80B} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		Qt5Version = msvc2017_64
 		SolutionGuid = {B4449610-1D23-4C62-8325-77B5FA1A2520}
+		Qt5Version = msvc2017_64
 	EndGlobalSection
 EndGlobal

@@ -9,7 +9,7 @@
 CAnalysisVolume::CAnalysisVolume(const CSystemStructure* _systemStructure) :
 	m_systemStructure{ _systemStructure }
 {
-	SetColor(CColor{ 0.6f, 1.0f, 0.6f, 1.0f });
+	SetColor(CColor::DefaultAnalysisVolumeColor());
 }
 
 size_t CAnalysisVolume::TrianglesNumber() const
@@ -31,10 +31,10 @@ double CAnalysisVolume::Volume() const
 {
 	switch (Shape())
 	{
-	case EVolumeShape::VOLUME_SPHERE:			return 4.0 * PI * std::pow(m_sizes.Radius(), 3) / 3.0;
-	case EVolumeShape::VOLUME_BOX:				return m_sizes.Width() * m_sizes.Depth() * m_sizes.Height();
-	case EVolumeShape::VOLUME_CYLINDER:			return PI * m_sizes.Radius() * m_sizes.Radius() * m_sizes.Height();
-	case EVolumeShape::VOLUME_HOLLOW_SPHERE:	return 4.0 * PI / 3.0 * (std::pow(m_sizes.Radius(), 3) - std::pow(m_sizes.InnerRadius(), 3));
+	case EVolumeShape::VOLUME_SPHERE:			return 4.0 * PI * std::pow(Sizes().Radius(), 3) / 3.0;
+	case EVolumeShape::VOLUME_BOX:				return Sizes().Width() * Sizes().Depth() * Sizes().Height();
+	case EVolumeShape::VOLUME_CYLINDER:			return PI * Sizes().Radius() * Sizes().Radius() * Sizes().Height();
+	case EVolumeShape::VOLUME_HOLLOW_SPHERE:	return 4.0 * PI / 3.0 * (std::pow(Sizes().Radius(), 3) - std::pow(Sizes().InnerRadius(), 3));
 	case EVolumeShape::VOLUME_STL:				return m_mesh.Volume();
 	}
 	return 0;
@@ -53,10 +53,10 @@ double CAnalysisVolume::MaxInscribedDiameter() const
 {
 	switch (Shape())
 	{
-	case EVolumeShape::VOLUME_SPHERE:			return m_sizes.Radius();
-	case EVolumeShape::VOLUME_HOLLOW_SPHERE:	return m_sizes.Radius() - m_sizes.InnerRadius();
-	case EVolumeShape::VOLUME_CYLINDER:			return std::min({ m_sizes.Radius(), m_sizes.Height() });
-	case EVolumeShape::VOLUME_BOX:				return std::min({ m_sizes.Width(), m_sizes.Depth(), m_sizes.Height() });
+	case EVolumeShape::VOLUME_SPHERE:			return Sizes().Radius();
+	case EVolumeShape::VOLUME_HOLLOW_SPHERE:	return Sizes().Radius() - Sizes().InnerRadius();
+	case EVolumeShape::VOLUME_CYLINDER:			return std::min({ Sizes().Radius(), Sizes().Height() });
+	case EVolumeShape::VOLUME_BOX:				return std::min({ Sizes().Width(), Sizes().Depth(), Sizes().Height() });
 	case EVolumeShape::VOLUME_STL:				return std::pow(Volume() / PI * 3 / 4, 1 / 3.) * 2;
 	}
 	return 0;
@@ -70,26 +70,6 @@ void CAnalysisVolume::SetMesh(const CTriangularMesh& _mesh)
 void CAnalysisVolume::SetCenter(const CVector3& _center)
 {
 	m_mesh.SetCenter(_center);
-}
-
-void CAnalysisVolume::SetSizes(const CGeometrySizes& _sizes)
-{
-	if (m_sizes == _sizes) return;
-	if (Shape() != EVolumeShape::VOLUME_STL)
-	{
-		CBaseGeometry::SetSizes(_sizes);
-		const auto mesh = CMeshGenerator::GenerateMesh(Shape(), _sizes, Center(), RotationMatrix(), Accuracy());
-		SetMesh(mesh);
-	}
-	else
-	{
-		// get current bounding box
-		const auto bb = BoundingBox();
-		// divide entry-wise new sizes by old sizes to get an elongation factor in each direction
-		const CVector3 factors = CVector3{ _sizes.Width(), _sizes.Depth(), _sizes.Height() } / (bb.coordEnd - bb.coordBeg);
-		// resize
-		ScaleSTL(factors);
-	}
 }
 
 void CAnalysisVolume::SetAccuracy(size_t _value)
@@ -110,9 +90,9 @@ void CAnalysisVolume::Scale(double _factor)
 	CBaseGeometry::Scale(_factor);
 }
 
-void CAnalysisVolume::ScaleSTL(const CVector3& _factors)
+void CAnalysisVolume::DeformSTL(const CVector3& _factors)
 {
-	CBaseGeometry::ScaleSTL(_factors);
+	CBaseGeometry::DeformSTL(_factors);
 	if (Shape() != EVolumeShape::VOLUME_STL) return;
 	m_mesh.Scale(_factors);
 }
@@ -141,11 +121,11 @@ void CAnalysisVolume::LoadFromProto_v0(const ProtoAnalysisVolume_v0& _proto)
 {
 	SetName(_proto.name());
 	SetKey(_proto.key());
-	StoreShape(static_cast<EVolumeShape>(_proto.type()));
-	m_sizes.SetRelevantSizes(Proto2Val<double>(_proto.vprops()), Shape());
+	SetShape(static_cast<EVolumeShape>(_proto.type()));
+	SetSizesFromVector(Proto2Val<double>(_proto.vprops()));
 	m_mesh.SetTriangles(Proto2Val<CTriangle>(_proto.triangles()));
 	if (_proto.has_rotation())
-		StoreRotationMatrix(Proto2Val(_proto.rotation()));
+		SetRotationMatrix(Proto2Val(_proto.rotation()));
 	else if (Shape() != EVolumeShape::VOLUME_STL) // compatibility with older versions
 		m_mesh.SetTriangles(CMeshGenerator::GenerateMesh(Shape(), Sizes(), Proto2Val(_proto.vcenter()), CMatrix3::Diagonal()).Triangles());
 	if (_proto.has_color())

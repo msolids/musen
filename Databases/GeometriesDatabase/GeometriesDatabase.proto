@@ -17,7 +17,6 @@ message ProtoGeometry
 	string name   = 1;
 	string key    = 2;
 	double volume = 3;
-	double scale  = 5;
 
 	repeated ProtoGeomVect vertices = 4;
 }

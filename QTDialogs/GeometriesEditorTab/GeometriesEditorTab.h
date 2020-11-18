@@ -20,6 +20,7 @@ class CGeometriesEditorTab : public CMusenDialog
 		NONE, GEOMETRY, VOLUME
 	};
 
+	// Keys to find properties in the tree widget.
 	enum EProperty : uint32_t
 	{
 		MATERIAL,
@@ -43,6 +44,7 @@ class CGeometriesEditorTab : public CMusenDialog
 		INNER_RADIUS,
 	};
 
+	// Keys to find properties in the motion table.
 	enum ERowMotion : int
 	{
 		TIME_BEG = 0,
@@ -63,7 +65,7 @@ class CGeometriesEditorTab : public CMusenDialog
 	enum class EAxis { X = 0, Y, Z };
 	enum class EPosition { MIN, MAX };
 
-	int m_motionWidth{};
+	int m_motionWidth{};								// Width of the motion table needed to hide/show it with the same size.
 	std::map<EType, QTreeWidgetItem*> m_list;			// Pointers to top-level items in the list of geometries.
 	std::map<EProperty, QTreeWidgetItem*> m_properties;	// Pointers to tree items with properties of the selected geometry.
 
@@ -89,10 +91,10 @@ private:
 	void UpdateMaterialsCombo() const;		// Updates combo box with materials.
 	void UpdateMotionCombo() const;			// Updates combo box with motion type.
 	void UpdateGeometriesList();			// Updates the list of existing geometries and volumes.
-	// TODO: remove?
 	void UpdatePropertiesInfoEmpty() const;	// Updates properties table view if no geometry or volume is selected.
 	void UpdatePropertiesInfo() const;		// Updates information about properties of selected geometry or volume.
 	void UpdateMotionInfo();				// Updates information about motion of selected geometry or volume.
+	void UpdateMotionVisibility();			// Updates visibility of the motion table.
 
 	void AddGeometryStd(EVolumeShape _shape, EType _type);		// Adds a standard geometry or volume of selected _type.
 	void AddGeometryLib(const std::string& _key, EType _type);	// Adds an object with _key from geometries database as a geometry or volume.
@@ -107,10 +109,8 @@ private:
 	void keyPressEvent(QKeyEvent* _event) override;
 
 private slots:
-	void NameChanged();			// Is called when user changes the name of a geometry or volume.
-
-	void GeometrySelected();	// Is called when user selects new geometry or volume.
-
+	void NameChanged();					// Is called when user changes the name of a geometry or volume.
+	void GeometrySelected();			// Is called when user selects new geometry or volume.
 	void MaterialChanged();				// Is called when user changes material of a geometry.
 	void ColorChanged();				// Is called when user changes color of a geometry or volume.
 	void MotionTypeChanged();			// Is called when user changes motion type of a geometry or volume.

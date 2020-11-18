@@ -14,7 +14,6 @@ public:
 	{
 		CTriangularMesh mesh;	// Triangular mesh.
 		std::string key;		// Unique key within this database.
-		double scaleFactor;		// Currently applied scale factor.
 	};
 
 private:
@@ -26,7 +25,7 @@ public:
 	std::string GetFileName() const;	// Returns the name of the current database file.
 
 	void AddGeometry(const std::string& _filePath);							// Adds geometry from the STL file.
-	void AddGeometry(const CTriangularMesh& _mesh, const std::string& _key = "", double _scale = 1.0);	// Adds geometry from the mesh.
+	void AddGeometry(const CTriangularMesh& _mesh, const std::string& _key = "");	// Adds geometry from the mesh.
 	void DeleteGeometry(size_t _index);										// Removes geometry with the specified index.
 	void UpGeometry(size_t _index);											// Moves the selected geometry upwards in the list.
 	void DownGeometry(size_t _index);										// Moves the selected geometry downwards in the list.

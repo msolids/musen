@@ -23,11 +23,10 @@ void CGeometriesDatabase::AddGeometry(const std::string& _filePath)
 	AddGeometry(CSTLFileHandler::ReadFromFile(_filePath));
 }
 
-void CGeometriesDatabase::AddGeometry(const CTriangularMesh& _mesh, const std::string& _key/* = ""*/, double _scale/* = 1.0*/)
+void CGeometriesDatabase::AddGeometry(const CTriangularMesh& _mesh, const std::string& _key/* = ""*/)
 {
 	if (_mesh.IsEmpty()) return;
-	if (_scale == 0) _scale = 1.0;
-	m_geometries.push_back({ _mesh, GenerateKey(_key), _scale });
+	m_geometries.push_back({ _mesh, GenerateKey(_key) });
 }
 
 void CGeometriesDatabase::DeleteGeometry(size_t _index)
@@ -98,11 +97,8 @@ std::vector<const CGeometriesDatabase::SGeometry*> CGeometriesDatabase::Geometri
 void CGeometriesDatabase::ScaleGeometry(size_t _index, double _factor)
 {
 	if (_index >= m_geometries.size()) return;
-	if (m_geometries[_index].scaleFactor == _factor) return;									// is already scaled that way
-	const double rescaleFactor = _factor / m_geometries[_index].scaleFactor;					// to rescale already scaled geometry
-	m_geometries[_index].scaleFactor = _factor;													// new scaling factor
-	m_geometries[_index].mesh.Scale(rescaleFactor);												// scale
-	m_geometries[_index].mesh.SetCenter(m_geometries[_index].mesh.Center() * rescaleFactor);	// move to scaled coordinates
+	m_geometries[_index].mesh.Scale(_factor);											// scale
+	m_geometries[_index].mesh.SetCenter(m_geometries[_index].mesh.Center() * _factor);	// move to scaled coordinates
 }
 
 void CGeometriesDatabase::ExportGeometry(size_t _index, const std::string& _filePath) const
@@ -120,7 +116,6 @@ void CGeometriesDatabase::SaveToFile(const std::string& _filePath)
 		ProtoGeometry* protoGeom = protoGeometriesDB.add_geometry();
 		protoGeom->set_name(g.mesh.Name());
 		protoGeom->set_key(g.key);
-		protoGeom->set_scale(g.scaleFactor);
 		for (const auto& t : g.mesh.Triangles())
 		{
 			ProtoGeomVect* vert1 = protoGeom->add_vertices();
@@ -162,7 +157,7 @@ void CGeometriesDatabase::LoadFromFile(const std::string& _filePath)
 				CVector3(protoGeom->mutable_vertices(j * 3 + 0)->x(), protoGeom->mutable_vertices(j * 3 + 0)->y(), protoGeom->mutable_vertices(j * 3 + 0)->z()),
 				CVector3(protoGeom->mutable_vertices(j * 3 + 1)->x(), protoGeom->mutable_vertices(j * 3 + 1)->y(), protoGeom->mutable_vertices(j * 3 + 1)->z()),
 				CVector3(protoGeom->mutable_vertices(j * 3 + 2)->x(), protoGeom->mutable_vertices(j * 3 + 2)->y(), protoGeom->mutable_vertices(j * 3 + 2)->z())};
-		AddGeometry(CTriangularMesh{ protoGeom->name(), triangles }, protoGeom->key(), protoGeom->scale());
+		AddGeometry(CTriangularMesh{ protoGeom->name(), triangles }, protoGeom->key());
 	}
 
 	m_fileName = _filePath;

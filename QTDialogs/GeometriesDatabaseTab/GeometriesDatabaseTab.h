@@ -10,7 +10,7 @@ class CGeometriesDatabaseTab : public CMusenDialog
 {
 	Q_OBJECT
 
-	Ui::geometriesDatabaseTab ui;
+	Ui::geometriesDatabaseTab ui{};
 	QString m_lastUsedFilePath;		// Last used full file path to use in file dialogs.
 	bool m_isDBModified{};			// Whether the database was modified after saving/loading.
 

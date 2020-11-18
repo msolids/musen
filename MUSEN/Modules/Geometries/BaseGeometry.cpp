@@ -3,8 +3,8 @@
    See LICENSE file for license and warranty information. */
 
 #include "BaseGeometry.h"
-
 #include "MeshGenerator.h"
+#include "TriangularMesh.h"
 #include "ProtoFunctions.h"
 
 std::string CBaseGeometry::Name() const
@@ -15,6 +15,8 @@ std::string CBaseGeometry::Name() const
 void CBaseGeometry::SetName(const std::string& _name)
 {
 	m_name = _name;
+	// do not allow spaces for proper load from text files
+	std::replace(m_name.begin(), m_name.end(), ' ', '_');
 }
 
 std::string CBaseGeometry::Key() const
@@ -32,7 +34,7 @@ EVolumeShape CBaseGeometry::Shape() const
 	return m_shape;
 }
 
-void CBaseGeometry::StoreShape(const EVolumeShape& _shape)
+void CBaseGeometry::SetShape(const EVolumeShape& _shape)
 {
 	m_shape = _shape;
 }
@@ -52,7 +54,7 @@ CMatrix3 CBaseGeometry::RotationMatrix() const
 	return m_rotation;
 }
 
-void CBaseGeometry::StoreRotationMatrix(const CMatrix3& _matrix)
+void CBaseGeometry::SetRotationMatrix(const CMatrix3& _matrix)
 {
 	m_rotation = _matrix;
 }
@@ -64,8 +66,23 @@ size_t CBaseGeometry::Accuracy() const
 
 void CBaseGeometry::SetSizes(const CGeometrySizes& _sizes)
 {
-	m_sizes = _sizes;
-	m_scaling = 1.0;
+	if (m_sizes == _sizes) return;
+	if (Shape() != EVolumeShape::VOLUME_STL)
+	{
+		m_sizes = _sizes;
+		m_scaling = 1.0;
+		const auto mesh = CMeshGenerator::GenerateMesh(Shape(), _sizes, Center(), RotationMatrix(), Accuracy());
+		SetMesh(mesh);
+	}
+	else
+	{
+		// get current bounding box
+		const auto bb = BoundingBox();
+		// divide entry-wise new sizes by old sizes to get an elongation factor in each direction
+		const CVector3 factors = CVector3{ _sizes.Width(), _sizes.Depth(), _sizes.Height() } / (bb.coordEnd - bb.coordBeg);
+		// resize
+		DeformSTL(factors);
+	}
 }
 
 CGeometrySizes CBaseGeometry::Sizes() const
@@ -79,7 +96,7 @@ void CBaseGeometry::Scale(double _factor)
 	m_scaling = _factor;
 }
 
-void CBaseGeometry::ScaleSTL(const CVector3& _factors)
+void CBaseGeometry::DeformSTL(const CVector3& _factors)
 {
 	if (Shape() != EVolumeShape::VOLUME_STL) return;
 	m_scaling = 1.0;
@@ -105,6 +122,11 @@ const CGeometryMotion* CBaseGeometry::Motion() const
 	return &m_motion;
 }
 
+void CBaseGeometry::SetSizesFromVector(const std::vector<double>& _sizes)
+{
+	m_sizes.SetRelevantSizes(_sizes, m_shape);
+}
+
 void CBaseGeometry::SaveToProto(ProtoBaseGeometry& _proto) const
 {
 	_proto.set_version(0);
@@ -128,5 +150,5 @@ void CBaseGeometry::LoadFromProto(const ProtoBaseGeometry& _proto)
 	m_sizes.SetRelevantSizes(Proto2Val<double>(_proto.sizes()), m_shape);
 	m_rotation = Proto2Val(_proto.rotation());
 	m_motion.LoadFromProto(_proto.motion());
-	m_scaling = _proto.scaling() != 0 ? _proto.scaling() : 1.0;
+	m_scaling = _proto.scaling() != 0.0 ? _proto.scaling() : 1.0;
 }

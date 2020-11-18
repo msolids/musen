@@ -29,6 +29,7 @@ MUSEN/Models/SolidBonds/BondModelThermal
 MUSEN/Modules/BondsGenerator
 MUSEN/Modules/ContactAnalyzers
 MUSEN/Modules/FileManager
+MUSEN/Modules/Geometries
 MUSEN/Modules/ObjectsGenerator
 MUSEN/Modules/PackageGenerator
 MUSEN/Modules/ResultsAnalyzer

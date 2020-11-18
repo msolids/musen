@@ -179,6 +179,14 @@ bool CConsoleSimulator::SimulationPrecheck() const
 
 	AddErrorMessage(m_simulatorManager.GetSimulatorPtr()->IsDataCorrect());
 
+	// check geometries
+	for (const auto& g : m_systemStructure.AllGeometries())
+		if (!g->Motion()->IsValid())
+			AddErrorMessage("Geometry " + g->Name() + ": " + g->Motion()->ErrorMessage());
+	for (const auto& v : m_systemStructure.AllAnalysisVolumes())
+		if (!v->Motion()->IsValid())
+			AddErrorMessage("Analysis volume " + v->Name() + ": " + v->Motion()->ErrorMessage());
+
 	// print warnings and errors
 	if (!warningMessage.empty())	m_out << warningMessage << std::endl;
 	if (!errorMessage.empty())		m_err << errorMessage   << std::endl;

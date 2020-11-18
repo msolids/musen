@@ -48,6 +48,11 @@ public:
 	{
 		return !operator==(_color);
 	}
+
+	static CColor DefaultRealGeometryColor()		{ return CColor{ 0.5f, 0.5f, 1.0f, 1.0f }; }
+	static CColor DefaultAnalysisVolumeColor()		{ return CColor{ 0.6f, 1.0f, 0.6f, 1.0f }; }
+	static CColor DefaultSampleAnalyzerColor()		{ return CColor{ 0.4f, 0.4f, 0.4f, 0.5f }; }
+	static CColor DefaultSimulationDomainColor()	{ return CColor{ 0.2f, 0.2f, 1.0f, 0.2f }; }
 };
 
 double inline ClampFunction( double _dValue, double _dMin, double _dMax )

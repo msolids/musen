@@ -263,7 +263,7 @@ void CObjectsEditorTab::UpdateTableParts() const
 		{
 			const std::vector<double> overlaps = m_pSystemStructure->GetMaxOverlaps(m_dCurrentTime);
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemNotEditable(iRow, iCol, overlaps[particles[iRow]->m_lObjectID]);
+				ui.objectsTable->SetItemNotEditableConv(iRow, iCol, overlaps[particles[iRow]->m_lObjectID], field.units);
 			break;
 		}
 		case EFieldTypes::FORCE:

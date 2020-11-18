@@ -993,7 +993,7 @@ void CViewManager::UpdateVolumes() const
 		mesh.Shift(m_sampleAnalyzer->m_vCenter);
 
 		data.reserve(data.size() + mesh.TrianglesNumber());
-		const QColor color = C2Q(CColor{ 0.4f, 0.4f, 0.4f, 0.5f });
+		const QColor color = C2Q(CColor::DefaultSampleAnalyzerColor());
 		for (const auto& t : mesh.Triangles())
 			data.emplace_back(COpenGLViewShader::STriangle{ C2Q(t.p1), C2Q(t.p2), C2Q(t.p3), color });
 	}
@@ -1013,7 +1013,7 @@ void CViewManager::UpdateSimulationDomain() const
 	}
 
 	const SVolumeType& domain = m_systemStructure->GetSimulationDomain();
-	const COpenGLViewShader::SDomain box{ C2Q(domain.coordBeg), C2Q(domain.coordEnd), C2Q(CColor{0.2f, 0.2f, 1.0f, 0.2f}) };
+	const COpenGLViewShader::SDomain box{ C2Q(domain.coordBeg), C2Q(domain.coordEnd), C2Q(CColor::DefaultSimulationDomainColor()) };
 
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetDomain(box);
 }

@@ -10,8 +10,6 @@
 #include <QMessageBox>
 #include <QToolButton>
 
-// TODO: center of geometries and volumes via minimum bounding box
-
 CGeometriesEditorTab::CGeometriesEditorTab(QWidget* parent) : CMusenDialog{ parent }
 {
 	ui.setupUi(this);
@@ -22,9 +20,9 @@ CGeometriesEditorTab::CGeometriesEditorTab(QWidget* parent) : CMusenDialog{ pare
 
 	InitializeConnections();
 
-	// TODO: resize to always see buttons titles
-	ui.splitter->setSizes(QList<int>{100, 150, 200});
+	ui.splitter->setSizes(QList<int>{100, 160, 150});
 	m_motionWidth = ui.groupMotion->width();
+	ui.tableMotion->BlockingPaste(true);
 
 	m_sHelpFileName = "Users Guide/Geometries Editor.pdf";
 }
@@ -38,12 +36,14 @@ void CGeometriesEditorTab::InitializeConnections() const
 	connect(ui.listGeometries, &QTreeWidget::itemChanged,		 this, &CGeometriesEditorTab::NameChanged);
 	connect(ui.listGeometries, &QTreeWidget::currentItemChanged, this, &CGeometriesEditorTab::GeometrySelected);
 
-	connect(ui.tableMotion,				&CQtTable::itemChanged,			this, &CGeometriesEditorTab::MotionTableChanged);
-	connect(ui.checkBoxAroundCenter,	&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
-	connect(ui.checkBoxFreeMotionX,		&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
-	connect(ui.checkBoxFreeMotionY,		&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
-	connect(ui.checkBoxFreeMotionZ,		&QCheckBox::clicked,			this, &CGeometriesEditorTab::MotionChanged);
-	connect(ui.lineEditMass,			&QLineEdit::editingFinished,	this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.tableMotion,				&CQtTable::itemChanged,				this, &CGeometriesEditorTab::MotionTableChanged);
+	connect(ui.tableMotion,				&CQtTable::ComboBoxIndexChanged,	this, &CGeometriesEditorTab::MotionTableChanged);
+	connect(ui.tableMotion,				&CQtTable::DataPasted,				this, &CGeometriesEditorTab::MotionTableChanged);
+	connect(ui.checkBoxAroundCenter,	&QCheckBox::clicked,				this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.checkBoxFreeMotionX,		&QCheckBox::clicked,				this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.checkBoxFreeMotionY,		&QCheckBox::clicked,				this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.checkBoxFreeMotionZ,		&QCheckBox::clicked,				this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.lineEditMass,			&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
 
 	connect(ui.buttonAddMotion,		&QPushButton::clicked, this, &CGeometriesEditorTab::AddMotion);
 	connect(ui.buttonDeleteMotion,	&QPushButton::clicked, this, &CGeometriesEditorTab::DeleteMotion);
@@ -70,6 +70,9 @@ void CGeometriesEditorTab::SetupGeometriesList()
 
 void CGeometriesEditorTab::SetupPropertiesList()
 {
+	/* Most of names are set to elements only for proper automatic resizing of items.
+	 * They will be replaced with proper names in update functions.*/
+
 	ui.treeProperties->setColumnCount(3);
 
 	/// general
@@ -87,7 +90,7 @@ void CGeometriesEditorTab::SetupPropertiesList()
 
 	// motion
 	m_properties[EProperty::MOTION] = ui.treeProperties->CreateItem(general, 0, "Motion");
-	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1, {}, {}, 0);
+	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1, { "None", "Time-dependent", "Force-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT), E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT) }, 0);
 	connect(motion, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::MotionTypeChanged);
 
 	// triangles
@@ -175,7 +178,7 @@ void CGeometriesEditorTab::SetupPropertiesList()
 
 	sizes->setExpanded(true);
 
-	/// resize columns and hide some rows
+	/// resize columns and contract some rows
 	for (int i = 0; i < ui.treeProperties->columnCount(); ++i)
 		ui.treeProperties->resizeColumnToContents(i);
 	rotation->setExpanded(false);
@@ -319,7 +322,7 @@ void CGeometriesEditorTab::UpdateGeometriesList()
 
 void CGeometriesEditorTab::UpdatePropertiesInfoEmpty() const
 {
-	CQtSignalBlocker blocker{ ui.treeProperties };
+	/*[[maybe_unused]]*/ CQtSignalBlocker blocker{ ui.treeProperties };
 
 	ui.treeProperties->SetComboBoxValue(     m_properties.at(EProperty::MATERIAL),     1, -1);
 	ui.treeProperties->SetComboBoxValue(     m_properties.at(EProperty::MOTION),       1, 0);
@@ -367,7 +370,7 @@ void CGeometriesEditorTab::UpdatePropertiesInfo() const
 	ui.treeProperties->SetComboBoxValue(m_properties.at(EProperty::MOTION), 1, E2I(m_object->Motion()->MotionType()));
 	ui.treeProperties->itemWidget(m_properties.at(EProperty::TRIANGLES), 1)->setEnabled(m_object->Shape() != EVolumeShape::VOLUME_STL && m_object->Shape() != EVolumeShape::VOLUME_BOX);
 	ui.treeProperties->SetupListSpinBox(m_properties.at(EProperty::TRIANGLES), 1, vector_cast<int>(CMeshGenerator::AllowedTrianglesNumber(m_object->Shape())), static_cast<int>(m_object->TrianglesNumber()));
-	const auto center = m_object->Center(0.0);
+	const auto center = m_object->Center();
 	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_X), 1, std::abs(center.x) > 1e-12 ? center.x : 0.0);
 	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Y), 1, std::abs(center.y) > 1e-12 ? center.y : 0.0);
 	ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::POSITION_Z), 1, std::abs(center.z) > 1e-12 ? center.z : 0.0);
@@ -375,7 +378,7 @@ void CGeometriesEditorTab::UpdatePropertiesInfo() const
 	const auto shape = m_object->Shape();
 	if (shape == EVolumeShape::VOLUME_STL)
 	{
-		const auto bb = m_object->BoundingBox(0.0);
+		const auto bb = m_object->BoundingBox();
 		const auto size = bb.coordEnd - bb.coordBeg;
 		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_X), 1, size.x);
 		ui.treeProperties->SetDoubleSpinBoxValue(m_properties.at(EProperty::SIZE_Y), 1, size.y);
@@ -405,6 +408,7 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 {
 	ui.tableMotion->setColumnCount(0);
 	ui.groupMotion->setEnabled(m_object);
+	UpdateMotionVisibility();
 
 	if (!m_object) return;
 
@@ -435,11 +439,11 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 		ui.tableMotion->setColumnCount(static_cast<int>(intervals.size()));
 		for (int i = 0; i < static_cast<int>(intervals.size()); ++i)
 		{
-			ui.tableMotion->SetItemEditableConv(ERowMotion::TIME_BEG, i, intervals[i].timeBeg, EUnitType::TIME);
-			ui.tableMotion->SetItemEditableConv(ERowMotion::TIME_END, i, intervals[i].timeEnd, EUnitType::TIME);
-			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X, i, intervals[i].motion.velocity, EUnitType::VELOCITY);
-			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X, i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
-			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter, EUnitType::LENGTH);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::TIME_BEG,     i, intervals[i].timeBeg,                 EUnitType::TIME);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::TIME_END,     i, intervals[i].timeEnd,                 EUnitType::TIME);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X,        i, intervals[i].motion.velocity,         EUnitType::VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X,    i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter,   EUnitType::LENGTH);
 		}
 		break;
 	}
@@ -449,11 +453,11 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 		ui.tableMotion->setColumnCount(static_cast<int>(intervals.size()));
 		for (int i = 0; i < static_cast<int>(intervals.size()); ++i)
 		{
-			ui.tableMotion->SetItemEditableConv(ERowMotion::FORCE, i, intervals[i].forceLimit, EUnitType::FORCE);
-			ui.tableMotion->SetComboBox(ERowMotion::LIMIT_TYPE, i, { "MIN", "MAX" }, { E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MIN), E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MAX) }, E2I(intervals[i].limitType));
-			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X, i, intervals[i].motion.velocity, EUnitType::VELOCITY);
-			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X, i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
-			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter, EUnitType::LENGTH);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::FORCE,        i, intervals[i].forceLimit,              EUnitType::FORCE);
+			ui.tableMotion->SetComboBox(            ERowMotion::LIMIT_TYPE,   i, { "MIN", "MAX" }, { E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MIN), E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MAX) }, E2I(intervals[i].limitType));
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X,        i, intervals[i].motion.velocity,         EUnitType::VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X,    i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter,   EUnitType::LENGTH);
 		}
 		break;
 	}
@@ -473,15 +477,17 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	ShowConvValue(ui.lineEditMass, geometry ? geometry->Mass() : 0, EUnitType::MASS);
 	ui.lineEditMass->setEnabled(geometry && !geometry->FreeMotion().IsZero());
 	ui.groupFreeMotion->setEnabled(geometry);
+}
 
-	// visibility
-	if (type == CGeometryMotion::EMotionType::NONE)
+void CGeometriesEditorTab::UpdateMotionVisibility()
+{
+	if (Type() == EType::NONE || m_object->Motion()->MotionType() == CGeometryMotion::EMotionType::NONE)
 	{
 		if (ui.groupMotion->isVisible())
 		{
 			m_motionWidth = ui.groupMotion->width();
 			ui.groupMotion->hide();
-			resize(width() - m_motionWidth - ui.groupMotion->layout()->spacing(), height());
+			resize(width() - m_motionWidth - ui.groupMotion->layout()->spacing() + 1, height());
 		}
 	}
 	else
@@ -489,7 +495,7 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 		if (ui.groupMotion->isHidden())
 		{
 			ui.groupMotion->show();
-			resize(width() + m_motionWidth + ui.groupMotion->layout()->spacing(), height());
+			resize(width() + m_motionWidth + ui.groupMotion->layout()->spacing() - 1, height());
 		}
 	}
 }
@@ -507,6 +513,8 @@ void CGeometriesEditorTab::AddGeometryStd(EVolumeShape _shape, EType _type)
 	case EType::GEOMETRY:	geometry = m_pSystemStructure->AddGeometry(_shape, sizes, center);			break;
 	case EType::VOLUME:		geometry = m_pSystemStructure->AddAnalysisVolume(_shape, sizes, center);	break;
 	}
+
+	if (!geometry) return;
 	UpdateGeometriesList();
 	ui.listGeometries->SetCurrentItem(QString::fromStdString(geometry->Key()));
 	EmitChangeSignals();
@@ -523,6 +531,7 @@ void CGeometriesEditorTab::AddGeometryLib(const std::string& _key, EType _type)
 	case EType::VOLUME:		geometry = m_pSystemStructure->AddAnalysisVolume(m_pGeometriesDB->Geometry(_key)->mesh);	break;
 	}
 
+	if (!geometry) return;
 	UpdateGeometriesList();
 	ui.listGeometries->SetCurrentItem(QString::fromStdString(geometry->Key()));
 	EmitChangeSignals();
@@ -533,14 +542,18 @@ void CGeometriesEditorTab::DeleteGeometry()
 	const EType type = Type();
 	if (type == EType::NONE) return;
 
-	const auto prev = CQtTree::GetData(ui.listGeometries->itemAbove(ui.listGeometries->currentItem()));
 	if (QMessageBox::question(this, windowTitle(), tr("Delete %1 %2?").arg(type == EType::GEOMETRY ? "geometry" : "volume").arg(QString::fromStdString(m_object->Name())), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel) != QMessageBox::Yes) return;
+	// find an item to select after deleting of the current one
+	auto toSelect = CQtTree::GetData(ui.listGeometries->itemAbove(ui.listGeometries->currentItem()));
+	if(toSelect.isEmpty())
+		toSelect = CQtTree::GetData(ui.listGeometries->itemBelow(ui.listGeometries->currentItem()));
+	// delete
 	if (type == EType::GEOMETRY)	m_pSystemStructure->DeleteGeometry(m_object->Key());
 	else							m_pSystemStructure->DeleteAnalysisVolume(m_object->Key());
 
 	EmitChangeSignals(type);
 	UpdateGeometriesList();
-	ui.listGeometries->SetCurrentItem(prev);
+	ui.listGeometries->SetCurrentItem(toSelect);
 }
 
 void CGeometriesEditorTab::UpGeometry()
@@ -585,12 +598,14 @@ void CGeometriesEditorTab::NameChanged()
 
 void CGeometriesEditorTab::GeometrySelected()
 {
-	auto* item = ui.listGeometries->currentItem();
-	if(!item) return;
-
-	if (item->parent() == m_list[EType::GEOMETRY])		m_object = m_pSystemStructure->Geometry(CQtTree::GetData(item).toStdString());
-	else if (item->parent() == m_list[EType::VOLUME])	m_object = m_pSystemStructure->AnalysisVolume(CQtTree::GetData(item).toStdString());
-	else												m_object = nullptr;
+	if (auto* item = ui.listGeometries->currentItem())
+	{
+		if (item->parent() == m_list[EType::GEOMETRY])		m_object = m_pSystemStructure->Geometry(CQtTree::GetData(item).toStdString());
+		else if (item->parent() == m_list[EType::VOLUME])	m_object = m_pSystemStructure->AnalysisVolume(CQtTree::GetData(item).toStdString());
+		else												m_object = nullptr;
+	}
+	else
+		m_object = nullptr;
 
 	UpdateMotionCombo();
 	UpdatePropertiesInfo();
@@ -700,7 +715,6 @@ void CGeometriesEditorTab::ScalingChanged()
 void CGeometriesEditorTab::AddMotion()
 {
 	if (!m_object) return;
-
 	m_object->Motion()->AddInterval();
 	UpdateMotionInfo();
 }
@@ -712,9 +726,9 @@ void CGeometriesEditorTab::DeleteMotion()
 	std::set<int> cols;
 	for (const auto& index : ui.tableMotion->selectionModel()->selection().indexes())
 		cols.insert(index.column());
-
 	for (auto i = cols.rbegin(); i != cols.rend(); ++i)
 		m_object->Motion()->DeleteInterval(*i);
+
 	UpdateMotionInfo();
 }
 
@@ -722,42 +736,38 @@ void CGeometriesEditorTab::MotionTableChanged()
 {
 	if (!m_object) return;
 
-	const auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
-
-	const int iCol = ui.tableMotion->currentColumn();
-	switch (m_object->Motion()->MotionType())
-	{
-	case CGeometryMotion::EMotionType::TIME_DEPENDENT:
-		// TODO: change to a version without structs
-		m_object->Motion()->ChangeTimeInterval(iCol, {
-			ui.tableMotion->GetConvValue(ERowMotion::TIME_BEG, iCol, EUnitType::TIME),
-			ui.tableMotion->GetConvValue(ERowMotion::TIME_END, iCol, EUnitType::TIME), {
-			ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
-			geometry ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) : CVector3{ 0.0 },
-			geometry ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH) : CVector3{ 0.0 }
-			} });
-		break;
-	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
-		// TODO: change to a version without structs
-		m_object->Motion()->ChangeForceInterval(iCol, {
-			ui.tableMotion->GetConvValue(ERowMotion::FORCE, iCol, EUnitType::FORCE),
-			static_cast<CGeometryMotion::SForceMotionInterval::ELimitType>(ui.tableMotion->GetComboBoxValue(ERowMotion::LIMIT_TYPE, iCol).toUInt()), {
-			ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
-			ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) ,
-			ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH)
-			} });
-		break;
-	case CGeometryMotion::EMotionType::NONE: break;
-	}
+	for (int iCol = 0; iCol < ui.tableMotion->columnCount(); ++iCol)
+		switch (m_object->Motion()->MotionType())
+		{
+		case CGeometryMotion::EMotionType::TIME_DEPENDENT:
+			m_object->Motion()->ChangeTimeInterval(iCol, {
+				ui.tableMotion->GetConvValue(ERowMotion::TIME_BEG, iCol, EUnitType::TIME),
+				ui.tableMotion->GetConvValue(ERowMotion::TIME_END, iCol, EUnitType::TIME), {
+				ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
+				Type() == EType::GEOMETRY ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) : CVector3{ 0.0 },
+				Type() == EType::GEOMETRY ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH) : CVector3{ 0.0 }
+				} });
+			break;
+		case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+			m_object->Motion()->ChangeForceInterval(iCol, {
+				ui.tableMotion->GetConvValue(ERowMotion::FORCE, iCol, EUnitType::FORCE),
+				static_cast<CGeometryMotion::SForceMotionInterval::ELimitType>(ui.tableMotion->GetComboBoxValue(ERowMotion::LIMIT_TYPE, iCol).toUInt()), {
+				ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
+				ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) ,
+				ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH)
+				} });
+			break;
+		case CGeometryMotion::EMotionType::NONE: break;
+		}
 
 	UpdateMotionInfo();
 }
 
 void CGeometriesEditorTab::MotionChanged()
 {
-	auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
-	if (!geometry) return;
+	if (Type() != EType::GEOMETRY) return;
 
+	auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
 	geometry->SetRotateAroundCenter(ui.checkBoxAroundCenter->isChecked());
 	geometry->SetMass(GetConvValue(ui.lineEditMass, EUnitType::MASS));
 	geometry->SetFreeMotion(CBasicVector3<bool>{ ui.checkBoxFreeMotionX->isChecked(), ui.checkBoxFreeMotionY->isChecked(), ui.checkBoxFreeMotionZ->isChecked() });
@@ -769,8 +779,8 @@ void CGeometriesEditorTab::PlaceAside(EAxis _axis, EPosition _pos)
 {
 	if (!m_object || m_pSystemStructure->GetAllSpheres(0, true).empty()) return;
 
-	auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
-	const size_t e = E2I(_axis); // index of the entry (x/y/z) in CVector3
+	// index of the entry (x/y/z) in CVector3
+	const size_t e = E2I(_axis);
 
 	// choose proper functions
 	using fun_type = double(&)(std::initializer_list<double>);
@@ -782,8 +792,8 @@ void CGeometriesEditorTab::PlaceAside(EAxis _axis, EPosition _pos)
 	for (const auto& part : m_pSystemStructure->GetAllSpheres(0, true))
 		partPos = fun1({ partPos, part->GetCoordinates(0)[e] + part->GetRadius() * (_pos == EPosition::MIN ? -1 : 1) });
 
-	// min/max position of walls of the given physical geometry / analysis volume
-	const auto bb = m_object->BoundingBox(0.0);
+	// min/max position of walls of the given geometry
+	const auto bb = m_object->BoundingBox();
 	const double wallPos = fun2({ bb.coordBeg[e], bb.coordEnd[e] });
 
 	// calculate offset for geometry
@@ -792,14 +802,11 @@ void CGeometriesEditorTab::PlaceAside(EAxis _axis, EPosition _pos)
 		_axis == EAxis::Y ? partPos - wallPos : 0,
 		_axis == EAxis::Z ? partPos - wallPos : 0 };
 
-	// shift physical geometry / analysis volume
+	// shift geometry
 	m_object->Shift(offset);
 
+	EmitChangeSignals();
 	UpdatePropertiesInfo();
-
-	if (!geometry)
-		emit AnalysisGeometriesChanged();
-	emit ObjectsChanged();
 }
 
 CGeometriesEditorTab::EType CGeometriesEditorTab::Type() const

@@ -3,14 +3,13 @@
    See LICENSE file for license and warranty information. */
 
 #include "RealGeometry.h"
-
 #include "MeshGenerator.h"
 #include "SystemStructure.h"
 
 CRealGeometry::CRealGeometry(CSystemStructure* _systemStructure) :
 	m_systemStructure{ _systemStructure }
 {
-	SetColor(CColor{ 0.5f, 0.5f, 1.0f, 1.0f });
+	SetColor(CColor::DefaultRealGeometryColor());
 }
 
 size_t CRealGeometry::TrianglesNumber() const
@@ -86,7 +85,7 @@ void CRealGeometry::SetMesh(const CTriangularMesh& _mesh)
 
 }
 
-void CRealGeometry::SetPlanes(const std::vector<size_t>& _planes)
+void CRealGeometry::SetPlanesIndices(const std::vector<size_t>& _planes)
 {
 	m_planes = _planes;
 }
@@ -104,26 +103,6 @@ void CRealGeometry::SetMass(double _mass)
 void CRealGeometry::SetRotateAroundCenter(bool _flag)
 {
 	m_rotateAroundCenter = _flag;
-}
-
-void CRealGeometry::SetSizes(const CGeometrySizes& _sizes)
-{
-	if (m_sizes == _sizes) return;
-	if (Shape() != EVolumeShape::VOLUME_STL)
-	{
-		CBaseGeometry::SetSizes(_sizes);
-		const auto mesh = CMeshGenerator::GenerateMesh(Shape(), _sizes, Center(), RotationMatrix(), Accuracy());
-		SetMesh(mesh);
-	}
-	else
-	{
-		// get current bounding box
-		const auto bb = BoundingBox();
-		// divide entry-wise new sizes by old sizes to get an elongation factor in each direction
-		const CVector3 factors = CVector3{ _sizes.Width(), _sizes.Depth(), _sizes.Height() } / (bb.coordEnd - bb.coordBeg);
-		// resize
-		ScaleSTL(factors);
-	}
 }
 
 void CRealGeometry::SetAccuracy(size_t _value)
@@ -163,9 +142,9 @@ void CRealGeometry::Scale(double _factor)
 	CBaseGeometry::Scale(_factor);
 }
 
-void CRealGeometry::ScaleSTL(const CVector3& _factors)
+void CRealGeometry::DeformSTL(const CVector3& _factors)
 {
-	CBaseGeometry::ScaleSTL(_factors);
+	CBaseGeometry::DeformSTL(_factors);
 	if (Shape() != EVolumeShape::VOLUME_STL) return;
 	m_systemStructure->PrepareTimePointForRead(0.0);
 	m_systemStructure->PrepareTimePointForWrite(0.0);
@@ -271,11 +250,10 @@ void CRealGeometry::LoadFromProto_v0(const ProtoRealGeometry_v0& _proto)
 	case CGeometryMotion::EMotionType::NONE: break;
 	}
 
-	StoreShape(static_cast<EVolumeShape>(_proto.type()));
-	m_sizes.SetRelevantSizes(Proto2Val<double>(_proto.props()), Shape());
-	StoreRotationMatrix(Proto2Val(_proto.rotation()));
-	// TODO: introduce global color
-	SetColor(_proto.has_color() ? Proto2Val(_proto.color()) : CColor(0.5, 0.5, 1.0));
+	SetShape(static_cast<EVolumeShape>(_proto.type()));
+	SetSizesFromVector(Proto2Val<double>(_proto.props()));
+	SetRotationMatrix(Proto2Val(_proto.rotation()));
+	SetColor(_proto.has_color() ? Proto2Val(_proto.color()) : CColor::DefaultRealGeometryColor());
 }
 
 std::vector<CTriangularWall*> CRealGeometry::Walls()

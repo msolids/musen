@@ -49,7 +49,7 @@ std::string inline GenerateUniqueKey(const std::vector<std::string>& _existing, 
 // Creates a key that is not already in the provided list.
 std::string inline GenerateUniqueKey(const std::string& _init, const std::vector<std::string>& _existing, size_t _length = 10)
 {
-	if (std::find(_existing.begin(), _existing.end(), _init) == _existing.end())
+	if (!_init.empty() && std::find(_existing.begin(), _existing.end(), _init) == _existing.end())
 		return _init;
 	return GenerateUniqueKey(_existing, _length);
 }

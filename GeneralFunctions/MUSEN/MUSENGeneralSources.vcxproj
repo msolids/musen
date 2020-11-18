@@ -59,18 +59,9 @@
     <CudaCompile />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\RealGeometry.cpp" />
-    <ClCompile Include="..\STLFileHandler.cpp" />
     <ClCompile Include="..\UnitConvertor.cpp" />
     <ClCompile Include="AbstractDEMModel.cpp" />
-    <ClCompile Include="AnalysisVolume.cpp" />
-    <ClCompile Include="BaseGeometry.cpp" />
-    <ClCompile Include="GeometryMotion.cpp" />
-    <ClCompile Include="GeometrySizes.cpp" />
-    <ClCompile Include="MeshGenerator.cpp" />
     <ClCompile Include="ModelManager.cpp" />
-    <ClCompile Include="Triangle.cpp" />
-    <ClCompile Include="TriangularMesh.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -78,27 +69,18 @@
     <ClInclude Include="..\GeometricFunctions.h" />
     <ClInclude Include="..\GeneratorComponent.h" />
     <ClInclude Include="..\Matrix3.h" />
-    <ClInclude Include="..\RealGeometry.h" />
     <ClInclude Include="..\Quaternion.h" />
-    <ClInclude Include="..\STLFileHandler.h" />
     <ClInclude Include="..\MixedFunctions.h" />
     <ClInclude Include="..\MUSENStringFunctions.h" />
     <ClInclude Include="..\MUSENVectorFunctions.h" />
-    <ClInclude Include="..\Triangle.h" />
     <ClInclude Include="..\UnitConvertor.h" />
     <ClInclude Include="..\Vector3.h" />
     <ClInclude Include="AbstractDEMModel.h" />
-    <ClInclude Include="AnalysisVolume.h" />
-    <ClInclude Include="BaseGeometry.h" />
     <ClInclude Include="BasicTypes.h" />
-    <ClInclude Include="GeometryMotion.h" />
-    <ClInclude Include="GeometrySizes.h" />
-    <ClInclude Include="MeshGenerator.h" />
     <ClInclude Include="ModelManager.h" />
     <ClInclude Include="MUSENComponent.h" />
     <ClInclude Include="MUSENFileFunctions.h" />
     <ClInclude Include="MUSENDefinitions.h" />
-    <ClInclude Include="TriangularMesh.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="ThreadSafeQueue.h" />
     <ClInclude Include="ThreadTask.h" />

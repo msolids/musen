@@ -272,8 +272,6 @@ public:
 	// Adds new real geometry of specified type with selected parameters and returns pointer to it.
 	CRealGeometry* AddGeometry(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center);
 	// Removes specified geometry.
-	void DeleteGeometry(size_t _index);
-	// Removes specified geometry.
 	void DeleteGeometry(const std::string& _key);
 	// Removes all geometries.
 	void DeleteAllGeometries();
@@ -315,8 +313,6 @@ public:
 	CAnalysisVolume* AddAnalysisVolume(const CTriangularMesh& _mesh);
 	// Adds a new analysis volume of specified type with selected parameters and returns a pointer to it.
 	CAnalysisVolume* AddAnalysisVolume(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center);
-	// Removes specified analysis volume.
-	void DeleteAnalysisVolume(size_t _index);
 	// Removes specified analysis volume.
 	void DeleteAnalysisVolume(const std::string& _key);
 	// Moves selected analysis volume upwards in the list of analysis volumes.

@@ -20,7 +20,7 @@ public:
 	void SetValue(int _value);						// Sets new value, must be in the list.
 
 	void SetEditable(bool _flag);					// Enables or disables possibility to change values.
-	
+
 private:
 	void stepBy(int _steps) override;			// Is called whenever the user triggers a step.
 	StepEnabled	stepEnabled() const override;	// Determines whether stepping up and down is legal.
