@@ -113,25 +113,26 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 			vTangOverlap = vTangOverlap * _collTangOverlaps[iColl].Length() / vTangOverlap.Length();
 
 		_collTangOverlaps[iColl] = vTangOverlap + vRelVelTang * _timeStep;
-		CVector3 vTangForce = _collTangOverlaps[iColl] * -Kt;
+		CVector3 vTangForce = -Kt * _collTangOverlaps[iColl];
 		// check slipping condition
 		const double dNewTangForce = vTangForce.Length();
 		if (dNewTangForce > prop.dSlidingFriction * fabs(dNormalForce))
 		{
-			vTangForce = vTangForce * (prop.dSlidingFriction * fabs(dNormalForce) / dNewTangForce);
+			vTangForce *= prop.dSlidingFriction * fabs(dNormalForce) / dNewTangForce;
 			_collTangOverlaps[iColl] = vTangForce / -Kt;
 		}
 		else
 			vTangForce += vDampingTangForce;
 
-		// calculate rolling torque
-		CVector3 vRollingTorque = partAnglVel.IsSignificant() ? partAnglVel * (-prop.dRollingFriction * fabs(dNormalForce) * dPartRadius / partAnglVel.Length()) : CVector3{ 0 };
+		// calculate rolling friction
+		CVector3 vRollingTorque = partAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
+			partAnglVel * (-prop.dRollingFriction * fabs(dNormalForce) * dPartRadius / partAnglVel.Length()) : CVector3{ 0 };
 
 		// calculate and apply moment
 		const CVector3 vMoment = vNormalVector * vTangForce * -dPartRadius + vRollingTorque;
 		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[iPart], vMoment);
 
-		// store result in collision
+		// store results in collision
 		_collTotalForces[iColl] = vTangForce + (dNormalForce + dDampingForce) * vNormalVector;
 	}
 }

@@ -106,12 +106,16 @@ struct SJob
 	SSelectiveSavingFlags selectiveSavingFlags;
 
 	std::vector<std::string> vPostProcessCommands;
+	std::vector<std::string> vMonitors;
 
 	// time
 	double dSimulationTimeStep = 0;
 	double dSavingTimeStep = 0;
 	double dEndSimulationTime = 0;
 	double dSnapshotTP = 0;
+	double simulationStepFactor{ 0.0 };
+	double savingStepFactor{ 0.0 };
+	double endTimeFactor{ 0.0 };
 
 	CTriState saveCollsionsFlag{ CTriState::EState::UNDEFINED };
 	CTriState connectedPPContactFlag{ CTriState::EState::UNDEFINED };	// calculate force between connected particles
@@ -149,6 +153,8 @@ struct SJob
 	CExportAsText::SGeometriesFlags txtExportGeometries;
 	CExportAsText::SMaterialsFlags txtExportMaterials;
 	CExportAsText::SGeneratorsFlags txtExportGenerators;
+	double timeBeg{ -1 };
+	double timeEnd{ -1 };
 	int txtPrecision{ 6 };
 
 	// additional stop criteria

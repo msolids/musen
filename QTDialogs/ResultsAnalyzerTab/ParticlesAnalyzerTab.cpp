@@ -24,6 +24,7 @@ CParticlesAnalyzerTab::CParticlesAnalyzerTab(QWidget *parent)
 	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::VelocityTotal,     "Velocity total [m/s]",			"Distribution of particles according to velocity");
 	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::VelocityRotational,"Velocity rotational [rad/s]",	"Distribution of particles according to rotation velocity");
 	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::Stress, "Normal stress [Pa]", "SigmaXX, SigmaYY, SigmaZZ");
+	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::PrincipalStress, "Principal stresses [Pa]", "Sigma1, Sigma2, Sigma3");
 
 	SetWindowTitle("Particles Analyzer");
 	m_sHelpFileName = "Users Guide/Particles Analyzer.pdf";

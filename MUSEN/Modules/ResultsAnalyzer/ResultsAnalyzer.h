@@ -39,6 +39,7 @@ public:
 		MaxOverlap         = 24,
 		Stress			   = 25,
 		Temperature		   = 26,
+		PrincipalStress	   = 27,
 		PartNumber,
 		BondNumber
 	};
@@ -151,9 +152,9 @@ public:
 	void StartExport(const std::string& _sFileName);
 	virtual bool Export() = 0;
 
-protected:
 	// Opens file and returns 'true' if it is ready to be written in.
 	bool PrepareOutFile(const std::string& _sFileName);
+protected:
 	// Calculates lengths of time and property steps.
 	void CalculateSteps();
 	// Resets vectors of results.

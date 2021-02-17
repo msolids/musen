@@ -1,0 +1,192 @@
+# Master commit:
+# if a new commit for the master branch is added, compiles windows+linux binaries and runs dummy test for linux version
+# binaries are stored as Artifact and can be downloaded
+# lastly convertWikiForGithub converts the wiki of the project to github syntax using pandoc and uploads it as Artifact
+# Release/Tagged-Commit:
+# if a new tag in the form vX.X, where X is any number 0-inf, is added to any commit, a release will be created. First, Windows+Linux binaries are compiled again and uploaded to the package registry. The "release" will link to the binaries in the package registry.
+
+variables:
+  # Names of binaries in package registry and release
+  LINUX_CMUSEN_BINARY: "cmusen"
+  LINUX_MUSEN_BINARY: "musen_gui.tar.gz"
+  WINDOWS_CMUSEN_BINARY: "CMusen.exe"
+  WINDOWS_Installer_BINARY: "MUSEN-Installer.exe"
+  # Artifact dirs (binaries are moved to this dirs and kept after job finishes)
+  LINUX_ARTIFACT_DIR: "BUILD_LINUX"
+  WINDOWS_ARTIFACT_DIR: "BUILD_WINDOWS"
+  # Paths for package registry. A package_version number will be added by the script based on the commit tag vX.X (only numbers in X.X.X fashion are allowed)
+  LINUX_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/linux/"
+  WINDOWS_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/windows/"
+  WININST_PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/windows-installer/"
+
+stages:
+  - build
+  - test
+  # if the commit has a tag in form of vX.X
+  - upload
+  - release
+
+linux:compileInDocker:
+  # designed to run in the docker-image from this gitlab instance with ubuntu:20.04 and preinstalled prerequisites and gcc g++ rsync sudo 
+  stage: build
+  image: collaborating.tuhh.de:5005/v-3/msolids/musen
+  rules:
+   - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+$/'
+  script:
+    # Pre 
+    - cd MUSEN_Linux
+    - chmod +x *.sh  
+    # Check if prerequisites are up2date
+    - ./install_prerequisites_host.sh 
+    # Run
+    - ./compile_on_host.sh
+    # Post
+    - cd ..
+    - test -f ./MUSEN_Linux/compiled/cmusen || exit 1
+    - test -f ./MUSEN_Linux/compiled/musen_gui.tar.gz || exit 1
+    - mkdir ${LINUX_ARTIFACT_DIR}
+    # Move binaries to Outputdir (using move instead of copy to avoid caching of binaries)
+    - mv ./MUSEN_Linux/compiled/cmusen            ./${LINUX_ARTIFACT_DIR}/
+    - mv ./MUSEN_Linux/compiled/musen_gui.tar.gz  ./${LINUX_ARTIFACT_DIR}/
+  artifacts:
+    paths:
+      - ${LINUX_ARTIFACT_DIR}/*
+    expire_in: 2 week
+  tags:
+    # run only on runners with tag docker:latest (tuhh gitlab runner uses this tag)
+    - docker:latest
+  # assign resource_group to allow only one concurrent job
+  resource_group: linuxbuild
+
+windows:compile:
+  # Designed to run in a powershell with everything pre-installed (Qt,CUDA,VisualStudio)
+  stage: build
+  rules:
+   - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+$/'
+  script:
+    # Pre
+    - cd Installers\InstallerProject
+    # Run
+    - .\Script.bat ..\..\MUSEN\MUSEN\ ..\..\MUSEN\MUSEN\musen.sln C:\Qt\5.15.2\msvc2019_64
+    # Post
+    - cd ..\..
+    - if (! (Test-Path .\MUSEN\MUSEN\x64\Release\CMusen.exe -PathType leaf)) {exit 1}
+    - if (! (Test-Path .\MUSEN\MUSEN\x64\Release\MUSEN.exe -PathType leaf)) {exit 1}
+    - mkdir ${WINDOWS_ARTIFACT_DIR}
+    # Move binaries to Outputdir (using move instead of copy to avoid caching of binaries)
+    - Move-Item .\Installers\Installers\* -Destination .\${WINDOWS_ARTIFACT_DIR}\
+    - Move-Item .\MUSEN\MUSEN\x64\Release\CMusen.exe -Destination .\${WINDOWS_ARTIFACT_DIR}\
+    - Move-Item .\MUSEN\MUSEN\x64\Release\MUSEN.exe -Destination .\${WINDOWS_ARTIFACT_DIR}\
+  artifacts:
+    paths:
+      - ${WINDOWS_ARTIFACT_DIR}\*
+    expire_in: 2 week
+  tags:
+    # run only on runners with windows (t2a-lpt-compile was manually tagged with)
+    - windows
+  cache:
+    paths:
+      - .\**\x64\*
+  # assign resource_group to allow only one concurrent job. The used windows runner also allows only one. 
+  resource_group: windowsbuild
+
+linux:runtests:
+  # dummy test: runs Test1/runScript.txt of the MUSEN repo
+  image: ubuntu:20.04
+  stage: test
+  rules:
+  - if: $CI_COMMIT_BRANCH == "master"
+  script:
+    - chmod +x ${LINUX_ARTIFACT_DIR}/cmusen
+    - cd AutoTests/
+    - ../${LINUX_ARTIFACT_DIR}/cmusen Test1/runScript.txt
+  needs: 
+    - linux:compileInDocker
+  tags:
+    - docker:latest
+    
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+$/
+  script:
+    # extragt package_version from commit tag and add .0
+    # alternatively we could also read the version from ./MUSEN/BuildVersion/MUSENVersion.h
+    - export package_version="${CI_COMMIT_TAG:1}.0"
+    - echo $package_version
+    # Upload binaries from artifacts to package registry
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ./${LINUX_ARTIFACT_DIR}/cmusen ${LINUX_PACKAGE_REGISTRY_URL}/$package_version/${LINUX_CMUSEN_BINARY}
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ./${LINUX_ARTIFACT_DIR}/musen_gui.tar.gz ${LINUX_PACKAGE_REGISTRY_URL}/$package_version/${LINUX_MUSEN_BINARY}
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ./${WINDOWS_ARTIFACT_DIR}/CMusen.exe ${WINDOWS_PACKAGE_REGISTRY_URL}/$package_version/${WINDOWS_CMUSEN_BINARY}
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ./${WINDOWS_ARTIFACT_DIR}/MUSEN*Setup.exe ${WININST_PACKAGE_REGISTRY_URL}/$package_version/${WINDOWS_Installer_BINARY}
+  needs:
+    - linux:compileInDocker
+    - windows:compile
+  tags:
+    - docker:latest
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:v0.4.0
+  rules:
+    - if:  $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+$/
+  script:
+    # extragt package_version from commit tag and add .0
+    # alternatively we could also read the version from ./MUSEN/BuildVersion/MUSENVersion.h
+    - export package_version="${CI_COMMIT_TAG:1}.0"
+    - echo $package_version
+    # create gitlab release
+    - |
+      release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+        --assets-link "{\"name\":\"${LINUX_CMUSEN_BINARY}\",\"url\":\"${LINUX_PACKAGE_REGISTRY_URL}/$package_version/${LINUX_CMUSEN_BINARY}\"}" \
+        --assets-link "{\"name\":\"${LINUX_MUSEN_BINARY}\",\"url\":\"${LINUX_PACKAGE_REGISTRY_URL}/$package_version/${LINUX_MUSEN_BINARY}\"}" \
+        --assets-link "{\"name\":\"${WINDOWS_CMUSEN_BINARY}\",\"url\":\"${WINDOWS_PACKAGE_REGISTRY_URL}/$package_version/${WINDOWS_CMUSEN_BINARY}\"}" \
+        --assets-link "{\"name\":\"${WINDOWS_Installer_BINARY}\",\"url\":\"${WININST_PACKAGE_REGISTRY_URL}/$package_version/${WINDOWS_Installer_BINARY}\"}"
+  needs:
+    - job: upload
+      artifacts: false
+  tags:
+    - docker:latest
+
+# converts wiki to github syntax using pandoc    
+convertWikiForGithub:
+  stage: upload  
+  rules:
+  - if: $CI_COMMIT_BRANCH == "master"
+  image: 
+    name: pandoc/latex
+    entrypoint: [""]
+  script:
+    # initalize
+    - apk update
+    - apk add git
+    - apk add openssh
+    - mkdir /root/.ssh && chmod 0700 /root/.ssh
+    # clone wiki and clean up
+    - git clone --depth=1 "${CI_SERVER_PROTOCOL}://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}:${CI_SERVER_PORT}/${CI_PROJECT_PATH}.wiki.git"
+    - mv *.wiki wiki
+    - cd wiki
+    - rm -f -r .git
+    # Remove local tocs:
+    - find ./ -name "*.md" -type f -exec sed -i -e 's/\[\[_TOC_\]\]//g' {} \;
+    #change starting math symbol from $` to $ and remove whitespaces after
+    - find ./ -name "*.md" -type f -exec sed -i -e 's/\$`\s*/\$/g' {} \;
+    #change trailing math symbol from `$ to $ and remove whiespaces before
+    - find ./ -name "*.md" -type f -exec sed -i -e 's/\s*`\$/\$/g' {} \;
+    #mark tables to not be converted by putting them inside a html-textarea (workaround)
+    - find ./ -name "*.md" -type f -exec sed -i -e 's/<table>/<textarea><table>/g' {} \;
+    - find ./ -name "*.md" -type f -exec sed -i -e 's/<\/table>/<\/textarea><\/table>/g' {} \;
+    # convert all .md files to github markdown with webtex
+    - find . -maxdepth 1 -name "*.md" -type f -exec pandoc -s {} -t gfm -o {} --webtex \;
+  tags:
+    # run only on runners with tag docker:latest (tuhh gitlab runner uses this tag)
+    - docker:latest
+  artifacts:
+    paths:
+      - wiki
+    expire_in: 1 week

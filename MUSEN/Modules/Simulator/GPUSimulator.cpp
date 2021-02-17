@@ -142,7 +142,8 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		CRealGeometry* pGeom = m_pSystemStructure->Geometry(iGeom);
 
 		if (pGeom->Planes().empty()) continue;
-		if (pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) // force
+		if ((pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) || 
+			(pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::CONSTANT_FORCE)) // force
 		{
 			const CVector3 vTotalForce = m_gpu.CalculateTotalForceOnWall(iGeom, m_sceneGPU.GetPointerToWalls());
 			pGeom->UpdateMotionInfo(vTotalForce.z);

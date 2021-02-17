@@ -95,6 +95,9 @@ bool CParticlesAnalyzer::Export()
 				case CResultsAnalyzer::EPropertyType::Stress:
 					WriteComponentToResults(pSphere->GetNormalStress(dTime), iTime);
 					break;
+				case CResultsAnalyzer::EPropertyType::PrincipalStress:
+					WriteComponentToResults(pSphere->GetStressTensor(dTime).GetPrincipalStresses(), iTime);
+					break;
 				case CResultsAnalyzer::EPropertyType::KineticEnergy:
 					WriteValueToResults(0.5 * pSphere->GetMass() * pSphere->GetVelocity(dTime).SquaredLength(), iTime);
 					break;

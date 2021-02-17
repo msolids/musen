@@ -54,13 +54,13 @@ CConsoleResultsAnalyzer::EProcessResultType CConsoleResultsAnalyzer::SetupAnalyz
 	switch (analyzerType)
 	{
 	case EAnalyzerTypes::GeometryAnalyzer:
-		bCorrectNumberOfInputs = nParameters == 3;
+		bCorrectNumberOfInputs = nParameters == 3 || nParameters == 4;
 		break;
 	case EAnalyzerTypes::BondsAnalyzer:
-		bCorrectNumberOfInputs = nParameters == 3;
+		bCorrectNumberOfInputs = nParameters == 3 || nParameters == 4;
 		break;
 	case EAnalyzerTypes::ParticlesAnalyzer:
-		bCorrectNumberOfInputs = nParameters == 3;
+		bCorrectNumberOfInputs = nParameters == 3 || nParameters == 4;
 		break;
 	case EAnalyzerTypes::AgglomeratesAnalyzer:
 		bCorrectNumberOfInputs = nParameters == 3 || nParameters == 4;
@@ -102,39 +102,52 @@ CConsoleResultsAnalyzer::EProcessResultType CConsoleResultsAnalyzer::SetupAnalyz
 			return state;
 	}
 
-	// get output filename if changed
-	m_out << "Set up ";
-	if (!m_job.resultFileName.empty())
-		_outAnalyzer->m_sOutputFileName = MUSENFileFunctions::removeFileExt(m_job.resultFileName);
-	else
-		_outAnalyzer->m_sOutputFileName = MUSENFileFunctions::removeFileExt(_systemStructure.GetFileName());
-
-	if (m_job.resultFileName.empty() || m_job.vPostProcessCommands.size() > 1)
+	//DEBUG
+	/*
+	m_out << m_sOutputPrefix << "Set up ";
+	switch (analyzerType)
 	{
-		switch (analyzerType)
-		{
 		case EAnalyzerTypes::GeometryAnalyzer:
-			_outAnalyzer->m_sOutputFileName += "_" + sProperty + "_" + sGeometry; // default name scheme
 			m_out << "GeometryAnalyzer " << sProperty << " of " << sGeometry;
 			break;
 		case EAnalyzerTypes::BondsAnalyzer:
-			_outAnalyzer->m_sOutputFileName += "_" + sResultType + "_" + sProperty;
 			m_out << "BondsAnalyzer " << sResultType << " of " << sProperty;
 			break;
 		case EAnalyzerTypes::ParticlesAnalyzer:
-			_outAnalyzer->m_sOutputFileName += "_" + sResultType + "_" + sProperty;
 			m_out << "ParticlesAnalyzer " << sResultType << " of " << sProperty;
 			break;
 		case EAnalyzerTypes::AgglomeratesAnalyzer:
-			_outAnalyzer->m_sOutputFileName += "_" + sResultType + "_" + sProperty;
 			m_out << "AgglomeratesAnalyzer " << sResultType << " of " << sProperty;
+			break;
+	} 
+	m_out << std::endl;
+	*/
+
+	// set file name, might later be overwritten by job.resultFileName
+	if (_commandSet.size() == iParameter + 1)
+		_outAnalyzer->m_sOutputFileName = MUSENFileFunctions::removeFileExt(_commandSet[iParameter]);
+	else
+	{ 
+		_outAnalyzer->m_sOutputFileName = MUSENFileFunctions::removeFileExt(_systemStructure.GetFileName());
+		switch (analyzerType)
+		{
+		case EAnalyzerTypes::GeometryAnalyzer:
+			_outAnalyzer->m_sOutputFileName += "_" + sProperty + "_" + sGeometry; 
+			break;
+		case EAnalyzerTypes::BondsAnalyzer:
+			_outAnalyzer->m_sOutputFileName += "_" + sResultType + "_" + sProperty;
+			break;
+		case EAnalyzerTypes::ParticlesAnalyzer:
+			_outAnalyzer->m_sOutputFileName += "_" + sResultType + "_" + sProperty;
+			break;
+		case EAnalyzerTypes::AgglomeratesAnalyzer:
+			_outAnalyzer->m_sOutputFileName += "_" + sResultType + "_" + sProperty;
 			break;
 		}
 	}
-
 	_outAnalyzer->m_sOutputFileName += "." + m_sFileExt;
 
-	m_out << std::endl;
+	
 
 	// set time
 	_outAnalyzer->SetTime(_systemStructure.GetMinTime(), _systemStructure.GetMaxTime(), 0, true); // TODO: allow input for requested time steps
@@ -147,26 +160,77 @@ CConsoleResultsAnalyzer::EProcessResultType CConsoleResultsAnalyzer::SetupAnalyz
 
 void CConsoleResultsAnalyzer::EvaluateResults(const SJob& _job, CSystemStructure& _systemStructure)
 {
-	m_job = _job;
-	std::vector<std::shared_ptr<CResultsAnalyzer>> analyzers(GetAnalyzers(_systemStructure));
+	std::vector<std::shared_ptr<CResultsAnalyzer>> analyzers(GetAnalyzers(_systemStructure, _job.vPostProcessCommands));
+
+	// use resultFileName if CConsoleResultsAnalyzer is used as single job
+	if (_job.component == SJob::EComponent::RESULTS_ANALYZER && !_job.resultFileName.empty() && analyzers.size() == 1)
+	{
+		analyzers[0]->m_sOutputFileName = MUSENFileFunctions::removeFileExt(_job.resultFileName);
+		analyzers[0]->m_sOutputFileName += "." + m_sFileExt;
+	}
+
 	for (auto const& analyzer : analyzers)
 	{
+		m_out << m_sOutputPrefix << "Exporting to " << analyzer->m_sOutputFileName << " ... " << std::flush;
 		analyzer->StartExport();
 			if (analyzer->IsError())
 				(void)WriteError(EProcessResultType::CantWriteFile, analyzer->GetStatusDescription());
-		m_out << m_sOutputPrefix << "Export finished" << std::endl;
+		m_out << " finished" << std::endl;
 	}
 }
 
-std::vector<std::shared_ptr<CResultsAnalyzer>> CConsoleResultsAnalyzer::GetAnalyzers(CSystemStructure& _systemStructure) const
+std::vector<std::shared_ptr<CResultsAnalyzer>> CConsoleResultsAnalyzer::SetupMonitor(const SJob& _job, CSystemStructure& _systemStructure, CSimulatorManager& _simManager)
+{
+	std::vector<std::shared_ptr<CResultsAnalyzer>> out_analyzers;
+	if (_job.vMonitors.empty())
+		return out_analyzers;
+
+	m_out << m_sOutputPrefix << "Setting up monitors" << std::endl;
+	std::vector<std::shared_ptr<CResultsAnalyzer>> analyzers(GetAnalyzers(_systemStructure, _job.vMonitors));
+	
+	
+
+	for (auto const& analyzer : analyzers)
+	{
+		if (std::dynamic_pointer_cast<CGeometriesAnalyzer>(analyzer))
+		{
+			auto currAnalyzer = std::dynamic_pointer_cast<CGeometriesAnalyzer>(analyzer);
+
+			if (!currAnalyzer->PrepareOutFile(currAnalyzer->m_sOutputFileName))
+			{
+				WriteError(EProcessResultType::CantWriteFile, "Cannot open " + analyzer->m_sOutputFileName +" for writing");
+				break;
+			}
+
+			currAnalyzer->InitAnalyzer(currAnalyzer->GetProperties());
+
+			
+			CBaseSimulator* pBaseSim = _simManager.GetSimulatorPtr();
+			auto myfunction = [analyzer, pBaseSim]()
+			{
+				std::dynamic_pointer_cast<CGeometriesAnalyzer>(analyzer)->WriteTimePoint(pBaseSim->GetCurrentTime());
+				std::dynamic_pointer_cast<CGeometriesAnalyzer>(analyzer)->FlushStream();
+			};
+
+			// Add monitor to simulation manager
+			_simManager.GetSimulatorPtr()->AddSavingStep(myfunction);
+			out_analyzers.push_back(analyzer);
+		}
+		else
+			WriteError(EProcessResultType::WrongInput, "found not support analyzer for monitors, ignoring: " + analyzer->m_sOutputFileName );
+	}
+	return out_analyzers;
+}
+
+std::vector<std::shared_ptr<CResultsAnalyzer>> CConsoleResultsAnalyzer::GetAnalyzers(CSystemStructure& _systemStructure, std::vector<std::string> _vAnalzyersSettings) const
 {
 	std::vector<std::shared_ptr<CResultsAnalyzer>> outAnalyzer;
-	for (auto const& command : m_job.vPostProcessCommands)
+	for (auto const& command : _vAnalzyersSettings)
 	{
 		std::istringstream iss(command);
 		std::vector<std::string> vCommandSet(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
 
-		m_out << m_sOutputPrefix << "Processing: ";
+		m_out << m_sOutputPrefix << "Found: ";
 		for (auto const& s : vCommandSet)
 			m_out << s << " ";
 		m_out << std::endl;

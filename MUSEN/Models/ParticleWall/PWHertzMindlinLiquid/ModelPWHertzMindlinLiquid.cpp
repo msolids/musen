@@ -25,6 +25,9 @@ void CModelPWHertzMindlinLiquid::CalculatePWForce(double _time, double _timeStep
 	const double dSurfaceTension = m_parameters[2].value;
 	const double dViscosity = m_parameters[3].value;
 
+	const double dPartRadius   = Particles().Radius(_iPart);
+	const CVector3 partAnglVel = Particles().AnglVel(_iPart);
+
 	const CVector3 vRc          = CPU_GET_VIRTUAL_COORDINATE(Particles().Coord(_iPart)) - _pCollision->vContactVector;
 	const double   dRc          = vRc.Length();
 	const CVector3 nRc          = vRc / dRc; // = vRc.Normalized()
@@ -35,24 +38,24 @@ void CModelPWHertzMindlinLiquid::CalculatePWForce(double _time, double _timeStep
 		dBondLength = dMinThickness;
 
 	// relative velocity (normal and tangential)
-	const CVector3 vRelVel       =  Particles().Vel(_iPart) - Walls().Vel(_iWall) + vVelDueToRot + nRc * Particles().AnglVel(_iPart) * Particles().Radius(_iPart);
+	const CVector3 vRelVel       =  Particles().Vel(_iPart) - Walls().Vel(_iWall) + vVelDueToRot + nRc * partAnglVel * dPartRadius;
 	const double   dRelVelNormal = DotProduct(Walls().NormalVector(_iWall), vRelVel);
 	const CVector3 vRelVelNormal = dRelVelNormal * Walls().NormalVector(_iWall);
 	const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
 
 	// wet contact
-	const double dBondVolume = PI / 3.0 * std::pow(Particles().Radius(_iPart), 3); // one quarter of summarized sphere volume
+	const double dBondVolume = PI / 3.0 * std::pow(dPartRadius, 3); // one quarter of summarized sphere volume
 	const double dA = -1.1 * std::pow(dBondVolume, -0.53);
 	const double dTempLn = std::log(dBondVolume);
 	const double dB = (-0.34 * dTempLn - 0.96) * dContactAngle * dContactAngle - 0.019 * dTempLn + 0.48;
 	const double dC = 0.0042 * dTempLn + 0.078;
-	const CVector3 dCapForce = Walls().NormalVector(_iWall) * PI * Particles().Radius(_iPart) * dSurfaceTension * (std::exp(dA * dBondLength + dB) + dC);
-	const CVector3 dViscForceNormal = vRelVelNormal * -1 * (6 * PI * dViscosity * Particles().Radius(_iPart) * Particles().Radius(_iPart) / dBondLength);
-	const CVector3 vTangForceLiquid = vRelVelTang * (6 * PI * dViscosity * Particles().Radius(_iPart) * (8.0 / 15.0 * std::log(Particles().Radius(_iPart) / dBondLength) + 0.9588));
+	const CVector3 dCapForce = Walls().NormalVector(_iWall) * PI * dPartRadius * dSurfaceTension * (std::exp(dA * dBondLength + dB) + dC);
+	const CVector3 dViscForceNormal = vRelVelNormal * -1 * (6 * PI * dViscosity * dPartRadius * dPartRadius / dBondLength);
+	const CVector3 vTangForceLiquid = vRelVelTang * (6 * PI * dViscosity * dPartRadius * (8.0 / 15.0 * std::log(dPartRadius / dBondLength) + 0.9588));
 	const CVector3 vMomentLiquid = vRc * vTangForceLiquid;
 
 	// normal and Tangential overlaps
-	const double dNormalOverlap =  Particles().Radius(_iPart) - dRc;
+	const double dNormalOverlap =  dPartRadius - dRc;
 	CVector3 vNormalForce(0), vTangForceDry(0), vDampingTangForceDry(0), vRollingTorqueDry(0);
 	if (dNormalOverlap < 0)
 	{
@@ -61,12 +64,12 @@ void CModelPWHertzMindlinLiquid::CalculatePWForce(double _time, double _timeStep
 	else // dry contact
 	{
 		// normal force with damping
-		const double Kn = 2 * _interactProp.dEquivYoungModulus * std::sqrt(Particles().Radius(_iPart) * dNormalOverlap);
+		const double Kn = 2 * _interactProp.dEquivYoungModulus * std::sqrt(dPartRadius * dNormalOverlap);
 		const double dDampingNormalForceDry = 1.8257 * _interactProp.dAlpha * dRelVelNormal * std::sqrt(Kn *  Particles().Mass(_iPart));
 		const double dNormalForceDry =  2 / 3. * dNormalOverlap * Kn * std::abs(DotProduct(nRc, Walls().NormalVector(_iWall)));
 
 		// increment of tangential force with damping
-		const double Kt = 8 * _interactProp.dEquivShearModulus * std::sqrt( Particles().Radius(_iPart) * dNormalOverlap);
+		const double Kt = 8 * _interactProp.dEquivShearModulus * std::sqrt( dPartRadius * dNormalOverlap);
 		vDampingTangForceDry = vRelVelTang * (1.8257 * _interactProp.dAlpha * std::sqrt(Kt *  Particles().Mass(_iPart)));
 
 		// rotate old tangential force
@@ -80,22 +83,20 @@ void CModelPWHertzMindlinLiquid::CalculatePWForce(double _time, double _timeStep
 		const double dNewTangForce = vTangForceDry.Length();
 		if (dNewTangForce > _interactProp.dSlidingFriction * std::abs(dNormalForceDry))
 		{
-			vTangForceDry = vTangForceDry * (_interactProp.dSlidingFriction * std::abs(dNormalForceDry) / dNewTangForce);
+			vTangForceDry *= _interactProp.dSlidingFriction * std::abs(dNormalForceDry) / dNewTangForce;
 			_pCollision->vTangOverlap = vTangForceDry / -Kt;
 		}
 		else
 			vTangForceDry += vDampingTangForceDry;
 		// calculate rolling friction
-		if (Particles().AnglVel(_iPart).IsSignificant())
-			vRollingTorqueDry =  Particles().AnglVel(_iPart) * (-_interactProp.dRollingFriction * std::abs(dNormalForceDry) *  Particles().Radius(_iPart) /  Particles().AnglVel(_iPart).Length());
+		if (partAnglVel.IsSignificant()) // if it is not zero, but small enough, its Length() can turn into zero and division fails
+			vRollingTorqueDry =  partAnglVel * (-_interactProp.dRollingFriction * std::abs(dNormalForceDry) *  dPartRadius /  partAnglVel.Length());
 
 		vNormalForce = Walls().NormalVector(_iWall) * (dNormalForceDry + dDampingNormalForceDry);
 	}
 
-	// save old tangential force
-	_pCollision->vTangForce = vTangForceDry +  vTangForceLiquid;
-
-	// add result to the arrays
-	_pCollision->vTotalForce = vNormalForce + _pCollision->vTangForce + dCapForce + dViscForceNormal;
-	_pCollision->vResultMoment1 = Walls().NormalVector(_iWall) * _pCollision->vTangForce * - Particles().Radius(_iPart) + vRollingTorqueDry - vMomentLiquid;
+	// store results in collision
+	_pCollision->vTangForce     = vTangForceDry +  vTangForceLiquid;
+	_pCollision->vTotalForce    = vNormalForce + _pCollision->vTangForce + dCapForce + dViscForceNormal;
+	_pCollision->vResultMoment1 = Walls().NormalVector(_iWall) * _pCollision->vTangForce * - dPartRadius + vRollingTorqueDry - vMomentLiquid;
 }

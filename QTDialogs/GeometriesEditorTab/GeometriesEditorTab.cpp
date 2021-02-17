@@ -90,7 +90,10 @@ void CGeometriesEditorTab::SetupPropertiesList()
 
 	// motion
 	m_properties[EProperty::MOTION] = ui.treeProperties->CreateItem(general, 0, "Motion");
-	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1, { "None", "Time-dependent", "Force-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT), E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT) }, 0);
+	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1, 
+		{ "None", "Time-dependent", "Force-dependent", "Constant force" }, 
+		{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT),
+		E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE) }, 0);
 	connect(motion, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::MotionTypeChanged);
 
 	// triangles
@@ -224,7 +227,7 @@ void CGeometriesEditorTab::UpdateMeasurementUnits() const
 
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::TIME_BEG,		"Time start",		EUnitType::TIME);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::TIME_END,		"Time end",			EUnitType::TIME);
-	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::FORCE,			"Force",			EUnitType::FORCE);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::FORCE,			"Force Z",			EUnitType::FORCE);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_X,			"Velocity X",		EUnitType::VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Y,			"Velocity Y",		EUnitType::VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Z,			"Velocity Z",		EUnitType::VELOCITY);
@@ -292,7 +295,9 @@ void CGeometriesEditorTab::UpdateMotionCombo() const
 	{
 	case EType::NONE: break;
 	case EType::GEOMETRY:
-		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT), E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT) }, -1);
+		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent", "Constant force" }, 
+			{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT), 
+			E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE) }, -1);
 		break;
 	case EType::VOLUME:
 		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT) }, -1);
@@ -421,8 +426,8 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	const auto type = motion->MotionType();
 	ui.tableMotion->ShowRow(ERowMotion::TIME_BEG,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
 	ui.tableMotion->ShowRow(ERowMotion::TIME_END,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
-	ui.tableMotion->ShowRow(ERowMotion::FORCE,        type == CGeometryMotion::EMotionType::FORCE_DEPENDENT);
-	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   type == CGeometryMotion::EMotionType::FORCE_DEPENDENT);
+	ui.tableMotion->ShowRow(ERowMotion::FORCE,        type == CGeometryMotion::EMotionType::FORCE_DEPENDENT || type == CGeometryMotion::EMotionType::CONSTANT_FORCE);
+	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   type == CGeometryMotion::EMotionType::FORCE_DEPENDENT || type == CGeometryMotion::EMotionType::CONSTANT_FORCE);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_X,    geometry);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Y,    geometry);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Z,    geometry);
@@ -448,6 +453,7 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 		break;
 	}
 	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
 	{
 		const auto intervals = motion->GetForceIntervals();
 		ui.tableMotion->setColumnCount(static_cast<int>(intervals.size()));
@@ -458,6 +464,7 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X,        i, intervals[i].motion.velocity,         EUnitType::VELOCITY);
 			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X,    i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
 			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter,   EUnitType::LENGTH);
+			if (type == CGeometryMotion::EMotionType::CONSTANT_FORCE) break; // show only one entry in constant-force mode
 		}
 		break;
 	}
@@ -749,6 +756,7 @@ void CGeometriesEditorTab::MotionTableChanged()
 				} });
 			break;
 		case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+		case CGeometryMotion::EMotionType::CONSTANT_FORCE:
 			m_object->Motion()->ChangeForceInterval(iCol, {
 				ui.tableMotion->GetConvValue(ERowMotion::FORCE, iCol, EUnitType::FORCE),
 				static_cast<CGeometryMotion::SForceMotionInterval::ELimitType>(ui.tableMotion->GetComboBoxValue(ERowMotion::LIMIT_TYPE, iCol).toUInt()), {

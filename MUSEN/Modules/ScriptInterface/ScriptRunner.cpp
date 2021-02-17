@@ -244,9 +244,19 @@ void CScriptRunner::ExportToText()
 	CConstraints constraints;
 	exporter.SetPointers(&m_systemStructure, &constraints, &packageGenerator, &bondsGenerator);
 	exporter.SetFileName(m_job.resultFileName);
-	exporter.SetTimePoints(m_systemStructure.GetAllTimePoints());
 	exporter.SetFlags(m_job.txtExportObjects, m_job.txtExportScene, m_job.txtExportConst, m_job.txtExportTD, m_job.txtExportGeometries, m_job.txtExportMaterials, m_job.txtExportGenerators);
 	exporter.SetPrecision(m_job.txtPrecision);
+
+	std::vector<double> timePoints;
+	if (m_job.timeBeg == -1.0 || m_job.timeEnd == -1.0)
+		timePoints = m_systemStructure.GetAllTimePoints();
+	else
+	{
+		const auto allTP = m_systemStructure.GetAllTimePoints();
+		std::copy_if(allTP.begin(), allTP.end(), std::back_inserter(timePoints), [&](double t) { return t >= m_job.timeBeg && t <= m_job.timeEnd; });
+	}
+	exporter.SetTimePoints(timePoints);
+
 	exporter.Export();
 	m_out << "Export to text finished" << std::endl;
 }

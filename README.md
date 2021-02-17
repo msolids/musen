@@ -1,8 +1,8 @@
 # MUSEN - GPU-accelerated DEM simulation framework
-- For more information, please check the [documentation](https://msolids.net/documentation). 
+- For more information, please check the [documentation](https://msolids.net/documentation).
 - [Video introduction](https://youtu.be/bH1xydzdrGY)
-- To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618).
-- [New versions and updates] (https://msolids.net/musen/download).
+- To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618)
+- [New versions and updates](https://msolids.net/musen/download)
 
 # Requirements 
 MUSEN should install and work on all latest versions of Windows or Linux (Ubuntu or Red Head).

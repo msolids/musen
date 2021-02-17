@@ -4,6 +4,7 @@
 
 #include "ConsoleSimulator.h"
 #include "ScriptRunner.h"
+#include "ConsoleResultsAnalyzer.h"
 
 CConsoleSimulator::CConsoleSimulator(CSystemStructure& _systemStructure, std::ostream& _out/* = std::cout*/, std::ostream& _err/* = std::cerr*/) :
 	m_out{ _out },
@@ -55,6 +56,9 @@ void CConsoleSimulator::Initialize(const SJob* _job /*= nullptr*/)
 	m_simulatorManager.SaveConfiguration();
 	m_modelManager.SaveConfiguration();
 	m_generationManager.SaveConfiguration();
+
+	CConsoleResultsAnalyzer analyzer(m_out, m_err);
+	analyzer.SetupMonitor(m_job, m_systemStructure, m_simulatorManager);
 }
 
 void CConsoleSimulator::SetupSystemStructure() const
@@ -100,7 +104,7 @@ void CConsoleSimulator::SetupSystemStructure() const
 			{
 				geometry->Motion()->SetMotionType(CGeometryMotion::EMotionType::FORCE_DEPENDENT);
 				geometry->Motion()->AddForceInterval(motion.intrerval);
-			}		
+			}
 	}
 }
 
@@ -152,10 +156,27 @@ void CConsoleSimulator::SetupSimulationManager()
 	if (m_simulatorManager.GetSimulatorPtr()->GetType() == ESimulatorType::CPU && m_job.saveCollsionsFlag == true)
 		dynamic_cast<CCPUSimulator*>(m_simulatorManager.GetSimulatorPtr())->EnableCollisionsAnalysis(m_job.saveCollsionsFlag.ToBool());
 
-	// set parameters of simulator if they were redefined
-	if (m_job.dSimulationTimeStep != 0)	m_simulatorManager.GetSimulatorPtr()->SetInitSimulationStep(m_job.dSimulationTimeStep);
-	if (m_job.dSavingTimeStep != 0)		m_simulatorManager.GetSimulatorPtr()->SetSavingStep(m_job.dSavingTimeStep);
-	if (m_job.dEndSimulationTime != 0)	m_simulatorManager.GetSimulatorPtr()->SetEndTime(m_job.dEndSimulationTime);
+	// Converts a time factor relative to a recommended time step to a time value
+	auto FactorToTime = [&](double _factor) {
+		const double time = _factor * m_systemStructure.GetRecommendedTimeStep();
+		return RoundToDecimalPlaces(time, 2); // round to two digits
+	};
+
+	// set simulator time parameters if they were redefined
+	if (m_job.simulationStepFactor != 0.0)
+		m_simulatorManager.GetSimulatorPtr()->SetInitSimulationStep(FactorToTime(m_job.simulationStepFactor));
+	else if (m_job.dSimulationTimeStep != 0.0)
+		m_simulatorManager.GetSimulatorPtr()->SetInitSimulationStep(m_job.dSimulationTimeStep);
+	if (m_job.savingStepFactor != 0.0)
+		m_simulatorManager.GetSimulatorPtr()->SetSavingStep(FactorToTime(m_job.savingStepFactor));
+	else if (m_job.dSavingTimeStep != 0.0)
+		m_simulatorManager.GetSimulatorPtr()->SetSavingStep(m_job.dSavingTimeStep);
+	if (m_job.endTimeFactor != 0.0)
+		m_simulatorManager.GetSimulatorPtr()->SetEndTime(FactorToTime(m_job.endTimeFactor));
+	else if (m_job.dEndSimulationTime != 0.0)
+		m_simulatorManager.GetSimulatorPtr()->SetEndTime(m_job.dEndSimulationTime);
+
+	// set acceleration
 	if (!m_job.vExtAccel.IsInf())		m_simulatorManager.GetSimulatorPtr()->SetExternalAccel(m_job.vExtAccel);
 
 	// set parameters of verlet list if they were redefined

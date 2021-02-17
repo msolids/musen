@@ -8,6 +8,7 @@
 #include <sstream>
 #include <vector>
 #include <climits>
+#include <cmath>
 
 class CColor
 {
@@ -107,6 +108,14 @@ std::string inline Double2Percent(double _v)
 	ss << std::fixed << std::setprecision(2) << _v * 100. << "%";
 	return ss.str();
 }
+
+// Rounds the value to the selected number of digits
+double inline RoundToDecimalPlaces(double _value, size_t _places)
+{
+	const double factor = std::pow(10.0, _places - std::ceil(std::log10(std::fabs(_value))));
+	return std::round(_value * factor) / factor;
+}
+
 
 std::string inline MsToTimeSpan(int64_t _ms)
 {

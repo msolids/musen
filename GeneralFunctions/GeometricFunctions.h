@@ -4,10 +4,6 @@
 
 #pragma once
 
-//constant for calculation radians from angle
-#define PI_180  0.0174532925
-#define _180_PI  57.295779579
-
 #include "MixedFunctions.h"
 #include "BasicTypes.h"
 #include "SceneTypes.h"

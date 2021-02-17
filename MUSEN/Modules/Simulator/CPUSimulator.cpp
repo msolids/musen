@@ -311,15 +311,16 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 		const auto& planes = pGeom->Planes();
 		if (planes.empty()) continue;
 
-		if (pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) // force
+		if ((pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) ||  // force
+			(pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::CONSTANT_FORCE))
 		{
-			double dTotalForce = 0;
+			double dTotalForceZ = 0;
 			for (const auto& plane : planes)
 			{
 				size_t nIndex = m_scene.m_vNewIndexes[plane];
-				dTotalForce += (pWalls.Force(nIndex).z);
+				dTotalForceZ += (pWalls.Force(nIndex).z);
 			}
-			pGeom->UpdateMotionInfo(dTotalForce);
+			pGeom->UpdateMotionInfo(dTotalForceZ);
 		}
 		else
 			pGeom->UpdateMotionInfo(m_currentTime); // time

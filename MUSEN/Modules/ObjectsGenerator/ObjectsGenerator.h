@@ -67,8 +67,8 @@ private:
 	void GenerateNewObject( std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart,
 		std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad, std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox, SPBC& _PBC, const double _dCurrentTime);
 
-	bool IsOverlapped( const std::vector<CVector3>& _vCoordPart, const std::vector<double>& _vPartContRad,
-		const std::vector<unsigned>& _vExistedPartID, const std::vector<unsigned>& _nExistedWallsID, const CSimplifiedScene& _Scene, const unsigned intAgglColl = 0) const;
+	static bool IsOverlapped(const std::vector<CVector3>& _partCoords, const std::vector<double>& _partRadii,
+		const std::vector<unsigned>& _existingPartID, const std::vector<unsigned>& _existingWallID, const CSimplifiedScene& _scene);
 
 	// creates random point in the volume
 	static void CreateRandomPoint( CVector3* _pResult, const SVolumeType& _boundBox );

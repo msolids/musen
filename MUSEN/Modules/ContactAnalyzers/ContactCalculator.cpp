@@ -103,6 +103,24 @@ std::tuple<std::vector<unsigned>, std::vector<unsigned>, std::vector<double>> CC
 	return { IDs1 , IDs2, overlaps };
 }
 
+std::vector<double> CContactCalculator::GetOverlaps(const SPBC& _pbc)
+{
+	std::vector<unsigned> IDs1;
+	std::vector<unsigned> IDs2;
+	std::vector<double> overlaps;
+	GetAllOverlaps(IDs1, IDs2, overlaps, _pbc);
+	return overlaps;
+}
+
+std::pair<std::vector<unsigned>, std::vector<unsigned>> CContactCalculator::GetOverlappingIDs(const SPBC& _pbc)
+{
+	std::vector<unsigned> IDs1;
+	std::vector<unsigned> IDs2;
+	std::vector<double> overlaps;
+	GetAllOverlaps(IDs1, IDs2, overlaps, _pbc);
+	return { IDs1 , IDs2 };
+}
+
 double CContactCalculator::GetMaxParticleRadius() const
 {
 	if (m_vParticles.empty())

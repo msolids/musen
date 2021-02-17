@@ -13,12 +13,17 @@ CModelPPPopovJKR::CModelPPPopovJKR()
 
 void CModelPPPopovJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _pCollision) const
 {
-	const CVector3 vRcSrc        = _pCollision->vContactVector * ( Particles().Radius(_iSrc) / (Particles().Radius(_iSrc) + Particles().Radius(_iDst)));
-	const CVector3 vRcDst        = _pCollision->vContactVector * (-Particles().Radius(_iDst) / (Particles().Radius(_iSrc) + Particles().Radius(_iDst)));
+	const CVector3 srcAnglVel   = Particles().AnglVel(_iSrc);
+	const CVector3 dstAnglVel   = Particles().AnglVel(_iDst);
+	const double dPartSrcRadius = Particles().Radius(_iSrc);
+	const double dPartDstRadius = Particles().Radius(_iDst);
+
+	const CVector3 vRcSrc        = _pCollision->vContactVector * ( dPartSrcRadius / (dPartSrcRadius + dPartDstRadius));
+	const CVector3 vRcDst        = _pCollision->vContactVector * (-dPartDstRadius / (dPartSrcRadius + dPartDstRadius));
 	const CVector3 vNormalVector = _pCollision->vContactVector.Normalized();
 
 	// relative velocity (normal and tangential)
-	const CVector3 vRelVel       = Particles().Vel(_iDst) + Particles().AnglVel(_iDst) * vRcDst - (Particles().Vel(_iSrc) + Particles().AnglVel(_iSrc) * vRcSrc);
+	const CVector3 vRelVel       = Particles().Vel(_iDst) + dstAnglVel * vRcDst - (Particles().Vel(_iSrc) + srcAnglVel * vRcSrc);
 	const double   dRelVelNormal = DotProduct(vNormalVector, vRelVel);
 	const CVector3 vRelVelNormal = dRelVelNormal * vNormalVector;
 	const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
@@ -49,19 +54,20 @@ void CModelPPPopovJKR::CalculatePPForce(double _time, double _timeStep, size_t _
 		vTangForce = vTangForce * _interactProp.dSlidingFriction * std::abs(dNormalForce) / dNewTangForce;
 		_pCollision->vTangOverlap = vTangForce / Kt;
 	}
-	// save tangential force
-	_pCollision->vTangForce = vTangForce + vDampingTangForce;
+	else
+		vTangForce += vDampingTangForce;
 
 	// calculate rolling friction
-	const CVector3 vRollingTorque1 = Particles().AnglVel(_iSrc).IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
-		Particles().AnglVel(_iSrc) * (-_interactProp.dRollingFriction * std::abs(dNormalForce) * Particles().Radius(_iSrc) / Particles().AnglVel(_iSrc).Length()) : CVector3{ 0 };
-	const CVector3 vRollingTorque2 = Particles().AnglVel(_iDst).IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
-		Particles().AnglVel(_iDst) * (-_interactProp.dRollingFriction * std::abs(dNormalForce) * Particles().Radius(_iDst) / Particles().AnglVel(_iDst).Length()) : CVector3{ 0 };
+	const CVector3 vRollingTorque1 = srcAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
+		srcAnglVel * (-_interactProp.dRollingFriction * std::abs(dNormalForce) * dPartSrcRadius / srcAnglVel.Length()) : CVector3{ 0 };
+	const CVector3 vRollingTorque2 = dstAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
+		dstAnglVel * (-_interactProp.dRollingFriction * std::abs(dNormalForce) * dPartDstRadius / dstAnglVel.Length()) : CVector3{ 0 };
 
 	// calculate moment of TangForce
-	const CVector3 vMoment1 = vNormalVector * _pCollision->vTangForce*Particles().Radius(_iSrc) + vRollingTorque1;
-	const CVector3 vMoment2 = vNormalVector * _pCollision->vTangForce*Particles().Radius(_iDst) + vRollingTorque2;
+	const CVector3 vMoment1 = vNormalVector * _pCollision->vTangForce*dPartSrcRadius + vRollingTorque1;
+	const CVector3 vMoment2 = vNormalVector * _pCollision->vTangForce*dPartDstRadius + vRollingTorque2;
 
+	_pCollision->vTangForce     = vTangForce;
 	_pCollision->vTotalForce    = vNormalVector * (dNormalForce + dDampingForce) + _pCollision->vTangForce;
 	_pCollision->vResultMoment1 = vMoment1;
 	_pCollision->vResultMoment2 = vMoment2;

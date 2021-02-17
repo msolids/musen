@@ -123,14 +123,6 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 			vInRealVolumeCheckers.emplace_back(new CInsideVolumeChecker{ vTriangles });
 		}
 
-	// internal agglomerate collisions (to check against in IsOverlapped)
-	unsigned intAgglColl = 0;
-	if (!m_bGenerateMixture)
-		for (size_t i = 0; i < m_PreLoadedAgglomerate.vParticles.size() - 1; i++)
-			for (size_t j = i + 1; j < m_PreLoadedAgglomerate.vParticles.size(); j++)
-				if (SquaredLength(m_PreLoadedAgglomerate.vParticles[i].vecCoord - m_PreLoadedAgglomerate.vParticles[j].vecCoord) < pow(m_PreLoadedAgglomerate.vParticles[i].dContactRadius + m_PreLoadedAgglomerate.vParticles[j].dContactRadius, 2))
-					intAgglColl++;
-
 	for ( unsigned iObj = 0; iObj <nNewObjects; iObj++ )
 	{
 		int nMaxAttempt = static_cast<int>(m_maxIterations);
@@ -145,7 +137,7 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 			if ( vID.size() != vCoordNewPart.size() ) // not all particles in volume
 				bSuccess = false;
 			if ( bSuccess )
-				bSuccess = !IsOverlapped( vCoordNewPart, vContRadiiNewPart, vPartInVolume, vWallsInVolume, _Scene, intAgglColl );
+				bSuccess = !IsOverlapped( vCoordNewPart, vContRadiiNewPart, vPartInVolume, vWallsInVolume, _Scene);
 
 			if (( bSuccess ) && (!m_bInsideGeometries))
 				for (const auto& checker : vInRealVolumeCheckers)
@@ -322,36 +314,45 @@ void CObjectsGenerator::CreateRandomPoint(CVector3* _pResult, const SVolumeType&
 	_pResult->z = _boundBox.coordBeg.z + (double)(rand() + 1)*vSize.z/RAND_MAX;
 }
 
-bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _vCoordPart, const std::vector<double>& _vPartContRad, const std::vector<unsigned>& _vExistedPartID,
-	const std::vector<unsigned>& _nExistedWallsID, const CSimplifiedScene& _Scene, const unsigned intAgglColl) const
+bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _partCoords, const std::vector<double>& _partRadii,
+	const std::vector<unsigned>& _existingPartID, const std::vector<unsigned>& _existingWallID, const CSimplifiedScene& _scene)
 {
-	const SPBC m_PBC = _Scene.GetPBC();
-	const SParticleStruct& parts = _Scene.GetRefToParticles();
-	const SWallStruct& walls = _Scene.GetRefToWalls();
+	const SPBC pbc = _scene.GetPBC();
+	const SParticleStruct& parts = _scene.GetRefToParticles();
+	const SWallStruct& walls = _scene.GetRefToWalls();
 
-	// check internal agglomerate overlap if applicable
-	if (intAgglColl > 0)
+	// add new particles to calculator
+	CContactCalculator calculator;
+	for (size_t i = 0; i < _partCoords.size(); ++i)
+		calculator.AddParticle(static_cast<unsigned>(i), _partCoords[i], _partRadii[i]);
+
+	// check self-overlapping over PBC boundaries
+	if (pbc.bEnabled)
 	{
-		unsigned curAgglColl = 0;
-		for (unsigned i = 0; i < _vCoordPart.size() - 1; i++)
-			for (unsigned j = i + 1; j < _vCoordPart.size(); j++)
-				if (SquaredLength(GetSolidBond(_vCoordPart[i], _vCoordPart[j], m_PBC)) < pow(_vPartContRad[i] + _vPartContRad[j], 2))
-					curAgglColl++;
-		if (curAgglColl > intAgglColl)
+		std::vector<double> overlapsTarget = calculator.GetOverlaps(SPBC{});	// overlaps without PBC
+		std::vector<double> overlapsActual = calculator.GetOverlaps(pbc);		// overlaps with PBC
+		if (overlapsActual.size() > overlapsTarget.size())						// more overlaps than without PBC
 			return true;
 	}
 
-	// check PP overlap
-	for (auto id : _vExistedPartID)
-		for ( unsigned j = 0; j< _vCoordPart.size(); j++ )
-				if ( SquaredLength(GetSolidBond(_vCoordPart[j], parts.Coord(id), m_PBC)) < pow( parts.ContactRadius(id) + _vPartContRad[ j ], 2 ) )
-					return true;
+	// to distinguish between old and new particles
+	const unsigned limit = (unsigned)_partCoords.size() + 1;
+	// add old particles to calculator
+	for (auto id : _existingPartID)
+		calculator.AddParticle(id + limit, parts.Coord(id), parts.ContactRadius(id));
+	// calculate all overlaps
+	const auto [ID1, ID2] = calculator.GetOverlappingIDs(pbc);
 
-	// check PW overlap
-	for (auto id : _nExistedWallsID)
-		for (unsigned j = 0; j < _vCoordPart.size(); j++)
-				if (IsSphereIntersectTriangle(walls.Coordinates(id), walls.NormalVector(id), _vCoordPart[j], _vPartContRad[j]).first != EIntersectionType::NO_CONTACT)
-					return true;
+	// check if there are overlaps between old and new particles
+	for (size_t i = 0; i < ID1.size(); ++i)
+		if (ID1[i] < limit && ID2[i] >= limit || ID1[i] >= limit && ID2[i] < limit)
+			return true;
+
+	// check PW overlaps
+	for (auto id : _existingWallID)
+		for (size_t j = 0; j < _partCoords.size(); ++j)
+			if (IsSphereIntersectTriangle(walls.Coordinates(id), walls.NormalVector(id), _partCoords[j], _partRadii[j]).first != EIntersectionType::NO_CONTACT)
+				return true;
 
 	return false;
 }

@@ -6,6 +6,7 @@
 #include "SystemStructure.h"
 #include "ScriptAnalyzer.h"
 #include "ResultsAnalyzer.h"
+#include "SimulatorManager.h"
 
 class CConsoleResultsAnalyzer
 {
@@ -23,9 +24,6 @@ class CConsoleResultsAnalyzer
 
 	std::string m_sFileExt;			// Extension of resulting file.
 	std::string m_sOutputPrefix;
-
-	SJob m_job;
-
 public:
 	/// Custom error handling.
 	enum class EProcessResultType
@@ -41,8 +39,11 @@ public:
 	EProcessResultType SetupAnalyzer(const std::vector<std::string>& _commandSet, CSystemStructure& _systemStructure, std::shared_ptr<CResultsAnalyzer>& _outAnalyzer) const;
 	void EvaluateResults(const SJob& _job, CSystemStructure& _systemStructure);
 
+	// Set up analyzer as a monitor by adding it's evaluation into additionalSavingSteps of the Simulation Manager. Closing of the futput files happens if the CResultsAnalyzer is destructed (e.g. if the SimulationManger is destructed when the return value of this function is ignored). 
+	std::vector<std::shared_ptr<CResultsAnalyzer>> SetupMonitor(const SJob& _job, CSystemStructure& _systemStructure, CSimulatorManager& _simManager);
+
 private:
-	std::vector<std::shared_ptr<CResultsAnalyzer>> GetAnalyzers(CSystemStructure& _systemStructure) const;
+	std::vector<std::shared_ptr<CResultsAnalyzer>> GetAnalyzers(CSystemStructure& _systemStructure, std::vector<std::string> _vAnalzyerSettings) const;
 
 	EProcessResultType WriteError(EProcessResultType _errorType, const std::string& _comment = "") const;
 

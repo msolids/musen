@@ -28,6 +28,7 @@ enum class EColoring : unsigned
 	OVERLAP,
 	ANGLE_VELOCITY,
 	STRESS,
+	PRINCIPAL_STRESS,
 	VELOCITY,
 	BOND_STRAIN, // positive - compression, negative - tension
 	BOND_NORMAL_STRESS,

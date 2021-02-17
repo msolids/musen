@@ -4,9 +4,6 @@
 
 #pragma once
 
-#define PI 3.14159265358979323846
-#define DEFAULT_MAX_CELLS 50
-
 #include "Vector3.h"
 #include "Matrix3.h"
 #include "Quaternion.h"

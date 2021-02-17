@@ -15,7 +15,7 @@ CViewOptionsTab::CViewOptionsTab(CViewManager* _viewManager, CViewSettings* _vie
 	ui.setupUi(this);
 	m_dCurrentTime = 0;
 
-	m_coloringVectors = { EColoring::ANGLE_VELOCITY, EColoring::COORDINATE, EColoring::DISPLACEMENT, EColoring::FORCE, EColoring::STRESS, EColoring::VELOCITY };
+	m_coloringVectors = { EColoring::ANGLE_VELOCITY, EColoring::COORDINATE, EColoring::DISPLACEMENT, EColoring::FORCE, EColoring::STRESS, EColoring::PRINCIPAL_STRESS, EColoring::VELOCITY };
 	m_componentGroup.addButton(ui.radioButtonComponentL, E2I(EColorComponent::TOTAL));
 	m_componentGroup.addButton(ui.radioButtonComponentX, E2I(EColorComponent::X));
 	m_componentGroup.addButton(ui.radioButtonComponentY, E2I(EColorComponent::Y));
@@ -676,6 +676,7 @@ void CViewOptionsTab::UpdateColoringTypes()
 	InsertItem(EColoring::OVERLAP,            EUnitType::LENGTH,            "Maximum overlap",		"Coloring by overlaps");
 	InsertItem(EColoring::ANGLE_VELOCITY,     EUnitType::ANGULAR_VELOCITY,  "Rotation velocity",	"Coloring by rotation velocities");
 	InsertItem(EColoring::STRESS,             EUnitType::STRESS,            "Stress",				"Coloring by stresses");
+	InsertItem(EColoring::PRINCIPAL_STRESS, EUnitType::STRESS, "Principal stress", "Coloring by principal stresses");
 	InsertItem(EColoring::VELOCITY,           EUnitType::VELOCITY,          "Velocity",				"Coloring by velocities");
 	InsertItem(EColoring::TEMPERATURE,		  EUnitType::TEMPERATURE,       "Temperature",			"Coloring by temperature");
 

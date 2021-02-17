@@ -122,8 +122,10 @@ void __global__ CUDA_CalcPPForce_LE_kernel(
 		const CVector3 vRollingTorque2 = dstAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
 			dstAnglVel * (-prop.dRollingFriction * fabs(dNormalForce) * dPartDstRadius / dstAnglVel.Length()) : CVector3{ 0 };
 
-		// calculate moments and forces
+		// store results in collision
 		_collTangOverlaps[iColl] = vTangOverlap;
+
+		// calculate moments and forces
 		const CVector3 vTotalForce    = vNormalVector * (dNormalForce + dDampingForce) + vTangForce;
 		const CVector3 vResultMoment1 = vNormalVector * vTangForce * dPartSrcRadius + vRollingTorque1;
 		const CVector3 vResultMoment2 = vNormalVector * vTangForce * dPartDstRadius + vRollingTorque2;

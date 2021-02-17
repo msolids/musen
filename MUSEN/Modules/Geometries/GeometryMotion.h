@@ -16,9 +16,10 @@ public:
 	// Moving type of a geometry.
 	enum class EMotionType : uint32_t
 	{
-		NONE            = 0,
-		TIME_DEPENDENT  = 1,
-		FORCE_DEPENDENT = 2
+		NONE = 0,
+		TIME_DEPENDENT = 1,
+		FORCE_DEPENDENT = 2,
+		CONSTANT_FORCE = 3
 	};
 
 	// Information about movement characteristics.

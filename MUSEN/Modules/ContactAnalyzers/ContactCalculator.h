@@ -16,6 +16,10 @@ public:
 	void GetAllOverlaps(std::vector<unsigned>& _vID1, std::vector<unsigned>& _vID2, std::vector<double>& _vOverlap, const SPBC& _PBC);
 	// Returns list of all overlaps in the system in form {ID1, ID2, overlap}.
 	std::tuple<std::vector<unsigned>, std::vector<unsigned>, std::vector<double>> GetAllOverlaps(const SPBC& _PBC);
+	// Returns values of all overlaps.
+	std::vector<double> GetOverlaps(const SPBC& _pbc);
+	// Returns IDs of overlapping particles in form {ID1, ID2}.
+	std::pair<std::vector<unsigned>, std::vector<unsigned>> GetOverlappingIDs(const SPBC& _pbc);
 	// Sets new maximum allowed number of cells in each direction.
 	void SetMaxCellsNumber(unsigned _nMaxCells);
 

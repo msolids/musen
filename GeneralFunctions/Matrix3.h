@@ -4,6 +4,7 @@
 
 #pragma once
 #include "Vector3.h"
+#include "MUSENDefinitions.h"
 
 template<typename T>
 class CBasicMatrix3
@@ -77,6 +78,22 @@ public:
 			values[0][1], values[1][1], values[2][1],
 			values[0][2], values[1][2], values[2][2]
 		};
+	}
+
+	CUDA_HOST_DEVICE CVector3 GetPrincipalStresses() const
+	{
+		CVector3 vResult;
+		double dI1 = values[0][0] + values[1][1] + values[2][2];
+		double dI2 = values[0][0]* values[1][1] + values[1][1]*values[2][2] + values[2][2]* values[0][0]- pow(values[0][1], 2) - pow(values[0][2], 2) - pow(values[1][2], 2);
+		double dI3 = values[0][0] * values[1][1]* values[2][2] - values[0][0]* pow(values[1][2],2) -
+			+ values[1][1] *pow(values[0][2],2) - values[2][2]*pow(values[0][1], 2) +2* values[0][1]* values[0][2]* values[1][2];
+		double dQ = (3 * dI2 - pow(dI1, 2)) / 9.0;
+		double dR = (2 * pow(dI1, 3) - 9 * dI1 * dI2 + 27 * dI3) / 54;
+		double dTetta = acos(dR / sqrt(pow(-dQ, 3)));
+		vResult.x = 2 * sqrt(-dQ) * cos(dTetta / 3) + 1.0 / 3 * dI1;
+		vResult.y = 2 * sqrt(-dQ) * cos((dTetta+2*PI) / 3) + 1.0 / 3 * dI1;
+		vResult.z = 2 * sqrt(-dQ) * cos((dTetta+4*PI) / 3) + 1.0 / 3 * dI1;
+		return vResult;
 	}
 
 	CUDA_HOST_DEVICE CBasicMatrix3 operator+(const CBasicMatrix3& _m) const

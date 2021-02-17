@@ -24,25 +24,30 @@ void CModelPPHertzMindlinLiquid::CalculatePPForce(double _time, double _timeStep
 	const double dSurfaceTension = m_parameters[2].value;
 	const double dViscosity      = m_parameters[3].value;
 
-	double dCurrentBondLength = _pCollision->vContactVector.Length() - Particles().Radius(_iSrc) - Particles().Radius(_iDst);
+	const CVector3 srcAnglVel   = Particles().AnglVel(_iSrc);
+	const CVector3 dstAnglVel   = Particles().AnglVel(_iDst);
+	const double dPartSrcRadius = Particles().Radius(_iSrc);
+	const double dPartDstRadius = Particles().Radius(_iDst);
+
+	double dCurrentBondLength = _pCollision->vContactVector.Length() - dPartSrcRadius - dPartDstRadius;
 	if (dCurrentBondLength < dMinThickness)
 		dCurrentBondLength = dMinThickness;
 	CVector3 rAC = -0.5 * _pCollision->vContactVector;
 
-	double dRealOverlap = _pCollision->dNormalOverlap - (Particles().ContactRadius(_iSrc) - Particles().Radius(_iSrc)) - (Particles().ContactRadius(_iDst) - Particles().Radius(_iDst));
+	double dRealOverlap = _pCollision->dNormalOverlap - (Particles().ContactRadius(_iSrc) - dPartSrcRadius) - (Particles().ContactRadius(_iDst) - dPartDstRadius);
 
-	const CVector3 vRcSrc        = _pCollision->vContactVector * ( Particles().Radius(_iSrc) / (Particles().Radius(_iSrc) + Particles().Radius(_iDst)));
-	const CVector3 vRcDst        = _pCollision->vContactVector * (-Particles().Radius(_iDst) / (Particles().Radius(_iSrc) + Particles().Radius(_iDst)));
+	const CVector3 vRcSrc        = _pCollision->vContactVector * ( dPartSrcRadius / (dPartSrcRadius + dPartDstRadius));
+	const CVector3 vRcDst        = _pCollision->vContactVector * (-dPartDstRadius / (dPartSrcRadius + dPartDstRadius));
 	const CVector3 vNormalVector = _pCollision->vContactVector.Normalized();
 
 	// relative velocity (normal and tangential)
-	const CVector3 vRelVel       = Particles().Vel(_iDst) - Particles().Vel(_iSrc) + vRcSrc * Particles().AnglVel(_iSrc) - vRcDst * Particles().AnglVel(_iDst);
+	const CVector3 vRelVel       = Particles().Vel(_iDst) - Particles().Vel(_iSrc) + vRcSrc * srcAnglVel - vRcDst * dstAnglVel;
 	const double   dRelVelNormal = DotProduct(vNormalVector, vRelVel);
 	const CVector3 vRelVelNormal = dRelVelNormal * vNormalVector;
 	const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
 
 	// wet contact
-	double dBondVolume = PI / 3. * (std::pow(Particles().Radius(_iSrc), 3) + std::pow(Particles().Radius(_iDst), 3)); // one quarter of summarized sphere volume
+	double dBondVolume = PI / 3. * (std::pow(dPartSrcRadius, 3) + std::pow(dPartDstRadius, 3)); // one quarter of summarized sphere volume
 	double dA = -1.1 * std::pow(dBondVolume, -0.53);
 	double dTempLn = std::log(dBondVolume);
 	double dB = (-0.34 * dTempLn - 0.96) * dContactAngle * dContactAngle - 0.019 * dTempLn + 0.48;
@@ -87,17 +92,16 @@ void CModelPPHertzMindlinLiquid::CalculatePPForce(double _time, double _timeStep
 			vTangForceDry += vDampingTangForceDry;
 
 		// calculate rolling friction
-		if (Particles().AnglVel(_iSrc).IsSignificant()) // if it is not zero, but small enough, its Length() can turn into zero and division fails
-			vRollingTorque1 = Particles().AnglVel(_iSrc) * (-_interactProp.dRollingFriction * std::abs(dNormalForceDry) * Particles().Radius(_iSrc) / Particles().AnglVel(_iSrc).Length());
-		if (Particles().AnglVel(_iDst).IsSignificant()) // if it is not zero, but small enough, its Length() can turn into zero and division fails
-			vRollingTorque2 = Particles().AnglVel(_iDst) * (-_interactProp.dRollingFriction * std::abs(dNormalForceDry) * Particles().Radius(_iDst) / Particles().AnglVel(_iDst).Length());
+		if (srcAnglVel.IsSignificant()) // if it is not zero, but small enough, its Length() can turn into zero and division fails
+			vRollingTorque1 = srcAnglVel * (-_interactProp.dRollingFriction * std::abs(dNormalForceDry) * dPartSrcRadius / srcAnglVel.Length());
+		if (dstAnglVel.IsSignificant()) // if it is not zero, but small enough, its Length() can turn into zero and division fails
+			vRollingTorque2 = dstAnglVel * (-_interactProp.dRollingFriction * std::abs(dNormalForceDry) * dPartDstRadius / dstAnglVel.Length());
 
 		vNormalForce = vNormalVector * (dNormalForceDry + dDampingNormalForceDry);
 	}
-	// save tangential force
-	_pCollision->vTangForce = vTangForceDry + vTangForceLiquid;
 
+	_pCollision->vTangForce     = vTangForceDry + vTangForceLiquid;
 	_pCollision->vTotalForce    = vNormalForce + _pCollision->vTangForce + dCapForce + dViscForceNormal;
-	_pCollision->vResultMoment1 = vNormalVector * _pCollision->vTangForce*Particles().Radius(_iSrc) + vRollingTorque1 - vMomentLiquid;
-	_pCollision->vResultMoment2 = vNormalVector * _pCollision->vTangForce*Particles().Radius(_iDst) + vRollingTorque2 - vMomentLiquid;
+	_pCollision->vResultMoment1 = vNormalVector * _pCollision->vTangForce*dPartSrcRadius + vRollingTorque1 - vMomentLiquid;
+	_pCollision->vResultMoment2 = vNormalVector * _pCollision->vTangForce*dPartDstRadius + vRollingTorque2 - vMomentLiquid;
 }

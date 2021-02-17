@@ -69,9 +69,8 @@ void __global__ CUDA_CalcPPForce_HM_kernel(
 		double dEquivMass         = _collEquivMasses[iColl];
 		const CVector3 srcAnglVel = _partAnglVels[iSrcPart];
 		const CVector3 dstAnglVel = _partAnglVels[iDstPart];
-
-		double dPartSrcRadius = _partRadii[iSrcPart];
-		double dPartDstRadius = _partRadii[iDstPart];
+		double dPartSrcRadius     = _partRadii[iSrcPart];
+		double dPartDstRadius     = _partRadii[iDstPart];
 
 		const CVector3 vContactVector = _collContactVectors[iColl];
 		const CVector3 vRcSrc         = vContactVector * ( dPartSrcRadius / (dPartSrcRadius + dPartDstRadius));
@@ -113,7 +112,7 @@ void __global__ CUDA_CalcPPForce_HM_kernel(
 		double dNewTangForce = vTangForce.Length();
 		if (dNewTangForce > prop.dSlidingFriction * fabs(dNormalForce))
 		{
-			vTangForce = vTangForce * (prop.dSlidingFriction * fabs(dNormalForce) / dNewTangForce);
+			vTangForce *= prop.dSlidingFriction * fabs(dNormalForce) / dNewTangForce;
 			vTangOverlap = vTangForce / Kt;
 		}
 		else
@@ -125,8 +124,10 @@ void __global__ CUDA_CalcPPForce_HM_kernel(
 		const CVector3 vRollingTorque2 = dstAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
 			dstAnglVel * (-1 * prop.dRollingFriction * fabs(dNormalForce) * dPartDstRadius / dstAnglVel.Length()) : CVector3{ 0 };
 
-		// calculate moments and forces
+		// store results in collision
 		_collTangOverlaps[iColl] = vTangOverlap;
+
+		// calculate moments and forces
 		const CVector3 vTotalForce    = vNormalVector * (dNormalForce + dDampingForce) + vTangForce;
 		const CVector3 vResultMoment1 = vNormalVector * vTangForce * dPartSrcRadius + vRollingTorque1;
 		const CVector3 vResultMoment2 = vNormalVector * vTangForce * dPartDstRadius + vRollingTorque2;

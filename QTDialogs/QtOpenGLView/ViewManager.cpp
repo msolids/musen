@@ -418,6 +418,10 @@ std::vector<double> CViewManager::GetColoringValues(const std::vector<CSphere*>&
 		for (const auto& p : _parts)
 			values.push_back(Component(p->GetNormalStress()));
 		break;
+	case EColoring::PRINCIPAL_STRESS:
+		for (const auto& p : _parts)
+			values.push_back(Component(p->GetStressTensor().GetPrincipalStresses()));
+		break;
 	case EColoring::VELOCITY:
 		for (const auto& p : _parts)
 			values.push_back(Component(p->GetVelocity()));

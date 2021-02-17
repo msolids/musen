@@ -30,6 +30,11 @@ CResultsAnalyzer::CResultsAnalyzer() :
 
 CResultsAnalyzer::~CResultsAnalyzer()
 {
+	// ensure that if m_pout is a filestream it is closed if the ResultsAnalyzer is finished, since 
+	// an open m_pout makes no sense after completion. Note that the closing would also happen automatically if no further shared_ptr to m_pout existed. 
+	std::shared_ptr<std::ofstream> fileoutstream(std::dynamic_pointer_cast<std::ofstream>(m_pout));
+	if (fileoutstream)
+		fileoutstream->close();
 }
 
 void CResultsAnalyzer::UpdateSettings()

@@ -6,6 +6,12 @@
 
 #define MDEM_FILE_VERSION 2		// Current version of .mdem-file (+quaternion, +stress tensor, -angles, -accelerations).
 
+#define PI 3.14159265358979323846
+#define PI_180  0.0174532925
+#define _180_PI  57.295779579
+
+#define DEFAULT_MAX_CELLS 50
+
 enum class ERunningStatus
 {
 	IDLE = 0,

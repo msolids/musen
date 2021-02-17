@@ -26,6 +26,8 @@ void CGeometryMotion::AddInterval()
 	case EMotionType::NONE:									break;
 	case EMotionType::TIME_DEPENDENT:	AddTimeInterval();	break;
 	case EMotionType::FORCE_DEPENDENT:	AddForceInterval();	break;
+	case EMotionType::CONSTANT_FORCE:	if (m_intervalsForce.empty()) AddForceInterval();	break;
+
 	}
 }
 
@@ -64,7 +66,7 @@ void CGeometryMotion::AddForceInterval()
 {
 	if (m_intervalsForce.empty())
 		AddForceInterval({ 1.0, SForceMotionInterval::ELimitType::MAX, SMotionInfo{} });
-	else
+	else 
 		AddForceInterval({ m_intervalsForce.back().forceLimit, m_intervalsForce.back().limitType, SMotionInfo{} });
 }
 
@@ -162,6 +164,7 @@ bool CGeometryMotion::IsValid() const
 		}
 		break;
 	case EMotionType::FORCE_DEPENDENT:
+	case EMotionType::CONSTANT_FORCE:
 		if (m_intervalsForce.empty())
 		{
 			m_errorMessage = "Force-dependent movement is selected, but force intervals are not specified.";
@@ -223,8 +226,34 @@ void CGeometryMotion::UpdateMotionInfo(double _dependentValue)
 		}
 
 		if (updated)			// it is a new interval - update current values
-			m_currentMotion = m_intervalsForce[m_iMotion].motion;
-
+		{
+			if (m_iMotion >= m_intervalsForce.size())
+				m_currentMotion.Clear();
+			else
+				m_currentMotion = m_intervalsForce[m_iMotion].motion;
+		}
+		break;
+	}
+	case EMotionType::CONSTANT_FORCE:
+	{
+		bool bReverseDirection=false;
+		m_iMotion = 0; // only first interval is used
+		if (m_iMotion >= m_intervalsForce.size())	// no intervals defined
+		{
+			m_currentMotion.Clear();				// set current velocities to zero
+			break;
+		}
+		m_currentMotion = m_intervalsForce[m_iMotion].motion;
+		switch (m_intervalsForce[m_iMotion].limitType)
+		{
+		case SForceMotionInterval::ELimitType::MIN:	if (_dependentValue < m_intervalsForce[m_iMotion].forceLimit) bReverseDirection = true; break;
+		case SForceMotionInterval::ELimitType::MAX:	if (_dependentValue > m_intervalsForce[m_iMotion].forceLimit) bReverseDirection = true; break;
+		}
+		if (bReverseDirection) // make motion in reverse direction
+		{
+			m_currentMotion.rotationVelocity *= -1;
+			m_currentMotion.velocity *= -1;
+		}
 		break;
 	}
 	case EMotionType::NONE: break;
@@ -264,6 +293,7 @@ void CGeometryMotion::LoadFromProto(const ProtoGeometryMotion& _proto)
 				SMotionInfo{Proto2Val(interval.velocity()), Proto2Val(interval.rot_velocity()), Proto2Val(interval.rot_center())} });
 		break;
 	case EMotionType::FORCE_DEPENDENT:
+	case EMotionType::CONSTANT_FORCE:
 		for (const auto& interval : _proto.intervals())
 			AddForceInterval({ interval.limit1(), static_cast<SForceMotionInterval::ELimitType>(interval.limit_type()),
 				SMotionInfo{Proto2Val(interval.velocity()), Proto2Val(interval.rot_velocity()), Proto2Val(interval.rot_center())} });
@@ -291,6 +321,7 @@ void CGeometryMotion::SaveToProto(ProtoGeometryMotion& _proto) const
 		}
 		break;
 	case EMotionType::FORCE_DEPENDENT:
+	case EMotionType::CONSTANT_FORCE:
 		for (const auto& interval : m_intervalsForce)
 		{
 			auto* protoInterval = _proto.add_intervals();
@@ -318,6 +349,7 @@ std::ostream& operator<<(std::ostream& _s, const CGeometryMotion& _obj)
 		break;
 	}
 	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
 	{
 		_s << _obj.GetForceIntervals().size() << " ";
 		for (const auto& interval : _obj.GetForceIntervals())
@@ -345,6 +377,7 @@ std::istream& operator>>(std::istream& _s, CGeometryMotion& _obj)
 		break;
 	}
 	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
 	{
 		for (size_t i = 0; i < intervals; ++i)
 			_obj.AddForceInterval(GetValueFromStream<CGeometryMotion::SForceMotionInterval>(&_s));

@@ -175,6 +175,10 @@ void COpenGLView::GetObjectColor(size_t nObjectID, CColor* _ResultColor)
 		if (object->GetObjectType() != SPHERE) return;
 		vTempVector = object->GetNormalStress(m_dCurrentTime);
 		break;
+	case EColoring::PRINCIPAL_STRESS:
+		if (object->GetObjectType() != SPHERE) return;
+		vTempVector = object->GetStressTensor(m_dCurrentTime).GetPrincipalStresses();
+		break;
 	case EColoring::DIAMETER:
 		if (object->GetObjectType() == SPHERE)
 			dCurrentValue = ((CSphere*)object)->GetRadius() * 2;
@@ -224,7 +228,8 @@ void COpenGLView::GetObjectColor(size_t nObjectID, CColor* _ResultColor)
 	}
 	if (m_viewSettings->Coloring().type == EColoring::FORCE || m_viewSettings->Coloring().type == EColoring::VELOCITY
 	 || m_viewSettings->Coloring().type == EColoring::COORDINATE || m_viewSettings->Coloring().type == EColoring::ANGLE_VELOCITY
-	 || m_viewSettings->Coloring().type == EColoring::STRESS || m_viewSettings->Coloring().type == EColoring::DISPLACEMENT)
+	 || m_viewSettings->Coloring().type == EColoring::STRESS || m_viewSettings->Coloring().type == EColoring::DISPLACEMENT ||
+		m_viewSettings->Coloring().type == EColoring::PRINCIPAL_STRESS )
 	{
 		switch (m_viewSettings->Coloring().component)
 		{

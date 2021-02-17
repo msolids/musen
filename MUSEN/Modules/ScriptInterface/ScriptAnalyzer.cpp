@@ -72,6 +72,9 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "SIMULATION_STEP" || key == "SIMULATION_TSTEP")	ss >> m_jobs.back().dSimulationTimeStep;
 	else if (key == "SAVING_STEP" || key == "SAVING_TSTEP")			ss >> m_jobs.back().dSavingTimeStep;
 	else if (key == "END_TIME")										ss >> m_jobs.back().dEndSimulationTime;
+	else if (key == "SIMULATION_STEP_FACTOR")						ss >> m_jobs.back().simulationStepFactor;
+	else if (key == "SAVING_STEP_FACTOR")							ss >> m_jobs.back().savingStepFactor;
+	else if (key == "END_TIME_FACTOR")								ss >> m_jobs.back().endTimeFactor;
 	else if (key == "SAVE_COLLISIONS")		ss >> m_jobs.back().saveCollsionsFlag;
 	else if (key == "CONNECTED_PP_CONTACT")	ss >> m_jobs.back().connectedPPContactFlag;
 	else if (key == "ANISOTROPY")			ss >> m_jobs.back().anisotropyFlag;
@@ -99,6 +102,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 			m_jobs.back().stopValues.maxBrokenBonds = GetValueFromStream<size_t>(&ss);
 		}
 	}
+	else if (key == "MONITOR")				m_jobs.back().vMonitors.push_back(GetRestOfLine(&ss));
 	else if (key == "POSTPROCESS")			m_jobs.back().vPostProcessCommands.push_back(GetRestOfLine(&ss));
 	else if (key.rfind("PACK_GEN", 0) == 0)
 	{
@@ -220,6 +224,11 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "TEXT_EXPORT_PRECISION")
 	{
 		m_jobs.back().txtPrecision = GetValueFromStream<int>(&ss);
+	}
+	else if (key == "TIME_INTERVAL")
+	{
+		m_jobs.back().timeBeg = GetValueFromStream<double>(&ss);
+		m_jobs.back().timeEnd = GetValueFromStream<double>(&ss);
 	}
 	else if (key == "GEOMETRY_MOTION_TIME")
 	{
