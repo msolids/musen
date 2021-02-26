@@ -36,19 +36,20 @@
 
 #pragma once
 
-#pragma warning(push)
-#pragma warning(disable: 26495)
-#include "GeneratedFiles/SimulationDescription.pb.h"
-#pragma warning(pop)
-#include <string>
 #include <fstream>
-#include <stdint.h>
 #include "MUSENStringFunctions.h"
 
 #define COLLISIONS_NUMBER_TO_SAVE	1000000
 #define INFO_BLOCK_OFFSET			32
 #define FIRST_DATA_OFFSET			1024*1024
 #define COLL_FILE_EXT				".coll"
+
+class ProtoBlockOfCollisions;
+class ProtoBlockOfCollisionsInfo;
+namespace google::protobuf
+{
+	class Message;
+}
 
 class CCollisionsStorage
 {

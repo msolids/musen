@@ -3,6 +3,11 @@
    See LICENSE file for license and warranty information. */
 
 #include "Interaction.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/MaterialsDatabase.pb.h"
+PRAGMA_WARNING_POP
 
 CInteraction::CInteraction(const std::string& _sKey1, const std::string& _sKey2) :
 	m_sCompoundKey1(_sKey1), m_sCompoundKey2(_sKey2)

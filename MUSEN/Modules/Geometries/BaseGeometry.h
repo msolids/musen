@@ -52,18 +52,21 @@ public:
 	size_t Accuracy() const;								// Returns current accuracy of a non-STL shape.
 	virtual void SetAccuracy(size_t _value) = 0;			// Sets new accuracy of a non-STL shape.
 
-	virtual void SetSizes(const CGeometrySizes& _sizes);	// Sets new geometry specific size parameters.
+	void SetSizes(const CGeometrySizes& _sizes);			// Sets new geometry specific size parameters without modification of the geometry.
 	CGeometrySizes Sizes() const;							// Returns current geometry specific size parameters.
+	void Resize(const CGeometrySizes& _sizes);				// Sets new geometry specific size parameters and modifies the geometry accordingly.
 
 	virtual void Shift(const CVector3& _offset) = 0;		// Shifts the geometry by the specified coordinates.
 	virtual void Rotate(const CMatrix3& _rotation);			// Rotates the geometry according to the given rotational matrix.
 
+	void SetScalingFactor(double _factor);					// Sets new scaling factor without modification of the geometry.
 	double ScalingFactor() const;							// Returns current scaling factor.
 	virtual void Scale(double _factor);						// Scales sizes of the geometry by the given factor.
 	virtual void DeformSTL(const CVector3& _factors);		// Scales sizes of the STL geometry by the given factors different in each dimension.
 
-	CGeometryMotion* Motion();				// Returns pointer to a geometry motion descriptor.
-	const CGeometryMotion* Motion() const;	// Returns pointer to a geometry motion descriptor.
+	CGeometryMotion* Motion();						// Returns pointer to a geometry motion descriptor.
+	const CGeometryMotion* Motion() const;			// Returns pointer to a geometry motion descriptor.
+	void SetMotion(const CGeometryMotion& _motion);	// Sets new motion descriptor.
 
 protected:
 	void SetSizesFromVector(const std::vector<double>& _sizes);	// Sets sizes required for the current shape from the vector.

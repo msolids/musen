@@ -58,7 +58,7 @@ void CViewOptionsTab::InitializeConnections() const
 	// slicing
 	connect(ui.groupBoxSlices,		&QGroupBox::toggled,				this, &CViewOptionsTab::OnSlicingChanged);
 	connect(ui.spinBoxSliceCoords,  &CQtDoubleSpinBox::ValueChanged,	this, &CViewOptionsTab::OnSlicingChanged);
-	connect(&m_slicingGroup, QOverload<int, bool>::of(&QButtonGroup::buttonToggled), [=](int, bool _checked) { if (_checked) OnSlicingChanged(); });
+	connect(&m_slicingGroup,		&QButtonGroup::idToggled, [=](int, bool _checked) { if (_checked) OnSlicingChanged(); });
 
 	////////// PAGE 2 - Visibility //////////
 
@@ -91,8 +91,8 @@ void CViewOptionsTab::InitializeConnections() const
 	////////// PAGE 3 - Coloring //////////
 
 	// coloring parameters
-	connect(&m_coloringGroup,  QOverload<int, bool>::of(&QButtonGroup::buttonToggled), [=](int, bool _checked) { if (_checked) OnColoringChanged(); });
-	connect(&m_componentGroup, QOverload<int, bool>::of(&QButtonGroup::buttonToggled), [=](int, bool _checked) { if (_checked) OnColoringChanged(); });
+	connect(&m_coloringGroup,		  &QButtonGroup::idToggled,	 [=](int, bool _checked) { if (_checked) OnColoringChanged(); });
+	connect(&m_componentGroup,		  &QButtonGroup::idToggled,	 [=](int, bool _checked) { if (_checked) OnColoringChanged(); });
 	connect(ui.lineEditColorLimitMin, &QLineEdit::editingFinished, this, &CViewOptionsTab::OnColoringChanged);
 	connect(ui.lineEditColorLimitMax, &QLineEdit::editingFinished, this, &CViewOptionsTab::OnColoringChanged);
 	connect(ui.colorMin,			  &CColorView::ColorChanged,   this, &CViewOptionsTab::OnColoringChanged);
@@ -216,7 +216,7 @@ void CViewOptionsTab::OnParticlesVisibilityChanged() const
 	m_viewSettings->VisiblePartMaterials(visiblePartMaterials);
 
 	// update
-	m_viewManager->UpdateParticlesVisible();
+	m_viewManager->UpdateParticles();
 	UpdateParticlesVisibility();
 }
 
@@ -244,7 +244,7 @@ void CViewOptionsTab::OnBondsVisibilityChanged() const
 	m_viewSettings->BrokenBonds(brokenBondsSettings);
 
 	// update
-	m_viewManager->UpdateBondsVisible();
+	m_viewManager->UpdateBonds();
 	UpdateBondsVisibility();
 }
 
@@ -267,7 +267,7 @@ void CViewOptionsTab::OnGeometriesVisibilityChanged() const
 	m_viewSettings->GeometriesTransparency(1.0f - ui.sliderOpacity->sliderPosition() / 10.0f);
 
 	// update
-	m_viewManager->UpdateGeometriesVisible();
+	m_viewManager->UpdateGeometries();
 	UpdateGeometriesVisibility();
 }
 
@@ -287,7 +287,7 @@ void CViewOptionsTab::OnVolumesVisibilityChanged() const
 	m_viewSettings->VisibleVolumes(visibleVolumes);
 
 	// update
-	m_viewManager->UpdateVolumesVisible();
+	m_viewManager->UpdateVolumes();
 	UpdateVolumesVisibility();
 }
 
@@ -296,7 +296,7 @@ void CViewOptionsTab::OnDomainVisibilityChanged() const
 	CViewSettings::SVisibility visibilitySettings = m_viewSettings->Visibility();
 	visibilitySettings.domain = ui.checkBoxDomain->isChecked();
 	m_viewSettings->Visibility(visibilitySettings);
-	m_viewManager->UpdateDomainVisible();
+	m_viewManager->UpdateDomain();
 }
 
 void CViewOptionsTab::OnPBCVisibilityChanged() const
@@ -304,7 +304,7 @@ void CViewOptionsTab::OnPBCVisibilityChanged() const
 	CViewSettings::SVisibility visibilitySettings = m_viewSettings->Visibility();
 	visibilitySettings.pbc = ui.checkBoxPBC->isChecked();
 	m_viewSettings->Visibility(visibilitySettings);
-	m_viewManager->UpdatePBCVisible();
+	m_viewManager->UpdatePBC();
 }
 
 void CViewOptionsTab::OnColoringChanged() const

@@ -62,6 +62,46 @@ void CConsoleSimulator::SetupSystemStructure() const
 	if (m_job.anisotropyFlag.IsDefined())		m_systemStructure.EnableAnisotropy(m_job.anisotropyFlag.ToBool());
 	if (m_job.contactRadiusFlag.IsDefined())	m_systemStructure.EnableContactRadius(m_job.contactRadiusFlag.ToBool());
 	if (!m_job.simulationDomain.IsInf())		m_systemStructure.SetSimulationDomain(m_job.simulationDomain);
+
+	const auto GetGeometryPtr = [&](const SJob::SGeometryMotionInterval& _motion) -> CRealGeometry*
+	{
+		// try to access by name
+		auto* geometry = m_systemStructure.GeometryByName(_motion.geometryName);
+		// try to access by index
+		if (!geometry)
+			geometry = m_systemStructure.Geometry(_motion.geometryIndex);
+		// return pointer
+		return geometry;
+	};
+
+	if (!m_job.geometryTimeIntervals.empty())
+	{
+		// clear motion for those geometries, which need to be overriden
+		for (const auto& motion : m_job.geometryTimeIntervals)
+			if (auto* geometry = GetGeometryPtr(motion))
+				geometry->Motion()->Clear();
+		// set motion intervals
+		for (const auto& motion : m_job.geometryTimeIntervals)
+			if (auto* geometry = GetGeometryPtr(motion))
+			{
+				geometry->Motion()->SetMotionType(CGeometryMotion::EMotionType::TIME_DEPENDENT);
+				geometry->Motion()->AddTimeInterval(motion.intrerval);
+			}
+	}
+	if (!m_job.geometryForceIntervals.empty())
+	{
+		// clear motion for those geometries, which need to be overriden
+		for (const auto& motion : m_job.geometryForceIntervals)
+			if (auto* geometry = GetGeometryPtr(motion))
+				geometry->Motion()->Clear();
+		// set motion intervals
+		for (const auto& motion : m_job.geometryForceIntervals)
+			if (auto* geometry = GetGeometryPtr(motion))
+			{
+				geometry->Motion()->SetMotionType(CGeometryMotion::EMotionType::FORCE_DEPENDENT);
+				geometry->Motion()->AddForceInterval(motion.intrerval);
+			}		
+	}
 }
 
 void CConsoleSimulator::SetupGenerationManager()

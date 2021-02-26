@@ -13,19 +13,17 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3EE95952-CF82-4C58-BB13-A471932B22C2}</ProjectGuid>
     <RootNamespace>MaterialsDatabase</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -80,7 +78,10 @@
     <ClCompile Include="Compound.cpp" />
     <ClCompile Include="ConstProperty.cpp" />
     <ClCompile Include="Correlation.cpp" />
-    <ClCompile Include="GeneratedFiles\MaterialsDatabase.pb.cc" />
+    <ClCompile Include="GeneratedFiles\MaterialsDatabase.pb.cc">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="Interaction.cpp" />
     <ClCompile Include="MaterialsDatabase.cpp" />
     <ClCompile Include="Mixture.cpp" />

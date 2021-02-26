@@ -17,7 +17,7 @@ public:
 	/// CPU implementation.
 
 	/// Is called each time step before real calculations. Can be removed if not used.
-	void PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds) const override;
+	void PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds) override;
 	/// The model itself.
 	void CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const override;
 	//////////////////////////////////////////////////////////////////////////

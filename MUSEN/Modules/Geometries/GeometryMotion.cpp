@@ -4,6 +4,7 @@
 
 #include "GeometryMotion.h"
 #include "MixedFunctions.h"
+#include "MUSENStringFunctions.h"
 #include "ProtoFunctions.h"
 
 // TODO: sort time-dependent motion intervals
@@ -302,4 +303,55 @@ void CGeometryMotion::SaveToProto(ProtoGeometryMotion& _proto) const
 		break;
 	case EMotionType::NONE: break;
 	}
+}
+
+std::ostream& operator<<(std::ostream& _s, const CGeometryMotion& _obj)
+{
+	_s << E2I(_obj.m_motionType) << " ";
+	switch (_obj.m_motionType)
+	{
+	case CGeometryMotion::EMotionType::TIME_DEPENDENT:
+	{
+		_s << _obj.GetTimeIntervals().size() << " ";
+		for (const auto& interval : _obj.GetTimeIntervals())
+			_s << interval << " ";
+		break;
+	}
+	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+	{
+		_s << _obj.GetForceIntervals().size() << " ";
+		for (const auto& interval : _obj.GetForceIntervals())
+			_s << interval << " ";
+		break;
+	}
+	case CGeometryMotion::EMotionType::NONE:
+		_s << 0 << " ";
+		break;
+	}
+	return _s;
+}
+
+std::istream& operator>>(std::istream& _s, CGeometryMotion& _obj)
+{
+	_obj.Clear();
+	_obj.m_motionType = GetEnumFromStream<CGeometryMotion::EMotionType>(_s);
+	const auto intervals = GetValueFromStream<size_t>(&_s);
+	switch (_obj.m_motionType)
+	{
+	case CGeometryMotion::EMotionType::TIME_DEPENDENT:
+	{
+		for (size_t i = 0; i < intervals; ++i)
+			_obj.AddTimeInterval(GetValueFromStream<CGeometryMotion::STimeMotionInterval>(&_s));
+		break;
+	}
+	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
+	{
+		for (size_t i = 0; i < intervals; ++i)
+			_obj.AddForceInterval(GetValueFromStream<CGeometryMotion::SForceMotionInterval>(&_s));
+		break;
+	}
+	case CGeometryMotion::EMotionType::NONE:
+		break;
+	}
+	return _s;
 }

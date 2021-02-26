@@ -75,3 +75,42 @@ CVector3 CTriangle::Normal() const
 {
 	return Normalized((p2 - p1) * (p3 - p1));
 }
+
+size_t CTriangle::Size() const
+{
+	return 3;
+}
+
+CVector3 CTriangle::operator[](size_t _i) const
+{
+	switch (_i)
+	{
+	case 0: return p1;
+	case 1: return p2;
+	case 2: return p3;
+	default: throw std::out_of_range("CTriangle::operator[size_t] : index is out of range");
+	}
+}
+
+CVector3& CTriangle::operator[](size_t _i)
+{
+	switch (_i)
+	{
+	case 0: return p1;
+	case 1: return p2;
+	case 2: return p3;
+	default: throw std::out_of_range("CTriangle::operator[size_t] : index is out of range");
+	}
+}
+
+std::ostream& operator<<(std::ostream& _s, const CTriangle& _obj)
+{
+	_s << _obj.p1 << " " << _obj.p2 << " " << _obj.p3;
+	return _s;
+}
+
+std::istream& operator>>(std::istream& _s, CTriangle& _obj)
+{
+	_s >> _obj.p1 >> _obj.p2 >> _obj.p3;
+	return _s;
+}

@@ -5,6 +5,9 @@
 #pragma once
 #include "SystemStructure.h"
 
+class CPackageGenerator;
+class CBondsGenerator;
+
 class CImportFromText
 {
 public:
@@ -33,6 +36,8 @@ public:
 
 private:
 	CSystemStructure* m_pSystemStructure;		// Pointer to system structure.
+	CPackageGenerator* m_packageGenerator{ nullptr };
+	CBondsGenerator*   m_bondsGenerator{ nullptr };
 	struct STDObjectInfo						// Time-dependent properties for one object.
 	{
 		std::vector<double> vTime;
@@ -49,7 +54,7 @@ private:
 	std::vector<STDObjectInfo*> m_vObjects;		// Local storage of all TD properties of all objects.
 
 public:
-	CImportFromText(CSystemStructure* _pSystemStructure);
+	CImportFromText(CSystemStructure* _pSystemStructure, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator);
 
 	// Imports data from text file. Returns struct with extensive information about import process.
 	SImportFileInfo Import(const std::string& _fileName);

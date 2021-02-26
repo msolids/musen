@@ -6,6 +6,8 @@
 
 #include "TPProperty.h"
 
+class ProtoInteraction;
+
 class CInteraction
 {
 private:

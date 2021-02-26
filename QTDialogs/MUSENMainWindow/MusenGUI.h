@@ -103,7 +103,7 @@ class MusenGUI : public QMainWindow
 	QString m_buildVersion;
 
 public:
-	MusenGUI(const QString& _buildVersion, QWidget* parent = nullptr, Qt::WindowFlags flags = 0);
+	MusenGUI(const QString& _buildVersion, QWidget* parent = nullptr, Qt::WindowFlags flags = {});
 
 	void InitializeConnections(); // Initialize all connections on the form.
 
@@ -126,6 +126,7 @@ private:
 	void LoadSystemStructureUtil(const QString& _fileName); // Loads system structure from specified file.
 	bool LockFile(const QString& _fileName);                // Tries to lock the specified file to protect it from access by other processes. Returns true if lock was successful.
 	void UnlockFile();                                      // Unlocks the current file for other processes.
+	void ShowMessage(QMessageBox::Icon _type, const QString& _message);				// Shows a non-modal non-blocking window with default name, OK button and the specified _type and _message.
 
 	void closeEvent(QCloseEvent* _event) override;
 	void keyPressEvent(QKeyEvent* _event) override;

@@ -71,6 +71,20 @@ struct SJob
 		std::string parameters;
 	};
 
+	struct SGeometryMotionInterval
+	{
+		size_t geometryIndex;								// Index of the geometry. Is used if name is not found.
+		std::string geometryName;							// Name of the geometry. Is used by default.
+	};
+	struct SGeometryMotionIntervalTime : SGeometryMotionInterval
+	{
+		CGeometryMotion::STimeMotionInterval intrerval;		// Time-dependent motion interval.
+	};
+	struct SGeometryMotionIntervalForce : SGeometryMotionInterval
+	{
+		CGeometryMotion::SForceMotionInterval intrerval;	// Force-dependent motion interval.
+	};
+
 	std::string sourceFileName;
 	std::string resultFileName;
 	std::string logFileName;
@@ -134,9 +148,14 @@ struct SJob
 	CExportAsText::STDPropsFlags txtExportTD;
 	CExportAsText::SGeometriesFlags txtExportGeometries;
 	CExportAsText::SMaterialsFlags txtExportMaterials;
+	CExportAsText::SGeneratorsFlags txtExportGenerators;
 	int txtPrecision{ 6 };
 
 	// additional stop criteria
 	std::vector<CBaseSimulator::EStopCriteria> stopCriteria;
 	CBaseSimulator::SStopValues stopValues;
+
+	// geometry movement
+	std::vector<SGeometryMotionIntervalTime> geometryTimeIntervals;
+	std::vector<SGeometryMotionIntervalForce> geometryForceIntervals;
 };

@@ -3,10 +3,14 @@
    See LICENSE file for license and warranty information. */
 
 #include "ImportFromText.h"
+#include "PackageGenerator.h"
+#include "BondsGenerator.h"
 
-CImportFromText::CImportFromText(CSystemStructure* _pSystemStructure)
+CImportFromText::CImportFromText(CSystemStructure* _pSystemStructure, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator)
+	: m_pSystemStructure{ _pSystemStructure }
+	, m_packageGenerator{ _pakageGenerator }
+	, m_bondsGenerator{ _bondsGenerator }
 {
-	m_pSystemStructure = _pSystemStructure;
 }
 
 CImportFromText::EImportFileResult CImportFromText::CheckConstantProperties(ETXTCommands _identifier, const SRequiredProps& _props)
@@ -81,6 +85,8 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 	m_pSystemStructure->ClearAllStatesFrom(0);
 	m_pSystemStructure->DeleteAllObjects();
 	m_pSystemStructure->ClearAllData();
+	m_packageGenerator->Clear();
+	m_bondsGenerator->Clear();
 
 	// open txt file
 	std::ifstream inputFile;
@@ -153,7 +159,7 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 				if (status.importResult != EImportFileResult::OK)
 					return status;
 				auto dStartActivity = GetValueFromStream<double>(&tempStream);
-				auto dEndActivity   = GetValueFromStream<double>(&tempStream);
+				auto dEndActivity = GetValueFromStream<double>(&tempStream);
 				if (CPhysicalObject* pObject = m_pSystemStructure->GetObjectByIndex(nCurrentObjectID))
 				{
 					pObject->SetStartActivityTime(dStartActivity);
@@ -237,16 +243,13 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 			case ETXTCommands::GEOMETRY_TDVEL:
 			{
 				CRealGeometry* pGeometry = m_pSystemStructure->Geometry(m_pSystemStructure->GeometriesNumber() - 1);
-				const size_t nIntervals = GetValueFromStream<unsigned>(&tempStream);
-				pGeometry->Motion()->Clear();
-				double prevTime = 0, time;
-				CVector3 vel, rotCenter, rotVel;
-				for (size_t i = 0; i < nIntervals; ++i)
-				{
-					tempStream >> time >> vel >> rotCenter >> rotVel;
-					pGeometry->Motion()->AddTimeInterval(CGeometryMotion::STimeMotionInterval{ prevTime, time, CGeometryMotion::SMotionInfo{vel, rotVel, rotCenter} });
-					prevTime = time;
-				}
+				pGeometry->SetMotion(GetValueFromStream<CGeometryMotion>(tempStream));
+				break;
+			}
+			case ETXTCommands::ANALYSIS_VOLUME:
+			{
+				auto* volume = m_pSystemStructure->AddAnalysisVolume();
+				tempStream >> *volume;
 				break;
 			}
 			// info about materials
@@ -288,11 +291,29 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 					const auto nNumberOfFraction = GetValueFromStream<unsigned>(&tempStream);
 					pMixture->SetFractionCompound(iFraction, GetValueFromStream<std::string>(&tempStream));
 					pMixture->SetFractionDiameter(iFraction, GetValueFromStream<double>(&tempStream));
+					pMixture->SetFractionContactDiameter(iFraction, GetValueFromStream<double>(&tempStream));
 					pMixture->SetFractionValue(iFraction, GetValueFromStream<double>(&tempStream));
 					pMixture->SetFractionName(iFraction, "Fraction " + std::to_string(nNumberOfFraction));
 				}
 				m_pSystemStructure->m_MaterialDatabase.AddMixture(*pMixture);
 				delete pMixture;
+				break;
+			}
+			case ETXTCommands::PACKAGE_GENERATOR:
+			{
+				auto* g = m_packageGenerator->AddGenerator();
+				tempStream >> *g;
+				break;
+			}
+			case ETXTCommands::PACKAGE_GENERATOR_CONFIG:
+			{
+				tempStream >> *m_packageGenerator;
+				break;
+			}
+			case ETXTCommands::BONDS_GENERATOR:
+			{
+				auto* g = m_bondsGenerator->AddGenerator();
+				tempStream >> *g;
 				break;
 			}
 			}

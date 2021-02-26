@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "DefinesMDB.h"
 #include <string>
 
 class CBaseProperty

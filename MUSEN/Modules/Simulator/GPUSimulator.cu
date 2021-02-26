@@ -3,7 +3,10 @@
    See LICENSE file for license and warranty information. */
 
 #include "GPUSimulator.cuh"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
 #include <thrust/count.h>
+PRAGMA_WARNING_POP
 
 CGPU::CGPU(const CCUDADefines* _cudaDefines) :
 	m_cudaDefines{ _cudaDefines }
@@ -101,12 +104,12 @@ void CGPU::Flags2IndicesList(const size_t _size, bool _flags[], d_vec_u& _sequen
 	// Determine temporary device storage requirements
 	void *pTempStorage = nullptr;
 	size_t nTempStorageSize = 0;
-	thrust::cuda_cub::cub::DeviceSelect::Flagged(pTempStorage, nTempStorageSize, _sequence.data().get(), _flags, _list, _listLength, static_cast<int>(_size));
+	CUDA_CUB_FLAGGED(pTempStorage, nTempStorageSize, _sequence.data().get(), _flags, _list, _listLength, _size);
 	// Allocate temporary storage
 	if (_storage.size() < nTempStorageSize)
 		_storage.resize(nTempStorageSize);
 	// Run selection
-	thrust::cuda_cub::cub::DeviceSelect::Flagged(_storage.data().get(), nTempStorageSize, _sequence.data().get(), _flags, _list, _listLength, static_cast<int>(_size));
+	CUDA_CUB_FLAGGED(_storage.data().get(), nTempStorageSize, _sequence.data().get(), _flags, _list, _listLength, _size);
 }
 
 void CGPU::ApplyExternalAcceleration(SGPUParticles& _particles)
@@ -242,7 +245,7 @@ void CGPU::UpdateVerletLists(bool _bPPVerlet, const SGPUParticles& _particles, c
 
 void CGPU::SortByDst(unsigned _nPart, const d_vec_u& _vVerListSrc, const d_vec_u& _vVerListDst, d_vec_u& _vVerCollInd_DstSorted, d_vec_u& _vVerPartInd_DstSorted) const
 {
-	unsigned nCollisions = _vVerListSrc.size();
+	unsigned nCollisions = (unsigned)_vVerListSrc.size();
 	static d_vec_u vVerListDstTemp, vTemp;
 	vVerListDstTemp = _vVerListDst;
 	_vVerCollInd_DstSorted.resize(nCollisions);
@@ -383,8 +386,8 @@ void CGPU::CopyCollisionsGPU2CPU(SGPUCollisions& _PPCollisionsHost, SGPUCollisio
 
 void CGPU::GetOverlapsInfo(const SGPUParticles& _particles, size_t _maxParticleID, double& _maxOverlap, double& _avrOverlap) const
 {
-	const unsigned collNumberPP = m_CollisionsPP.collisions.nElements;
-	const unsigned collNumberPW = m_CollisionsPW.collisions.nElements;
+	const unsigned collNumberPP = (unsigned)m_CollisionsPP.collisions.nElements;
+	const unsigned collNumberPW = (unsigned)m_CollisionsPW.collisions.nElements;
 
 	static d_vec_d overlapsPP, overlapsPW, tempPP, tempPW;
 	static d_vec_u8 flagsPP, flagsPW;

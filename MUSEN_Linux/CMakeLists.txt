@@ -1,40 +1,47 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.18)
 
 project(MUSEN C CXX CUDA)
 
 # Verbose for debugging
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Overall compiler settings
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CUDA_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON) # Find includes in corresponding build directories
 
+# CUDA
+find_package(CUDAToolkit REQUIRED)
+
 # Matlab for MMUSEN
-find_package(Matlab 9.5)
+find_package(Matlab 9.5 QUIET)
 if (NOT Matlab_FOUND)
 	set(Matlab_INCLUDE_DIRS "")
 endif()
 
 # QT for GUI Musen
-find_package(Qt5Core CONFIG REQUIRED)
-find_package(Qt5Gui CONFIG REQUIRED)
-find_package(Qt5OpenGL CONFIG REQUIRED)
-find_package(Qt5Widgets CONFIG REQUIRED)
+find_package(Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt5 COMPONENTS Gui REQUIRED)
+find_package(Qt5 COMPONENTS OpenGL REQUIRED)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 set(CMAKE_AUTOMOC ON) # Instruct CMake to run moc automatically when needed
 set(CMAKE_AUTOUIC ON) # Create code from a list of Qt designer ui files
-set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTORCC ON) # Build Qt resource files
 #set(Qt5_USE_STATIC_LIBS ON)
 #set(Qt5_USE_STATIC_RUNTIME ON)
 
 # c++ settings
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -fPIC") # -Wall -Wno-unknown-pragmas -Wno-unused-variable -Wno-reorder  -std=c++14
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pthread -fPIC") # -Wall -Wno-unknown-pragmas -Wno-unused-variable -Wno-reorder -std=c++14
 
 # cuda settings
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 -gencode arch=compute_37,code=sm_37 -gencode arch=compute_60,code=sm_60 -gencode arch=compute_61,code=sm_61 -gencode arch=compute_62,code=sm_62 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75 -DVERBOSE -Xcompiler -pthread -Xcompiler -fPIC")
+if (CUDAToolkit_VERSION_MAJOR LESS 11)
+	set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 -gencode arch=compute_61,code=sm_61 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75 -DVERBOSE -Xcompiler -pthread -Xcompiler -fPIC -Wno-deprecated-gpu-targets")
+else ()
+	set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 -gencode arch=compute_61,code=sm_61 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_75,code=sm_75 -gencode arch=compute_80,code=sm_80 -gencode arch=compute_86,code=sm_86 -DVERBOSE -Xcompiler -pthread -Xcompiler -fPIC -Wno-deprecated-gpu-targets")
+endif ()
 
 # Get all subdirectories for include
 FILE(GLOB_RECURSE new_list RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.h)
@@ -56,18 +63,19 @@ file(GLOB_RECURSE proj_guimusen_SRC
 )
 set (EXCLUDE_DIR "/CMusen/")
 foreach (TMP_PATH ${proj_guimusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_guimusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_guimusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
 set (EXCLUDE_DIR "/MMusen/")
 foreach (TMP_PATH ${proj_guimusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_guimusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_guimusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
+#MESSAGE( STATUS "GUIMusen files are: " ${proj_guimusen_SRC} )
 
 # For CMusen: Find all files and exclude QT_GUI/MMusen
 file(GLOB_RECURSE proj_cmusen_SRC
@@ -80,24 +88,24 @@ file(GLOB_RECURSE proj_cmusen_SRC
 )
 set (EXCLUDE_DIR "/MMusen/")
 foreach (TMP_PATH ${proj_cmusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_cmusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_cmusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
 set (EXCLUDE_DIR "/QT_GUI/")
 foreach (TMP_PATH ${proj_cmusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_cmusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_cmusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
 set (EXCLUDE_DIR "QTDialogs/")
 foreach (TMP_PATH ${proj_cmusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_cmusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_cmusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
 #MESSAGE( STATUS "CMusen files are: " ${proj_cmusen_SRC} )
 
@@ -112,24 +120,24 @@ file(GLOB_RECURSE proj_mmusen_SRC
 )
 set (EXCLUDE_DIR "/CMusen/")
 foreach (TMP_PATH ${proj_mmusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_mmusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_mmusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
 set (EXCLUDE_DIR "/QT_GUI/")
 foreach (TMP_PATH ${proj_mmusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_mmusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_mmusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
 set (EXCLUDE_DIR "QTDialogs/")
 foreach (TMP_PATH ${proj_mmusen_SRC})
-    string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
-    if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
-        list (REMOVE_ITEM proj_mmusen_SRC ${TMP_PATH})
-    endif ()
+	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+		list (REMOVE_ITEM proj_mmusen_SRC ${TMP_PATH})
+	endif ()
 endforeach(TMP_PATH)
 #MESSAGE( STATUS "MMusen files are: " ${proj_mmusen_SRC} )
 
@@ -156,7 +164,7 @@ include_directories(
 	${CMAKE_CURRENT_BINARY_DIR} 
 	"$ENV{MUSEN_PROTO_PATH}/include/"
 	"$ENV{MUSEN_ZLIB_PATH}/include/"
-	"$ENV{MUSEN_CUDA_PATH}/include/"
+	${CUDAToolkit_INCLUDE_DIRS}
 	"$ENV{MUSEN_BOOST_PATH}/include/"
 	"$ENV{MUSEN_SCOREP_PATH}/include/"
 	${Matlab_INCLUDE_DIRS}
@@ -214,7 +222,7 @@ target_link_libraries(cmusen
 ###########################################################################
 # MMUSEN: Matlab interface
 ###########################################################################
-if ( Matlab_FOUND )
+if (Matlab_FOUND)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
 	add_library(mmusen SHARED ${proj_mmusen_SRC} ${generated_SRC}) # should be SHARED
 	add_dependencies(mmusen protobuf)

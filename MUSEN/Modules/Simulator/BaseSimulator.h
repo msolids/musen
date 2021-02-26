@@ -6,6 +6,7 @@
 #include "GenerationManager.h"
 #include "ModelManager.h"
 #include "VerletList.h"
+#include <list>
 
 class CBaseSimulator : public CMusenComponent
 {

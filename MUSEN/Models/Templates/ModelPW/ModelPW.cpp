@@ -34,7 +34,7 @@ CModelPW::CModelPW()
 //////////////////////////////////////////////////////////////////////////
 
 /// TODO: This function can be removed if not used.
-void CModelPW::PrecalculatePWModel(double _time, double _timeStep, SParticleStruct* _particles, SWallStruct* _walls) const
+void CModelPW::PrecalculatePWModel(double _time, double _timeStep, SParticleStruct* _particles, SWallStruct* _walls)
 {
 	// TODO: Write your pre-calculation step here.
 }

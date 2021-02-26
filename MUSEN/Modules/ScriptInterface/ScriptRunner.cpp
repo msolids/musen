@@ -95,7 +95,7 @@ void CScriptRunner::GeneratePackage()
 		}
 		if (g.second.porosity != 0.0)		generator.Generator(index)->targetPorosity   = g.second.porosity;
 		if (g.second.overlap != 0.0)		generator.Generator(index)->targetMaxOverlap = g.second.overlap;
-		if (g.second.iterations != 0)		generator.Generator(index)->maxIterations    = g.second.iterations;
+		if (g.second.iterations != 0)		generator.Generator(index)->maxIterations    = (unsigned)g.second.iterations;
 		if (!g.second.velocity.IsInf())		generator.Generator(index)->initVelocity     = g.second.velocity;
 		if (g.second.inside.IsDefined())	generator.Generator(index)->insideGeometry   = g.second.inside.ToBool();
 	}
@@ -234,12 +234,18 @@ void CScriptRunner::ExportToText()
 	if (!LoadSourceFile()) return;
 
 	m_out << "Export to text started" << std::endl;
+	CPackageGenerator packageGenerator;
+	packageGenerator.SetSystemStructure(&m_systemStructure);
+	packageGenerator.LoadConfiguration();
+	CBondsGenerator bondsGenerator;
+	bondsGenerator.SetSystemStructure(&m_systemStructure);
+	bondsGenerator.LoadConfiguration();
 	CExportAsText exporter;
 	CConstraints constraints;
-	exporter.SetPointers(&m_systemStructure, &constraints);
+	exporter.SetPointers(&m_systemStructure, &constraints, &packageGenerator, &bondsGenerator);
 	exporter.SetFileName(m_job.resultFileName);
 	exporter.SetTimePoints(m_systemStructure.GetAllTimePoints());
-	exporter.SetFlags(m_job.txtExportObjects, m_job.txtExportScene, m_job.txtExportConst, m_job.txtExportTD, m_job.txtExportGeometries, m_job.txtExportMaterials);
+	exporter.SetFlags(m_job.txtExportObjects, m_job.txtExportScene, m_job.txtExportConst, m_job.txtExportTD, m_job.txtExportGeometries, m_job.txtExportMaterials, m_job.txtExportGenerators);
 	exporter.SetPrecision(m_job.txtPrecision);
 	exporter.Export();
 	m_out << "Export to text finished" << std::endl;
@@ -251,8 +257,14 @@ void CScriptRunner::ImportFromText()
 
 	m_out << "Import from text started" << std::endl;
 	m_systemStructure.SaveToFile(m_job.resultFileName);
-	CImportFromText importer(&m_systemStructure);
+	CPackageGenerator packageGenerator;
+	CBondsGenerator bondsGenerator;
+	packageGenerator.SetSystemStructure(&m_systemStructure);
+	bondsGenerator.SetSystemStructure(&m_systemStructure);
+	CImportFromText importer(&m_systemStructure, &packageGenerator, &bondsGenerator);
 	importer.Import(m_job.sourceFileName);
+	packageGenerator.SaveConfiguration();
+	bondsGenerator.SaveConfiguration();
 	m_systemStructure.SaveToFile(m_job.resultFileName);
 	m_out << "Import from text finished" << std::endl;
 }

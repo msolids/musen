@@ -34,7 +34,7 @@ CModelSB::CModelSB()
 //////////////////////////////////////////////////////////////////////////
 
 /// TODO: This function can be removed if not used.
-void CModelSB::PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds) const
+void CModelSB::PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds)
 {
 	// TODO: Write your pre-calculation step here.
 }

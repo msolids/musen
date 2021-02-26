@@ -6,6 +6,11 @@
 #include "MDEMFile.h"
 #include "TimePointR.h"
 #include "TimePointW.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/SimulationDescription.pb.h"
+PRAGMA_WARNING_POP
 
 #define TIME_INDEPENDENT_DATA	0
 #define TIME_DEPENDENT_DATA		1
@@ -21,8 +26,8 @@ private:
 
 	std::shared_ptr<CMDEMFile> m_pMDEMFile; // Pointer to m_pMDEMfile.
 
-	uint32_t	 m_iLeftLoadedBlock;	// Index of left loaded block.
-	double	     m_timeEnd;				// Last successfully loaded time point.
+	uint32_t	 m_iLeftLoadedBlock{};	// Index of left loaded block.
+	double	     m_timeEnd{};			// Last successfully loaded time point.
 	std::string  m_sLastError;			// String with last error description.
 
 	// Time point cache structure.

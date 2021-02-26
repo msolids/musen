@@ -99,3 +99,17 @@ bool operator!=(const CGeometrySizes& _lhs, const CGeometrySizes& _rhs)
 {
 	return !(_lhs == _rhs);
 }
+
+std::ostream& operator<<(std::ostream& _s, const CGeometrySizes& _obj)
+{
+	for (const auto& val : _obj.m_sizes)
+		_s << *val << " ";
+	return _s;
+}
+
+std::istream& operator>>(std::istream& _s, CGeometrySizes& _obj)
+{
+	for (double* val : _obj.m_sizes)
+		_s >> *val;
+	return _s;
+}

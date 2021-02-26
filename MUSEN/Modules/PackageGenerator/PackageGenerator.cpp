@@ -12,7 +12,7 @@
 
 CPackageGenerator::~CPackageGenerator()
 {
-	ClearGenerators();
+	Clear();
 }
 
 void CPackageGenerator::SetSimulatorType(ESimulatorType _type)
@@ -427,7 +427,7 @@ std::vector<size_t> CPackageGenerator::ParticlesPerFraction(const SPackage& _gen
 {
 	const CMixture* mixture = m_pSystemStructure->m_MaterialDatabase.GetMixture(_generator.mixtureKey);
 	std::vector<size_t> res(mixture->FractionsNumber());
-	const double volumeToFill = m_pSystemStructure->AnalysisVolume(_generator.volumeKey)->Volume();
+	const double volumeToFill = VolumeToFill(_generator);
 	const double targetSolidVolume = (1.0 - _generator.targetPorosity) * volumeToFill;
 	double volume = 0.0;
 	for (size_t i = 0; i < mixture->FractionsNumber(); ++i)
@@ -437,12 +437,57 @@ std::vector<size_t> CPackageGenerator::ParticlesPerFraction(const SPackage& _gen
 	return res;
 }
 
+double CPackageGenerator::VolumeToFill(const SPackage& _generator) const
+{
+	const auto pbc = m_pSystemStructure->GetPBC();
+	const auto* geometry = m_pSystemStructure->AnalysisVolume(_generator.volumeKey);
+
+	// if PBC is disabled, the required volume is just a volume of the generation geometry.
+	if (!pbc.bEnabled)
+		return geometry->Volume();
+
+	// if PBC is enabled, shrink generation geometry to the size of the PBC
+	// all points of the geometry that lay outside of the PBC are projected on the planes of the PBC,
+	// the obtained figure represents the final generation volume
+
+	// activity of each PBC plane
+	const CVector3b activePBCPlanes{ pbc.bX, pbc.bY, pbc.bZ };
+	// coordinates of each PBC plane
+	const CVector3 planeCoordsBeg = pbc.initDomain.coordBeg;
+	const CVector3 planeCoordsEnd = pbc.initDomain.coordEnd;
+	// for each plane, a point laying on that plane
+	const std::vector<CVector3> pointsOnPlaneBeg{ CVector3{ planeCoordsBeg[0], 0.0, 0.0 } , CVector3{ 0.0, planeCoordsBeg[1], 0.0 }, CVector3{ 0.0, 0.0, planeCoordsBeg[2] } };
+	const std::vector<CVector3> pointsOnPlaneEnd{ CVector3{ planeCoordsEnd[0], 0.0, 0.0 } , CVector3{ 0.0, planeCoordsEnd[1], 0.0 }, CVector3{ 0.0, 0.0, planeCoordsEnd[2] } };
+	// for each plane, its normal vector
+	const std::vector<CVector3> planeNormsBeg{ CVector3{ -1.0, 0.0, 0.0 } , CVector3{ 0.0, -1.0, 0.0 }, CVector3{ 0.0, 0.0, -1.0 } };
+	const std::vector<CVector3> planeNormsEnd{ CVector3{  1.0, 0.0, 0.0 } , CVector3{ 0.0,  1.0, 0.0 }, CVector3{ 0.0, 0.0,  1.0 } };
+
+	// project points
+	auto triangles = geometry->Mesh().Triangles();
+	for (auto& t : triangles) {												// for each triangle
+		for (size_t iP = 0; iP < t.Size(); ++iP) {							// for each point of the triangle
+			for (size_t iXYZ = 0; iXYZ < activePBCPlanes.Size(); ++iXYZ) {	// for each coordinate X/Y/Z of the point
+				if (activePBCPlanes[iXYZ])
+				{
+					if (t[iP][iXYZ] < planeCoordsBeg[iXYZ])
+						t[iP] = ProjectionPointToPlane(t[iP], pointsOnPlaneBeg[iXYZ], planeNormsBeg[iXYZ]);
+					if (t[iP][iXYZ] > planeCoordsEnd[iXYZ])
+						t[iP] = ProjectionPointToPlane(t[iP], pointsOnPlaneEnd[iXYZ], planeNormsEnd[iXYZ]);
+				}
+			}
+		}
+	}
+
+	// calculate volume of the obtained figure
+	return CTriangularMesh{ "", triangles }.Volume();
+}
+
 void CPackageGenerator::UpdateReachedOverlap(SPackage& _generator)
 {
 	_generator.simulator->GetOverlapsInfo(_generator.maxReachedOverlap, _generator.avrReachedOverlap, _generator.generatedParticles);
 }
 
-void CPackageGenerator::ClearGenerators()
+void CPackageGenerator::Clear()
 {
 	for (auto& g : m_generators)
 		ClearSimulator(g.simulator);
@@ -463,7 +508,7 @@ void CPackageGenerator::ClearSimulator(CBaseSimulator*& _simulator)
 
 void CPackageGenerator::LoadConfiguration()
 {
-	ClearGenerators();
+	Clear();
 	const ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
 	m_simulatorType = static_cast<ESimulatorType>(protoMessage.package_generator().simulator_type());
 	m_verletCoeff = protoMessage.package_generator().verlet_coeff() != 0 ? protoMessage.package_generator().verlet_coeff() : m_verletCoeff;
@@ -513,4 +558,14 @@ size_t CPackageGenerator::ParticlesToGenerate(size_t _index) const
 	if (!m_pSystemStructure->AnalysisVolume(gen->volumeKey)) return 0;
 	std::vector<size_t> numbers = ParticlesPerFraction(*gen);
 	return std::accumulate(numbers.begin(), numbers.end(), static_cast<size_t>(0));
+}
+
+std::ostream& operator<<(std::ostream& _s, const CPackageGenerator& _obj)
+{
+	return _s << E2I(_obj.m_simulatorType) << " " << _obj.m_verletCoeff;
+}
+
+std::istream& operator>>(std::istream& _s, CPackageGenerator& _obj)
+{
+	return _s >> S2E(_obj.m_simulatorType) >> _obj.m_verletCoeff;
 }

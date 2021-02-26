@@ -4,14 +4,12 @@
 
 #pragma once
 
-#include <thrust/device_vector.h>
-#include <thrust/execution_policy.h>
-#include <thrust/sequence.h>
-#include <thrust/sort.h>
-#include <thrust/sequence.h>
-#include <thrust/remove.h>
-#include <thrust/scan.h>
 #include "CUDAKernels.cuh"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include <thrust/device_vector.h>
+PRAGMA_WARNING_POP
 
 class CGPU
 {

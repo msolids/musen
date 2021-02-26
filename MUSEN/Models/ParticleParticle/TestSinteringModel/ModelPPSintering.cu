@@ -66,8 +66,8 @@ void __global__ CUDA_CalcPPForce_S_kernel(
 
 		// calculate forces
 		const CVector3 vSinteringForce = vNormalVector * 1.125 * PI * 2 * dEquivRadius * _interactProps[_collInteractPropIDs[iColl]].dEquivSurfaceEnergy;
-		const CVector3 vViscousForce = vRelVelNormal * (-PI * pow(dSquaredContactRadius, 2) / 8 / m_vConstantModelParameters[0]);
-		const CVector3 vTangentialForce = vRelVelTangential * (-m_vConstantModelParameters[1] * PI * dSquaredContactRadius * pow(2 * dEquivRadius, 2) / 8 / m_vConstantModelParameters[0]);
+		const CVector3 vViscousForce = vRelVelNormal * (-PI * pow(dSquaredContactRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
+		const CVector3 vTangentialForce = vRelVelTangential * (-m_vConstantModelParameters[1] * PI * dSquaredContactRadius * pow(2 * dEquivRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
 		const CVector3 vTotalForce = vSinteringForce + vViscousForce + vTangentialForce;
 
 		// apply forces

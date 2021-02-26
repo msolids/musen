@@ -3,6 +3,15 @@
    See LICENSE file for license and warranty information. */
 
 #include "MaterialsDatabase.h"
+#include "MUSENStringFunctions.h"
+#include "DisableWarningHelper.h"
+#include <cmath>
+#include <cfloat>
+#include <fstream>
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/MaterialsDatabase.pb.h"
+PRAGMA_WARNING_POP
 
 CMaterialsDatabase::CMaterialsDatabase()
 {

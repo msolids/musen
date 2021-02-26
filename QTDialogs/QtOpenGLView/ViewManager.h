@@ -37,16 +37,16 @@ public:
 	void UpdateViewQuality() const;		// Render quality needs to be updated.
 	void UpdateParticleTexture() const; // Particle texture needs to be updated.
 
-	void UpdateParticlesVisible() const;	// Updates visibility of particles.
-	void UpdateBondsVisible() const;		// Updates visibility of bonds.
-	void UpdateGeometriesVisible() const;	// Updates visibility of geometries.
-	void UpdateVolumesVisible() const;		// Updates visibility of volumes.
-	void UpdateSlicesVisible() const;		// Updates visibility of slices.
-	void UpdateDomainVisible() const;		// Updates visibility of simulation domain.
-	void UpdatePBCVisible() const;			// Updates visibility of PBC.
-	void UpdateAxesVisible() const;			// Updates visibility of axes.
-	void UpdateTimeVisible() const;			// Updates visibility of time label.
-	void UpdateLegendVisible() const;		// Updates visibility of legend.
+	void UpdateParticles() const;	// Updates particles.
+	void UpdateBonds() const;		// Updates bonds.
+	void UpdateGeometries() const;	// Updates geometries.
+	void UpdateVolumes() const;		// Updates volumes.
+	void UpdateSlices() const;		// Updates slices.
+	void UpdateDomain() const;		// Updates simulation domain.
+	void UpdatePBC() const;			// Updates PBC.
+	void UpdateAxes() const;		// Updates axes.
+	void UpdateTime() const;		// Updates time label.
+	void UpdateLegend() const;		// Updates legend.
 
 
 	void UpdateFontAxes() const;	// Update font of axes labels.
@@ -90,16 +90,16 @@ private:
 	void ClearWidget();
 
 	// Update different components from system structure.
-	void UpdateParticles() const;        // Updates particles.
-	void UpdateBonds() const;            // Updates bonds.
-	void UpdateWalls() const;            // Updates physical walls.
-	void UpdateVolumes() const;			 // Updates analysis volumes.
-	void UpdateSlices() const;			 // Updates slices.
-	void UpdateSimulationDomain() const; // Updates simulation domain.
-	void UpdatePBC() const;              // Updates PBC.
-	void UpdateAxes() const;			 // Updates coordinate axes.
-	void UpdateTime() const;             // Updates time.
-	void UpdateLegend() const;           // Updates legend.
+	void DoUpdateParticles() const;        // Updates particles.
+	void DoUpdateBonds() const;            // Updates bonds.
+	void DoUpdateWalls() const;            // Updates physical walls.
+	void DoUpdateVolumes() const;		   // Updates analysis volumes.
+	void DoUpdateSlices() const;		   // Updates slices.
+	void DoUpdateSimulationDomain() const; // Updates simulation domain.
+	void DoUpdatePBC() const;              // Updates PBC.
+	void DoUpdateAxes() const;			   // Updates coordinate axes.
+	void DoUpdateTime() const;             // Updates time.
+	void DoUpdateLegend() const;           // Updates legend.
 
 	std::vector<CSphere*> GetVisibleParticles() const;	// Returns all the particles that should be shown.
 	std::vector<CSolidBond*> GetVisibleBonds() const;	// Returns all the bonds that should be shown.

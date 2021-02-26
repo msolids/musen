@@ -4,9 +4,13 @@
 
 #pragma once
 
+#include <string>
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
 #include <driver_types.h>
 #include <cuda_runtime.h>
-#include <string>
+PRAGMA_WARNING_POP
 
 class CCUDADefines
 {
@@ -25,18 +29,9 @@ public:
 	{
 		cudaDeviceProp prop{};
 		cudaGetDeviceProperties(&prop, _iDevice);
-		const std::string name = prop.name;
-
-		if (name == "Quadro GV100")			return { 80, 512 };
-		if (name == "TITAN RTX")			return { 72, 256 };
-		if (name == "GeForce RTX 2080 Ti")	return { 68, 256 };
-		if (name == "GeForce GTX 1080 Ti")	return { 28, 256 };
-		if (name == "GeForce GTX 970")		return { 13, 256 };
-		if (name == "GeForce GTX 770")		return {  8, 256 };
-		if (name == "GeForce GTX 680")		return {  8, 256 };
-		if (name == "Tesla K80")			return { 13, 256 };
-		if (name == "Tesla K20m")			return { 13, 256 };
-		return { 28, 256 };
+		const int blocksNumber = prop.multiProcessorCount;
+		const int threadsPerBlock = prop.singleToDoublePrecisionPerfRatio > 4 ? 256 : 512;
+		return { blocksNumber, threadsPerBlock };
 	}
 };
 
@@ -90,6 +85,12 @@ namespace CUDALegacy
 		atomicAdd(&vector3.z, -value.z); \
 	}
 #endif
+#if CUDART_VERSION < 11000
+	#define CUDA_CUB_FLAGGED(d_temp_storage, temp_storage_bytes, d_in, d_flags, d_out, d_num_selected_out, num_items) thrust::cuda_cub::cub::DeviceSelect::Flagged(d_temp_storage, temp_storage_bytes, d_in, d_flags, d_out, d_num_selected_out, static_cast<int>(num_items))
+#else
+	#include <cub/device/device_select.cuh>
+	#define CUDA_CUB_FLAGGED(d_temp_storage, temp_storage_bytes, d_in, d_flags, d_out, d_num_selected_out, num_items) cub::DeviceSelect::Flagged(d_temp_storage, temp_storage_bytes, d_in, d_flags, d_out, d_num_selected_out, static_cast<int>(num_items))
+#endif
 #else
 	#define CUDA_HOST_DEVICE inline
 	#define CUDA_DEVICE inline
@@ -102,12 +103,13 @@ namespace CUDALegacy
 	#define CUDA_SYNCTHREADS
 	#define CUDA_VECTOR3_ATOMIC_ADD(vector3, value) vector3 += value
 	#define CUDA_VECTOR3_ATOMIC_SUB(vector3, value) vector3 -= value
+	#define CUDA_CUB_FLAGGED(d_temp_storage, temp_storage_bytes, d_in, d_flags, d_out, d_num_selected_out, num_items)
 #endif
 
 //#define CUDA_CHECK_ERRORS 1
 
 #ifdef CUDA_CHECK_ERRORS
-#pragma warning (disable : 4996)
+#pragma warning (disable : 4996 26812)
 	#include <ctime>
 	#include <chrono>
 	#include <string>

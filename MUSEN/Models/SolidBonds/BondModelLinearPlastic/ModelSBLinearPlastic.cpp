@@ -12,7 +12,7 @@ CModelSBLinearPlastic::CModelSBLinearPlastic()
 	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
 	AddParameter("KLoad", "Loading stiffness", 1e+6);
 	AddParameter("KUnLoad", "Unloading stiffness", 1e+6);
-	AddParameter("COMPRESSIVE_BREAK", "Consider compressive breakage Yes=1/No=0", 0);
+
 
 	m_hasGPUSupport = true;
 }
@@ -77,10 +77,13 @@ void CModelSBLinearPlastic::CalculateSBForce(double _time, double _timeStep, siz
 
 	if (m_parameters[0].value == 0 ) return; // consider breakage
 	// check the bond destruction
-	double dMaxStress = -vNormalForce.Length() / _bonds.CrossCut(_iBond) + _bonds.TangentialMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * _bonds.AxialMoment(_iBond));
-	double dMaxTorque = -_bonds.TangentialForce(_iBond).Length() / _bonds.CrossCut(_iBond) + _bonds.NormalMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * 2 * _bonds.AxialMoment(_iBond));
+	double dForceLength = vNormalForce.Length();
+	if (dStrainTotal <= 0)	// compression
+		dForceLength *= -1;
+	double dMaxStress = dForceLength / _bonds.CrossCut(_iBond) + _bonds.TangentialMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * _bonds.AxialMoment(_iBond));
+	double dMaxTorque = _bonds.TangentialForce(_iBond).Length() / _bonds.CrossCut(_iBond) + _bonds.NormalMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * 2 * _bonds.AxialMoment(_iBond));
 
-	if ( ((fabs( dMaxStress ) >= _bonds.NormalStrength(_iBond)) && ((m_parameters[3].value != 0 )||(dStrainTotal > 0 ))) || (fabs( dMaxTorque ) >= _bonds.TangentialStrength(_iBond)) )
+	if ( ( dMaxStress >= _bonds.NormalStrength(_iBond) ) || ( dMaxTorque >= _bonds.TangentialStrength(_iBond)) )
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;

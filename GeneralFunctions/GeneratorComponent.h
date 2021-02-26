@@ -42,15 +42,17 @@ public:
 	}
 
 	/// Adds new empty generator.
-	void AddGenerator()
+	T* AddGenerator()
 	{
 		m_generators.push_back(T{});
+		return &m_generators.back();
 	}
 
 	/// Adds new generator.
-	void AddGenerator(const T& _generator)
+	T* AddGenerator(const T& _generator)
 	{
 		m_generators.push_back(_generator);
+		return &m_generators.back();
 	}
 
 	/// Removes the specified generator.

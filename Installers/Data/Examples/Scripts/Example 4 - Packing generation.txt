@@ -1,0 +1,3 @@
+SOURCE_FILE          ../InitScenes/PackingGeneration.mdem
+RESULT_FILE          ./Result_PackingGeneration.mdem
+COMPONENT            PACKAGE_GENERATOR

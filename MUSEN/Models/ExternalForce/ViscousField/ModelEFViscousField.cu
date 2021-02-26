@@ -51,6 +51,6 @@ void __global__ CUDA_CalcExtForce_VF_kernel(
 		else
 			dCd = 17.0 / pow(dReynolds, 0.6);
 
-		_partForces[iPart] -= vRelVel.Normalized() * dCd * PI * pow(_partRadii[iPart], 2) * dMediumDensity / 2 * pow(dRelVelLength, 2);
+		_partForces[iPart] -= vRelVel.Normalized() * dCd * PI * pow(_partRadii[iPart], 2.0) * dMediumDensity / 2 * pow(dRelVelLength, 2.0);
 	}
 }

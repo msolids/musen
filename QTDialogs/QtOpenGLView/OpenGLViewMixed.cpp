@@ -80,7 +80,7 @@ void COpenGLViewMixed::DrawParticles()
 	m_pTexture->bind();
 	m_pProgram->setUniformValue(m_nUniformTexture, 0);
 
-	glDrawArrays(GL_POINTS, 0, m_nSpheresToPaint);
+	glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(m_nSpheresToPaint));
 
 	m_pProgram->disableAttributeArray(m_nAttributeVertex);
 	m_pProgram->disableAttributeArray(m_nAttributeRadius);
@@ -211,12 +211,12 @@ void COpenGLViewMixed::InitializeVBO()
 	delete[] pColors;
 }
 
-void COpenGLViewMixed::RecreateBuffer(QOpenGLBuffer* _pBuffer, const void* _pData, int _nBytes)
+void COpenGLViewMixed::RecreateBuffer(QOpenGLBuffer* _pBuffer, const void* _pData, size_t _nBytes)
 {
 	_pBuffer->destroy();
 	_pBuffer->create();
 	_pBuffer->bind();
-	_pBuffer->allocate(_pData, _nBytes);
+	_pBuffer->allocate(_pData, static_cast<int>(_nBytes));
 	_pBuffer->release();
 }
 

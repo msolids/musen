@@ -191,7 +191,7 @@ void CAgglomOpenGLView::ZoomView( int _nZoomIn )
 
 void CAgglomOpenGLView::wheelEvent( QWheelEvent * event )
 {
-   ZoomView( event->delta() );
+   ZoomView( event->angleDelta().y() );
 }
 
 void CAgglomOpenGLView::mouseMoveEvent( QMouseEvent *event )

@@ -243,6 +243,7 @@ void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 	// apply external acceleration
 	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
+		if (!particles.Active(i)) return;
 		particles.Force(i) += m_externalAcceleration * particles.Mass(i);
 	});
 
@@ -266,6 +267,8 @@ void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 	// move particles
 	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
+		if (!particles.Active(i)) return;
+
 		particles.Vel(i) += particles.Force(i) / particles.Mass(i) * dTimeStep;
 
 		if (m_considerAnisotropy)

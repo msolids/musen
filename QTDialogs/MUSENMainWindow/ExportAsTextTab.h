@@ -40,8 +40,11 @@ class CExportAsTextTab : public CMusenDialog
 	CExportAsTextThread*   m_pExportThread;
 	QTimer				   m_UpdateTimer;
 
+	CPackageGenerator* m_packageGenerator{ nullptr };
+	CBondsGenerator*   m_bondsGenerator{ nullptr };
+
 public:
-	CExportAsTextTab(QWidget *parent = Q_NULLPTR);
+	CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, QWidget* _parent = nullptr);
 
 	void SetPointers(CSystemStructure* _pSystemStructure, CUnitConvertor* _pUnitConvertor, CMaterialsDatabase* _pMaterialsDB, CGeometriesDatabase* _pGeometriesDB, CAgglomeratesDatabase* _pAgglomDB) override;
 

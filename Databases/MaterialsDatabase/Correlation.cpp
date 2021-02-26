@@ -3,6 +3,12 @@
    See LICENSE file for license and warranty information. */
 
 #include "Correlation.h"
+#include <cmath>
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/MaterialsDatabase.pb.h"
+PRAGMA_WARNING_POP
 
 CCorrelation::CCorrelation(void) :
 	m_dT1(0),

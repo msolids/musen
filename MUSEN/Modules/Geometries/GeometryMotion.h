@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include <vector>
 #include "Vector3.h"
+#include "MixedFunctions.h"
+#include "MUSENStringFunctions.h"
 
 class ProtoGeometryMotion;
 
@@ -32,6 +33,14 @@ public:
 			rotationVelocity.Init(0);
 			rotationCenter.Init(0);
 		}
+		friend std::ostream& operator<<(std::ostream& _s, const SMotionInfo& _obj)
+		{
+			_s << _obj.velocity << " " << _obj.rotationCenter << " " << _obj.rotationVelocity; return _s;
+		}
+		friend std::istream& operator>>(std::istream& _s, SMotionInfo& _obj)
+		{
+			_s >> _obj.velocity >> _obj.rotationCenter >> _obj.rotationVelocity; return _s;
+		}
 	};
 
 	// Description of a time-dependent motion interval.
@@ -40,6 +49,14 @@ public:
 		double timeBeg{};	// Interval start time.
 		double timeEnd{};	// Interval end time.
 		SMotionInfo motion;	// Movement characteristics for this interval.
+		friend std::ostream& operator<<(std::ostream& _s, const STimeMotionInterval& _obj)
+		{
+			_s << _obj.timeBeg << " " << _obj.timeEnd << " " << _obj.motion; return _s;
+		}
+		friend std::istream& operator>>(std::istream& _s, STimeMotionInterval& _obj)
+		{
+			_s >> _obj.timeBeg >> _obj.timeEnd >> _obj.motion; return _s;
+		}
 	};
 
 	// Description of a force-dependent motion interval.
@@ -49,6 +66,14 @@ public:
 		double forceLimit{};						// Force limit to switch to the next motion interval.
 		ELimitType limitType{ ELimitType::MAX };	// Whether the force limit is a MAX or MIN value of the interval.
 		SMotionInfo motion;							// Movement characteristics for this interval.
+		friend std::ostream& operator<<(std::ostream& _s, const SForceMotionInterval& _obj)
+		{
+			_s << _obj.forceLimit << " " << E2I(_obj.limitType) << " " << _obj.motion; return _s;
+		}
+		friend std::istream& operator>>(std::istream& _s, SForceMotionInterval& _obj)
+		{
+			_s >> _obj.forceLimit >> S2E(_obj.limitType) >> _obj.motion; return _s;
+		}
 	};
 
 private:
@@ -96,6 +121,9 @@ public:
 
 	void LoadFromProto(const ProtoGeometryMotion& _proto);	// Load from protobuf message.
 	void SaveToProto(ProtoGeometryMotion& _proto) const;	// Save to protobuf message.
+
+	friend std::ostream& operator<<(std::ostream& _s, const CGeometryMotion& _obj);
+	friend std::istream& operator>>(std::istream& _s, CGeometryMotion& _obj);
 };
 
 

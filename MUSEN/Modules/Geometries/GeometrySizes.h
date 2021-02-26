@@ -46,5 +46,8 @@ public:
 
 	friend bool operator==(const CGeometrySizes& _lhs, const CGeometrySizes& _rhs);
 	friend bool operator!=(const CGeometrySizes& _lhs, const CGeometrySizes& _rhs);
+
+	friend std::ostream& operator<<(std::ostream& _s, const CGeometrySizes& _obj);
+	friend std::istream& operator>>(std::istream& _s, CGeometrySizes& _obj);
 };
 

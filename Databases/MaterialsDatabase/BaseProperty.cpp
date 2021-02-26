@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "BaseProperty.h"
+#include "DefinesMDB.h"
 
 CBaseProperty::CBaseProperty():
 	m_nPropertyType(PROPERTY_UNDEFINED_TYPE),

@@ -121,8 +121,8 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 			vTangForce = vTangForce * (prop.dSlidingFriction * fabs(dNormalForce) / dNewTangForce);
 			_collTangOverlaps[iColl] = vTangForce / -Kt;
 		}
-
-		vTangForce += vDampingTangForce;
+		else
+			vTangForce += vDampingTangForce;
 
 		// calculate rolling torque
 		CVector3 vRollingTorque = partAnglVel.IsSignificant() ? partAnglVel * (-prop.dRollingFriction * fabs(dNormalForce) * dPartRadius / partAnglVel.Length()) : CVector3{ 0 };

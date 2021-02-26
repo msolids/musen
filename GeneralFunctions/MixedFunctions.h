@@ -49,6 +49,17 @@ public:
 		return !operator==(_color);
 	}
 
+	friend std::ostream& operator<<(std::ostream& _s, const CColor& _c)
+	{
+		return _s << _c.r << " " << _c.g << " " << _c.b << " " << _c.a;
+	}
+
+	friend std::istream& operator>>(std::istream& _s, CColor& _c)
+	{
+		_s >> _c.r >> _c.g >> _c.b >> _c.a;
+		return _s;
+	}
+
 	static CColor DefaultRealGeometryColor()		{ return CColor{ 0.5f, 0.5f, 1.0f, 1.0f }; }
 	static CColor DefaultAnalysisVolumeColor()		{ return CColor{ 0.6f, 1.0f, 0.6f, 1.0f }; }
 	static CColor DefaultSampleAnalyzerColor()		{ return CColor{ 0.4f, 0.4f, 0.4f, 0.5f }; }
@@ -84,7 +95,7 @@ void inline RandomSeed()
 	case 4: seed *= 2; break;
 	case 3: seed *= seed; break;
 	case 2: seed += seed*seed; break;
-	case 1: seed = seed / 2;
+	case 1: seed = seed / 2; break;
 	case 0: break;
 	}
 	srand(seed);
@@ -153,6 +164,12 @@ template <typename E> std::vector<typename std::underlying_type<E>::type> E2I(co
 	return res;
 }
 
+// Converts double value to enumerator.
+template<typename E>
+constexpr E D2E(double d)
+{
+	return static_cast<E>(static_cast<typename std::underlying_type<E>::type>(d));
+}
 
 // casts vector of TI to a vector of TO
 template<typename TO, typename TI> constexpr auto vector_cast(const std::vector<TI>& _vector)

@@ -68,7 +68,7 @@ void COpenGLViewShader::Construct()
 
 	// add one program of each type
 	for (size_t i = 0; i < m_allPrograms.size(); ++i)
-		m_allPrograms[i]->shaders.emplace_back(new SShaderProgram{});
+		m_allPrograms[i]->shaders.emplace_back(new SShaderProgram);
 }
 
 COpenGLViewShader::~COpenGLViewShader()
@@ -820,7 +820,7 @@ void COpenGLViewShader::mouseMoveEvent(QMouseEvent* _event)
 
 void COpenGLViewShader::wheelEvent(QWheelEvent* _event)
 {
-	m_cameraTranslation.setZ(m_cameraTranslation.z() + static_cast<float>(_event->delta()) / 120 * 0.05f * std::fabs(m_cameraTranslation.z()));
+	m_cameraTranslation.setZ(m_cameraTranslation.z() + static_cast<float>(_event->angleDelta().y()) / 120 * 0.05f * std::fabs(m_cameraTranslation.z()));
 	update();
 }
 
@@ -891,7 +891,7 @@ void COpenGLViewShader::ResizeShaderesBlock(SShaderBlock* _shaderBlock, size_t _
 
 	ClearShaderesBlock(_shaderBlock);
 	for (size_t i = 0; i < _newSize; ++i)
-		_shaderBlock->shaders.emplace_back(new SShaderProgram{});
+		_shaderBlock->shaders.emplace_back(new SShaderProgram);
 	InitShaders(_shaderBlock);
 
 	doneCurrent();

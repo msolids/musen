@@ -52,6 +52,10 @@ enum class ETXTCommands : unsigned
 	MATERIALS_MIXTURES       = 34,
 	OBJECT_STRESSTENSOR      = 36,
 	OBJECT_TEMPERATURE       = 37,
+	ANALYSIS_VOLUME          = 38,
+	PACKAGE_GENERATOR        = 39,
+	PACKAGE_GENERATOR_CONFIG = 40,
+	BONDS_GENERATOR          = 41,
 };
 
 // ********* physical constants
@@ -59,7 +63,7 @@ enum class ETXTCommands : unsigned
 #define ANGLE_GRAVITY_CONSTANT_PHI		0
 #define ANGLE_GRAVITY_CONSTANT_THETA	0
 #define ANGLE_GRAVITY_CONSTANT_PSI		0
-
+#define BOLTZMANN_CONSTANT              1.38064852e-23
 
 // ********* DEFAULT PARAMETERS
 #define DEFAULT_SIMULATION_STEP 1e-6

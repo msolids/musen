@@ -20,7 +20,7 @@ void CModelPPJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc,
 	const CVector3 vNormalVector = _pCollision->vContactVector.Normalized();
 
 	// relative velocity (normal and tangential)
-	const CVector3 vRelVel       = Particles().Vel(_iDst) - Particles().Vel(_iSrc) + vRcSrc * Particles().AnglVel(_iSrc) - vRcDst * Particles().AnglVel(_iDst);
+	const CVector3 vRelVel       = Particles().Vel(_iDst) + Particles().AnglVel(_iDst) * vRcDst - (Particles().Vel(_iSrc) + Particles().AnglVel(_iSrc) * vRcSrc);
 	const double   dRelVelNormal = DotProduct(vNormalVector, vRelVel);
 	const CVector3 vRelVelNormal = dRelVelNormal * vNormalVector;
 	const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
@@ -53,9 +53,8 @@ void CModelPPJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc,
 		vTangForce = vTangForce * _interactProp.dSlidingFriction * std::abs(dNormalForce) / dNewTangForce;
 		_pCollision->vTangOverlap = vTangForce / Kt;
 	}
-
-	// save tangential force
-	_pCollision->vTangForce = vTangForce + vDampingTangForce;
+	else	
+		_pCollision->vTangForce = vTangForce + vDampingTangForce;
 
 	// calculate rolling friction
 	const CVector3 vRollingTorque1 = Particles().AnglVel(_iSrc).IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails

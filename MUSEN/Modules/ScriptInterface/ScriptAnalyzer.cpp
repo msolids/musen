@@ -31,9 +31,9 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	if (m_jobs.empty() && key != "NEW_JOB" && key != "JOB") // force adding the first job if the first line is not JOB
 		m_jobs.push_back({});
 
-	if      (key == "NEW_JOB" || key == "JOB")	m_jobs.push_back({});
+	if      (key == "NEW_JOB" || key == "JOB")				m_jobs.push_back({});
 	else if (key == "SOURCE_FILE")							m_jobs.back().sourceFileName = GetRestOfLine(&ss);
-	else if (key == "LOG_FILE")							m_jobs.back().logFileName = GetRestOfLine(&ss);
+	else if (key == "LOG_FILE")								m_jobs.back().logFileName = GetRestOfLine(&ss);
 	else if (key == "RESULT_FILE" || key == "RESULTS_FILE")	m_jobs.back().resultFileName = GetRestOfLine(&ss);
 	else if (key == "COMPONENT")
 	{
@@ -195,16 +195,16 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		m_jobs.back().txtExportTD.force             = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportTD.quaternion        = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportTD.stressTensor      = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.planesCoordinates = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportTD.totalTorque       = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportTD.tangOverlap       = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportTD.temperature       = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_GEOMETRIES")
 	{
-		m_jobs.back().txtExportGeometries.baseInfo     = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportGeometries.tdProperties = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportGeometries.wallsList    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportGeometries.baseInfo        = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportGeometries.tdProperties    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportGeometries.wallsList       = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportGeometries.analysisVolumes = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_MATERIALS")
 	{
@@ -212,9 +212,41 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		m_jobs.back().txtExportMaterials.interactions = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportMaterials.mixtures     = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
+	else if (key == "TEXT_EXPORT_GENERATORS")
+	{
+		m_jobs.back().txtExportGenerators.packageGenerator = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportGenerators.bondsGenerator   = GetValueFromStream<CTriState>(&ss).ToBool(true);
+	}
 	else if (key == "TEXT_EXPORT_PRECISION")
 	{
 		m_jobs.back().txtPrecision = GetValueFromStream<int>(&ss);
+	}
+	else if (key == "GEOMETRY_MOTION_TIME")
+	{
+		SJob::SGeometryMotionIntervalTime motion;
+		const std::string nameOrIndex = GetValueFromStream<std::string>(&ss);
+		motion.geometryName                      = IsSimpleUInt(nameOrIndex) ? "" : nameOrIndex;
+		motion.geometryIndex                     = IsSimpleUInt(nameOrIndex) ? std::stoull(nameOrIndex) : -1;
+		motion.intrerval.timeBeg                 = GetValueFromStream<double>(&ss);
+		motion.intrerval.timeEnd                 = GetValueFromStream<double>(&ss);
+		motion.intrerval.motion.velocity         = GetValueFromStream<CVector3>(&ss);
+		motion.intrerval.motion.rotationVelocity = GetValueFromStream<CVector3>(&ss);
+		motion.intrerval.motion.rotationCenter   = GetValueFromStream<CVector3>(&ss);
+		m_jobs.back().geometryTimeIntervals.push_back(motion);
+	}
+	else if (key == "GEOMETRY_MOTION_FORCE")
+	{
+		SJob::SGeometryMotionIntervalForce motion;
+		const std::string nameOrIndex            = GetValueFromStream<std::string>(&ss);
+		motion.geometryName                      = IsSimpleUInt(nameOrIndex) ? "" : nameOrIndex;
+		motion.geometryIndex                     = IsSimpleUInt(nameOrIndex) ? std::stoull(nameOrIndex) : -1;
+		motion.intrerval.forceLimit              = GetValueFromStream<double>(&ss);
+		const std::string type = ToUpperCase(GetValueFromStream<std::string>(&ss));
+		motion.intrerval.limitType               = type == "MIN" ? CGeometryMotion::SForceMotionInterval::ELimitType::MIN : CGeometryMotion::SForceMotionInterval::ELimitType::MAX;
+		motion.intrerval.motion.velocity         = GetValueFromStream<CVector3>(&ss);
+		motion.intrerval.motion.rotationVelocity = GetValueFromStream<CVector3>(&ss);
+		motion.intrerval.motion.rotationCenter   = GetValueFromStream<CVector3>(&ss);
+		m_jobs.back().geometryForceIntervals.push_back(motion);
 	}
 	else
 		_out << "Unknown script key: " << key << std::endl;

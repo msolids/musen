@@ -55,9 +55,8 @@ void CModelPWJKR::CalculatePWForce(double _time, double _timeStep, size_t _iWall
 		vTangForce = vTangForce * (_interactProp.dSlidingFriction * std::abs(dNormalForce) / dNewTangForce);
 		_pCollision->vTangOverlap = vTangForce / -Kt;
 	}
-
-	// save old tangential force
-	_pCollision->vTangForce = vTangForce + vDampingTangForce;
+	else
+		_pCollision->vTangForce = vTangForce + vDampingTangForce;
 
 	// calculate rolling friction
 	const CVector3 vRollingTorque =  Particles().AnglVel(_iPart).IsSignificant() ?  Particles().AnglVel(_iPart) * (-_interactProp.dRollingFriction * std::abs(dNormalForce) *  Particles().Radius(_iPart) /  Particles().AnglVel(_iPart).Length()) : CVector3{ 0 };

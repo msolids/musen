@@ -3,9 +3,13 @@
    See LICENSE file for license and warranty information. */
 
 #include "CollisionsStorage.h"
-#include <memory>
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/SimulationDescription.pb.h"
 #include <google/protobuf/io/gzip_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+PRAGMA_WARNING_POP
 
 CCollisionsStorage::CCollisionsStorage()
 {
@@ -262,7 +266,7 @@ void CCollisionsStorage::ClearDescriptors()
 int32_t CCollisionsStorage::WriteToBuf(char *&_pBuffer, const google::protobuf::Message& _message)
 {
 	using namespace google::protobuf::io;
-	int nInitSize = _message.ByteSize() + 10;		// initial size of data. 10 for black magic
+	int nInitSize = (int)_message.ByteSizeLong() + 10;		// initial size of data. 10 for black magic
 	GzipOutputStream::Options options;
 	options.format = GzipOutputStream::ZLIB;
 	options.compression_level = 9;

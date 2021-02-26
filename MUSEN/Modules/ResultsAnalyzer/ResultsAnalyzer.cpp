@@ -3,7 +3,9 @@
    See LICENSE file for license and warranty information. */
 
 #include "ResultsAnalyzer.h"
+#include <fstream>
 #include <utility>
+
 CResultsAnalyzer::CResultsAnalyzer() :
 	m_pout(&std::cout, [](void*) {}) // Sets m_pout out to cout without the destructor
 {
@@ -434,7 +436,7 @@ void CResultsAnalyzer::WriteResultsToFile()
 				else
 					m_vValueResults[i].push_back(dDeviation);
 			}
-		case CResultsAnalyzer::EResultType::Maximum:
+		case CResultsAnalyzer::EResultType::Maximum: [[fallthrough]];
 		case CResultsAnalyzer::EResultType::Minimum:
 			WriteConcResultsToFile();
 			break;

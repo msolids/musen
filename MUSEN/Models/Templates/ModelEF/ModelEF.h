@@ -17,7 +17,7 @@ public:
 	/// CPU implementation.
 
 	/// Is called each time step before real calculations. Can be removed if not used.
-	void PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles) const override;
+	void PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles) override;
 	/// The model itself.
 	void CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const override;
 	//////////////////////////////////////////////////////////////////////////

@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "GeneratedFiles/SimulationDescription.pb.h"
 #include "Quaternion.h"
 #include "Vector3.h"
+
+class ProtoTimePoint;
 
 /* A wrapper for MutableTimePoint to write into it.
  * It is used to set time-dependent data of objects at specific time.

@@ -106,7 +106,7 @@ void __global__ CUDA_CalcPWForce_HML_kernel(
 		const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
 
 		// wet contact
-		double dBondVolume = PI / 3. * pow(dPartRadius, 3); // one quarter of summarized sphere volume
+		double dBondVolume = PI / 3. * pow(dPartRadius, 3.0); // one quarter of summarized sphere volume
 		double dA = -1.1 * pow(dBondVolume, -0.53);
 		double dTempLn = log(dBondVolume);
 		double dB = (-0.34 * dTempLn - 0.96) * dContactAngle * dContactAngle - 0.019 * dTempLn + 0.48;
@@ -149,6 +149,8 @@ void __global__ CUDA_CalcPWForce_HML_kernel(
 				vTangForceDry = vTangForceDry * (prop.dSlidingFriction * fabs(dNormalForceDry) / dNewTangForce);
 				_collTangOverlaps[iColl] = vTangForceDry / -Kt;
 			}
+			else
+				vTangForceDry += vDampingTangForceDry;
 
 			// calculate Rolling friction
 			if (partAnglVel.IsSignificant())
@@ -158,7 +160,7 @@ void __global__ CUDA_CalcPWForce_HML_kernel(
 		}
 
 		// save old tangential force
-		CVector3 vTangForce = vTangForceDry + vDampingTangForceDry + vTangForceLiquid;
+		CVector3 vTangForce = vTangForceDry +  vTangForceLiquid;
 
 		// calculate and apply moment
 		const CVector3 vMoment = vNormalVector * vTangForce * -dPartRadius + vRollingTorqueDry - vMomentLiquid;

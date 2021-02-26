@@ -7,8 +7,8 @@
 #include "Compound.h"
 #include "Interaction.h"
 #include "Mixture.h"
-#include <fstream>
-#include <cfloat>
+
+class ProtoMaterialsDatabase;
 
 class CMaterialsDatabase
 {

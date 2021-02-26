@@ -26,16 +26,6 @@
 
 #pragma once
 
-#pragma warning(push)
-#pragma warning(disable: 6011 6387 26495)
-#include "GeneratedFiles/SimulationDescription.pb.h"
-#pragma warning(pop)
-
-#include <cassert>
-#include <cstring>
-#include <string>
-#include <vector>
-#include <stdint.h>
 #include "FileHandler.h"
 #include "MUSENDefinitions.h"
 
@@ -83,7 +73,7 @@ private:
 
 	std::shared_ptr<CFileHandler> m_pFileInterface; // Pointer to file interface.
 	std::string m_sErrorMessage;					// Error description.
-	uint32_t m_fileVersion;							// Version of the file.
+	uint32_t m_fileVersion{};						// Version of the file.
 
 public:
 	CMDEMFile();
@@ -108,7 +98,7 @@ public:
 	// Copies from olf *.mdem file to the current file.
 	bool CopyFrom(CMDEMFile* _pOldMDEMFile);
 	// Reduces generated file by removing free space in last blocks of two different threads.
-	void FinalTruncate(ProtoSimulationStorage& _protoSimStorage);
+	void FinalTruncate();
 
 	/* File threads functions.
 	File threads are used for logical separation of the time-independent data and time-dependent data when handling .mdem file.

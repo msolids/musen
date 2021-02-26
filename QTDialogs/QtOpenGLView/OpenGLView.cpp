@@ -122,7 +122,7 @@ void COpenGLView::paintEvent(QPaintEvent* _event)
 	glEnable(GL_DEPTH_TEST);
 }
 
-void COpenGLView::GetObjectColor(unsigned int nObjectID, CColor* _ResultColor)
+void COpenGLView::GetObjectColor(size_t nObjectID, CColor* _ResultColor)
 {
 	CPhysicalObject* object = m_pSystemStructure->GetObjectByIndex(nObjectID);
 	double dCurrentValue = 0;// m_pViewOptionsTab->m_dMinColouringValue;
@@ -583,7 +583,7 @@ void COpenGLView::ZoomView(int _nZoomIn)
 
 void COpenGLView::wheelEvent(QWheelEvent * event)
 {
-	ZoomView(event->delta());
+	ZoomView(event->angleDelta().y());
 }
 
 void COpenGLView::SetColorGL(const CColor& _color)

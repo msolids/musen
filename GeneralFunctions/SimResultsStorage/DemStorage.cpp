@@ -3,8 +3,12 @@
    See LICENSE file for license and warranty information. */
 
 #include "DemStorage.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
 #include <google/protobuf/io/gzip_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+PRAGMA_WARNING_POP
 
 CDemStorage::CDemStorage()
 {
@@ -28,7 +32,7 @@ double CDemStorage::GetRealTimeEnd() const
 
 void CDemStorage::FinalTruncate()
 {
-	m_pMDEMFile->FinalTruncate(m_simStorage);
+	m_pMDEMFile->FinalTruncate(/*m_simStorage*/);
 }
 
 bool CDemStorage::CopyFrom(CDemStorage *_pOldStorage)
@@ -419,7 +423,7 @@ void CDemStorage::SaveLastBlock()
 	ProtoBlockDescriptor* pBlockDescriptor = &*m_simStorage.mutable_data_blocks()->rbegin();
 
 	// uncompressed size of block with time-dependena data and value of time points
-	uint32_t nBinSize = pProtoBlockOfTimePoints->ByteSize();
+	uint32_t nBinSize = (uint32_t)pProtoBlockOfTimePoints->ByteSizeLong();
 
 	// set type saved time-dependent data block and uncompressed size
 	pBlockDescriptor->set_format(ProtoBlockDescriptor::kZippedProtoBuff);
@@ -543,7 +547,7 @@ bool CDemStorage::ReadFromBuf(const char *_pBuffer, google::protobuf::Message& _
 int32_t CDemStorage::WriteToBuf(char *&_pBuffer, const google::protobuf::Message& _message)
 {
 	using namespace google::protobuf::io;
-	const int nInitSize = _message.ByteSize() + 10;			// initial size of data. 10 for black magic
+	const int nInitSize = (int)_message.ByteSizeLong() + 10;			// initial size of data. 10 for black magic
 	GzipOutputStream::Options options;
 	options.format = GzipOutputStream::ZLIB;
 	options.compression_level = 1;

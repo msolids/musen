@@ -28,10 +28,10 @@ void CInsertAgglomTab::UpdateWholeView()
 	for (size_t i = 0; i < pAgglo->vBonds.size(); ++i)
 		setBondAliases.insert(ss2qs(pAgglo->vBonds[i].sCompoundAlias));
 
-	QList<QString> vPartAliases = setPartAliases.toList();
-	qSort(vPartAliases);
-	QList<QString> vBondAliases = setBondAliases.toList();
-	qSort(vBondAliases);
+	QList<QString> vPartAliases = setPartAliases.values();
+	std::sort(vPartAliases.begin(), vPartAliases.end());
+	QList<QString> vBondAliases = setBondAliases.values();
+	std::sort(vBondAliases.begin(), vBondAliases.end());
 	ui.tableWidgetParticles->setRowCount(vPartAliases.size());
 	for (int i = 0; i < vPartAliases.size(); ++i)
 	{
@@ -130,8 +130,8 @@ void CInsertAgglomTab::AddAgglomerate()
 	{
 		CSolidBond* pBond = (CSolidBond*)m_pSystemStructure->AddObject(SOLID_BOND );
 		pBond->SetDiameter(pAgglomerate->vBonds[i].dRadius * dScalingFactor * 2);
-		pBond->m_nLeftObjectID = vNewParticlesIndexes[pAgglomerate->vBonds[i].nLeftID];
-		pBond->m_nRightObjectID = vNewParticlesIndexes[pAgglomerate->vBonds[i].nRightID];
+		pBond->m_nLeftObjectID = (unsigned)vNewParticlesIndexes[pAgglomerate->vBonds[i].nLeftID];
+		pBond->m_nRightObjectID = (unsigned)vNewParticlesIndexes[pAgglomerate->vBonds[i].nRightID];
 		pBond->SetCompound(m_pSystemStructure->m_MaterialDatabase.GetCompound(bondCompounds[pAgglomerate->vBonds[i].sCompoundAlias]));
 		pBond->SetInitialLength(m_pSystemStructure->GetBond(0, pBond->m_lObjectID).Length());
 	}

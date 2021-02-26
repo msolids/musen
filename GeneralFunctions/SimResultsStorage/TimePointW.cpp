@@ -3,6 +3,11 @@
    See LICENSE file for license and warranty information. */
 
 #include "TimePointW.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/SimulationDescription.pb.h"
+PRAGMA_WARNING_POP
 
 void CTimePointW::SetCoord(int _objectID, const CVector3& _coord) const
 {

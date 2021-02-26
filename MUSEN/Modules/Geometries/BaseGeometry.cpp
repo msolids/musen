@@ -66,6 +66,16 @@ size_t CBaseGeometry::Accuracy() const
 
 void CBaseGeometry::SetSizes(const CGeometrySizes& _sizes)
 {
+	m_sizes = _sizes;
+}
+
+CGeometrySizes CBaseGeometry::Sizes() const
+{
+	return m_sizes;
+}
+
+void CBaseGeometry::Resize(const CGeometrySizes& _sizes)
+{
 	if (m_sizes == _sizes) return;
 	if (Shape() != EVolumeShape::VOLUME_STL)
 	{
@@ -85,9 +95,19 @@ void CBaseGeometry::SetSizes(const CGeometrySizes& _sizes)
 	}
 }
 
-CGeometrySizes CBaseGeometry::Sizes() const
+void CBaseGeometry::Rotate(const CMatrix3& _rotation)
 {
-	return m_sizes;
+	m_rotation = _rotation * m_rotation;
+}
+
+void CBaseGeometry::SetScalingFactor(double _factor)
+{
+	m_scaling = _factor;
+}
+
+double CBaseGeometry::ScalingFactor() const
+{
+	return m_scaling;
 }
 
 void CBaseGeometry::Scale(double _factor)
@@ -102,16 +122,6 @@ void CBaseGeometry::DeformSTL(const CVector3& _factors)
 	m_scaling = 1.0;
 }
 
-void CBaseGeometry::Rotate(const CMatrix3& _rotation)
-{
-	m_rotation = _rotation * m_rotation;
-}
-
-double CBaseGeometry::ScalingFactor() const
-{
-	return m_scaling;
-}
-
 CGeometryMotion* CBaseGeometry::Motion()
 {
 	return &m_motion;
@@ -120,6 +130,11 @@ CGeometryMotion* CBaseGeometry::Motion()
 const CGeometryMotion* CBaseGeometry::Motion() const
 {
 	return &m_motion;
+}
+
+void CBaseGeometry::SetMotion(const CGeometryMotion& _motion)
+{
+	m_motion = _motion;
 }
 
 void CBaseGeometry::SetSizesFromVector(const std::vector<double>& _sizes)

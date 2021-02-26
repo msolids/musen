@@ -48,11 +48,11 @@ bool CResultsComparer::CompareTwoValues(std::string _sMessage, CVector3 _vVec1, 
 }
 bool CResultsComparer::CompareTimeIndependentData()
 {
-	if (!CompareTwoValues("total number of objects", m_pScene1->GetTotalObjectsCount(), m_pScene2->GetTotalObjectsCount())) return false;
-	if (!CompareTwoValues("total number of particles", m_pScene1->GetNumberOfSpecificObjects(SPHERE), m_pScene2->GetNumberOfSpecificObjects(SPHERE))) return false;
-	if (!CompareTwoValues("total number of solid bonds", m_pScene1->GetNumberOfSpecificObjects(SOLID_BOND), m_pScene2->GetNumberOfSpecificObjects(SOLID_BOND))) return false;
-	if (!CompareTwoValues("total number of geometries", m_pScene1->GeometriesNumber(), m_pScene2->GeometriesNumber())) return false;
-	if (!CompareTwoValues("total number of triangular walls", m_pScene1->GetNumberOfSpecificObjects(TRIANGULAR_WALL), m_pScene2->GetNumberOfSpecificObjects(TRIANGULAR_WALL))) return false;
+	if (!CompareTwoValues("total number of objects", (double)m_pScene1->GetTotalObjectsCount(), (double)m_pScene2->GetTotalObjectsCount())) return false;
+	if (!CompareTwoValues("total number of particles", (double)m_pScene1->GetNumberOfSpecificObjects(SPHERE), (double)m_pScene2->GetNumberOfSpecificObjects(SPHERE))) return false;
+	if (!CompareTwoValues("total number of solid bonds", (double)m_pScene1->GetNumberOfSpecificObjects(SOLID_BOND), (double)m_pScene2->GetNumberOfSpecificObjects(SOLID_BOND))) return false;
+	if (!CompareTwoValues("total number of geometries", (double)m_pScene1->GeometriesNumber(), (double)m_pScene2->GeometriesNumber())) return false;
+	if (!CompareTwoValues("total number of triangular walls", (double)m_pScene1->GetNumberOfSpecificObjects(TRIANGULAR_WALL), (double)m_pScene2->GetNumberOfSpecificObjects(TRIANGULAR_WALL))) return false;
 	if (!CompareTwoValues("end time points", m_pScene1->GetMaxTime(), m_pScene2->GetMaxTime())) return false;
 	return true;
 }
@@ -63,9 +63,9 @@ bool CResultsComparer::CompareWallForces(double _dTime)
 	for (size_t i = 0; i < m_pScene1->GeometriesNumber(); i++)
 	{
 		CVector3 vForce1(0), vForce2(0);
-		for (unsigned int plane : m_pScene1->Geometry(i)->Planes())
+		for (auto plane : m_pScene1->Geometry(i)->Planes())
 			vForce1 += m_pScene1->GetObjectByIndex(plane)->GetForce(dMaxTime);
-		for (unsigned int plane : m_pScene2->Geometry(i)->Planes())
+		for (auto plane : m_pScene2->Geometry(i)->Planes())
 			vForce2 += m_pScene1->GetObjectByIndex(plane)->GetForce(dMaxTime);
 		if (!CompareTwoValues("forces on walls", vForce1, vForce2, m_dRelTolerance)) return false;
 	}
@@ -104,9 +104,9 @@ bool CResultsComparer::CompareInterparticleContacts(double _dTime)
 	std::vector<unsigned> vCoordNums2 = m_pScene2->GetCoordinationNumbers(_dTime);
 	double dAverCoordNum1 = 0, dAverCoordNum2 = 0;
 	if (!vCoordNums1.empty())
-		dAverCoordNum1 = std::accumulate(vCoordNums1.begin(), vCoordNums1.end(), 0) / vCoordNums1.size();
+		dAverCoordNum1 = (double)std::accumulate(vCoordNums1.begin(), vCoordNums1.end(), 0) / vCoordNums1.size();
 	if (!vCoordNums2.empty())
-		dAverCoordNum2 = std::accumulate(vCoordNums2.begin(), vCoordNums2.end(), 0) / vCoordNums2.size();
+		dAverCoordNum2 = (double)std::accumulate(vCoordNums2.begin(), vCoordNums2.end(), 0) / vCoordNums2.size();
 	if (!CompareTwoValues("average coordination number", dAverCoordNum1, dAverCoordNum2, m_dRelTolerance )) return false;
 
 	// compare overlaps
@@ -114,9 +114,9 @@ bool CResultsComparer::CompareInterparticleContacts(double _dTime)
 	std::vector<double> vOverlaps2 = m_pScene2->GetMaxOverlaps(_dTime);
 	double dAverageMaxOverlap1 = 0, dAverageMaxOverlap2 = 0;
 	if (!vOverlaps1.empty())
-		dAverageMaxOverlap1 = std::accumulate(vOverlaps1.begin(), vOverlaps1.end(), 0) / vOverlaps1.size();
+		dAverageMaxOverlap1 = std::accumulate(vOverlaps1.begin(), vOverlaps1.end(), 0.0) / vOverlaps1.size();
 	if (!vOverlaps2.empty())
-		dAverageMaxOverlap2 = std::accumulate(vOverlaps2.begin(), vOverlaps2.end(), 0) / vOverlaps2.size();
+		dAverageMaxOverlap2 = std::accumulate(vOverlaps2.begin(), vOverlaps2.end(), 0.0) / vOverlaps2.size();
 	if (!CompareTwoValues("average overlap", dAverageMaxOverlap1, dAverageMaxOverlap2, m_dRelTolerance)) return false;
 	return true;
 }

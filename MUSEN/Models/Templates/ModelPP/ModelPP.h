@@ -17,7 +17,7 @@ public:
 	/// CPU implementation.
 
 	/// Is called each time step before real calculations. Can be removed if not used.
-	void PrecalculatePPModel(double _time, double _timeStep, SParticleStruct* _particles) const override;
+	void PrecalculatePPModel(double _time, double _timeStep, SParticleStruct* _particles) override;
 	/// The model itself.
 	void CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _pCollision) const override;
 	//////////////////////////////////////////////////////////////////////////

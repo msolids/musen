@@ -3,17 +3,13 @@
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $CURRENT_PATH = (Get-Item -Path ".\" -Verbose).FullName
-if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-	Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
-}
 
 ################################################################################
 ### Paths
 
 $VERSION = "1.2.11"
 $NAME = "zlib-$VERSION"
-$TAR_NAME = "$NAME.tar"
-$ZIP_NAME = "$TAR_NAME.gz"
+$ZIP_NAME = "$NAME.tar.gz"
 $DOWNLOAD_ADDRESS = "http://www.zlib.net/$ZIP_NAME"
 $INSTALL_PATH = "$CURRENT_PATH\zlib"
 $SRC_PATH = "$CURRENT_PATH\$NAME"
@@ -30,7 +26,7 @@ Remove-Item $SRC_PATH -Force -Recurse -ErrorAction Ignore
 ### Download
 
 Invoke-WebRequest $DOWNLOAD_ADDRESS -OutFile $ZIP_NAME
-Expand-7Zip $ZIP_NAME . | Expand-7Zip $TAR_NAME .
+tar -xf $ZIP_NAME
 
 ################################################################################
 ### Build and install
@@ -38,7 +34,7 @@ Expand-7Zip $ZIP_NAME . | Expand-7Zip $TAR_NAME .
 # Build x64
 New-Item $BUILD_PATH -ItemType directory
 Set-Location $BUILD_PATH
-cmake -G "Visual Studio 15 2017 Win64" $SRC_PATH -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH
+cmake -G "Visual Studio 16 2019" $SRC_PATH -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH
 cmake --build . --target INSTALL --config Release
 
 ################################################################################
@@ -69,4 +65,3 @@ Set-Location $CURRENT_PATH
 Remove-Item $BUILD_PATH -Force -Recurse
 Remove-Item $SRC_PATH -Force -Recurse
 Remove-Item $ZIP_NAME -Force -Recurse
-Remove-Item $TAR_NAME -Force -Recurse

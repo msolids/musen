@@ -37,6 +37,11 @@ bool CBondsGenerator::IsDataCorrect() const
 	return true;
 }
 
+void CBondsGenerator::Clear()
+{
+	m_generators.clear();
+}
+
 void CBondsGenerator::StartGeneration()
 {
 	struct SBond
@@ -133,6 +138,7 @@ void CBondsGenerator::StartGeneration()
 			bond->m_nLeftObjectID = bonds[i].leftID;
 			bond->m_nRightObjectID = bonds[i].rightID;
 			bond->SetCompoundKey(generator.compoundKey);
+			bond->SetTangentialOverlap(0.0, CVector3{ 0.0 });
 			generator.completeness = i * 100. / bonds.size();
 			generator.generatedBonds++;
 		}

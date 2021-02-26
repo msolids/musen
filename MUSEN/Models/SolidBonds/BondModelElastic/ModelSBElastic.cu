@@ -6,7 +6,7 @@
 #include "ModelSBElastic.h"
 #include <device_launch_parameters.h>
 
-__constant__ double m_vConstantModelParameters[4];
+__constant__ double m_vConstantModelParameters[2];
 __constant__ SPBC PBC;
 
 void CModelSBElastic::SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc)
@@ -118,11 +118,7 @@ void __global__ CUDA_CalcSBForce_E_kernel(
 		// calculate the force
 		double dStrainTotal = (dDistanceBetweenCenters-dBondInitLength) / dBondInitLength;
 
-
 		CVector3 vNormalForce = currentContact * (-1 * dBondCrossCut * _bondNormalStiffnesses[i] * dStrainTotal);
-		if (m_vConstantModelParameters[1] != 1)
-			if (dStrainTotal > 0) // tension
-				vNormalForce *= m_vConstantModelParameters[1];
 
 		_bondTangentialOverlaps[i] = M * _bondTangentialOverlaps[i] - tangentialVelocity * _timeStep;
 		const CVector3 vTangentialForce = _bondTangentialOverlaps[i] * (_bondTangentialStiffnesses[i] * dBondCrossCut / dBondInitLength);
@@ -136,13 +132,29 @@ void __global__ CUDA_CalcSBForce_E_kernel(
 		_bondPrevBonds[i] = currentBond;
 		_bondTotalForces[i] = vNormalForce+ vTangentialForce;
 
-		if (m_vConstantModelParameters[0])
+		if (m_vConstantModelParameters[0] != 0.0)
 		{
 			// check the bond destruction
-			double dMaxStress = -vNormalForce.Length() / dBondCrossCut + vBondTangentialMoment.Length() * _bondDiameters[i] / (2 * dBondAxialMoment);
-			double dMaxTorque = -vTangentialForce.Length() / dBondCrossCut + vBondNormalMoment.Length() * _bondDiameters[i] / (4 * dBondAxialMoment);
+			double forceLength = vNormalForce.Length();
+			if (dStrainTotal <= 0)	// compression
+				forceLength *= -1;
+			const double maxStress1 = forceLength / dBondCrossCut;
+			const double maxStress2 = vBondTangentialMoment.Length() * _bondDiameters[i] / (2.0 * dBondAxialMoment);
+			const double maxTorque1 = vTangentialForce.Length() / dBondCrossCut;
+			const double maxTorque2 = vBondNormalMoment.Length() * _bondDiameters[i] / (4.0 * dBondAxialMoment);
 
-			if (fabs(dMaxStress) >= _bondNormalStrengths[i] && (m_vConstantModelParameters[2] != 0 || dStrainTotal > 0) || fabs(dMaxTorque) >= _bondTangentialStrengths[i])
+			bool bondBreaks = false;
+			if (m_vConstantModelParameters[0] == 1.0 &&		// standard breakage criteria
+				  (maxStress1 + maxStress2 >= _bondNormalStrengths[i]
+				|| maxTorque1 + maxTorque2 >= _bondTangentialStrengths[i]))
+				bondBreaks = true;
+			if (m_vConstantModelParameters[0] == 2.0 &&		// alternative breakage criteria
+				  (maxStress1 >= _bondNormalStrengths[i]
+				|| maxStress2 >= _bondNormalStrengths[i] && dStrainTotal > 0
+				|| maxTorque1 >= _bondTangentialStrengths[i]
+				|| maxTorque2 >= _bondTangentialStrengths[i]))
+				bondBreaks = true;
+			if (bondBreaks)
 			{
 				_bondActivities[i] = false;
 				_bondEndActivities[i] = _time;

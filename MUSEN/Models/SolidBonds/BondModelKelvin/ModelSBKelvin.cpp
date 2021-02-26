@@ -75,10 +75,13 @@ void CModelSBKelvin::CalculateSBForce(double _time, double _timeStep, size_t _iL
 
 	if (m_parameters[0].value == 0 ) return; // consider breakage
 	// check the bond destruction
-	double dMaxStress = -vNormalForce.Length() / Bonds().CrossCut(_iBond) + Bonds().TangentialMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (2 * Bonds().AxialMoment(_iBond));
-	double dMaxTorque = -Bonds().TangentialForce(_iBond).Length() / Bonds().CrossCut(_iBond) + Bonds().NormalMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (2 * 2 * Bonds().AxialMoment(_iBond));
+	double dForceLength = vNormalForce.Length();
+	if (dStrainTotal <= 0)	// compression
+		dForceLength *= -1;
+	double dMaxStress = dForceLength / Bonds().CrossCut(_iBond) + Bonds().TangentialMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (2 * Bonds().AxialMoment(_iBond));
+	double dMaxTorque = Bonds().TangentialForce(_iBond).Length() / Bonds().CrossCut(_iBond) + Bonds().NormalMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (2 * 2 * Bonds().AxialMoment(_iBond));
 
-	if ( ((fabs( dMaxStress ) >= Bonds().NormalStrength(_iBond)) && (dStrainTotal > 0)) || (fabs( dMaxTorque ) >= Bonds().TangentialStrength(_iBond)) )
+	if ( ( dMaxStress  >= Bonds().NormalStrength(_iBond) ) || ( dMaxTorque >= Bonds().TangentialStrength(_iBond)) )
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;

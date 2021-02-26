@@ -3,6 +3,11 @@
    See LICENSE file for license and warranty information. */
 
 #include "AgglomeratesDatabase.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/AgglomeratesDatabase.pb.h"
+PRAGMA_WARNING_POP
 
 CAgglomeratesDatabase::~CAgglomeratesDatabase()
 {

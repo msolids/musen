@@ -97,7 +97,7 @@ void CAgglomeratesDatabaseTab::AddAgglomerate()
 		}
 	}
 
-	CAgglomCompounds dialog(pNewAgglomerate, m_pMaterialsDB, partCompounds.toList(), bondCompounds.toList());
+	CAgglomCompounds dialog(pNewAgglomerate, m_pMaterialsDB, partCompounds.values(), bondCompounds.values());
 	if (dialog.exec() != QDialog::Accepted)
 		return;
 	m_pAgglomDB->AddNewAgglomerate( *pNewAgglomerate );

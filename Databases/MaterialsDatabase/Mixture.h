@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "DefinesMDB.h"
-#include "MUSENStringFunctions.h"
-#pragma warning(push, 0)
-#include "GeneratedFiles/MaterialsDatabase.pb.h"
-#pragma warning(pop)
+#include <string>
+#include <vector>
+
+class ProtoMixture;
+class ProtoCompoundFraction;
 
 struct SCompoundFraction
 {
@@ -17,33 +17,13 @@ struct SCompoundFraction
 	double dDiameter;
 	double dContactDiameter;
 	double dFraction;
-	SCompoundFraction():
-		sFractionName(COMPOUND_FRACTION_UNDEFINED_NAME), sCompoundKey(""), dDiameter(COMPOUND_FRACTION_DEFAULT_DIAMETER), dContactDiameter(COMPOUND_FRACTION_DEFAULT_DIAMETER), dFraction(0) {}
-	SCompoundFraction(const std::string& _sName, const std::string& _sCompoundKey, double _dDiameter, double _dFraction) :
-		sFractionName(_sName), sCompoundKey(_sCompoundKey), dDiameter(_dDiameter), dContactDiameter(_dDiameter), dFraction(_dFraction) {}
-	SCompoundFraction(const std::string& _sName, const std::string& _sCompoundKey, double _dDiameter, double _dContactDiameter, double _dFraction) :
-		sFractionName(_sName), sCompoundKey(_sCompoundKey), dDiameter(_dDiameter), dContactDiameter(_dContactDiameter), dFraction(_dFraction) {}
+	SCompoundFraction();
+	SCompoundFraction(const std::string& _sName, const std::string& _sCompoundKey, double _dDiameter, double _dFraction);
+	SCompoundFraction(const std::string& _sName, const std::string& _sCompoundKey, double _dDiameter, double _dContactDiameter, double _dFraction);
 	/// Saves CompoundFraction to protobuf-file
-	void SaveToProtobuf(ProtoCompoundFraction& _protoFraction)
-	{
-		_protoFraction.set_fractionname(sFractionName);
-		_protoFraction.set_compoundkey(sCompoundKey);
-		_protoFraction.set_diameter(dDiameter);
-		_protoFraction.set_contact_diameter(dContactDiameter);
-		_protoFraction.set_fraction(dFraction);
-	}
+	void SaveToProtobuf(ProtoCompoundFraction& _protoFraction);
 	/// Loads CompoundFraction from protobuf-file
-	void LoadFromProtobuf(const ProtoCompoundFraction& _protoFraction)
-	{
-		sFractionName = _protoFraction.fractionname();
-		sCompoundKey = _protoFraction.compoundkey();
-		dDiameter = _protoFraction.diameter();
-		if (_protoFraction.contact_diameter()!=0) // for old file formats //proto3 (in proto2 - has_contact_diameter)
-			dContactDiameter = _protoFraction.contact_diameter();
-		else
-			dContactDiameter = dDiameter;
-		dFraction = _protoFraction.fraction();
-	}
+	void LoadFromProtobuf(const ProtoCompoundFraction& _protoFraction);
 };
 
 class CMixture

@@ -7,6 +7,9 @@
 #include "BaseProperty.h"
 #include "Correlation.h"
 #include <limits>
+#include <memory>
+
+class ProtoTPProperty;
 
 class CTPProperty : public CBaseProperty
 {

@@ -67,8 +67,8 @@ void CSimplifiedSceneGPU::CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU)
 	ParallelFor(bondsCPU.Size(), [&](size_t i)
 	{
 		bondsHost.Activities[i] = bondsCPU.Active(i);
-		bondsHost.LeftIDs[i] = bondsCPU.LeftID(i);
-		bondsHost.RightIDs[i] = bondsCPU.RightID(i);
+		bondsHost.LeftIDs[i] = (unsigned)bondsCPU.LeftID(i);
+		bondsHost.RightIDs[i] = (unsigned)bondsCPU.RightID(i);
 		bondsHost.CrossCuts[i] = bondsCPU.CrossCut(i);
 		bondsHost.Diameters[i] = bondsCPU.Diameter(i);
 		bondsHost.InitialLengths[i] = bondsCPU.InitialLength(i);

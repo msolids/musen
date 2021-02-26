@@ -34,5 +34,15 @@ public:
 	void InvertOrientation();
 
 	CVector3 Normal() const;
+
+	// Returns number of points.
+	size_t Size() const;
+
+	CVector3 operator[](size_t _i) const;
+	CVector3& operator[](size_t _i);
+
+
+	friend std::ostream& operator<<(std::ostream& _s, const CTriangle& _obj);
+	friend std::istream& operator>>(std::istream& _s, CTriangle& _obj);
 };
 

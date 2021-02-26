@@ -12,6 +12,9 @@
 // Defines flags and a constructor, which puts pointers to them to a std::vector<bool*> flags of SBaseFlags.
 #define CREATE_FLAGS(name, ...) DEFINE_FLAGS(__VA_ARGS__) name() { FOR_EACH_VA_REF(flags.push_back,__VA_ARGS__) }
 
+class CPackageGenerator;
+class CBondsGenerator;
+
 class CExportAsText
 {
 	struct SBaseFlags
@@ -39,7 +42,7 @@ public:
 	};
 	struct SGeometriesFlags : SBaseFlags
 	{
-		CREATE_FLAGS(SGeometriesFlags, baseInfo, tdProperties, wallsList)
+		CREATE_FLAGS(SGeometriesFlags, baseInfo, tdProperties, wallsList, analysisVolumes)
 	};
 	struct SMaterialsFlags : SBaseFlags
 	{
@@ -51,7 +54,11 @@ public:
 	};
 	struct STDPropsFlags : SBaseFlags
 	{
-		CREATE_FLAGS(STDPropsFlags, coordinate, velocity, angularVelocity, totalForce, force, quaternion, stressTensor, planesCoordinates, totalTorque, tangOverlap, temperature)
+		CREATE_FLAGS(STDPropsFlags, coordinate, velocity, angularVelocity, totalForce, force, quaternion, stressTensor, totalTorque, tangOverlap, temperature)
+	};
+	struct SGeneratorsFlags : SBaseFlags
+	{
+		CREATE_FLAGS(SGeneratorsFlags, packageGenerator, bondsGenerator)
 	};
 
 private:
@@ -68,14 +75,14 @@ private:
 	struct STDData // Time-dependent data structure for one time point.
 	{
 		double time{};
-		CVector3 coord;
-		CVector3 velo;
-		CVector3 angleVel;
+		CVector3 coord{};
+		CVector3 velo{};
+		CVector3 angleVel{};
 		double totForce{};
-		CVector3 force;
-		CQuaternion quaternion;
-		CMatrix3 stressTensor;
-		double temperature;
+		CVector3 force{};
+		CQuaternion quaternion{};
+		CMatrix3 stressTensor{};
+		double temperature{};
 	};
 
 	SObjectTypeFlags m_objectTypeFlags;  // Object type flags.
@@ -84,10 +91,13 @@ private:
 	STDPropsFlags m_tdPropsFlags;        // TD properties flags.
 	SGeometriesFlags m_geometriesFlags;  // Geometry flags.
 	SMaterialsFlags m_materialsFlags;    // Materials flags.
+	SGeneratorsFlags m_generatorsFlags;  // Generators flags.
 	std::vector<SBaseFlags*> m_allFlags; // Vector of pointers to all flags.
 
 	CSystemStructure* m_pSystemStructure;
 	CConstraints*	  m_pConstraints;
+	CPackageGenerator* m_packageGenerator{ nullptr };
+	CBondsGenerator*   m_bondsGenerator{ nullptr };
 
 	std::string m_fileName;			// Name of resulting text file.
 	std::vector<double> m_timePoints;  // List of time points, which should be considered.
@@ -101,10 +111,10 @@ public:
 	CExportAsText();
 
 	// Sets SystemStructure and Constraints pointers.
-	void SetPointers(CSystemStructure* _pSystemStructure, CConstraints* _pConstaints);
+	void SetPointers(CSystemStructure* _pSystemStructure, CConstraints* _pConstaints, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator);
 
 	// Set all flags.
-	void SetFlags(const SObjectTypeFlags& _objectTypes, const SSceneInfoFlags& _sceneInfo, const SConstPropsFlags& _constProps, const STDPropsFlags& _tdProps, const SGeometriesFlags& _geometries, const SMaterialsFlags& _materials);
+	void SetFlags(const SObjectTypeFlags& _objectTypes, const SSceneInfoFlags& _sceneInfo, const SConstPropsFlags& _constProps, const STDPropsFlags& _tdProps, const SGeometriesFlags& _geometries, const SMaterialsFlags& _materials, const SGeneratorsFlags& _generators);
 
 	// Sets name of text file for data export.
 	void SetFileName(const std::string& _sFileName);

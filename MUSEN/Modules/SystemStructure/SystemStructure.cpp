@@ -4,6 +4,7 @@
 
 #include "SystemStructure.h"
 #include "MeshGenerator.h"
+#include <fstream>
 
 CSystemStructure::CSystemStructure()
 {
@@ -1023,7 +1024,7 @@ void CSystemStructure::FlushToStorage() // Setting values to the protofile
 	{
 		ProtoMultisphere* protoMultiSphere = si->add_multispheres();
 		for (unsigned j = 0; j < m_Multispheres[i].size(); j++)
-			protoMultiSphere->add_id(m_Multispheres[i][j]);
+			protoMultiSphere->add_id((int)m_Multispheres[i][j]);
 	}
 
 	Val2Proto(si->mutable_simulation_volume_min(), m_SimulationDomain.coordBeg);
@@ -1050,8 +1051,8 @@ void CSystemStructure::FinalFileTruncate()
 
 void CSystemStructure::NewFile()
 {
-	Reset();
 	DeleteAllObjects();
+	Reset();
 }
 
 void CSystemStructure::SaveToFile(const std::string& _sFileName /*= ""*/)
@@ -1148,8 +1149,8 @@ CSystemStructure::ELoadFileResult CSystemStructure::LoadFromFile(const std::stri
 	objects.resize(m_storage->ObjectsCount(), nullptr);
 	ParallelFor(m_storage->ObjectsCount(), [&](size_t i)
 	{
-		if (m_storage->SimulationInfo()->particles(i).type() == 0) return; // unknown or empty object
-		AddObject(m_storage->Object(i)->type(), i);	     // add object to all physical objects in the system
+		if (m_storage->SimulationInfo()->particles((int)i).type() == 0) return; // unknown or empty object
+		AddObject(m_storage->Object((int)i)->type(), i);	     // add object to all physical objects in the system
 		objects[i]->Load();								 // load object geometry
 	});
 
@@ -1721,7 +1722,7 @@ CRealGeometry* CSystemStructure::AddGeometry(const EVolumeShape& _type, const CG
 	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Diagonal());
 	CRealGeometry* geometry = AddGeometry(mesh);
 	geometry->SetShape(_type);
-	geometry->SetSizes(_sizes);
+	geometry->Resize(_sizes);
 	return geometry;
 }
 
@@ -1853,7 +1854,7 @@ CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const EVolumeShape& _type, 
 
 	CAnalysisVolume* volume = AddAnalysisVolume(mesh);
 	volume->SetShape(_type);
-	volume->SetSizes(_sizes);
+	volume->Resize(_sizes);
 	return volume;
 }
 

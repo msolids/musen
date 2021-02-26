@@ -4,6 +4,7 @@
 
 #include "GeometriesAnalyzer.h"
 #include <vector>
+#include <fstream>
 
 CGeometriesAnalyzer::CGeometriesAnalyzer()
 {

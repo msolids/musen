@@ -142,6 +142,27 @@ void CAnalysisVolume::LoadFromProto_v0(const ProtoAnalysisVolume_v0& _proto)
 		Motion()->SetMotionType(CGeometryMotion::EMotionType::TIME_DEPENDENT);
 }
 
+std::ostream& operator<<(std::ostream& _s, const CAnalysisVolume& _obj)
+{
+	_s << MakeSingleString(_obj.Name()) << " " << _obj.Key() << " " << E2I(_obj.Shape()) << " "
+		<< _obj.Color() << " " << _obj.Sizes() << " " << _obj.ScalingFactor() << " " << _obj.RotationMatrix() << " " << *_obj.Motion() << " " << _obj.m_mesh;
+	return _s;
+}
+
+std::istream& operator>>(std::istream& _s, CAnalysisVolume& _obj)
+{
+	_obj.SetName(GetValueFromStream<std::string>(_s));
+	_obj.SetKey(GetValueFromStream<std::string>(_s));
+	_obj.SetShape(GetEnumFromStream<EVolumeShape>(_s));
+	_obj.SetColor(GetValueFromStream<CColor>(_s));
+	_obj.SetSizes(GetValueFromStream<CGeometrySizes>(_s));
+	_obj.SetScalingFactor(GetValueFromStream<double>(_s));
+	_obj.SetRotationMatrix(GetValueFromStream<CMatrix3>(_s));
+	_obj.SetMotion(GetValueFromStream<CGeometryMotion>(_s));
+	_obj.SetMesh(GetValueFromStream<CTriangularMesh>(_s));
+	return _s;
+}
+
 std::vector<size_t> CAnalysisVolume::GetParticleIndicesInside(double _time, bool _totallyInside /*= true*/) const
 {
 	const auto particles = m_systemStructure->GetAllSpheres(_time);

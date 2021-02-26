@@ -5,11 +5,6 @@
 #pragma once
 
 #include "SystemStructure.h"
-#pragma warning(push, 0)
-#include "GeneratedFiles/SimulationDescription.pb.h"
-#pragma warning(pop)
-#include "ProtoFunctions.h"
-#include<list>
 
 class CMusenComponent
 {

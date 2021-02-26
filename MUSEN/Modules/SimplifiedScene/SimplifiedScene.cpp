@@ -65,7 +65,7 @@ void CSimplifiedScene::InitializeScene(double _dStartTime, const SOptionalVariab
 	for (size_t iPart : viParticles)
 	{
 		const CVector3 pos = m_pSystemStructure->GetObjectByIndex(iPart)->GetCoordinates(_dStartTime) / maxD;
-		indices.insert({ MortonEncode(std::round(pos.x), std::round(pos.y), std::round(pos.z)), iPart});
+		indices.insert({ MortonEncode((size_t)std::round(pos.x), (size_t)std::round(pos.y), (size_t)std::round(pos.z)), iPart});
 	}
 	viParticles.clear();
 	for (auto const& pair : indices)
@@ -459,6 +459,8 @@ double CSimplifiedScene::GetMaxPartVerletDistance()
 	{
 		if (m_Objects.vParticles->Active(i))
 			vTempBuffer[i] = SquaredLength(m_Objects.vParticles->Coord(i) - m_Objects.vParticles->CoordVerlet(i));
+		else
+			vTempBuffer[i] = 0;
 	});
 	return sqrt(VectorMax(vTempBuffer));
 }
@@ -672,8 +674,8 @@ void CSimplifiedScene::FindAdjacentWalls()
 				const CTriangle triangle2{ m_Objects.vWalls->Vert1(iWall2), m_Objects.vWalls->Vert2(iWall2), m_Objects.vWalls->Vert3(iWall2) };
 				if (HaveSharedVertex(triangle1, triangle2))
 				{
-					m_adjacentWalls[iWall1].push_back(iWall2);
-					m_adjacentWalls[iWall2].push_back(iWall1);
+					m_adjacentWalls[iWall1].push_back((unsigned)iWall2);
+					m_adjacentWalls[iWall2].push_back((unsigned)iWall1);
 				}
 			}
 		}

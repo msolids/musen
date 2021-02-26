@@ -8,7 +8,7 @@
 
 const QString MusenGUI::m_sRecentFilesParamName	= "recentFiles";
 
-MusenGUI::MusenGUI(const QString& _buildVersion, QWidget* parent /*= nullptr*/, Qt::WindowFlags flags /*= 0*/) :
+MusenGUI::MusenGUI(const QString& _buildVersion, QWidget* parent /*= nullptr*/, Qt::WindowFlags flags /*= {}*/) :
 	QMainWindow(parent, flags),
 	m_pFileLocker(nullptr),
 	m_buildVersion(_buildVersion)
@@ -54,7 +54,7 @@ MusenGUI::MusenGUI(const QString& _buildVersion, QWidget* parent /*= nullptr*/, 
 	m_pAgglomeratesAnalyzerTab = new CAgglomeratesAnalyzerTab(this);
 	m_pGeometriesAnalyzerTab   = new CGeometriesAnalyzerTab(this);
 	//m_pCollisionsAnalyzerTab   = new CCollisionsAnalyzerTab(this);
-	m_pExportAsTextTab         = new CExportAsTextTab(this);
+	m_pExportAsTextTab         = new CExportAsTextTab(&m_PackageGenerator, &m_BondsGenerator, this);
 	m_pFileMergerTab           = new CFileMergerTab(this);
 	m_pFileConverterTab        = new CFileConverterTab(this);
 	m_pSimulatorSettingsTab    = new CSimulatorSettingsTab(&m_SimulatorManager, this);
@@ -120,7 +120,7 @@ void MusenGUI::InitializeConnections()
 	connect(ui.actionMergeFiles,                  &QAction::triggered, m_pFileMergerTab,             &CFileMergerTab::ShowDialog);
 	connect(ui.actionClearSpecificTimePoints,     &QAction::triggered, m_pClearSpecificTPTab,        &CClearSpecificTPTab::ShowDialog);
 	connect(ui.actionCameraSettings,              &QAction::triggered, m_pCameraSettings,            &QDialog::show);
-	connect(ui.actionAbout,                       &QAction::triggered, this,						 &MusenGUI::ShowAboutWindow);
+	connect(ui.actionAbout,                       &QAction::triggered, this,                         &MusenGUI::ShowAboutWindow);
 	connect(ui.actionNew,                         &QAction::triggered, this,                         &MusenGUI::NewSystemStructure);
 	connect(ui.actionLoad,                        &QAction::triggered, this,                         &MusenGUI::LoadSystemStructure);
 	connect(ui.actionSave,                        &QAction::triggered, this,                         &MusenGUI::SaveSystemStructure);
@@ -158,6 +158,16 @@ void MusenGUI::InitializeConnections()
 		connect(tab,                  &CMusenDialog::UpdateOpenGLView,						   m_pViewManager,    &CViewManager::UpdateAllObjects);
 		connect(tab,                  &CMusenDialog::EnableOpenGLView,                         m_pViewManager,    &CViewManager::EnableView);
 		connect(tab,                  &CMusenDialog::DisableOpenGLView,                        m_pViewManager,    &CViewManager::DisableView);
+		connect(tab, &CMusenDialog::UpdateViewParticles , m_pViewManager, &CViewManager::UpdateParticles );
+		connect(tab, &CMusenDialog::UpdateViewBonds     , m_pViewManager, &CViewManager::UpdateBonds     );
+		connect(tab, &CMusenDialog::UpdateViewGeometries, m_pViewManager, &CViewManager::UpdateGeometries);
+		connect(tab, &CMusenDialog::UpdateViewVolumes   , m_pViewManager, &CViewManager::UpdateVolumes   );
+		connect(tab, &CMusenDialog::UpdateViewSlices    , m_pViewManager, &CViewManager::UpdateSlices    );
+		connect(tab, &CMusenDialog::UpdateViewDomain    , m_pViewManager, &CViewManager::UpdateDomain    );
+		connect(tab, &CMusenDialog::UpdateViewPBC       , m_pViewManager, &CViewManager::UpdatePBC       );
+		connect(tab, &CMusenDialog::UpdateViewAxes      , m_pViewManager, &CViewManager::UpdateAxes      );
+		connect(tab, &CMusenDialog::UpdateViewTime      , m_pViewManager, &CViewManager::UpdateTime      );
+		connect(tab, &CMusenDialog::UpdateViewLegend    , m_pViewManager, &CViewManager::UpdateLegend    );
 	}
 
 	connect(m_pGeometriesEditorTab, &CGeometriesEditorTab::ObjectsChanged,	m_pPackageGeneratorTab, &CPackageGeneratorTab::UpdateWholeView);
@@ -377,6 +387,8 @@ void MusenGUI::LoadSystemStructureUtil(const QString& _fileName)
 		return;
 	}
 
+	if (!LockFile(_fileName)) return;
+
 	// check file version
 	if (CSystemStructure::IsOldFileVersion(qs2ss(_fileName)))
 	{
@@ -399,17 +411,18 @@ void MusenGUI::LoadSystemStructureUtil(const QString& _fileName)
 	case CSystemStructure::ELoadFileResult::OK:
 		break;
 	case CSystemStructure::ELoadFileResult::IsNotDEMFile:
-		QMessageBox::critical(this, "MUSEN", "Unable to open selected file. The file may be in incorrect format or corrupted.");
-		break;
+		ShowMessage(QMessageBox::Icon::Critical, "The selected file cannot be opened. The file may be in the wrong format or damaged.");
+		UnlockFile();
+		QApplication::restoreOverrideCursor();
+		return;
 	case CSystemStructure::ELoadFileResult::PartiallyLoaded:
-		QMessageBox::warning(this, "MUSEN", "The selected file was only partially uploaded. Probably, the simulation ended abnormally.");
+		ShowMessage(QMessageBox::Icon::Warning, "The selected file was only partially loaded. Probably, the simulation ended abnormally.");
 		break;
 	case CSystemStructure::ELoadFileResult::SelectivelySaved:
-		QMessageBox::warning(this, "MUSEN", "The selected file was saved in selective mode. Some properties of objects may not be available. The scene may not be rendered correctly at certain time points.");
+		ShowMessage(QMessageBox::Icon::Warning, "The selected file was selectively saved. Some objects properties may not be available. The scene may not display correctly at certain time points.");
 		break;
 	}
 
-	if (!LockFile(_fileName)) return;
 	SetCurrentFile(_fileName);
 	// use m_storage in system structure to load all data; m_storage must be previously initialized in CSystemStructure::LoadFromFile()
 	for (auto& component : m_vpGeneralComponents)
@@ -431,7 +444,7 @@ void MusenGUI::LoadSystemStructureFromText()
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	m_pViewManager->DisableView();
 
-	CImportFromText importer(&m_SystemStructure);
+	CImportFromText importer(&m_SystemStructure, &m_PackageGenerator, &m_BondsGenerator);
 	const CImportFromText::SImportFileInfo importInfo = importer.Import(qs2ss(fileName));
 	switch (importInfo.importResult)
 	{
@@ -501,6 +514,18 @@ void MusenGUI::UnlockFile()
 		delete m_pFileLocker;
 		m_pFileLocker = nullptr;
 	}
+}
+
+void MusenGUI::ShowMessage(QMessageBox::Icon _type, const QString& _message)
+{
+	auto* box = new QMessageBox{ this };
+	box->setAttribute(Qt::WA_DeleteOnClose);
+	box->setIcon(_type);
+	box->setModal(false);
+	box->setStandardButtons(QMessageBox::Ok);
+	box->setText(_message);
+	box->setWindowTitle("MUSEN");
+	box->show();
 }
 
 void MusenGUI::ChangeCurrentTime()

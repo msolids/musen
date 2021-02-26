@@ -78,10 +78,13 @@ void CModelSBThermal::CalculateSBForce(double _time, double _timeStep, size_t _i
 	_bonds.PrevBond(_iBond) = currentBond;
 
 	// check the bond destruction
-	double dMaxStress = -vNormalForce.Length() / _bonds.CrossCut(_iBond) + _bonds.TangentialMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * _bonds.AxialMoment(_iBond));
-	double dMaxTorque = -_bonds.TangentialForce(_iBond).Length() / _bonds.CrossCut(_iBond) + _bonds.NormalMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * 2 * _bonds.AxialMoment(_iBond));
+	double dForceLength = vNormalForce.Length();
+	if (dStrainTotal <= 0)	// compression
+		dForceLength *= -1;
+	double dMaxStress = dForceLength / _bonds.CrossCut(_iBond) + _bonds.TangentialMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * _bonds.AxialMoment(_iBond));
+	double dMaxTorque = _bonds.TangentialForce(_iBond).Length() / _bonds.CrossCut(_iBond) + _bonds.NormalMoment(_iBond).Length()*_bonds.Diameter(_iBond) / (2 * 2 * _bonds.AxialMoment(_iBond));
 
-	if (((fabs(dMaxStress) >= _bonds.NormalStrength(_iBond)) && (dStrainTotal > 0)) || (fabs(dMaxTorque) >= _bonds.TangentialStrength(_iBond)))
+	if (( dMaxStress >= _bonds.NormalStrength(_iBond) ) || ( dMaxTorque >= _bonds.TangentialStrength(_iBond)))
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;

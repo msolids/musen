@@ -34,7 +34,7 @@ CModelPP::CModelPP()
 //////////////////////////////////////////////////////////////////////////
 
 /// TODO: This function can be removed if not used.
-void CModelPP::PrecalculatePPModel(double _time, double _timeStep, SParticleStruct* _particles) const
+void CModelPP::PrecalculatePPModel(double _time, double _timeStep, SParticleStruct* _particles)
 {
 	// TODO: Write your pre-calculation step here.
 }

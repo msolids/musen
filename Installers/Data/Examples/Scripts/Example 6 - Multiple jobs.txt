@@ -1,0 +1,17 @@
+JOB
+SOURCE_FILE          ../InitScenes/PackingGeneration.mdem
+RESULT_FILE          ./Result_PackingGeneration.mdem
+COMPONENT            PACKAGE_GENERATOR
+´
+JOB                  
+SOURCE_FILE          ./Result_PackingGeneration.mdem
+RESULT_FILE          ./Result_Simulation.mdem
+COMPONENT            SIMULATOR
+SIMULATOR_TYPE       CPU
+MODEL_PP             ModelPPHertzMindlin
+MODEL_PW             ModelPWHertzMindlin
+SIMULATION_STEP      2e-7
+SAVING_STEP          1e-5
+END_TIME             1e-4
+EXT_ACCEL            0 0 -9.81
+SIMULATION_DOMAIN    -0.03 -0.03 -0.04 0.03 0.03 0.04

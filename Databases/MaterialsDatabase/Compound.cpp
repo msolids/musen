@@ -3,6 +3,12 @@
    See LICENSE file for license and warranty information. */
 
 #include "Compound.h"
+#include "MUSENStringFunctions.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/MaterialsDatabase.pb.h"
+PRAGMA_WARNING_POP
 
 CCompound::CCompound(const std::string& _sKey /*= "" */)
 {

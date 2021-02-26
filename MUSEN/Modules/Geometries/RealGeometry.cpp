@@ -40,9 +40,15 @@ bool CRealGeometry::RotateAroundCenter() const
 CVector3 CRealGeometry::Center(double _time) const
 {
 	m_systemStructure->PrepareTimePointForRead(_time);
+	double dTotalSurface = 0;
 	CVector3 center{ 0.0 };
 	for (const auto& wall : Walls())
-		center += (wall->GetCoordVertex1() + wall->GetCoordVertex2() + wall->GetCoordVertex3()) / (3.0 * static_cast<double>(m_planes.size()));
+	{
+		double dSurface = 0.5* Length(((wall->GetCoordVertex2() - wall->GetCoordVertex1())*(wall->GetCoordVertex3() - wall->GetCoordVertex1())));
+		center += dSurface/3.0*(wall->GetCoordVertex1() + wall->GetCoordVertex2() + wall->GetCoordVertex3());
+		dTotalSurface += dSurface;
+	}
+	if (dTotalSurface != 0) center = center / dTotalSurface;
 	return center;
 }
 

@@ -76,7 +76,7 @@ public:
 	void InitializeGPU(const CCUDADefines* _cudaDefines);
 
 	// Is called each time step before real calculations.
-	virtual void Precalculate(double _time, double _timeStep) const = 0;
+	virtual void Precalculate(double _time, double _timeStep) = 0;
 
 	bool HasGPUSupport() const;
 
@@ -111,7 +111,7 @@ public:
 	CParticleParticleModel();
 
 	bool Initialize(SParticleStruct* _particles, SWallStruct* _walls, SSolidBondStruct* _solidBinds, SLiquidBondStruct* _liquidBonds, std::vector<SInteractProps>* _interactProps) override;
-	void Precalculate(double _time, double _timeStep) const override;
+	void Precalculate(double _time, double _timeStep) override;
 	void Calculate(double _time, double _timeStep, SCollision* _collision) const;
 
 	virtual void CalculatePPForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions) {}
@@ -120,7 +120,7 @@ protected:
 	const SParticleStruct& Particles() const { return *m_particles; }
 	const SInteractProps& InteractionProperty(const size_t _i) const { return (*m_interactProps)[_i]; }
 
-	virtual void PrecalculatePPModel(double _time, double _timeStep, SParticleStruct* _particles) const {}
+	virtual void PrecalculatePPModel(double _time, double _timeStep, SParticleStruct* _particles) {}
 	virtual void CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _pCollision) const = 0;
 };
 
@@ -135,7 +135,7 @@ public:
 	CParticleWallModel();
 
 	bool Initialize(SParticleStruct* _particles, SWallStruct* _walls, SSolidBondStruct* _solidBinds, SLiquidBondStruct* _liquidBonds, std::vector<SInteractProps>* _interactProps) override;
-	void Precalculate(double _time, double _timeStep) const override;
+	void Precalculate(double _time, double _timeStep) override;
 	void Calculate(double _time, double _timeStep, SCollision* _collision) const;
 
 	virtual void CalculatePWForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, const SGPUWalls& _walls, SGPUCollisions& _collisions) {}
@@ -145,7 +145,7 @@ protected:
 	const SWallStruct& Walls() const { return *m_walls; };
 	const SInteractProps& InteractionProperty(const size_t _i) const { return (*m_interactProps)[_i]; }
 
-	virtual void PrecalculatePWModel(double _time, double _timeStep, SParticleStruct* _particles, SWallStruct* _walls) const {}
+	virtual void PrecalculatePWModel(double _time, double _timeStep, SParticleStruct* _particles, SWallStruct* _walls) {}
 	virtual void CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _pCollision) const = 0;
 };
 
@@ -159,7 +159,7 @@ public:
 	CSolidBondModel();
 
 	bool Initialize(SParticleStruct* _particles, SWallStruct* _walls, SSolidBondStruct* _solidBinds, SLiquidBondStruct* _liquidBonds, std::vector<SInteractProps>* _interactProps) override;
-	void Precalculate(double _time, double _timeStep) const override;
+	void Precalculate(double _time, double _timeStep) override;
 	void Calculate(double _time, double _timeStep, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const;
 
 	virtual void CalculateSBForceGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds) {}
@@ -168,7 +168,7 @@ protected:
 	const SParticleStruct& Particles() const { return *m_particles; }
 	const SSolidBondStruct& Bonds() const { return *m_bonds; }
 
-	virtual void PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds) const {}
+	virtual void PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds) {}
 	virtual void CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const = 0;
 };
 
@@ -182,14 +182,14 @@ public:
 	CLiquidBondModel();
 
 	bool Initialize(SParticleStruct* _particles, SWallStruct* _walls, SSolidBondStruct* _solidBinds, SLiquidBondStruct* _liquidBonds, std::vector<SInteractProps>* _interactProps) override;
-	void Precalculate(double _time, double _timeStep) const override;
+	void Precalculate(double _time, double _timeStep) override;
 	void Calculate(double _time, double _timeStep, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const;
 
 protected:
 	const SParticleStruct& Particles() const { return *m_particles; }
 	const SLiquidBondStruct& Bonds() const { return *m_bonds; }
 
-	virtual void PrecalculateLBModel(double _time, double _timeStep, SParticleStruct* _particles, SLiquidBondStruct* _bonds) const {}
+	virtual void PrecalculateLBModel(double _time, double _timeStep, SParticleStruct* _particles, SLiquidBondStruct* _bonds) {}
 	virtual void CalculateLBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const = 0;
 };
 
@@ -202,7 +202,7 @@ public:
 	CExternalForceModel();
 
 	bool Initialize(SParticleStruct* _particles, SWallStruct* _walls, SSolidBondStruct* _solidBinds, SLiquidBondStruct* _liquidBonds, std::vector<SInteractProps>* _interactProps) override;
-	void Precalculate(double _time, double _timeStep) const override;
+	void Precalculate(double _time, double _timeStep) override;
 	void Calculate(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const;
 
 	virtual void CalculateEFForceGPU(double _time, double _timeStep, SGPUParticles& _particles) {}
@@ -210,7 +210,7 @@ public:
 protected:
 	const SParticleStruct& Particles() const { return *m_particles; }
 
-	virtual void PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles) const {}
+	virtual void PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles) {}
 	virtual void CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const = 0;
 };
 

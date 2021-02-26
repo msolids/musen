@@ -11,6 +11,7 @@
 #include <iostream>
 #include <algorithm>
 #include <iterator>
+#include <cctype>
 
 #ifdef PATH_CONFIGURED
 std::string inline UnicodePath(const std::string& _sPath)
@@ -139,9 +140,46 @@ inline std::istream& safeGetLine( std::istream& is, std::string& t )
 // Returns the next value from the stream and advances stream's iterator correspondingly.
 template<typename T> T GetValueFromStream(std::istream* _is)
 {
-	T v;
+	T v{};
 	*_is >> v;
 	return v;
+}
+
+// Returns the next value from the stream and advances stream's iterator correspondingly.
+template<typename T> T GetValueFromStream(std::istream& _is)
+{
+	T v;
+	_is >> v;
+	return v;
+}
+
+// Reads enum from stream. Use as { enum_var = GetEnumFromStream<Enum_type>(_stream) }
+template<typename E> E GetEnumFromStream(std::istream& _is)
+{
+	using int_t = std::underlying_type_t<E>;
+	int_t int_val = GetValueFromStream<int_t>(&_is);
+	return static_cast<E>(int_val);
+}
+
+// Class-helper to read enum from stream.
+template<typename E> class ReadEnumFromStreamHelper
+{
+	E& m_e;
+public:
+	ReadEnumFromStreamHelper(E& _e) : m_e{ _e } {}
+	friend std::istream& operator>>(std::istream& _s, const ReadEnumFromStreamHelper& _v)
+	{
+		typename std::underlying_type<E>::type int_val;
+		if (_s >> int_val)
+			_v.m_e = static_cast<E>(int_val);
+		return _s;
+	}
+};
+
+// Reads enum from stream. Use as { stream >> S2E(enum_var) }.
+template<typename E> ReadEnumFromStreamHelper<E> S2E(E& _e)
+{
+	return ReadEnumFromStreamHelper<E>(_e);
 }
 
 inline size_t findStringAfter(std::istream& _file, const std::string& _string, std::string& _sRetString)
@@ -170,7 +208,7 @@ template<typename T> inline void getVecFromFile(std::istream& _stream, const std
 	_vResult.clear();
 	std::stringstream tempStream;
 	std::string sTemp;
-	T tempVal;
+	T tempVal{};
 	if ((findStringAfter(_stream, _sKey, sTemp) == std::string::npos) || (sTemp == "no data")) return;
 	tempStream << sTemp;
 	while (tempStream.good())
@@ -260,4 +298,27 @@ inline std::string Double2String(double _v)
 	std::ostringstream os;
 	os << _v;
 	return os.str();
+}
+
+// Replaces all whitespaces with underscores, making sure that input is a not empty single string.
+inline void MakeSingleString(std::string& _s)
+{
+	TrimWhitespaces(_s);
+	std::transform(_s.begin(), _s.end(), _s.begin(), [](auto ch) { return !std::isspace(ch, std::locale::classic()) ? ch : '_'; });
+	if (_s.empty())
+		_s.append("_");
+}
+
+// Replaces all whitespaces with underscores, making sure that input is a not empty single string.
+inline std::string MakeSingleString(const std::string& _s)
+{
+	std::string copy = _s;
+	MakeSingleString(copy);
+	return copy;
+}
+
+// Checks if the string represents an unsigned int value.
+inline bool IsSimpleUInt(const std::string& _s)
+{
+	return !_s.empty() && std::find_if(_s.begin(), _s.end(), [](auto c) { return !std::isdigit(c); }) == _s.end();
 }

@@ -740,14 +740,14 @@ void CQtTable::SetRowBackgroundColor(const QColor& _color, int _row) const
 {
 	if (_row >= rowCount()) return;
 	for (int i = 0; i < columnCount(); ++i)
-		item(_row, i)->setBackgroundColor(_color);
+		item(_row, i)->setBackground(_color);
 }
 
 void CQtTable::SetColumnBackgroundColor(const QColor& _color, int _col) const
 {
 	if (_col >= columnCount()) return;
 	for (int i = 0; i < rowCount(); ++i)
-		item(i, _col)->setBackgroundColor(_color);
+		item(i, _col)->setBackground(_color);
 }
 
 std::pair<int, int> CQtTable::CurrentCellPos() const

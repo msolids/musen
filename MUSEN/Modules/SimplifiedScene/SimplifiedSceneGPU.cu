@@ -4,9 +4,13 @@
 
 #include "SimplifiedSceneGPU.cuh"
 #include "CUDAKernels.cuh"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
 #include <thrust/count.h>
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
+PRAGMA_WARNING_POP
 
 void CGPUScene::SetCudaDefines(const CCUDADefines* _cudaDefines)
 {

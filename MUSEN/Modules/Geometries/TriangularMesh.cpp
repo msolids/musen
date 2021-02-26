@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "TriangularMesh.h"
+#include "MUSENStringFunctions.h"
 #include <algorithm>
 #include <utility>
 #include <array>
@@ -93,9 +94,15 @@ void CTriangularMesh::InvertFaceNormals()
 
 CVector3 CTriangularMesh::Center() const
 {
+	double dTotalSurface = 0;
 	CVector3 center(0.0);
 	for (size_t i = 0; i < m_triangles.size(); ++i)
-		center = (center * static_cast<double>(i) + (m_triangles[i].p1 + m_triangles[i].p2 + m_triangles[i].p3) / 3.) / (static_cast<double>(i) + 1.);
+	{
+		double dSurface = 0.5* Length(((m_triangles[i].p2 - m_triangles[i].p1)*(m_triangles[i].p3 - m_triangles[i].p1)));
+		center += dSurface * ((m_triangles[i].p1 + m_triangles[i].p2 + m_triangles[i].p3) / 3.);
+		dTotalSurface += dSurface;
+	}
+	if (dTotalSurface != 0) center = center / dTotalSurface;
 	return center;
 }
 
@@ -144,7 +151,7 @@ namespace MeshCheck
 		CVector3 v1, v2;	// two vertices
 		bool revDir;		// reversed direction of vertices
 		SEdge(const CVector3& _vertex1, const CVector3& _vertex2, bool _reversedDirection)
-			: v1(_vertex1), v2(_vertex2), revDir(_reversedDirection) {};
+			: v1(_vertex1), v2(_vertex2), revDir(_reversedDirection) {}
 	};
 
 	// Used to sort edges (sorting purpose: faster finding of faces with common edges in same direction).
@@ -179,7 +186,9 @@ namespace MeshCheck
 bool CTriangularMesh::IsFaceNormalsConsistent() const
 {
 	// Checks if two faces share a common edge with the same direction, ie.e. that adjacent faces have normals in opposite direction.
-	MeshCheck::tol = 1e-8; // update tolerance
+	const auto bb = BoundingBox();
+	const auto minSize = Min(bb.coordBeg, bb.coordEnd);
+	MeshCheck::tol = std::min({ minSize.x, minSize.y, minSize.z }) * 1e-3; // update tolerance
 
 	// Generate edges, using both directions
 	std::vector<MeshCheck::SEdge> edges;
@@ -201,4 +210,21 @@ bool CTriangularMesh::IsFaceNormalsConsistent() const
 
 	// look for any equal edges which traversed in the same direction --> face normals are in opposite directions
 	return std::adjacent_find(edges.begin(), edges.end(), MeshCheck::InvalidEdge) == edges.end();
+}
+
+std::ostream& operator<<(std::ostream& _s, const CTriangularMesh& _obj)
+{
+	_s << MakeSingleString(_obj.m_name) << " " << _obj.m_triangles.size() << " ";
+	for (const auto& t : _obj.m_triangles)
+		_s << t << " ";
+	return _s;
+}
+
+std::istream& operator>>(std::istream& _s, CTriangularMesh& _obj)
+{
+	size_t number;
+	_s >> _obj.m_name >> number;
+	for (size_t i = 0; i < number; ++i)
+		_obj.AddTriangle(GetValueFromStream<CTriangle>(&_s));
+	return _s;
 }

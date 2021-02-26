@@ -3,6 +3,11 @@
    See LICENSE file for license and warranty information. */
 
 #include "ConstProperty.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include "GeneratedFiles/MaterialsDatabase.pb.h"
+PRAGMA_WARNING_POP
 
 CConstProperty::CConstProperty(void)
 	: CBaseProperty(),

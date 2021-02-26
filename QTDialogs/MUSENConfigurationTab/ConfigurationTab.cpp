@@ -131,7 +131,7 @@ void CConfigurationTab::ShowAxesToggled() const
 	CViewSettings::SVisibility vis = m_viewSettings->Visibility();
 	vis.axes = ui.checkBoxShowAxes->isChecked();
 	m_viewSettings->Visibility(vis);
-	m_viewManager->UpdateAxesVisible();
+	m_viewManager->UpdateAxes();
 }
 
 void CConfigurationTab::ShowTimeToggled() const
@@ -139,7 +139,7 @@ void CConfigurationTab::ShowTimeToggled() const
 	CViewSettings::SVisibility vis = m_viewSettings->Visibility();
 	vis.time = ui.checkBoxShowTime->isChecked();
 	m_viewSettings->Visibility(vis);
-	m_viewManager->UpdateTimeVisible();
+	m_viewManager->UpdateTime();
 }
 
 void CConfigurationTab::ShowLegendToggled() const
@@ -147,7 +147,7 @@ void CConfigurationTab::ShowLegendToggled() const
 	CViewSettings::SVisibility vis = m_viewSettings->Visibility();
 	vis.legend = ui.checkBoxShowLegend->isChecked();
 	m_viewSettings->Visibility(vis);
-	m_viewManager->UpdateLegendVisible();
+	m_viewManager->UpdateLegend();
 }
 
 void CConfigurationTab::OnAxisFontChange()

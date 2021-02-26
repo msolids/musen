@@ -55,7 +55,7 @@ public:
 private:
 	void DrawParticles() override;
 
-	void RecreateBuffer(QOpenGLBuffer* _pBuffer, const void* _pData, int _nBytes);
+	void RecreateBuffer(QOpenGLBuffer* _pBuffer, const void* _pData, size_t _nBytes);
 
 protected:
 	void initializeGL() override;

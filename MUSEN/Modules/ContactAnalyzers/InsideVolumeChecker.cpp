@@ -19,8 +19,8 @@ std::pair<int, int> CInsideVolumeChecker::GetIndexByPoint(const CVector3& point)
 	int y = static_cast<int>((point.y - m_vMin.y) / (m_vMax.y - m_vMin.y) * MAX_INDEXES);
 	int z = static_cast<int>((point.z - m_vMin.z) / (m_vMax.z - m_vMin.z) * MAX_INDEXES);
 
-	y = ClampFunction(y, 0, MAX_INDEXES - 1);
-	z = ClampFunction(z, 0, MAX_INDEXES - 1);
+	y = std::clamp(y, 0, MAX_INDEXES - 1);
+	z = std::clamp(z, 0, MAX_INDEXES - 1);
 	return std::make_pair(y, z);
 }
 

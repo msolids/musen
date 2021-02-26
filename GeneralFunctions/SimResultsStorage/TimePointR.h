@@ -4,9 +4,13 @@
 
 #pragma once
 
-#include "GeneratedFiles/SimulationDescription.pb.h"
 #include "Quaternion.h"
 #include "Vector3.h"
+
+class ProtoMatrix;
+class ProtoQuaternion;
+class ProtoVector;
+class ProtoTimePoint;
 
 /* A wrapper for TimePoint to read from it.
  * It is used to get time-dependent data of objects at specific time.

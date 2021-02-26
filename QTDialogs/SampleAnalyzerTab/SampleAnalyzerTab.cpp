@@ -56,7 +56,6 @@ void CSampleAnalyzerTab::InitializeConnections()
 	QObject::connect( ui.exportData, SIGNAL(clicked()), this, SLOT(ExportData()) );
 }
 
-
 void CSampleAnalyzerTab::UpdateVolumeView()
 {
 	m_bAvoidSignal = true;
@@ -126,7 +125,7 @@ void CSampleAnalyzerTab::VolumeDataWasChanged()
 	m_vCenter.y = GetConvValue( ui.yCoord, EUnitType::LENGTH );
 	m_vCenter.z = GetConvValue( ui.zCoord, EUnitType::LENGTH );
 	m_dRadius = GetConvValue( ui.radius, EUnitType::LENGTH );
-	emit UpdateOpenGLView();
+	emit UpdateViewVolumes();
 	UpdateVolumeView();
 }
 
@@ -137,8 +136,8 @@ void CSampleAnalyzerTab::UpdateWholeView()
 	UpdateExportView();
 }
 
-void CSampleAnalyzerTab::GetAllParticlesInRegion( double _dTime, std::vector<CSphere*>* _pAllParticles, double* _pTotalMass, double* _pTotalVolume,
-	bool bPartialyInVolume, bool bConsiderBonds )
+void CSampleAnalyzerTab::GetAllParticlesInRegion(double _dTime, std::vector<const CSphere*>* _pAllParticles, double* _pTotalMass, double* _pTotalVolume,
+	bool bPartialyInVolume, bool bConsiderBonds)
 {
 	*_pTotalMass = 0;
 	*_pTotalVolume = 0;
@@ -158,18 +157,18 @@ void CSampleAnalyzerTab::GetAllParticlesInRegion( double _dTime, std::vector<CSp
 						continue;
 					else if ( dDistance+dRParticle <= m_dRadius ) // particle is totally in the volume
 					{
-						_pAllParticles->push_back( (CSphere*)pTemp );
-						*_pTotalMass = ((CSphere*)pTemp)->GetMass();
+						_pAllParticles->push_back( (const CSphere*)pTemp );
+						*_pTotalMass += ((CSphere*)pTemp)->GetMass();
 						*_pTotalVolume += 4.0/3.0*PI*pow( dRParticle, 3 );
 					}
 					else  // particle is partially in the volume
 					{
-						if ( bPartialyInVolume )
-							_pAllParticles->push_back( (CSphere*)pTemp );
-						double dVolume = SpheresIntersectionVolume( m_dRadius, dRParticle, dDistance );
+						if (bPartialyInVolume)
+							_pAllParticles->push_back((const CSphere*)pTemp);
+						double dVolume = SpheresIntersectionVolume(m_dRadius, dRParticle, dDistance);
 						*_pTotalVolume += dVolume;
-						if ( dVolume >= 0 )
-							*_pTotalMass = ((CSphere*)pTemp)->GetMass()*((CSphere*)pTemp)->GetVolume()/dVolume;
+						if (dVolume >= 0)
+							*_pTotalMass += ((CSphere*)pTemp)->GetMass()*dVolume/((CSphere*)pTemp)->GetVolume();
 					}
 				}
 				else
@@ -189,71 +188,58 @@ void CSampleAnalyzerTab::GetAllParticlesInRegion( double _dTime, std::vector<CSp
 
 
 
-double CSampleAnalyzerTab::GetCoordinationNumber( double _dTime, std::vector<CSphere*>* _pParticles )
+double CSampleAnalyzerTab::GetCoordinationNumber(double _time, const std::vector<const CSphere*>& _particles) const
 {
-	return 0;
-	/*std::vector<CSphere*> vPossibleNeighbors;
-	std::vector<CPhysicalObject*> vAllSpheres = m_pSystemStructure->GetAllActiveObjects( _dTime, SPHERE );
-	for (unsigned j = 0; j < vAllSpheres.size(); ++j)
+	if (_particles.empty()) return 0;
+
+	// get current PBC for faster access
+	const auto& pbc = m_pSystemStructure->GetPBC();
+	// radius of outer sphere with all particles that can contact particle inside the sample volume
+	const double outerRadius = m_dRadius + m_pSystemStructure->GetMaxParticleDiameter();
+
+	// find contacts between all possible neighbors including particles inside the sample volume and particles outside able to contact them
+	m_pSystemStructure->PrepareTimePointForRead(_time);
+	CContactCalculator calculatorTotal;
+	for (auto& part : GetParticlesInsideSphere(_time, m_vCenter, outerRadius))
+		calculatorTotal.AddParticle(part->m_lObjectID, part->GetCoordinates(), part->GetRadius());
+	auto contactsTotal = calculatorTotal.GetAllOverlaps(pbc);
+
+	// get number of overlaps for each particle
+	std::vector<size_t> contactPerPart(m_pSystemStructure->GetTotalObjectsCount(), 0);
+	for (const auto& id : std::get<0>(contactsTotal))	++contactPerPart[id];
+	for (const auto& id : std::get<1>(contactsTotal))	++contactPerPart[id];
+
+	// add contacts from bonds
+	if (ui.considerBonds->isChecked())
 	{
-		double dDistance = Length(vAllSpheres[j]->GetCoordinates(_dTime), m_vCenter);
-		if (dDistance >= m_dRadius + ((CSphere*)vAllSpheres[j])->GetRadius()) // particle and volume not intersect each other
-			vPossibleNeighbors.push_back(((CSphere*)vAllSpheres[j]) );
-	}
-
-	CContactCalculator tempCalculator;
-	for (unsigned i = 0; i < _pParticles->size(); i++)
-		tempCalculator.AddParticle(i, _pParticles->at(i)->GetCoordinates(_dTime), _pParticles->at(i)->GetRadius());
-	std::vector<unsigned> vID1, vID2;
-	std::vector<double> vOverlaps;
-	tempCalculator.GetAllOverlaps(vID1, vID2, vOverlaps);
-	double dNumberOfContacts = vOverlaps.size();
-
-	for (unsigned i = 0; i < vPossibleNeighbors.size(); i++)
-		dNumberOfContacts += tempCalculator.GetContacts(vPossibleNeighbors[i]->GetCoordinates(_dTime), vPossibleNeighbors[i]->GetRadius()).size();
-
-	// add bonds
-	for ( unsigned j=0; j < m_pSystemStructure->GetTotalObjectsCount(); j++ )
-	{
-		CPhysicalObject* pTemp = m_pSystemStructure->GetObjectByIndex( j );
-		if ( pTemp == NULL ) continue;
-		if ( pTemp->IsActive( _dTime ) == false ) continue;
-		if ( pTemp->GetObjectType() == SOLID_BOND )
+		for (const auto& bond : GetBondsInsideSphere(_time, m_vCenter, m_dRadius))
 		{
-			CSolidBond* pBond = (CSolidBond*)pTemp;
-			bool bConsiderBond = false;
-			for ( unsigned i=0; i<_pParticles->size(); i++ )
-				if (( _pParticles->at(i)->m_lObjectID == pBond->m_nLeftObjectID ) || ( _pParticles->at(i)->m_lObjectID == pBond->m_nRightObjectID ))
-				{
-					bConsiderBond = true;
-					break;
-				}
-			if ( bConsiderBond )
-				dNumberOfContacts++;
+			++contactPerPart[bond->m_nLeftObjectID];
+			++contactPerPart[bond->m_nRightObjectID];
 		}
 	}
 
+	// gather overlaps from essential particles
+	size_t nContacts{ 0 };
+	for (const auto& part : _particles)
+		nContacts += contactPerPart[part->m_lObjectID];
 
-	if ( _pParticles->empty() )
-		return 0;
-	else
-		return dNumberOfContacts/_pParticles->size();*/
+	return static_cast<double>(nContacts) / static_cast<double>(_particles.size());
 }
-
 
 void CSampleAnalyzerTab::UpdateMainProperties()
 {
 	ShowConvLabel( ui.massLabel, "Mass", EUnitType::MASS );
 	SetCurrentTime(ui.currentTime->text().toDouble());
 
-	std::vector<CSphere*> vAllParticles;
+	std::vector<const CSphere*> vAllParticles;
 	double dTotalMass;
 	double dTotalVolume;
 
 	GetAllParticlesInRegion( m_dCurrentTime, &vAllParticles, &dTotalMass, &dTotalVolume, true, ui.considerBonds->isChecked() );
 	ui.particlesInRegion->setText( QString::number( vAllParticles.size() ) );
 	ShowConvValue( ui.massInRegion, dTotalMass, EUnitType::MASS );
-	ui.coordinationNumber->setText( QString::number( GetCoordinationNumber( m_dCurrentTime, &vAllParticles ) ) );
+	ui.coordinationNumber->setText( QString::number( GetCoordinationNumber( m_dCurrentTime, vAllParticles ) ) );
 	if ( m_dRadius > 0 )
 		ui.porosityInRegion->setText( QString::number( 1-dTotalVolume/(4.0/3.0*PI*pow(m_dRadius, 3 )) ) );
 }
@@ -372,7 +358,7 @@ void CSampleAnalyzerTab::ExportData()
 	double dIntervalSize = (m_dPSDEnd - m_dPSDStart)/m_nPSDIntervalsNumber;
 	double dIntervalVel = (m_dVelEnd - m_dVelStart)/m_nVelIntervalsNumber;
 
-	std::vector<CSphere*> vAllParticles;
+	std::vector<const CSphere*> vAllParticles;
 	for ( unsigned i=0; i < m_nTimeIntervalsNumber+1; i++ )
 	{
 		if ( m_nVelIntervalsNumber != 0 )
@@ -394,7 +380,7 @@ void CSampleAnalyzerTab::ExportData()
 		if ( ui.exportParticlesNumber->isChecked() )
 			outFile << vAllParticles.size() << sSep;
 		if (  ui.exportCoordNumber->isChecked() )
-			outFile << GetCoordinationNumber( dCurrentTime, &vAllParticles );
+			outFile << GetCoordinationNumber( dCurrentTime, vAllParticles );
 
 		std::vector<double> velDistribution( m_nVelIntervalsNumber, 0 );
 		std::vector<double> sizeDistribution( m_nPSDIntervalsNumber, 0 );
@@ -425,4 +411,45 @@ void CSampleAnalyzerTab::ExportData()
 
 	ui.statusMessage->setText("Data has been sucsesfully generated");
 	ui.exportData->setText( "Exporting data" );
+}
+
+std::vector<const CSphere*> CSampleAnalyzerTab::GetParticlesInsideSphere(double _time, const CVector3& _center, double _radius) const
+{
+	std::vector<char> idInside(m_pSystemStructure->GetTotalObjectsCount(), 0);
+	const auto particles = m_pSystemStructure->GetAllSpheres(_time);
+	m_pSystemStructure->PrepareTimePointForRead(_time);
+	ParallelFor(particles.size(), [&](size_t i)
+	{
+		const double distance = Length(particles[i]->GetCoordinates(), _center);
+		const double r = particles[i]->GetRadius();
+		idInside[particles[i]->m_lObjectID] = distance - r <= _radius; // particle is totally or partially inside the sphere
+	});
+
+	auto res{ ReservedVector<const CSphere*>(particles.size()) };
+	for (size_t i = 0; i < idInside.size(); ++i)
+		if (idInside[i])
+			res.push_back(dynamic_cast<const CSphere*>(m_pSystemStructure->GetObjectByIndex(i)));
+	return res;
+}
+
+std::vector<const CSolidBond*> CSampleAnalyzerTab::GetBondsInsideSphere(double _time, const CVector3& _center, double _radius) const
+{
+	std::vector<char> idInside(m_pSystemStructure->GetTotalObjectsCount(), 0);
+	const auto bonds = m_pSystemStructure->GetAllBonds(_time);
+	m_pSystemStructure->PrepareTimePointForRead(_time);
+	ParallelFor(bonds.size(), [&](size_t i)
+	{
+		const auto* part1 = dynamic_cast<const CSphere*>(m_pSystemStructure->GetObjectByIndex(bonds[i]->m_nLeftObjectID));
+		const auto* part2 = dynamic_cast<const CSphere*>(m_pSystemStructure->GetObjectByIndex(bonds[i]->m_nRightObjectID));
+		// is inside if any of the connected particles is totally or partially inside the sphere
+		idInside[bonds[i]->m_lObjectID] =
+			Length(part1->GetCoordinates(), _center) - part1->GetRadius() <= _radius
+		 || Length(part2->GetCoordinates(), _center) - part2->GetRadius() <= _radius;
+	});
+
+	auto res{ ReservedVector<const CSolidBond*>(bonds.size()) };
+	for (size_t i = 0; i < idInside.size(); ++i)
+		if (idInside[i])
+			res.push_back(dynamic_cast<const CSolidBond*>(m_pSystemStructure->GetObjectByIndex(i)));
+	return res;
 }

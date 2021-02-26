@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "AgglomeratesAnalyzer.h"
+#include <fstream>
 
 CAgglomeratesAnalyzer::CAgglomeratesAnalyzer()
 {

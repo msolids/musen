@@ -7,10 +7,6 @@
 #include "GeometricFunctions.h"
 #include "MUSENStringFunctions.h"
 
-#pragma warning(push, 0)
-#pragma warning(disable: 6011 6387 26495)
-#include "GeneratedFiles/AgglomeratesDatabase.pb.h"
-#pragma warning(pop)
 
 #define AGGLOMERATE 0
 #define MULTISPHERE 1

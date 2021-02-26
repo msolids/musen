@@ -31,10 +31,12 @@ void CExportAsTextThread::StopExporting() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Tab
 
-CExportAsTextTab::CExportAsTextTab(QWidget* parent) :
-	CMusenDialog(parent),
-	m_pQTThread{ nullptr },
-	m_pExportThread{ nullptr }
+CExportAsTextTab::CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, QWidget* _parent)
+	: CMusenDialog(_parent)
+	, m_pQTThread{ nullptr }
+	, m_pExportThread{ nullptr }
+	, m_packageGenerator{ _pakageGenerator }
+	, m_bondsGenerator{ _bondsGenerator }
 {
 	ui.setupUi(this);
 
@@ -63,7 +65,7 @@ void CExportAsTextTab::SetPointers(CSystemStructure* _pSystemStructure, CUnitCon
 	m_constraints.SetPointers(_pSystemStructure, _pMaterialsDB);
 	ui.constraintsTab->SetPointers(_pSystemStructure, _pUnitConvertor, _pMaterialsDB, _pGeometriesDB, _pAgglomDB);
 	ui.constraintsTab->SetConstraintsPtr(&m_constraints);
-	m_exporter.SetPointers(_pSystemStructure, &m_constraints);
+	m_exporter.SetPointers(_pSystemStructure, &m_constraints, m_packageGenerator, m_bondsGenerator);
 }
 
 void CExportAsTextTab::UpdateWholeView()
@@ -126,7 +128,7 @@ void CExportAsTextTab::SetRelevantCheckBoxesParticle() const
 {
 	ui.checkBoxQuaternion->setEnabled(ui.checkBoxParticle->isChecked());
 	ui.checkBoxAngularVelocity->setEnabled(ui.checkBoxParticle->isChecked());
-	ui.checkBoxCoordinate->setEnabled(ui.checkBoxParticle->isChecked());
+	ui.checkBoxCoordinate->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxTriangularWall->isChecked());
 	ui.checkBoxStressTensor->setEnabled(ui.checkBoxParticle->isChecked());
 	ui.checkBoxTemperature->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxSolidBond->isChecked());
 }
@@ -140,7 +142,7 @@ void CExportAsTextTab::SetRelevantCheckBoxesSB() const
 
 void CExportAsTextTab::SetRelevantCheckBoxesTW() const
 {
-	ui.checkBoxPlanesCoordinates->setEnabled(ui.checkBoxTriangularWall->isChecked());
+	ui.checkBoxCoordinate->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxTriangularWall->isChecked());
 }
 
 void CExportAsTextTab::SetQuaternionCheckBox()
@@ -229,6 +231,7 @@ void CExportAsTextTab::ApplyAllFlags()
 	CExportAsText::STDPropsFlags tdPropsFlags;
 	CExportAsText::SGeometriesFlags geometriesFlags;
 	CExportAsText::SMaterialsFlags materialsFlags;
+	CExportAsText::SGeneratorsFlags generatorFlags;
 
 	if (ui.radioButtonSaveAll->isChecked())
 	{
@@ -238,6 +241,7 @@ void CExportAsTextTab::ApplyAllFlags()
 		tdPropsFlags.SetAll(true);
 		geometriesFlags.SetAll(true);
 		materialsFlags.SetAll(true);
+		generatorFlags.SetAll(true);
 	}
 	else
 	{
@@ -257,12 +261,12 @@ void CExportAsTextTab::ApplyAllFlags()
 			constPropsFlags.SetAll(false);
 
 		if (ui.groupBoxTDProperties->isChecked())
-			tdPropsFlags.SetFlags({ ui.checkBoxCoordinate->isChecked(), ui.checkBoxVelocity->isChecked(), ui.checkBoxAngularVelocity->isChecked(), ui.checkBoxTotalForce->isChecked(), ui.checkBoxForce->isChecked(), ui.checkBoxQuaternion->isChecked(), ui.checkBoxStressTensor->isChecked(), ui.checkBoxPlanesCoordinates->isChecked(), ui.checkBoxTotalTorque->isChecked(), ui.checkBoxTangOverlap->isChecked(), ui.checkBoxTemperature->isChecked() });
+			tdPropsFlags.SetFlags({ ui.checkBoxCoordinate->isChecked(), ui.checkBoxVelocity->isChecked(), ui.checkBoxAngularVelocity->isChecked(), ui.checkBoxTotalForce->isChecked(), ui.checkBoxForce->isChecked(), ui.checkBoxQuaternion->isChecked(), ui.checkBoxStressTensor->isChecked(), ui.checkBoxTotalTorque->isChecked(), ui.checkBoxTangOverlap->isChecked(), ui.checkBoxTemperature->isChecked() });
 		else
 			tdPropsFlags.SetAll(false);
 
 		if (ui.groupBoxGeometries->isChecked())
-			geometriesFlags.SetFlags({ ui.checkBoxGeometry->isChecked(), ui.checkBoxTDPGeometry->isChecked(), ui.checkBoxIndOfPlanesGeometry->isChecked() });
+			geometriesFlags.SetFlags({ ui.checkBoxGeometry->isChecked(), ui.checkBoxTDPGeometry->isChecked(), ui.checkBoxIndOfPlanesGeometry->isChecked() , ui.checkBoxAnalysisVolumes->isChecked() });
 		else
 			geometriesFlags.SetAll(false);
 
@@ -270,9 +274,14 @@ void CExportAsTextTab::ApplyAllFlags()
 			materialsFlags.SetFlags({ ui.checkBoxCompounds->isChecked(), ui.checkBoxInteractions->isChecked(), ui.checkBoxMixtures->isChecked() });
 		else
 			materialsFlags.SetAll(false);
+
+		if (ui.groupBoxGenerators->isChecked())
+			generatorFlags.SetFlags({ ui.checkBoxPackageGenerator->isChecked(), ui.checkBoxBondsGenerator->isChecked() });
+		else
+			generatorFlags.SetAll(false);
 	}
 
-	m_exporter.SetFlags(objectTypeFlags, sceneInfoFlags, constPropsFlags, tdPropsFlags, geometriesFlags, materialsFlags);
+	m_exporter.SetFlags(objectTypeFlags, sceneInfoFlags, constPropsFlags, tdPropsFlags, geometriesFlags, materialsFlags, generatorFlags);
 }
 
 void CExportAsTextTab::ExportPressed()

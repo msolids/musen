@@ -4,6 +4,7 @@
 
 #include "MaterialsDatabaseTab.h"
 #include "qtOperations.h"
+#include <cfloat>
 #include "QtSignalBlocker.h"
 #include <QFileDialog>
 #include <QMessageBox>
@@ -106,8 +107,8 @@ void CMaterialsDatabaseTab::InitializeConnections()
 	connect(ui.buttonNormalize,			&QPushButton::clicked, this, &CMaterialsDatabaseTab::NormalizeFractions);
 
 	// signals from fractions
-	connect(ui.tableFractions,		&CQtTable::cellChanged,												this, &CMaterialsDatabaseTab::FractionChanged);
-	connect(m_pSignalMapperFracs,	static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped),	this, &CMaterialsDatabaseTab::FractionCompoundChanged);
+	connect(ui.tableFractions,		&CQtTable::cellChanged,		this, &CMaterialsDatabaseTab::FractionChanged);
+	connect(m_pSignalMapperFracs,	&QSignalMapper::mappedInt,	this, &CMaterialsDatabaseTab::FractionCompoundChanged);
 }
 
 void CMaterialsDatabaseTab::SetPointers(CSystemStructure* _pSystemStructure, CUnitConvertor* _pUnitConvertor, CMaterialsDatabase* _pMaterialsDB, CGeometriesDatabase* _pGeometriesDB, CAgglomeratesDatabase* _pAgglomDB)
@@ -406,7 +407,7 @@ void CMaterialsDatabaseTab::UpdateCompoundInfo()
 		ui.lineCompoundKey->setText(ss2qs(pCompound->GetKey()));
 		ui.lineCompoundAuthor->setText(ss2qs(pCompound->GetAuthorName()));
 		QString sDate;
-		sDate.sprintf("%02d.%02d.%04d", pCompound->GetCreationDate().nDay, pCompound->GetCreationDate().nMonth, pCompound->GetCreationDate().nYear);
+		sDate.asprintf("%02d.%02d.%04d", pCompound->GetCreationDate().nDay, pCompound->GetCreationDate().nMonth, pCompound->GetCreationDate().nYear);
 		ui.labelCompoundCreationDate->setText(sDate);
 		ui.widgetColorView->SetColor(pCompound->GetColor());
 	}

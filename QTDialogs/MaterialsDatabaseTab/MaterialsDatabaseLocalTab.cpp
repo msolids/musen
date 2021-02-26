@@ -57,8 +57,8 @@ void CMaterialsDatabaseLocalTab::SetPointers(CSystemStructure* _pSystemStructure
 
 void CMaterialsDatabaseLocalTab::InitializeConnections()
 {
-	connect(m_pCompoundsMapper, static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &CMaterialsDatabaseLocalTab::AddCompound);
-	connect(m_pMixturesMapper,	static_cast<void (QSignalMapper::*)(int)>(&QSignalMapper::mapped), this, &CMaterialsDatabaseLocalTab::AddMixture);
+	connect(m_pCompoundsMapper, &QSignalMapper::mappedInt, this, &CMaterialsDatabaseLocalTab::AddCompound);
+	connect(m_pMixturesMapper,	&QSignalMapper::mappedInt, this, &CMaterialsDatabaseLocalTab::AddMixture);
 
 	connect(ui.buttonAddAllCompounds,	&QPushButton::clicked, this, &CMaterialsDatabaseLocalTab::AddAllCompounds);
 	connect(ui.buttonAddAllMixtures,	&QPushButton::clicked, this, &CMaterialsDatabaseLocalTab::AddAllMixtures);

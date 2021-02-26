@@ -78,7 +78,7 @@ void __global__ CUDA_CalcPPForce_JKR_kernel(
 		const CVector3 vNormalVector  = vContactVector.Normalized();
 
 		// relative velocity (normal and tangential)
-		const CVector3 vRelVel       = _partVels[iDstPart] - _partVels[iSrcPart] + vRcSrc * srcAnglVel - vRcDst * dstAnglVel;
+		const CVector3 vRelVel       = _partVels[iDstPart] + dstAnglVel * vRcDst - (_partVels[iSrcPart] + srcAnglVel * vRcSrc);
 		const double   dRelVelNormal = DotProduct(vNormalVector, vRelVel);
 		const CVector3 vRelVelNormal = dRelVelNormal * vNormalVector;
 		const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
@@ -113,8 +113,8 @@ void __global__ CUDA_CalcPPForce_JKR_kernel(
 			vTangForce = vTangForce * (prop.dSlidingFriction * fabs(dNormalForce) / dNewTangForce);
 			vTangOverlap = vTangForce / Kt;
 		}
-		// save tangential force
-		vTangForce += vDampingTangForce;
+		else
+			vTangForce += vDampingTangForce;
 
 		// calculate rolling torque
 		const CVector3 vRollingTorque1 = srcAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails

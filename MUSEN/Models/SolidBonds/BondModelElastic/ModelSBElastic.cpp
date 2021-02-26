@@ -10,9 +10,7 @@ CModelSBElastic::CModelSBElastic()
 	m_uniqueKey = "4CE31CB89C784476AC1971DFC5C39C10";
 	m_helpFileName = "/Solid Bond/Elastic.pdf";
 
-	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
-	AddParameter("BIMODULARITY", "Material bimodularity (ratio tension/compr)", 1);
-	AddParameter("COMPRESSIVE_BREAK", "Consider compressive breakage Yes=1/No=0", 0);
+	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Crit_2/Crit_1=1/No=0", 1);
 
 	m_hasGPUSupport = true;
 }
@@ -55,9 +53,6 @@ void CModelSBElastic::CalculateSBForce(double _time, double _timeStep, size_t _i
 	double dStrainTotal = (dDistanceBetweenCenters-Bonds().InitialLength(_iBond)) / Bonds().InitialLength(_iBond);
 
 	CVector3 vNormalForce = currentContact*(-1*Bonds().CrossCut(_iBond)*Bonds().NormalStiffness(_iBond)*dStrainTotal);
-	if (m_parameters[1].value != 1)
-		if (dStrainTotal > 0 ) // tension
-			vNormalForce *= m_parameters[1].value;
 
 	_bonds.TangentialOverlap(_iBond) = M*Bonds().TangentialOverlap(_iBond) - tangentialVelocity*_timeStep;
 	_bonds.TangentialForce(_iBond) = Bonds().TangentialOverlap(_iBond)*(Bonds().TangentialStiffness(_iBond)*Bonds().CrossCut(_iBond)/ Bonds().InitialLength(_iBond));
@@ -68,13 +63,29 @@ void CModelSBElastic::CalculateSBForce(double _time, double _timeStep, size_t _i
 	_bonds.UnsymMoment(_iBond) = rAC*Bonds().TangentialForce(_iBond);
 	_bonds.PrevBond(_iBond) = currentBond;
 
-	if (m_parameters[0].value == 0 ) return; // consider breakage
+	if (m_parameters[0].value == 0.0) return; // consider breakage
 
 	// check the bond destruction
-	double dMaxStress = -vNormalForce.Length() / Bonds().CrossCut(_iBond) + Bonds().TangentialMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (2 * Bonds().AxialMoment(_iBond));
-	double dMaxTorque = -Bonds().TangentialForce(_iBond).Length() / Bonds().CrossCut(_iBond) + Bonds().NormalMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (2 * 2 * _bonds.AxialMoment(_iBond));
+	double forceLength = vNormalForce.Length();
+	if ( dStrainTotal <= 0)	// compression
+		forceLength *= -1;
+	const double maxStress1 = forceLength / Bonds().CrossCut(_iBond);
+	const double maxStress2 = Bonds().TangentialMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (2.0 * Bonds().AxialMoment(_iBond));
+	const double maxTorque1 = Bonds().TangentialForce(_iBond).Length() / Bonds().CrossCut(_iBond);
+	const double maxTorque2 = Bonds().NormalMoment(_iBond).Length()*Bonds().Diameter(_iBond) / (4.0 * _bonds.AxialMoment(_iBond));
 
-	if ( fabs( dMaxStress ) >= Bonds().NormalStrength(_iBond) && (m_parameters[2].value != 0 || dStrainTotal > 0) || fabs( dMaxTorque ) >= Bonds().TangentialStrength(_iBond) )
+	bool bondBreaks = false;
+	if (m_parameters[0].value == 1.0 &&		// standard breakage criteria
+		  (maxStress1 + maxStress2 >= Bonds().NormalStrength(_iBond)
+		|| maxTorque1 + maxTorque2 >= Bonds().TangentialStrength(_iBond)))
+		bondBreaks = true;
+	if (m_parameters[0].value == 2.0 &&		// alternative breakage criteria
+		  (maxStress1 >= Bonds().NormalStrength(_iBond)
+		|| maxStress2 >= Bonds().NormalStrength(_iBond) && dStrainTotal > 0
+		|| maxTorque1 >= Bonds().TangentialStrength(_iBond)
+		|| maxTorque2 >= Bonds().TangentialStrength(_iBond)))
+		bondBreaks = true;
+	if (bondBreaks)
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;

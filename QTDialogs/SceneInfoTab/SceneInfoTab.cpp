@@ -154,7 +154,7 @@ void CSceneInfoTab::UpdateMaxOverlap()
 	double dMaxOverlap, dTotalOverlap, dAverageOverlap, dAverageContactRadius;
 	dMaxOverlap = dTotalOverlap = dAverageOverlap = dAverageContactRadius = 0;
 	std::vector<unsigned> vID1, vID2;
-	unsigned nID1, nID2;
+	unsigned nID1{}, nID2{};
 	std::vector<double> vOverlaps;
 	m_pSystemStructure->GetOverlaps( m_dCurrentTime, vID1, vID2, vOverlaps );
 	for ( unsigned i = 0; i < vOverlaps.size(); ++i )

@@ -33,10 +33,10 @@ void CAggloCompounds::UpdateWholeView()
 	for (size_t i = 0; i < pAgglo->vBonds.size(); ++i)
 		setBondAliases.insert(ss2qs(pAgglo->vBonds[i].sCompoundAlias));
 
-	QList<QString> vPartAliases = setPartAliases.toList();
-	qSort(vPartAliases);
-	QList<QString> vBondAliases = setBondAliases.toList();
-	qSort(vBondAliases);
+	QList<QString> vPartAliases = setPartAliases.values();
+	std::sort(vPartAliases.begin(), vPartAliases.end());
+	QList<QString> vBondAliases = setBondAliases.values();
+	std::sort(vBondAliases.begin(), vBondAliases.end());
 
 	ui.tableWidgetParticles->setRowCount(vPartAliases.size());
 	for (int i = 0; i < vPartAliases.size(); ++i)

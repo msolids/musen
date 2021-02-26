@@ -125,7 +125,7 @@ protected:
 
 	void SetColorGL(const CColor& _color);
 
-	void GetObjectColor(unsigned int nObjectID, CColor* _ResultColor); // return for specified object ID its colors according to the coloring scheme
+	void GetObjectColor(size_t nObjectID, CColor* _ResultColor); // return for specified object ID its colors according to the coloring scheme
 	CVector3 WinCoord2GL(double _x, double _y, double _z) const;
 
 private:

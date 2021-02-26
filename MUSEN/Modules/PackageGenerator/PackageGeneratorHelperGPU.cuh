@@ -6,7 +6,11 @@
 
 #include "PackageGeneratorHelper.h"
 #include "SceneTypesGPU.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
 #include <thrust/device_vector.h>
+PRAGMA_WARNING_POP
 
 class CPackageGeneratorHelperGPU : public IPackageGeneratorHelper
 {

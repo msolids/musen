@@ -6,7 +6,7 @@
 #include "ModelSBLinearPlastic.h"
 #include <device_launch_parameters.h>
 
-__constant__ double m_vConstantModelParameters[4];
+__constant__ double m_vConstantModelParameters[3];
 __constant__ SPBC PBC;
 
 void CModelSBLinearPlastic::SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc)
@@ -145,13 +145,14 @@ void __global__ CUDA_CalcSBForce_LP_kernel(
 		_bondPrevBonds[i] = currentBond;
 		_bondTotalForces[i] = vTangentialForce + vNormalForce;
 
-		if (m_vConstantModelParameters[0])
+		if (m_vConstantModelParameters[0]) 			// check the bond destruction
 		{
-			// check the bond destruction
-			double dMaxStress = -vNormalForce.Length() / _bondCrossCuts[i] + _bondTangentialMoments[i].Length() * _bondDiameters[i] / (2 * _bondAxialMoments[i]);
-			double dMaxTorque = -vTangentialForce.Length() / _bondCrossCuts[i] + _bondNormalMoments[i].Length() * _bondDiameters[i] / (4 * _bondAxialMoments[i]);
-
-			if (fabs(dMaxStress) >= _bondNormalStrengths[i] && (m_vConstantModelParameters[3] != 0 || dStrainTotal > 0) || fabs(dMaxTorque) >= _bondTangentialStrengths[i])
+			double dForceLength = vNormalForce.Length();
+			if (dStrainTotal <= 0)	// compression
+				dForceLength *= -1;
+			const double dMaxStress = dForceLength / _bondCrossCuts[i] + _bondTangentialMoments[i].Length() * _bondDiameters[i] / (2 * _bondAxialMoments[i]);
+			const double dMaxTorque = vTangentialForce.Length() / _bondCrossCuts[i] + _bondNormalMoments[i].Length() * _bondDiameters[i] / (4 * _bondAxialMoments[i]);
+			if (( dMaxStress >= _bondNormalStrengths[i] ) || (dMaxTorque >= _bondTangentialStrengths[i]))
 			{
 				_bondActivities[i] = false;
 				_bondEndActivities[i] = _time;

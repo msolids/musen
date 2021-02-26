@@ -14,6 +14,8 @@ public:
 	void AddParticle(unsigned _nID, const CVector3& _vCoord, double _dRadius);
 	// Returns list of all overlaps in the system: {ID1, ID2, overlap}.
 	void GetAllOverlaps(std::vector<unsigned>& _vID1, std::vector<unsigned>& _vID2, std::vector<double>& _vOverlap, const SPBC& _PBC);
+	// Returns list of all overlaps in the system in form {ID1, ID2, overlap}.
+	std::tuple<std::vector<unsigned>, std::vector<unsigned>, std::vector<double>> GetAllOverlaps(const SPBC& _PBC);
 	// Sets new maximum allowed number of cells in each direction.
 	void SetMaxCellsNumber(unsigned _nMaxCells);
 

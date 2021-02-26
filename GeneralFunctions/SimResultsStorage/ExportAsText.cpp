@@ -3,7 +3,8 @@
    See LICENSE file for license and warranty information. */
 
 #include "ExportAsText.h"
-#include <iomanip>
+#include "PackageGenerator.h"
+#include "BondsGenerator.h"
 
 CExportAsText::CExportAsText() :
 	m_pSystemStructure{ nullptr },
@@ -15,16 +16,18 @@ CExportAsText::CExportAsText() :
 	m_sErrorMessage{ "" },
 	m_nCurrentStatus{ ERunningStatus::IDLE }
 {
-	m_allFlags = { &m_objectTypeFlags, &m_sceneInfoFlags, &m_constPropsFlags, &m_tdPropsFlags, &m_geometriesFlags, &m_materialsFlags };
+	m_allFlags = { &m_objectTypeFlags, &m_sceneInfoFlags, &m_constPropsFlags, &m_tdPropsFlags, &m_geometriesFlags, &m_materialsFlags, &m_generatorsFlags };
 }
 
-void CExportAsText::SetPointers(CSystemStructure* _pSystemStructure, CConstraints* _pConstaints)
+void CExportAsText::SetPointers(CSystemStructure* _pSystemStructure, CConstraints* _pConstaints, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator)
 {
 	m_pSystemStructure = _pSystemStructure;
 	m_pConstraints = _pConstaints;
+	m_packageGenerator = _pakageGenerator;
+	m_bondsGenerator = _bondsGenerator;
 }
 
-void CExportAsText::SetFlags(const SObjectTypeFlags& _objectTypes, const SSceneInfoFlags& _sceneInfo, const SConstPropsFlags& _constProps, const STDPropsFlags& _tdProps, const SGeometriesFlags& _geometries, const SMaterialsFlags& _materials)
+void CExportAsText::SetFlags(const SObjectTypeFlags& _objectTypes, const SSceneInfoFlags& _sceneInfo, const SConstPropsFlags& _constProps, const STDPropsFlags& _tdProps, const SGeometriesFlags& _geometries, const SMaterialsFlags& _materials, const SGeneratorsFlags& _generators)
 {
 	m_objectTypeFlags = _objectTypes;
 	m_sceneInfoFlags = _sceneInfo;
@@ -32,6 +35,7 @@ void CExportAsText::SetFlags(const SObjectTypeFlags& _objectTypes, const SSceneI
 	m_tdPropsFlags = _tdProps;
 	m_geometriesFlags = _geometries;
 	m_materialsFlags = _materials;
+	m_generatorsFlags = _generators;
 }
 
 void CExportAsText::SetFileName(const std::string& _sFileName)
@@ -327,13 +331,13 @@ void CExportAsText::Export()
 
 					txtOutFile << " " << E2I(ETXTCommands::OBJECT_TIME) << " " << m_timePoints[j];
 					if (m_tdPropsFlags.coordinate        && vConstData[i].objType == SPHERE
-					 || m_tdPropsFlags.planesCoordinates && vConstData[i].objType == TRIANGULAR_WALL
+					 || m_tdPropsFlags.coordinate		 && vConstData[i].objType == TRIANGULAR_WALL
 					 || m_tdPropsFlags.totalTorque       && vConstData[i].objType == SOLID_BOND)
 						txtOutFile << " " << E2I(ETXTCommands::OBJECT_COORDINATES)  << " " << TDD.coord;
 					if (m_tdPropsFlags.velocity)
 						txtOutFile << " " << E2I(ETXTCommands::OBJECT_VELOCITIES)   << " " << TDD.velo;
 					if (m_tdPropsFlags.angularVelocity   &&  vConstData[i].objType == SPHERE
-					 || m_tdPropsFlags.planesCoordinates &&  vConstData[i].objType == TRIANGULAR_WALL
+					 || m_tdPropsFlags.coordinate		 &&  vConstData[i].objType == TRIANGULAR_WALL
 					 || m_tdPropsFlags.tangOverlap       &&  vConstData[i].objType == SOLID_BOND)
 						txtOutFile << " " << E2I(ETXTCommands::OBJECT_ANG_VEL)      << " " << TDD.angleVel;
 					if (m_tdPropsFlags.totalForce)
@@ -341,7 +345,7 @@ void CExportAsText::Export()
 					if (m_tdPropsFlags.force)
 						txtOutFile << " " << E2I(ETXTCommands::OBJECT_FORCE)        << " " << TDD.force;
 					if (m_tdPropsFlags.quaternion        && vConstData[i].objType == SPHERE
-					 || m_tdPropsFlags.planesCoordinates && vConstData[i].objType == TRIANGULAR_WALL)
+					 || m_tdPropsFlags.coordinate		 && vConstData[i].objType == TRIANGULAR_WALL)
 						txtOutFile << " " << E2I(ETXTCommands::OBJECT_QUATERNION)   << " " << TDD.quaternion;
 					if (m_tdPropsFlags.stressTensor      && vConstData[i].objType == SPHERE)
 						txtOutFile << " " << E2I(ETXTCommands::OBJECT_STRESSTENSOR) << " " << TDD.stressTensor;
@@ -396,31 +400,8 @@ void CExportAsText::Export()
 			if (m_geometriesFlags.baseInfo)
 				txtOutFile << E2I(ETXTCommands::GEOMETRY) << " " << geometry->Name() << " " << geometry->Key() << " "
 			    << geometry->Mass() << " " << geometry->FreeMotion() << std::endl;
-			if (m_geometriesFlags.tdProperties)
-			{
-				switch (geometry->Motion()->MotionType())
-				{
-				case CGeometryMotion::EMotionType::TIME_DEPENDENT:
-				{
-					const auto intervals = geometry->Motion()->GetTimeIntervals();
-					txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << intervals.size();
-					for (const auto& interval : intervals)
-						txtOutFile << " " << interval.timeEnd << " " << interval.motion.velocity << " " << interval.motion.rotationCenter << " " << interval.motion.rotationVelocity;
-					break;
-				}
-				case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
-				{
-					const auto intervals = geometry->Motion()->GetForceIntervals();
-					txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << intervals.size();
-					for (const auto& interval : intervals)
-						txtOutFile << " " << interval.forceLimit << " " << interval.motion.velocity << " " << interval.motion.rotationCenter << " " << interval.motion.rotationVelocity;
-					break;
-				}
-				case CGeometryMotion::EMotionType::NONE:
-					txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << 0;
-					break;
-				}
-				txtOutFile << std::endl;
+			if (m_geometriesFlags.tdProperties) {
+				txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << *geometry->Motion() << std::endl;
 			}
 			if (m_geometriesFlags.wallsList)
 			{
@@ -428,6 +409,11 @@ void CExportAsText::Export()
 				for (auto plane : geometry->Planes())
 					txtOutFile << " " << plane;
 				txtOutFile << std::endl;
+			}
+		}
+		if (m_geometriesFlags.analysisVolumes) {
+			for (const auto* v : m_pSystemStructure->AllAnalysisVolumes()) {
+				txtOutFile << E2I(ETXTCommands::ANALYSIS_VOLUME) << " " << *v << std::endl;
 			}
 		}
 	}
@@ -484,6 +470,26 @@ void CExportAsText::Export()
 			}
 		}
 	}
+
+	// save info about generators
+	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
+	{
+		// package generator
+		if (m_generatorsFlags.packageGenerator)
+		{
+			for (const auto* g : m_packageGenerator->Generators()) {
+				txtOutFile << E2I(ETXTCommands::PACKAGE_GENERATOR) << " " << *g << std::endl;
+			}
+			txtOutFile << E2I(ETXTCommands::PACKAGE_GENERATOR_CONFIG) << " " << *m_packageGenerator << std::endl;
+		}
+		// bonds generator
+		if (m_generatorsFlags.bondsGenerator) {
+			for (const auto& g : m_bondsGenerator->Generators()) {
+				txtOutFile << E2I(ETXTCommands::BONDS_GENERATOR) << " " << *g << std::endl;
+			}
+		}
+	}
+
 	// close final text file
 	txtOutFile << std::endl;
 	txtOutFile.close();

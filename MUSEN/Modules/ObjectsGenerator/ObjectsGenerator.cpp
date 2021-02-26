@@ -40,11 +40,17 @@ void CObjectsGenerator::Initialize()
 	case 0: break;
 	}
 	srand( seed );
-	if (!m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey)) return;
-	m_PreLoadedAgglomerate = *m_pAgglomDB->GetAgglomerate( m_sAgglomerateKey );
 
-	if ( !m_bGenerateMixture) // shift agglomerate center of mass into point with coord 0 and automatically scale it
+	if (!m_bGenerateMixture)
 	{
+		// check that the selected agglomerate exists
+		if (!m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey))
+			return;
+
+		// load agglomerate
+		m_PreLoadedAgglomerate = *m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey);
+
+		// shift agglomerate center of mass into point with coord 0 and automatically scale it
 		CVector3 vCenterOfMass(0);
 		double dTotalVolume = 0; // total mass of a system
 		for ( unsigned i = 0; i < m_PreLoadedAgglomerate.vParticles.size(); i++ )
@@ -331,7 +337,7 @@ bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _vCoordPart, c
 			for (unsigned j = i + 1; j < _vCoordPart.size(); j++)
 				if (SquaredLength(GetSolidBond(_vCoordPart[i], _vCoordPart[j], m_PBC)) < pow(_vPartContRad[i] + _vPartContRad[j], 2))
 					curAgglColl++;
-		if (curAgglColl != intAgglColl)
+		if (curAgglColl > intAgglColl)
 			return true;
 	}
 

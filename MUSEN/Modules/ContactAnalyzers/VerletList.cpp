@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "VerletList.h"
+#include <cfloat>
 
 CVerletList::CVerletList(CSimplifiedScene& _Scene): m_Scene(_Scene),
 	m_nThreadsNumber(GetThreadsNumber()),

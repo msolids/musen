@@ -39,6 +39,16 @@ signals:
 	void EnableOpenGLView();
 	void DisableOpenGLView();
 	void PointersAreSet();
+	void UpdateViewParticles();
+	void UpdateViewBonds();
+	void UpdateViewGeometries();
+	void UpdateViewVolumes();
+	void UpdateViewSlices();
+	void UpdateViewDomain();
+	void UpdateViewPBC();
+	void UpdateViewAxes();
+	void UpdateViewTime();
+	void UpdateViewLegend();
 
 protected:
 	void OpenHelpFile() const;

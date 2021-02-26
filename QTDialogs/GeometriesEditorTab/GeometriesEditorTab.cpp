@@ -684,7 +684,7 @@ void CGeometriesEditorTab::SizeChanged()
 		sizes.SetRadius(     ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::RADIUS),       1));
 		sizes.SetInnerRadius(ui.treeProperties->GetDoubleSpinBoxValue(m_properties.at(EProperty::INNER_RADIUS), 1));
 	}
-	m_object->SetSizes(sizes);
+	m_object->Resize(sizes);
 
 	EmitChangeSignals();
 	UpdatePropertiesInfo();

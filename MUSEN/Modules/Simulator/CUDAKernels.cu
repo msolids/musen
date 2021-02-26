@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "CUDAKernels.cuh"
+#include <cfloat>
 
 namespace CUDAKernels
 {
@@ -55,7 +56,7 @@ namespace CUDAKernels
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
 			if (!_partForces[i].IsZero())
-				_res[i] = pow(_partMasses[i], 2) / _partForces[i].SquaredLength();
+				_res[i] = pow(_partMasses[i], 2.0) / _partForces[i].SquaredLength();
 			else
 				_res[i] = DBL_MAX;
 	}

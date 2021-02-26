@@ -83,6 +83,8 @@ void CModelPPHertzMindlinLiquid::CalculatePPForce(double _time, double _timeStep
 			vTangForceDry *= _interactProp.dSlidingFriction * std::abs(dNormalForceDry) / dNewTangForce;
 			_pCollision->vTangOverlap = vTangForceDry / Kt;
 		}
+		else
+			vTangForceDry += vDampingTangForceDry;
 
 		// calculate rolling friction
 		if (Particles().AnglVel(_iSrc).IsSignificant()) // if it is not zero, but small enough, its Length() can turn into zero and division fails
@@ -93,7 +95,7 @@ void CModelPPHertzMindlinLiquid::CalculatePPForce(double _time, double _timeStep
 		vNormalForce = vNormalVector * (dNormalForceDry + dDampingNormalForceDry);
 	}
 	// save tangential force
-	_pCollision->vTangForce = vTangForceDry + vDampingTangForceDry + vTangForceLiquid;
+	_pCollision->vTangForce = vTangForceDry + vTangForceLiquid;
 
 	_pCollision->vTotalForce    = vNormalForce + _pCollision->vTangForce + dCapForce + dViscForceNormal;
 	_pCollision->vResultMoment1 = vNormalVector * _pCollision->vTangForce*Particles().Radius(_iSrc) + vRollingTorque1 - vMomentLiquid;

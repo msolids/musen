@@ -94,6 +94,15 @@ void CContactCalculator::GetAllOverlaps(std::vector<unsigned>& _vID1, std::vecto
 		m_vParticles.erase(m_vParticles.begin() + nRealPartCount, m_vParticles.end());
 }
 
+std::tuple<std::vector<unsigned>, std::vector<unsigned>, std::vector<double>> CContactCalculator::GetAllOverlaps(const SPBC& _PBC)
+{
+	std::vector<unsigned> IDs1;
+	std::vector<unsigned> IDs2;
+	std::vector<double> overlaps;
+	GetAllOverlaps(IDs1, IDs2, overlaps, _PBC);
+	return { IDs1 , IDs2, overlaps };
+}
+
 double CContactCalculator::GetMaxParticleRadius() const
 {
 	if (m_vParticles.empty())

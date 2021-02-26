@@ -44,5 +44,8 @@ public:
 
 	CTriangularMesh CreateInvertedMesh() const;	// Creates a mesh with inverted face normals.
 	bool IsFaceNormalsConsistent() const;		// Checks if adjacent face have normals in opposite direction.
+
+	friend std::ostream& operator<<(std::ostream& _s, const CTriangularMesh& _obj);
+	friend std::istream& operator>>(std::istream& _s, CTriangularMesh& _obj);
 };
 

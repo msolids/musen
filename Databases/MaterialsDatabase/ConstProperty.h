@@ -5,6 +5,8 @@
 #pragma once
 #include "BaseProperty.h"
 
+class ProtoConstProperty;
+
 class CConstProperty : public CBaseProperty
 {
 private:

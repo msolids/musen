@@ -151,7 +151,7 @@ bool CParticleParticleModel::Initialize(SParticleStruct* _particles, SWallStruct
 	return true;
 }
 
-void CParticleParticleModel::Precalculate(double _time, double _timeStep) const
+void CParticleParticleModel::Precalculate(double _time, double _timeStep)
 {
 	PrecalculatePPModel(_time, _timeStep, m_particles);
 }
@@ -179,7 +179,7 @@ bool CParticleWallModel::Initialize(SParticleStruct* _particles, SWallStruct* _w
 	return true;
 }
 
-void CParticleWallModel::Precalculate(double _time, double _timeStep) const
+void CParticleWallModel::Precalculate(double _time, double _timeStep)
 {
 	PrecalculatePWModel(_time, _timeStep, m_particles, m_walls);
 }
@@ -205,7 +205,7 @@ bool CSolidBondModel::Initialize(SParticleStruct* _particles, SWallStruct* _wall
 	return m_particles && m_bonds;
 }
 
-void CSolidBondModel::Precalculate(double _time, double _timeStep) const
+void CSolidBondModel::Precalculate(double _time, double _timeStep)
 {
 	PrecalculateSBModel(_time, _timeStep, m_particles, m_bonds);
 }
@@ -231,7 +231,7 @@ bool CLiquidBondModel::Initialize(SParticleStruct* _particles, SWallStruct* _wal
 	return m_particles && m_bonds;
 }
 
-void CLiquidBondModel::Precalculate(double _time, double _timeStep) const
+void CLiquidBondModel::Precalculate(double _time, double _timeStep)
 {
 	PrecalculateLBModel(_time, _timeStep, m_particles, m_bonds);
 }
@@ -256,7 +256,7 @@ bool CExternalForceModel::Initialize(SParticleStruct* _particles, SWallStruct* _
 	return m_particles;
 }
 
-void CExternalForceModel::Precalculate(double _time, double _timeStep) const
+void CExternalForceModel::Precalculate(double _time, double _timeStep)
 {
 	PrecalculateEFModel(_time, _timeStep, m_particles);
 }

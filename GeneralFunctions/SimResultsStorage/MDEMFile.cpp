@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "MDEMFile.h"
+#include <cassert>
 
 CMDEMFile::CMDEMFile()
 {
@@ -85,7 +86,7 @@ void CMDEMFile::InitEmpty(const std::vector<std::string> &_vThreadNames)
 	assert(m_pFileInterface);
 
 	// set default values for file header
-	memset(&m_SRunTimeFileInfo.SFHeader, 0, sizeof(m_SRunTimeFileInfo.SFHeader));
+	m_SRunTimeFileInfo.SFHeader = {};
 	m_SRunTimeFileInfo.SFHeader.nSignature = SFileHeader::kSignature;
 	m_SRunTimeFileInfo.SFHeader.nNumberOfThreads = (uint32_t)_vThreadNames.size();
 	m_SRunTimeFileInfo.SFHeader.nSizeOfCluster = SFileHeader::kClusterSize;
@@ -96,13 +97,11 @@ void CMDEMFile::InitEmpty(const std::vector<std::string> &_vThreadNames)
 	for (uint32_t i = 0; i < m_SRunTimeFileInfo.vThreads.size(); i++)
 	{
 		auto &item = m_SRunTimeFileInfo.vThreads[i];
-		memset(&item.SFThreadHeader, 0, sizeof(item.SFThreadHeader));
+		item.SFThreadHeader = {};
+
 		// set name of current thread (can be only "simulation info" or "time-dependent")
-#ifdef PATH_CONFIGURED
-		strncpy(item.SFThreadHeader.vName, _vThreadNames[i].c_str(), sizeof(item.SFThreadHeader.vName) - 1);
-#else
-		strncpy_s(item.SFThreadHeader.vName, 64, _vThreadNames[i].c_str(), sizeof(item.SFThreadHeader.vName) - 1);
-#endif
+		_vThreadNames[i].copy(item.SFThreadHeader.vName, _vThreadNames[i].size() + 1);
+		item.SFThreadHeader.vName[_vThreadNames[i].size()] = '\0';
 		item.SFThreadHeader.nSize = 0;
 		item.nThreadIndex = i;
 		item.nCurrentOffset = 0;
@@ -416,7 +415,7 @@ bool CMDEMFile::CopyFrom(CMDEMFile* _pOldMDEMFile)
 	return IsValid();
 }
 
-void CMDEMFile::FinalTruncate(ProtoSimulationStorage& _protoSimStorage)
+void CMDEMFile::FinalTruncate()
 {
 	// get index, offset in file, offset inside block for last time-independent data block by TIDthread size
 	uint32_t nIndexLastBlockTID;

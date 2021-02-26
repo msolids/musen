@@ -26,6 +26,20 @@ struct SPackage
 	double completness{ 0 };		// The ratio of the number of performed iterations to the number of maximum allowed iterations.
 
 	CBaseSimulator* simulator{ nullptr };	// Pointer to a simulator used to generate particles.
+
+	friend std::ostream& operator<<(std::ostream& _s, const SPackage& _obj)
+	{
+		return _s << MakeSingleString(static_cast<const std::string&>(_obj.name)) << " " << _obj.active << " "
+			<< _obj.volumeKey << " " << _obj.mixtureKey << " " << _obj.targetPorosity << " " << _obj.targetMaxOverlap << " " << _obj.maxIterations << " "
+			<< _obj.initVelocity << " " << _obj.insideGeometry;
+	}
+
+	friend std::istream& operator>>(std::istream& _s, SPackage& _obj)
+	{
+		return _s >> _obj.name >> _obj.active
+			>> _obj.volumeKey >> _obj.mixtureKey >> _obj.targetPorosity >> _obj.targetMaxOverlap >> _obj.maxIterations
+			>> _obj.initVelocity >> _obj.insideGeometry;
+	}
 };
 
 // Generates packages from mixtures.
@@ -75,6 +89,10 @@ public:
 	void SaveConfiguration() override;	// Uses the same file as system structure to store configuration.
 
 	size_t ParticlesToGenerate(size_t _index) const;	// Returns number of particles to be generated in the specified generator.
+	void Clear();										// Clears and removes all generators.
+
+	friend std::ostream& operator<<(std::ostream& _s, const CPackageGenerator& _obj);
+	friend std::istream& operator>>(std::istream& _s, CPackageGenerator& _obj);
 
 private:
 	void Initialize(SPackage& _generator) const;																	// Initializes all data in the generator.
@@ -87,9 +105,9 @@ private:
 	void SaveGeneratedObjects(SPackage& _generator) const;		// Saves generated objects into the main system structure.
 
 	std::vector<size_t> ParticlesPerFraction(const SPackage& _generator) const;	// Returns number of particles to be generated for each fraction.
-	static void UpdateReachedOverlap(SPackage& _generator);							// Calculated maximum and average reached overlaps.
+	double VolumeToFill(const SPackage& _generator) const;						// Returns volume that must be filled with particles.
+	static void UpdateReachedOverlap(SPackage& _generator);						// Calculated maximum and average reached overlaps.
 
-	void ClearGenerators();										// Clears and removes all generators.
 	static void ClearSimulator(CBaseSimulator*& _simulator);	// Clears all pointers in the specified simulator.
 };
 

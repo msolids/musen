@@ -3,21 +3,17 @@
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $CURRENT_PATH = (Get-Item -Path ".\" -Verbose).FullName
-if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-	Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
-}
 
 ################################################################################
 ### Paths
 
 $MAJOR_VERSION = "3"
-$MIDDLE_VERSION = "9"
-$MINOR_VERSION = "1"
+$MIDDLE_VERSION = "14"
+$MINOR_VERSION = "0"
 $VERSION = "$MAJOR_VERSION.$MIDDLE_VERSION.$MINOR_VERSION"
 $DOWNLOAD_ADDRESS = "https://github.com/protocolbuffers/protobuf/releases/download/v$VERSION/protobuf-cpp-$VERSION.tar.gz"
 $NAME = "protobuf-$VERSION"
-$TAR_NAME = "$NAME.tar"
-$ZIP_NAME = "$TAR_NAME.gz"
+$ZIP_NAME = "$NAME.tar.gz"
 $INSTALL_PATH = "$CURRENT_PATH\protobuf"
 $SRC_PATH = "$CURRENT_PATH\$NAME"
 $CMAKE_PATH = "$SRC_PATH\cmake"
@@ -37,7 +33,7 @@ Remove-Item $SRC_PATH -Force -Recurse -ErrorAction Ignore
 ### Download
 
 Invoke-WebRequest $DOWNLOAD_ADDRESS -OutFile $ZIP_NAME
-Expand-7Zip $ZIP_NAME . | Expand-7Zip $TAR_NAME .
+tar -xf $ZIP_NAME
 
 ################################################################################
 ### Build and install
@@ -45,7 +41,7 @@ Expand-7Zip $ZIP_NAME . | Expand-7Zip $TAR_NAME .
 # Build x64
 New-Item $BUILD_PATH -ItemType directory
 Set-Location $BUILD_PATH
-cmake -G "Visual Studio 15 2017 Win64" $CMAKE_PATH `
+cmake -G "Visual Studio 16 2019" $CMAKE_PATH `
 	-DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH `
 	-Dprotobuf_BUILD_EXAMPLES=OFF `
 	-Dprotobuf_BUILD_TESTS=OFF `
@@ -65,8 +61,7 @@ $REM_ROOT_LIST = @(
 )
 $REM_INCLUDE_LIST = @(
 	"compiler",
-	"util",
-	"any.h",
+	"util"
 	"any.pb.h",
 	"any.proto",
 	"api.pb.h",
@@ -85,6 +80,7 @@ $REM_INCLUDE_LIST = @(
 	"map_entry.h",
 	"map_field.h",
 	"map_field_inl.h",
+	"metadata.h"
 	"reflection.h",
 	"service.h",
 	"source_context.pb.h",
@@ -104,6 +100,7 @@ $REM_INCLUDE_LIST = @(
 	"io\tokenizer.h",
 	"io\zero_copy_stream_impl.h",
 	"stubs\bytestream.h",
+	"stubs\map_util.h",
 	"stubs\status.h",
 	"stubs\template_util.h"
 )
@@ -139,4 +136,3 @@ Set-Location $CURRENT_PATH
 Remove-Item $BUILD_PATH -Force -Recurse
 Remove-Item $SRC_PATH -Force -Recurse
 Remove-Item $ZIP_NAME -Force -Recurse
-Remove-Item $TAR_NAME -Force -Recurse

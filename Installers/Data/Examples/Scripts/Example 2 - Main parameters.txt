@@ -1,0 +1,8 @@
+SOURCE_FILE          ../InitScenes/CompressionTest.mdem
+RESULT_FILE          ./Result_CompressionTest.mdem
+COMPONENT            SIMULATOR
+SIMULATION_STEP      2e-8
+SAVING_STEP          1e-5
+END_TIME             1e-3
+EXT_ACCEL            0 0 -9.81
+SIMULATION_DOMAIN    -0.03 -0.03 -0.018 0.03 0.03 0.018

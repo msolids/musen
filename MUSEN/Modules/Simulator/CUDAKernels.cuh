@@ -3,10 +3,14 @@
    See LICENSE file for license and warranty information. */
 
 #pragma once
-#include <device_launch_parameters.h>
 #include "GeometricFunctions.h"
 #include "SystemStructure.h"
 #include "SimplifiedSceneGPU.h"
+#include "DisableWarningHelper.h"
+PRAGMA_WARNING_PUSH
+PRAGMA_WARNING_DISABLE
+#include <device_launch_parameters.h>
+PRAGMA_WARNING_POP
 
 namespace CUDAKernels
 {

@@ -29,10 +29,14 @@ public:
 
 private:
 	// creates the list of all particles which situated within some region ( if bPartialyInVolume than also particle the centers of which in volume are also included)
-	void GetAllParticlesInRegion(double _dTime, std::vector<CSphere*>* _pAllParticles, double* _pTotalMass, double* _pTotalVolume, bool bPartialyInVolume = false, bool bConsiderBonds = false);
-	double GetCoordinationNumber( double _dTime, std::vector<CSphere*>* _pAllParticles ); // approximate coordination number of specified particles
+	void GetAllParticlesInRegion(double _dTime, std::vector<const CSphere*> *_pAllParticles, double* _pTotalMass, double* _pTotalVolume, bool bPartialyInVolume = false, bool bConsiderBonds = false);
+	double GetCoordinationNumber(double _time, const std::vector<const CSphere*> &_particles) const; // approximate coordination number of specified particles
 	bool CheckDataCorrectness(); // check that all fields in the edit are correct (if correct return true )
 	void InitializeConnections();
+	// Returns all particles that are totally or partially inside the sphere.
+	std::vector<const CSphere*> GetParticlesInsideSphere(double _time, const CVector3& _center, double _radius) const;
+	// Returns all bonds that are connected to particles, which are totally or partially inside the sphere.
+	std::vector<const CSolidBond*> GetBondsInsideSphere(double _time, const CVector3& _center, double _radius) const;
 
 public slots:
 	void UpdateExportView();

@@ -41,10 +41,12 @@ public:
 	void DeformSTL(const CVector3& _factors) override;		// Scales sizes of the STL volume by the given factors different in each dimension at time point 0.
 	void Rotate(const CMatrix3& _rotation) override;		// Rotates volume by the specified rotation matrix at time point 0.
 
-	// TODO: import/export as text as internal methods
 	void SaveToProto(ProtoAnalysisVolume& _proto) const;			// Save to protobuf message.
 	void LoadFromProto(const ProtoAnalysisVolume& _proto);			// Load from protobuf message.
 	void LoadFromProto_v0(const ProtoAnalysisVolume_v0& _proto);	// Load from protobuf message. Compatibility version.
+
+	friend std::ostream& operator<<(std::ostream& _s, const CAnalysisVolume& _obj);
+	friend std::istream& operator>>(std::istream& _s, CAnalysisVolume& _obj);
 
 	// Returns indices of all particles placed in the volume.
 	std::vector<size_t> GetParticleIndicesInside(double _time, bool _totallyInside = true) const;

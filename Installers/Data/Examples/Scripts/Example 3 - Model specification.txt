@@ -1,0 +1,10 @@
+SOURCE_FILE          ../InitScenes/CompressionTest.mdem
+RESULT_FILE          ./Result_CompressionTest.mdem
+COMPONENT            SIMULATOR
+SIMULATION_STEP      2e-8
+SAVING_STEP          1e-5
+END_TIME             1e-3
+MODEL_PP             ModelPPHertzMindlin
+MODEL_PW             ModelPWHertzMindlin
+MODEL_SB             ModelSBElastic 
+MODEL_SB_PARAMS      CONSIDER_BREAKAGE 1 BIMODULARITY 1 COMPRESSIVE_BREAK 0

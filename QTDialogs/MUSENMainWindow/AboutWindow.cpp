@@ -17,17 +17,18 @@ CAboutWindow::CAboutWindow(const QString& _buildVersion, QWidget* _parent)
 	m_headerTeamName      = "MUSEN Development Team";
 	m_headerContactPerson = "Maksym Dosta";
 	m_headerContactEmail  = "dosta@tuhh.de";
-	m_headerUpdatesLink   = "https://cloud.tuhh.de/index.php/s/HFpwk4NWdpo3QSf";
+	m_headerUpdatesLink   = "https://github.com/msolids/musen/releases";
 
 	m_mainDevelopers  = { "Maksym Dosta", "Vasyl Skorych" };
 	m_otherDevelopers = { "Nicolas Depta", "Serhii Dranyshnikov", "Kolja Jarolin", "Ihor Khlopov", "Vadim Yanushkevich" };
 
 	m_libraries = {
-		{ "Qt 5.12.3", "http://www.qt.io/", "Copyright 2019, The Qt Company", "LGPLv3 license", "https://doc.qt.io/qt-5/lgpl.html" },
-		{ "Protocol Buffers v3.9.1", "https://developers.google.com/protocol-buffers/", "Copyright 2019, Google Inc.", "BSD license", "https://github.com/protocolbuffers/protobuf/blob/master/LICENSE" },
-		{ "zlib 1.2.11", "http://www.zlib.net/", "Copyright 2017, Jean-loup Gailly and Mark Adler", "zlib license", "https://www.zlib.net/zlib_license.html" },
-		{ "CUDA 10.0", "https://developer.nvidia.com/cuda-zone", "Copyright 2019, Nvidia Corporation", "NVIDIA license", "https://developer.download.nvidia.com/compute/cuda/10.0/Prod/docs/sidebar/EULA.pdf" },
-		{ "Inno Setup 6.0.2", "http://www.jrsoftware.org/isinfo.php", "Copyright 2019, Jordan Russell", "Modified BSD license", "http://www.jrsoftware.org/files/is/license.txt" } };
+		{ "CUDA 11.2", "https://developer.nvidia.com/cuda-zone", "Copyright 2020, Nvidia Corporation", "NVIDIA license", "https://docs.nvidia.com/cuda/pdf/EULA.pdf" },
+		{ "Inno Setup 6.1.2", "http://www.jrsoftware.org/isinfo.php", "Copyright 2020, Jordan Russell", "Modified BSD license", "http://www.jrsoftware.org/files/is/license.txt" },
+		{ "Protocol Buffers v3.14.0", "https://developers.google.com/protocol-buffers/", "Copyright 2008, Google Inc.", "BSD license", "https://github.com/protocolbuffers/protobuf/blob/master/LICENSE" },
+		{ "Qt 5.15.2", "http://www.qt.io/", "Copyright 2020, The Qt Company", "LGPLv3 license", "https://doc.qt.io/qt-5/lgpl.html" },
+		{ "zlib 1.2.11", "http://www.zlib.net/", "Copyright 2017, Jean-loup Gailly and Mark Adler", "zlib license", "https://www.zlib.net/zlib_license.html" }
+	};
 
 	SetHeaderText(_buildVersion);
 	SetLicense();

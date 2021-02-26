@@ -7,7 +7,8 @@
 #include "TPProperty.h"
 #include "ConstProperty.h"
 #include "MixedFunctions.h"
-#include "MUSENStringFunctions.h"
+
+class ProtoCompound;
 
 class CCompound
 {

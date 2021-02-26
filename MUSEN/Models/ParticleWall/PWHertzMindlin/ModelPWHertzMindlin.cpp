@@ -53,9 +53,8 @@ void CModelPWHertzMindlin::CalculatePWForce(double _time, double _timeStep, size
 		vTangForce = vTangForce * (_interactProp.dSlidingFriction * std::abs(dNormalForce) / dNewTangForce);
 		_pCollision->vTangOverlap = vTangForce / -Kt;
 	}
-
-	// save old tangential force
-	_pCollision->vTangForce = vTangForce + vDampingTangForce;
+	else
+		_pCollision->vTangForce = vTangForce + vDampingTangForce;
 
 	// add result to the arrays
 	_pCollision->vTotalForce = _pCollision->vTangForce + (dNormalForce + dDampingForce) * Walls().NormalVector(_iWall);

@@ -54,7 +54,7 @@ void CViewManager::UpdateViewQuality() const
 	auto w = dynamic_cast<CBaseGLView*>(m_widget);
 	w->SetRenderQuality(m_viewSettings->RenderQuality());
 	if (m_viewSettings->RenderType() == ERenderType::SHADER)
-		UpdateBonds();
+		DoUpdateBonds();
 	w->Redraw();
 }
 
@@ -64,125 +64,125 @@ void CViewManager::UpdateParticleTexture() const
 	auto w = dynamic_cast<CBaseGLView*>(m_widget);
 	w->SetParticleTexture(m_viewSettings->ParticleTexture());
 	if (m_viewSettings->RenderType() == ERenderType::SHADER)
-		UpdateParticles();
+		DoUpdateParticles();
 	w->Redraw();
 }
 
-void CViewManager::UpdateParticlesVisible() const
+void CViewManager::UpdateParticles() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->SetOrientationVisible(m_viewSettings->Visibility().orientations); break;
-	case ERenderType::SHADER:	UpdateParticles(); break;
+	case ERenderType::SHADER:	DoUpdateParticles(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateBondsVisible() const
+void CViewManager::UpdateBonds() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->RecalculateBrokenBonds(); break;
-	case ERenderType::SHADER:	UpdateBonds(); break;
+	case ERenderType::SHADER:	DoUpdateBonds(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateGeometriesVisible() const
+void CViewManager::UpdateGeometries() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	break;
-	case ERenderType::SHADER:	UpdateWalls(); break;
+	case ERenderType::SHADER:	DoUpdateWalls(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateVolumesVisible() const
+void CViewManager::UpdateVolumes() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	break;
-	case ERenderType::SHADER:	UpdateVolumes(); break;
+	case ERenderType::SHADER:	DoUpdateVolumes(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateSlicesVisible() const
+void CViewManager::UpdateSlices() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:		break;
 	case ERenderType::MIXED:	break;
-	case ERenderType::SHADER:	UpdateSlices(); break;
+	case ERenderType::SHADER:	DoUpdateSlices(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateDomainVisible() const
+void CViewManager::UpdateDomain() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	break;
-	case ERenderType::SHADER:	UpdateSimulationDomain(); break;
+	case ERenderType::SHADER:	DoUpdateSimulationDomain(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdatePBCVisible() const
+void CViewManager::UpdatePBC() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	break;
-	case ERenderType::SHADER:	UpdatePBC(); break;
+	case ERenderType::SHADER:	DoUpdatePBC(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateAxesVisible() const
+void CViewManager::UpdateAxes() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->SetAxesVisible(m_viewSettings->Visibility().axes);	break;
-	case ERenderType::SHADER:	UpdateAxes(); break;
+	case ERenderType::SHADER:	DoUpdateAxes(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateTimeVisible() const
+void CViewManager::UpdateTime() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->SetTimeVisible(m_viewSettings->Visibility().time);	break;
-	case ERenderType::SHADER:	UpdateTime(); break;
+	case ERenderType::SHADER:	DoUpdateTime(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
 }
 
-void CViewManager::UpdateLegendVisible() const
+void CViewManager::UpdateLegend() const
 {
 	switch (m_viewSettings->RenderType())
 	{
 	case ERenderType::GLU:
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->SetLegendVisible(m_viewSettings->Visibility().legend);	break;
-	case ERenderType::SHADER:	UpdateLegend(); break;
+	case ERenderType::SHADER:	DoUpdateLegend(); break;
 	case ERenderType::NONE:		break;
 	}
 	dynamic_cast<CBaseGLView*>(m_widget)->Redraw();
@@ -219,10 +219,10 @@ void CViewManager::UpdateColors() const
 	case ERenderType::GLU:		dynamic_cast<COpenGLView*>(m_widget)->UpdateView();  break;
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->UpdateView();  break;
 	case ERenderType::SHADER:
-		UpdateParticles();
-		UpdateBonds();
-		UpdateSlices();
-		UpdateLegend();
+		DoUpdateParticles();
+		DoUpdateBonds();
+		DoUpdateSlices();
+		DoUpdateLegend();
 		dynamic_cast<COpenGLViewShader*>(m_widget)->Redraw();
 		break;
 	case ERenderType::NONE:     break;
@@ -238,15 +238,15 @@ void CViewManager::SetTime(double _time)
 	case ERenderType::GLU:		dynamic_cast<COpenGLView*>(m_widget)->SetCurrentTime(m_time); break;
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->SetCurrentTime(m_time); break;
 	case ERenderType::SHADER:
-		UpdateParticles();
-		UpdateBonds();
-		UpdateWalls();
-		UpdateVolumes();
-		UpdateSlices();
-		UpdateSimulationDomain();
-		UpdatePBC();
-		UpdateTime();
-		UpdateLegend();
+		DoUpdateParticles();
+		DoUpdateBonds();
+		DoUpdateWalls();
+		DoUpdateVolumes();
+		DoUpdateSlices();
+		DoUpdateSimulationDomain();
+		DoUpdatePBC();
+		DoUpdateTime();
+		DoUpdateLegend();
 		dynamic_cast<COpenGLViewShader*>(m_widget)->Redraw();
 		break;
 	case ERenderType::NONE:     break;
@@ -451,16 +451,16 @@ void CViewManager::UpdateAllObjects() const
 	case ERenderType::GLU:	 dynamic_cast<COpenGLView*>(m_widget)->UpdateView();  break;
 	case ERenderType::MIXED: dynamic_cast<COpenGLView*>(m_widget)->UpdateView();  break;
 	case ERenderType::SHADER:
-		UpdateParticles();
-		UpdateBonds();
-		UpdateWalls();
-		UpdateVolumes();
-		UpdateSlices();
-		UpdateSimulationDomain();
-		UpdatePBC();
-		UpdateTime();
-		UpdateLegend();
-		UpdateAxes();
+		DoUpdateParticles();
+		DoUpdateBonds();
+		DoUpdateWalls();
+		DoUpdateVolumes();
+		DoUpdateSlices();
+		DoUpdateSimulationDomain();
+		DoUpdatePBC();
+		DoUpdateTime();
+		DoUpdateLegend();
+		DoUpdateAxes();
 		dynamic_cast<COpenGLViewShader*>(m_widget)->Redraw();
 		break;
 	case ERenderType::NONE:     break;
@@ -505,7 +505,7 @@ void CViewManager::UpdateSelectedObjects() const
 	{
 	case ERenderType::GLU:		dynamic_cast<COpenGLView*>(m_widget)->UpdateView();							break;
 	case ERenderType::MIXED:	dynamic_cast<COpenGLView*>(m_widget)->UpdateView();							break;
-	case ERenderType::SHADER:   UpdateParticles(); dynamic_cast<COpenGLViewShader*>(m_widget)->Redraw();	break;
+	case ERenderType::SHADER:   DoUpdateParticles(); dynamic_cast<COpenGLViewShader*>(m_widget)->Redraw();	break;
 	case ERenderType::NONE:     break;
 	}
 }
@@ -517,7 +517,7 @@ void CViewManager::SelectObject(const QPoint& _pos)
 		m_viewSettings->SelectedObjects({ id });
 	else
 		m_viewSettings->SelectedObjects({});
-	UpdateParticlesVisible();
+	UpdateParticles();
 	emit ObjectsSelected();
 }
 
@@ -528,7 +528,7 @@ void CViewManager::SelectGroup(const QPoint& _pos)
 		m_viewSettings->SelectedObjects({ m_systemStructure->GetAgglomerate(m_time, id) });
 	else
 		m_viewSettings->SelectedObjects({});
-	UpdateParticlesVisible();
+	UpdateParticles();
 	emit ObjectsSelected();
 }
 
@@ -845,7 +845,7 @@ void CViewManager::ClearWidget()
 	m_widget->setUpdatesEnabled(true);
 }
 
-void CViewManager::UpdateParticles() const
+void CViewManager::DoUpdateParticles() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -883,7 +883,7 @@ void CViewManager::UpdateParticles() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetOrientations(data2);
 }
 
-void CViewManager::UpdateBonds() const
+void CViewManager::DoUpdateBonds() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -916,7 +916,7 @@ void CViewManager::UpdateBonds() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetBonds(data);
 }
 
-void CViewManager::UpdateWalls() const
+void CViewManager::DoUpdateWalls() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -962,7 +962,7 @@ void CViewManager::UpdateWalls() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetWalls(data);
 }
 
-void CViewManager::UpdateVolumes() const
+void CViewManager::DoUpdateVolumes() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -1001,7 +1001,7 @@ void CViewManager::UpdateVolumes() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetVolumes(data);
 }
 
-void CViewManager::UpdateSimulationDomain() const
+void CViewManager::DoUpdateSimulationDomain() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -1018,7 +1018,7 @@ void CViewManager::UpdateSimulationDomain() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetDomain(box);
 }
 
-void CViewManager::UpdatePBC() const
+void CViewManager::DoUpdatePBC() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -1042,7 +1042,7 @@ void CViewManager::UpdatePBC() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetPeriodic(COpenGLViewShader::SPeriodic{ pbc.bX, pbc.bY, pbc.bZ, C2Q(coordBeg), C2Q(coordEnd) });
 }
 
-void CViewManager::UpdateAxes() const
+void CViewManager::DoUpdateAxes() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -1050,7 +1050,7 @@ void CViewManager::UpdateAxes() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetAxes(m_viewSettings->Visibility().axes);
 }
 
-void CViewManager::UpdateTime() const
+void CViewManager::DoUpdateTime() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -1058,7 +1058,7 @@ void CViewManager::UpdateTime() const
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetTime(m_time, m_viewSettings->Visibility().time);
 }
 
-void CViewManager::UpdateLegend() const
+void CViewManager::DoUpdateLegend() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;
@@ -1070,7 +1070,7 @@ void CViewManager::UpdateLegend() const
 		m_viewSettings->Coloring().minColor, m_viewSettings->Coloring().midColor, m_viewSettings->Coloring().maxColor }, m_viewSettings->Visibility().legend);
 }
 
-void CViewManager::UpdateSlices() const
+void CViewManager::DoUpdateSlices() const
 {
 	// to skip unnecessary rendering attempts
 	if (!dynamic_cast<COpenGLViewShader*>(m_widget)->IsValid()) return;

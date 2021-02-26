@@ -5,8 +5,9 @@
 #pragma once
 
 #include <vector>
-#include <cmath>
 #include "DefinesMDB.h"
+
+class ProtoCorrelation;
 
 class CCorrelation
 {

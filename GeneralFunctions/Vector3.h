@@ -103,3 +103,4 @@ public:
 using CVector3  = CBasicVector3<double>;
 using CVector3d = CBasicVector3<double>;
 using CVector3f = CBasicVector3<float>;
+using CVector3b = CBasicVector3<bool>;

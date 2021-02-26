@@ -18,7 +18,7 @@ void CModelPPHertz::CalculatePPForce(double _time, double _timeStep, size_t _iSr
 	const CVector3 vNormalVector = _pCollision->vContactVector.Normalized();
 
 	// relative velocity (normal and tangential)
-	const CVector3 vRelVel       = Particles().Vel(_iDst) - Particles().Vel(_iSrc) + vRcSrc * Particles().AnglVel(_iSrc) - vRcDst * Particles().AnglVel(_iDst);
+	const CVector3 vRelVel       = Particles().Vel(_iDst) + Particles().AnglVel(_iDst) * vRcDst - (Particles().Vel(_iSrc) + Particles().AnglVel(_iSrc) * vRcSrc);
 	const double   dRelVelNormal = DotProduct(vNormalVector, vRelVel);
 	const CVector3 vRelVelNormal = dRelVelNormal * vNormalVector;
 	const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;

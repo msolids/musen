@@ -4,6 +4,7 @@
 
 #include "ParticlesAnalyzer.h"
 #include "GeometricFunctions.h"
+#include <fstream>
 
 CParticlesAnalyzer::CParticlesAnalyzer()
 {
