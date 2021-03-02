@@ -1,11 +1,8 @@
-# MUSEN
-MUSEN is an open-source DEM simulation framework.
-
-For more information, please check the [documentation](https://msolids.net/documentation). 
-
-If you want refer to MUSEN please use contribution of [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618).
-
-For new versions and updates, please check [here](https://msolids.net/musen/download).
+# MUSEN - GPU-accelerated DEM simulation framework
+- For more information, please check the [documentation](https://msolids.net/documentation). 
+- [Video introduction](https://youtu.be/bH1xydzdrGY)
+- To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618).
+- [New versions and updates] (https://msolids.net/musen/download).
 
 # Requirements 
 MUSEN should install and work on all latest versions of Windows or Linux (Ubuntu or Red Head).
