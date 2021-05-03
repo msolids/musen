@@ -12,7 +12,7 @@ set DATE.SECOND=%DATE_TIME:~12,2%
 set DATE_TIME_F=%DATE.YEAR%%DATE.MONTH%%DATE.DAY%.%DATE.HOUR%%DATE.MINUTE%%DATE.SECOND%
 
 for /f %%i in ('git rev-parse --short HEAD') do set CURR_COMMIT_HASH=%%i
-for /f %%i in ('git rev-parse --abbrev-ref HEAD') do set CURR_COMMIT_NAME=%%i
+set CURR_COMMIT_NAME=open
 
 :: write build time
 2>nul (		REM check if file is available to write
