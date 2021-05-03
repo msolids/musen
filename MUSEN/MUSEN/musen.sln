@@ -10,10 +10,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MUSEN", "..\QT_GUI\QT_GUI.v
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MUSENGeneralSources", "..\..\GeneralFunctions\MUSEN\MUSENGeneralSources.vcxproj", "{7E3F30C4-4535-44E6-BEEB-5C1D947CAF80}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PackageGenerator", "..\Modules\PackageGenerator\PackageGenerator.vcxproj", "{14F35BD5-786F-4F75-8450-8FEB8D97AC12}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BondsGenerator", "..\Modules\BondsGenerator\BondsGenerator.vcxproj", "{739E5585-3715-40EA-99FB-AB1ADB2E2DC3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelSBElastic", "..\Models\SolidBonds\BondModelElastic\BondModelPotyondy.vcxproj", "{289C56BB-4EC6-4097-B52D-CABA821AF420}"
 EndProject
@@ -56,10 +62,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ObjectsGenerator", "..\Modu
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimResultsStorage", "..\..\GeneralFunctions\SimResultsStorage\SimResultsStorage.vcxproj", "{2EF32648-DB44-4A95-82C1-2931AF3674BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3EE95952-CF82-4C58-BB13-A471932B22C2} = {3EE95952-CF82-4C58-BB13-A471932B22C2}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "QTDialogs", "QTDialogs", "{A1C1AD59-0295-4FEB-A4E3-A6E37B83EDE3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Simulator", "..\Modules\Simulator\Simulator.vcxproj", "{B6D40BF0-EE28-4396-AF29-264153415498}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Databases", "Databases", "{498CEC08-C4D5-4383-A966-F94061EC7112}"
 EndProject
@@ -72,14 +84,26 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelPPHertz", "..\Models\ParticleParticle\Hertz\Hertz.vcxproj", "{289C56BB-4EC6-4097-B52D-CABFF21AF423}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GeometriesDatabaseTab", "..\..\QTDialogs\GeometriesDatabaseTab\GeometriesDatabaseTab.vcxproj", "{D6D4B2C4-3F0E-4A61-A21A-DD3C99A0586F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgglomeratesDatabaseTab", "..\..\QTDialogs\AgglomeratesDatabaseTab\AgglomeratesDatabaseTab.vcxproj", "{D6D4B2C4-3F0E-4A61-A21A-DD3C99AB586F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ObjectsGeneratorTab", "..\..\QTDialogs\ObjectsGeneratorTab\ObjectsGeneratorTab.vcxproj", "{D6D4B2C4-3F0E-4B61-A21A-DD3C99AB586F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GeometriesEditorTab", "..\..\QTDialogs\GeometriesEditorTab\GeometriesEditorTab.vcxproj", "{AC2328E4-BA49-46D6-B75B-86841416B50F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GeneralMusenDialog", "..\..\QTDialogs\GeneralMusenDialog\GeneralMUSENDialog.vcxproj", "{408CD18F-EC70-42CD-915B-1D9ECFCB0E9F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimulatorTab", "..\..\QTDialogs\SimulatorTab\SimulatorTab.vcxproj", "{59AB9A65-F926-4562-A643-853F46BE133A}"
 EndProject
@@ -93,6 +117,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MusenConfigurationTab", "..
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ResultsAnalyzer", "..\Modules\ResultsAnalyzer\ResultsAnalyzer.vcxproj", "{451612C8-D384-43BB-BAA3-1446721FEB70}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelSBKelvin", "..\Models\SolidBonds\BondModelKelvin\BondModelKelvin.vcxproj", "{100E46C2-1212-4082-B4A8-0BE8407A9009}"
 EndProject
@@ -106,6 +133,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelSBThermal", "..\Models
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MaterialsDatabaseTab", "..\..\QTDialogs\MaterialsDatabaseTab\MaterialsDatabaseTab.vcxproj", "{AB81EC9D-4A95-4277-B113-9B610C10BFB7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PartPart", "PartPart", "{849FA728-0478-490C-B2EF-EB552223CF5D}"
 EndProject
@@ -132,6 +162,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PackageGeneratorTab", "..\..\QTDialogs\PackageGeneratorTab\PackageGeneratorTab.vcxproj", "{B1C6AC41-B234-4BBF-B3E2-53F37F1D0781}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SampleAnalyzerTab", "..\..\QTDialogs\SampleAnalyzerTab\SampleAnalyzerTab.vcxproj", "{3EAB3878-F8CD-4293-A96E-CEED7F45DDDF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SceneEditorTab", "..\..\QTDialogs\SceneEditorTab\SceneEditorTab.vcxproj", "{34197AA7-AABC-4B67-8463-B6A99C14005E}"
 EndProject
@@ -166,6 +199,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemStructure", "..\Modules\SystemStructure\SystemStructure.vcxproj", "{739E5585-3715-40AA-99FB-AB1ADB2E2DC3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ContactAnalyzers", "..\Modules\ContactAnalyzers\ContactAnalyzers.vcxproj", "{24F35BD5-786F-4F75-8450-8FEB8D97AC12}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2EF32648-DB44-4A95-82C1-2931AF3674BC} = {2EF32648-DB44-4A95-82C1-2931AF3674BC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileManager", "..\Modules\FileManager\FileManager.vcxproj", "{436428F0-1018-47A2-B055-F2079B53DDF4}"
 EndProject
@@ -485,7 +521,7 @@ Global
 		{448B6049-5D64-4F31-BE4F-73E480AFE80B} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		Qt5Version = msvc2019_64
 		SolutionGuid = {B4449610-1D23-4C62-8325-77B5FA1A2520}
+		Qt5Version = msvc2019_64
 	EndGlobalSection
 EndGlobal
