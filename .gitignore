@@ -94,3 +94,5 @@ GeneratedFiles*/
 /MUSEN_Linux/MUSEN_externals*
 /Installers/InstallerProject/data.ini
 /ExternalLibraries
+
+/MUSEN_Linux/compiled/
