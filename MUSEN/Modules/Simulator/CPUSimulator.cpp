@@ -491,47 +491,41 @@ void CCPUSimulator::PrepareAdditionalSavingData()
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 
 	// reset previously calculated stresses
-	for (size_t i = 0; i < m_additionalSavingData.size(); ++i)
-		m_additionalSavingData[i].stressTensor.Init(0);
+	for (auto& data : m_additionalSavingData)
+		data.stressTensor.Init(0);
 
 	// save stresses caused by solid bonds
 	SSolidBondStruct& solidBonds = m_scene.GetRefToSolidBonds();
 	for (size_t i = 0; i < solidBonds.Size(); ++i)
 	{
-		CSolidBond* pSBond = static_cast<CSolidBond*>(m_pSystemStructure->GetObjectByIndex(solidBonds.InitIndex(i)));
-		if ((!solidBonds.Active(i)) && (!pSBond->IsActive(m_currentTime)))
-			continue;
-		const size_t leftID = solidBonds.LeftID(i);
+		if (!solidBonds.Active(i) && !m_pSystemStructure->GetObjectByIndex(solidBonds.InitIndex(i))->IsActive(m_currentTime)) continue;
+		const size_t leftID  = solidBonds.LeftID(i);
 		const size_t rightID = solidBonds.RightID(i);
-		CVector3 vConnVec = (particles.Coord(leftID) - particles.Coord(rightID)).Normalized();
-		m_additionalSavingData[leftID].AddStress(-1 * vConnVec * particles.Radius(leftID), solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID), 3) / 6);
-		m_additionalSavingData[rightID].AddStress(vConnVec * particles.Radius(rightID), -1 * solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
+		CVector3 connVec = (particles.Coord(leftID) - particles.Coord(rightID)).Normalized();
+		m_additionalSavingData[leftID ].AddStress(-1 * connVec * particles.Radius(leftID ),      solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID ), 3) / 6);
+		m_additionalSavingData[rightID].AddStress(     connVec * particles.Radius(rightID), -1 * solidBonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
 	}
 
 	// save stresses caused by particle-particle contact
-	for (size_t i = 0; i < m_collisionsCalculator.m_vCollMatrixPP.size(); i++)
-	{
-		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
+	for (auto& collisions : m_collisionsCalculator.m_vCollMatrixPP)
+		for (auto& collision : collisions)
 		{
-			const size_t srcID = pColl->nSrcID;
-			const size_t dstID = pColl->nDstID;
-			CVector3 vConnVec = (particles.Coord(srcID) - particles.Coord(dstID)).Normalized();
+			const size_t srcID = collision->nSrcID;
+			const size_t dstID = collision->nDstID;
+			CVector3 connVec = (particles.Coord(srcID) - particles.Coord(dstID)).Normalized();
 			const double srcRadius = particles.Radius(srcID);
 			const double dstRadius = particles.Radius(dstID);
-			m_additionalSavingData[pColl->nSrcID].AddStress(-1 * vConnVec*srcRadius, pColl->vTotalForce, PI * pow(2 * srcRadius, 3) / 6);
-			m_additionalSavingData[pColl->nDstID].AddStress(vConnVec*dstRadius, -1 * pColl->vTotalForce, PI * pow(2 * dstRadius, 3) / 6);
+			m_additionalSavingData[collision->nSrcID].AddStress(-1 * connVec * srcRadius,      collision->vTotalForce, PI * pow(2 * srcRadius, 3) / 6);
+			m_additionalSavingData[collision->nDstID].AddStress(     connVec * dstRadius, -1 * collision->vTotalForce, PI * pow(2 * dstRadius, 3) / 6);
 		}
-	};
 
 	// save stresses caused by particle-wall contacts
-	for (size_t i = 0; i < m_collisionsCalculator.m_vCollMatrixPW.size(); i++)
-	{
-		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPW[i])
+	for (auto& collisions : m_collisionsCalculator.m_vCollMatrixPW)
+		for (auto& collision : collisions)
 		{
-			CVector3 vConnVec = (pColl->vContactVector - particles.Coord(pColl->nDstID)).Normalized();
-			m_additionalSavingData[pColl->nDstID].AddStress(vConnVec*particles.Radius(pColl->nDstID), pColl->vTotalForce, PI * pow(2 * particles.Radius(pColl->nDstID), 3) / 6);
+			CVector3 connVec = (collision->vContactVector - particles.Coord(collision->nDstID)).Normalized();
+			m_additionalSavingData[collision->nDstID].AddStress(connVec * particles.Radius(collision->nDstID), collision->vTotalForce, PI * pow(2 * particles.Radius(collision->nDstID), 3) / 6);
 		}
-	};
 }
 
 void CCPUSimulator::SaveData()

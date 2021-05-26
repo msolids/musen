@@ -19,5 +19,7 @@ void __global__ CUDA_CalcPPForce_S_kernel(
 	const unsigned	_collDstIDs[],
 	const double	_collEquivRadii[],
 	const double	_collNormalOverlaps[],
-	const CVector3  _collContactVectors[]
+	const CVector3  _collContactVectors[],
+
+	CVector3 _collTotalForces[]
 );

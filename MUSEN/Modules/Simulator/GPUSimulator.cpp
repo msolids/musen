@@ -142,7 +142,7 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		CRealGeometry* pGeom = m_pSystemStructure->Geometry(iGeom);
 
 		if (pGeom->Planes().empty()) continue;
-		if ((pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) || 
+		if ((pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) ||
 			(pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::CONSTANT_FORCE)) // force
 		{
 			const CVector3 vTotalForce = m_gpu.CalculateTotalForceOnWall(iGeom, m_sceneGPU.GetPointerToWalls());
@@ -216,35 +216,34 @@ void CGPUSimulator::PrepareAdditionalSavingData()
 		data.stressTensor.Init(0);
 
 	// save stresses caused by solid bonds
-	for (size_t i = 0; i < bonds.Size(); i++)
+	for (size_t i = 0; i < bonds.Size(); ++i)
 	{
-		CSolidBond* pSBond = dynamic_cast<CSolidBond*>(m_pSystemStructure->GetObjectByIndex(bonds.InitIndex(i)));
-		if (!bonds.Active(i) && !pSBond->IsActive(m_currentTime)) continue;
+		if (!bonds.Active(i) && !m_pSystemStructure->GetObjectByIndex(bonds.InitIndex(i))->IsActive(m_currentTime)) continue;
 		const size_t leftID  = bonds.LeftID(i);
 		const size_t rightID = bonds.RightID(i);
-		CVector3 vConnVec = (particles.Coord(leftID) - particles.Coord(rightID)).Normalized();
-		m_additionalSavingData[bonds.LeftID(i)].AddStress(-1 * vConnVec * particles.Radius(leftID), bonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID), 3) / 6);
-		m_additionalSavingData[bonds.RightID(i)].AddStress(vConnVec * particles.Radius(rightID), -1 * bonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
+		CVector3 connVec = (particles.Coord(leftID) - particles.Coord(rightID)).Normalized();
+		m_additionalSavingData[bonds.LeftID(i) ].AddStress(-1 * connVec * particles.Radius(leftID ),      bonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID ), 3) / 6);
+		m_additionalSavingData[bonds.RightID(i)].AddStress(     connVec * particles.Radius(rightID), -1 * bonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
 	}
 
 	// save stresses caused by particle-particle contact
-	for (size_t i = 0; i < PPCollisions.nElements; i++)
+	for (size_t i = 0; i < PPCollisions.nElements; ++i)
 	{
 		if (!PPCollisions.ActivityFlags[i]) continue;
 		const size_t srcID = PPCollisions.SrcIDs[i];
 		const size_t dstID = PPCollisions.DstIDs[i];
-		CVector3 vConnVec = (particles.Coord(srcID) - particles.Coord(dstID)).Normalized();
-		m_additionalSavingData[PPCollisions.SrcIDs[i]].AddStress(-1 * vConnVec*particles.Radius(srcID), PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(srcID), 3) / 6);
-		m_additionalSavingData[PPCollisions.DstIDs[i]].AddStress(vConnVec*particles.Radius(dstID), -1 * PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(dstID), 3) / 6);
-	};
+		CVector3 connVec = (particles.Coord(srcID) - particles.Coord(dstID)).Normalized();
+		m_additionalSavingData[PPCollisions.SrcIDs[i]].AddStress(-1 * connVec * particles.Radius(srcID),      PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(srcID), 3) / 6);
+		m_additionalSavingData[PPCollisions.DstIDs[i]].AddStress(     connVec * particles.Radius(dstID), -1 * PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(dstID), 3) / 6);
+	}
 
 	// save stresses caused by particle-wall contacts
-	for (size_t i = 0; i < PWCollisions.nElements; i++)
+	for (size_t i = 0; i < PWCollisions.nElements; ++i)
 	{
 		if (!PWCollisions.ActivityFlags[i]) continue;
-		CVector3 vConnVec = (PWCollisions.ContactVectors[i] - particles.Coord(PWCollisions.DstIDs[i])).Normalized();
-		m_additionalSavingData[PWCollisions.DstIDs[i]].AddStress(vConnVec* particles.Radius(PWCollisions.DstIDs[i]), PWCollisions.TotalForces[i], PI * pow(2 * particles.Radius(PWCollisions.DstIDs[i]), 3) / 6);
-	};
+		CVector3 connVec = (PWCollisions.ContactVectors[i] - particles.Coord(PWCollisions.DstIDs[i])).Normalized();
+		m_additionalSavingData[PWCollisions.DstIDs[i]].AddStress(connVec * particles.Radius(PWCollisions.DstIDs[i]), PWCollisions.TotalForces[i], PI * pow(2 * particles.Radius(PWCollisions.DstIDs[i]), 3) / 6);
+	}
 }
 
 void CGPUSimulator::SaveData()

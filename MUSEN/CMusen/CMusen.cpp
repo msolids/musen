@@ -70,13 +70,26 @@ void SetMaxThreads(const std::string& _arg)
 
 void SetThreadsList(const std::string& _arg)
 {
-	unsigned int mask;
-	std::stringstream ss;
-	ss << std::hex << _arg;
-	ss >> mask;
+	const auto Hex2Bin = [](const std::string& _hex)
+	{
+		std::string res;
+		for (auto c : _hex)
+		{
+			uint8_t n;
+			if (c >= '0' && c <= '9')	n = c - '0';
+			else						n = 10 + c - 'A';
+			for (int8_t j = 3; j >= 0; --j)
+				res.push_back(n & 1 << j ? '1' : '0');
+		}
+		return res;
+	};
+
+	std::string mask = Hex2Bin(_arg);
+	std::reverse(mask.begin(), mask.end());
+
 	std::vector<int> listCPUs;
-	for (int i = 0; i < static_cast<int>(std::thread::hardware_concurrency()); ++i)
-		if (std::size_t{ 1 } << i & mask)
+	for (int i = 0; i < static_cast<int>(mask.size()) && i < static_cast<int>(std::thread::hardware_concurrency()); ++i)
+		if (mask[i] == '1')
 			listCPUs.push_back(i);
 	ThreadPool::CThreadPool::SetUserCPUList(listCPUs);
 }

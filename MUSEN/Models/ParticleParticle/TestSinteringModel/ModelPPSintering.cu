@@ -28,7 +28,9 @@ void CModelPPSintering::CalculatePPForceGPU(double _time, double _timeStep, cons
 		_collisions.DstIDs,
 		_collisions.EquivRadii,
 		_collisions.NormalOverlaps,
-		_collisions.ContactVectors
+		_collisions.ContactVectors,
+
+		_collisions.TotalForces
 	);
 }
 
@@ -44,7 +46,9 @@ void __global__ CUDA_CalcPPForce_S_kernel(
 	const unsigned	_collDstIDs[],
 	const double	_collEquivRadii[],
 	const double	_collNormalOverlaps[],
-	const CVector3  _collContactVectors[]
+	const CVector3  _collContactVectors[],
+
+	CVector3 _collTotalForces[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -69,6 +73,9 @@ void __global__ CUDA_CalcPPForce_S_kernel(
 		const CVector3 vViscousForce = vRelVelNormal * (-PI * pow(dSquaredContactRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
 		const CVector3 vTangentialForce = vRelVelTangential * (-m_vConstantModelParameters[1] * PI * dSquaredContactRadius * pow(2 * dEquivRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
 		const CVector3 vTotalForce = vSinteringForce + vViscousForce + vTangentialForce;
+
+		// store results in collision
+		_collTotalForces[iColl] = vTotalForce;
 
 		// apply forces
 		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iSrcPart], vTotalForce);

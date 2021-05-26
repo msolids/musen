@@ -25,5 +25,6 @@ void __global__ CUDA_CalcPPForce_JKR_kernel(
 	const double	_collNormalOverlaps[],
 	const CVector3	_collContactVectors[],
 
-	CVector3 _collTangOverlaps[]
+	CVector3 _collTangOverlaps[],
+	CVector3 _collTotalForces[]
 );

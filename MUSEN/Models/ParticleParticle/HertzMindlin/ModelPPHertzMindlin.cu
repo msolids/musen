@@ -32,7 +32,8 @@ void CModelPPHertzMindlin::CalculatePPForceGPU(double _time, double _timeStep, c
 		_collisions.NormalOverlaps,
 		_collisions.ContactVectors,
 
-		_collisions.TangOverlaps
+		_collisions.TangOverlaps,
+		_collisions.TotalForces
 	);
 }
 
@@ -56,7 +57,8 @@ void __global__ CUDA_CalcPPForce_HM_kernel(
 	const double	_collNormalOverlaps[],
 	const CVector3	_collContactVectors[],
 
-	CVector3 _collTangOverlaps[]
+	CVector3 _collTangOverlaps[],
+	CVector3 _collTotalForces[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -124,13 +126,15 @@ void __global__ CUDA_CalcPPForce_HM_kernel(
 		const CVector3 vRollingTorque2 = dstAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
 			dstAnglVel * (-1 * prop.dRollingFriction * fabs(dNormalForce) * dPartDstRadius / dstAnglVel.Length()) : CVector3{ 0 };
 
-		// store results in collision
-		_collTangOverlaps[iColl] = vTangOverlap;
 
 		// calculate moments and forces
 		const CVector3 vTotalForce    = vNormalVector * (dNormalForce + dDampingForce) + vTangForce;
 		const CVector3 vResultMoment1 = vNormalVector * vTangForce * dPartSrcRadius + vRollingTorque1;
 		const CVector3 vResultMoment2 = vNormalVector * vTangForce * dPartDstRadius + vRollingTorque2;
+
+		// store results in collision
+		_collTangOverlaps[iColl] = vTangOverlap;
+		_collTotalForces[iColl] = vTotalForce;
 
 		// apply moments and forces
 		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iSrcPart], vTotalForce);
