@@ -62,6 +62,7 @@ mkdir -p ${ASSEMBLY_PATH}
 # create all directories
 mkdir -p ${ASSEMBLY_PATH}/bin
 mkdir -p ${ASSEMBLY_PATH}/lib
+mkdir -p ${ASSEMBLY_PATH}/plugins/imageformats
 mkdir -p ${ASSEMBLY_PATH}/plugins/platforms
 mkdir -p ${ASSEMBLY_PATH}/plugins/xcbglintegrations
 mkdir -p ${ASSEMBLY_PATH}/styles
@@ -74,6 +75,7 @@ rsync --info=progress2 -az ${ACTIVE_WORK_PATH}/musen.sh ${ASSEMBLY_PATH}/
 
 # copy qt libraries
 rsync --info=progress2 --copy-links -az ${ACTIVE_EXTERNAL_LIBS_PATH}/qt/${QT_VER}/gcc_64/lib/{libicudata.so.56,libicui18n.so.56,libicuuc.so.56,libQt5Core.so.5,libQt5DBus.so.5,libQt5Gui.so.5,libQt5OpenGL.so.5,libQt5Widgets.so.5,libQt5XcbQpa.so.5} ${ASSEMBLY_PATH}/lib/
+rsync --info=progress2 --copy-links -az ${ACTIVE_EXTERNAL_LIBS_PATH}/qt/${QT_VER}/gcc_64/plugins/imageformats/libqjpeg.so ${ASSEMBLY_PATH}/plugins/imageformats/
 rsync --info=progress2 --copy-links -az ${ACTIVE_EXTERNAL_LIBS_PATH}/qt/${QT_VER}/gcc_64/plugins/platforms/libqxcb.so ${ASSEMBLY_PATH}/plugins/platforms/
 rsync --info=progress2 --copy-links -az ${ACTIVE_EXTERNAL_LIBS_PATH}/qt/${QT_VER}/gcc_64/plugins/xcbglintegrations/{libqxcb-egl-integration.so,libqxcb-glx-integration.so} ${ASSEMBLY_PATH}/plugins/xcbglintegrations/
 

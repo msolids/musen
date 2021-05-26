@@ -352,6 +352,8 @@ void CExportAsText::Export()
 					if (m_tdPropsFlags.temperature       && vConstData[i].objType == SPHERE
 					 || m_tdPropsFlags.temperature       && vConstData[i].objType == SOLID_BOND)
 						txtOutFile << " " << E2I(ETXTCommands::OBJECT_TEMPERATURE)  << " " << TDD.temperature;
+					if (m_tdPropsFlags.principalStress   && vConstData[i].objType == SPHERE)
+						txtOutFile << " " << E2I(ETXTCommands::OBJECT_PRINCIPALSTRESS) << " " << TDD.stressTensor.GetPrincipalStresses();
 
 					m_dProgressPercent = 50 + double(i *  m_timePoints.size() + j) * 100 / (m_timePoints.size() * setStartIDs.size()) / 2;
 				}

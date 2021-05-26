@@ -201,6 +201,7 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 			case ETXTCommands::OBJECT_ANGL:       GetValueFromStream<CVector3>(&tempStream); break; // skip it
 			case ETXTCommands::OBJECT_ACCEL:      GetValueFromStream<CVector3>(&tempStream); break; // skip it
 			case ETXTCommands::OBJECT_ANGL_ACCEL: GetValueFromStream<CVector3>(&tempStream); break; // skip it
+			case ETXTCommands::OBJECT_PRINCIPALSTRESS: GetValueFromStream<CVector3>(&tempStream); break; // skip it
 			// import information about scene
 			case ETXTCommands::SIMULATION_DOMAIN:
 				m_pSystemStructure->SetSimulationDomain(GetValueFromStream<SVolumeType>(&tempStream));

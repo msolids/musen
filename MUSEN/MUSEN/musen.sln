@@ -209,6 +209,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplifiedScene", "..\Modul
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Geometries", "..\Modules\Geometries\Geometries.vcxproj", "{448B6049-5D64-4F31-BE4F-73E480AFE80B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelSBCreep", "..\Models\SolidBonds\BondModelCreep\BondModelCreep.vcxproj", "{F984C638-D38F-4633-11CF-645F367E41BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -451,6 +453,10 @@ Global
 		{448B6049-5D64-4F31-BE4F-73E480AFE80B}.Debug|x64.Build.0 = Debug|x64
 		{448B6049-5D64-4F31-BE4F-73E480AFE80B}.Release|x64.ActiveCfg = Release|x64
 		{448B6049-5D64-4F31-BE4F-73E480AFE80B}.Release|x64.Build.0 = Release|x64
+		{F984C638-D38F-4633-11CF-645F367E41BA}.Debug|x64.ActiveCfg = Debug|x64
+		{F984C638-D38F-4633-11CF-645F367E41BA}.Debug|x64.Build.0 = Debug|x64
+		{F984C638-D38F-4633-11CF-645F367E41BA}.Release|x64.ActiveCfg = Release|x64
+		{F984C638-D38F-4633-11CF-645F367E41BA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -519,6 +525,7 @@ Global
 		{436428F0-1018-47A2-B055-F2079B53DDF4} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
 		{B6D40BF0-EE28-4396-AA29-264153415498} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
 		{448B6049-5D64-4F31-BE4F-73E480AFE80B} = {CF207ACD-55F5-473F-A55E-DAD50E03E04B}
+		{F984C638-D38F-4633-11CF-645F367E41BA} = {E52AF4AC-B0DC-412B-870B-592B9A4DE75A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B4449610-1D23-4C62-8325-77B5FA1A2520}

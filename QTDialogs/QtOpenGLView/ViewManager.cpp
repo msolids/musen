@@ -1091,7 +1091,7 @@ void CViewManager::DoUpdateSlices() const
 		// obtain colors
 		std::vector<QColor> colors = GetObjectsColors(particles, {});
 		for (auto& c : colors)
-			if (c == QColor{ 255, 255, 255, 0 })
+			if (c == C2Q(CColor::DefaultParticleColor()))
 				c = Qt::black;
 
 		// for all visible particles
@@ -1240,8 +1240,8 @@ bool CViewManager::IsCutByPlanes(const CVector3& _coord) const
 
 std::vector<QColor> CViewManager::GetObjectsColors(const std::vector<CSphere*>& _parts, const std::vector<CSolidBond*>& _bonds) const
 {
-	static const QColor partDefaultColor{ 255, 255, 255, 0 };
-	static const QColor bondDefaultColor{ 178, 178, 178, 255 };
+	static const QColor partDefaultColor = C2Q(CColor::DefaultParticleColor());
+	static const QColor bondDefaultColor = C2Q(CColor::DefaultBondColor());
 
 	// builds a vector of default colors
 	const auto DefaultColors = [&](size_t _nPart, size_t _nBond)

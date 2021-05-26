@@ -66,7 +66,7 @@ void CGeometryMotion::AddForceInterval()
 {
 	if (m_intervalsForce.empty())
 		AddForceInterval({ 1.0, SForceMotionInterval::ELimitType::MAX, SMotionInfo{} });
-	else 
+	else
 		AddForceInterval({ m_intervalsForce.back().forceLimit, m_intervalsForce.back().limitType, SMotionInfo{} });
 }
 
@@ -102,6 +102,7 @@ void CGeometryMotion::DeleteInterval(size_t _index)
 			m_intervalsTime.erase(m_intervalsTime.begin() + _index);
 		break;
 	case EMotionType::FORCE_DEPENDENT:
+	case EMotionType::CONSTANT_FORCE:
 		if (_index < m_intervalsForce.size())
 			m_intervalsForce.erase(m_intervalsForce.begin() + _index);
 		break;
@@ -121,6 +122,7 @@ void CGeometryMotion::MoveIntervalUp(size_t _index)
 		if (_index < m_intervalsForce.size() && _index != 0)
 			std::iter_swap(m_intervalsForce.begin() + _index, m_intervalsForce.begin() + _index - 1);
 		break;
+	case EMotionType::CONSTANT_FORCE:
 	case EMotionType::NONE: break;
 	}
 }
@@ -137,6 +139,7 @@ void CGeometryMotion::MoveIntervalDown(size_t _index)
 		if (_index < m_intervalsForce.size() && _index != m_intervalsForce.size() - 1)
 			std::iter_swap(m_intervalsForce.begin() + _index, m_intervalsForce.begin() + _index + 1);
 		break;
+	case EMotionType::CONSTANT_FORCE:
 	case EMotionType::NONE: break;
 	}
 }

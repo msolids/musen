@@ -202,6 +202,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		m_jobs.back().txtExportTD.totalTorque       = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportTD.tangOverlap       = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportTD.temperature       = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportTD.principalStress   = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_GEOMETRIES")
 	{

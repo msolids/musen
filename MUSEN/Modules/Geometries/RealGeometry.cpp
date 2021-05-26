@@ -253,6 +253,7 @@ void CRealGeometry::LoadFromProto_v0(const ProtoRealGeometry_v0& _proto)
 		}
 		break;
 	}
+	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
 	case CGeometryMotion::EMotionType::NONE: break;
 	}
 

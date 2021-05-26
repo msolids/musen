@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>555</width>
+    <width>559</width>
     <height>597</height>
    </rect>
   </property>
@@ -646,7 +646,17 @@
              <string>Is used only for particles</string>
             </property>
             <property name="text">
-             <string>Quaternion</string>
+             <string>Orientation</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBoxPrincipalStress">
+            <property name="text">
+             <string>Principal stress</string>
             </property>
             <property name="checked">
              <bool>true</bool>

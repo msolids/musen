@@ -61,6 +61,8 @@ public:
 		return _s;
 	}
 
+	static CColor DefaultParticleColor()			{ return CColor{ 1.0f, 1.0f, 1.0f, 1.0f }; }
+	static CColor DefaultBondColor()			    { return CColor{ 0.7f, 0.7f, 0.7f, 1.0f }; }
 	static CColor DefaultRealGeometryColor()		{ return CColor{ 0.5f, 0.5f, 1.0f, 1.0f }; }
 	static CColor DefaultAnalysisVolumeColor()		{ return CColor{ 0.6f, 1.0f, 0.6f, 1.0f }; }
 	static CColor DefaultSampleAnalyzerColor()		{ return CColor{ 0.4f, 0.4f, 0.4f, 0.5f }; }

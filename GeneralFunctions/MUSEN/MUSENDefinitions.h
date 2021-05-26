@@ -62,6 +62,7 @@ enum class ETXTCommands : unsigned
 	PACKAGE_GENERATOR        = 39,
 	PACKAGE_GENERATOR_CONFIG = 40,
 	BONDS_GENERATOR          = 41,
+	OBJECT_PRINCIPALSTRESS   = 42,
 };
 
 // ********* physical constants

@@ -130,6 +130,7 @@ void CExportAsTextTab::SetRelevantCheckBoxesParticle() const
 	ui.checkBoxAngularVelocity->setEnabled(ui.checkBoxParticle->isChecked());
 	ui.checkBoxCoordinate->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxTriangularWall->isChecked());
 	ui.checkBoxStressTensor->setEnabled(ui.checkBoxParticle->isChecked());
+	ui.checkBoxPrincipalStress->setEnabled(ui.checkBoxParticle->isChecked());
 	ui.checkBoxTemperature->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxSolidBond->isChecked());
 }
 
@@ -261,7 +262,7 @@ void CExportAsTextTab::ApplyAllFlags()
 			constPropsFlags.SetAll(false);
 
 		if (ui.groupBoxTDProperties->isChecked())
-			tdPropsFlags.SetFlags({ ui.checkBoxCoordinate->isChecked(), ui.checkBoxVelocity->isChecked(), ui.checkBoxAngularVelocity->isChecked(), ui.checkBoxTotalForce->isChecked(), ui.checkBoxForce->isChecked(), ui.checkBoxQuaternion->isChecked(), ui.checkBoxStressTensor->isChecked(), ui.checkBoxTotalTorque->isChecked(), ui.checkBoxTangOverlap->isChecked(), ui.checkBoxTemperature->isChecked() });
+			tdPropsFlags.SetFlags({ ui.checkBoxCoordinate->isChecked(), ui.checkBoxVelocity->isChecked(), ui.checkBoxAngularVelocity->isChecked(), ui.checkBoxTotalForce->isChecked(), ui.checkBoxForce->isChecked(), ui.checkBoxQuaternion->isChecked(), ui.checkBoxStressTensor->isChecked(), ui.checkBoxTotalTorque->isChecked(), ui.checkBoxTangOverlap->isChecked(), ui.checkBoxTemperature->isChecked(), ui.checkBoxPrincipalStress->isChecked() });
 		else
 			tdPropsFlags.SetAll(false);
 

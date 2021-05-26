@@ -82,18 +82,20 @@ public:
 
 	CUDA_HOST_DEVICE CVector3 GetPrincipalStresses() const
 	{
-		CVector3 vResult;
-		double dI1 = values[0][0] + values[1][1] + values[2][2];
-		double dI2 = values[0][0]* values[1][1] + values[1][1]*values[2][2] + values[2][2]* values[0][0]- pow(values[0][1], 2) - pow(values[0][2], 2) - pow(values[1][2], 2);
-		double dI3 = values[0][0] * values[1][1]* values[2][2] - values[0][0]* pow(values[1][2],2) -
-			+ values[1][1] *pow(values[0][2],2) - values[2][2]*pow(values[0][1], 2) +2* values[0][1]* values[0][2]* values[1][2];
-		double dQ = (3 * dI2 - pow(dI1, 2)) / 9.0;
-		double dR = (2 * pow(dI1, 3) - 9 * dI1 * dI2 + 27 * dI3) / 54;
-		double dTetta = acos(dR / sqrt(pow(-dQ, 3)));
-		vResult.x = 2 * sqrt(-dQ) * cos(dTetta / 3) + 1.0 / 3 * dI1;
-		vResult.y = 2 * sqrt(-dQ) * cos((dTetta+2*PI) / 3) + 1.0 / 3 * dI1;
-		vResult.z = 2 * sqrt(-dQ) * cos((dTetta+4*PI) / 3) + 1.0 / 3 * dI1;
-		return vResult;
+		CVector3 res;
+		const double I1 = values[0][0] + values[1][1] + values[2][2];
+		const double I2 = values[0][0] * values[1][1] + values[1][1] * values[2][2] + values[2][2] * values[0][0]
+			- pow(values[0][1], 2.) - pow(values[0][2], 2.) - pow(values[1][2], 2.);
+		const double I3 = values[0][0] * values[1][1] * values[2][2]
+			- values[0][0] * pow(values[1][2], 2.) - values[1][1] * pow(values[0][2], 2.) - values[2][2] * pow(values[0][1], 2.)
+			+ 2 * values[0][1] * values[0][2] * values[1][2];
+		const double Q = (3 * I2 - pow(I1, 2.)) / 9.0;
+		const double R = (2 * pow(I1, 3.) - 9 * I1 * I2 + 27 * I3) / 54;
+		const double Te = Q < 0.0 ? acos(R / sqrt(pow(-Q, 3.))) : 0.0;
+		res.x = 2 * sqrt(-Q) * cos(Te / 3) + 1.0 / 3 * I1;
+		res.y = 2 * sqrt(-Q) * cos((Te + 2 * PI) / 3) + 1.0 / 3 * I1;
+		res.z = 2 * sqrt(-Q) * cos((Te + 4 * PI) / 3) + 1.0 / 3 * I1;
+		return res;
 	}
 
 	CUDA_HOST_DEVICE CBasicMatrix3 operator+(const CBasicMatrix3& _m) const

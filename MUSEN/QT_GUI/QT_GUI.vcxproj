@@ -223,6 +223,9 @@
     <ProjectReference Include="..\Models\ParticleWall\PWSimpleViscoElastic\PWSimpleViscoElastic.vcxproj">
       <Project>{f2936b6b-3137-4b04-be80-c4cdb383d7a2}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelCreep\BondModelCreep.vcxproj">
+      <Project>{f984c638-d38f-4633-11cf-645f367e41ba}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Models\SolidBonds\BondModelElastic\BondModelPotyondy.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba821af420}</Project>
     </ProjectReference>

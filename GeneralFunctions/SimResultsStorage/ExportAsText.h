@@ -54,7 +54,7 @@ public:
 	};
 	struct STDPropsFlags : SBaseFlags
 	{
-		CREATE_FLAGS(STDPropsFlags, coordinate, velocity, angularVelocity, totalForce, force, quaternion, stressTensor, totalTorque, tangOverlap, temperature)
+		CREATE_FLAGS(STDPropsFlags, coordinate, velocity, angularVelocity, totalForce, force, quaternion, stressTensor, totalTorque, tangOverlap, temperature, principalStress)
 	};
 	struct SGeneratorsFlags : SBaseFlags
 	{
