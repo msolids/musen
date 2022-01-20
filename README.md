@@ -64,7 +64,13 @@ $ cd /mnt/c/Projects/msolids/MUSEN_Linux
 $ chmod +x ./install_prerequisites_host.sh
 $ sudo ./install_prerequisites_host.sh
 ```
-7. Open `C:/Projects/msolids/MUSEN/MUSEN/musen.sln` file with Visual Studio. In Solution Explorer under `Installers` folder select `LinuxBuildWSL` project, then from the main menu navigate to (Project → Properties → Configuration Properties → Linux Build Settings) and select MUSEN versions that you want to build. Run building project `LinuxBuildWSL` (Build → Build Selection).
+7. Further you can compile MUSEN either with Visual Studio (Step 7.a) or directly inside Ubuntu (Step 7.b)
+7.a Open `C:/Projects/msolids/MUSEN/MUSEN/musen.sln` file with Visual Studio. In Solution Explorer under `Installers` folder select `LinuxBuildWSL` project, then from the main menu navigate to (Project → Properties → Configuration Properties → Linux Build Settings) and select MUSEN versions that you want to build. Run building project `LinuxBuildWSL` (Build → Build Selection).
+7.b Compile MUSEN by running:
+```sh
+$ chmod +x ./compile_on_host.sh
+$ ./compile_on_host.sh
+```
 8. The built executables will be placed in `C:/Projects/msolids/MUSEN_Linux/compiled/`.
 
 
@@ -74,7 +80,7 @@ A fully functional version can be compiled and built with cmake and gcc.
 ## Requirements on Linux
 - gcc-9, g++-9
 - cmake 3.18.0
-- qt 5.15.2 gcc_64
+- qt 5.15.2 gcc_64 (Optional. Needed to build MUSEN with GUI)
 - cuda 11.2
 - zlib 1.2.11
 - protobuf 3.14.0
