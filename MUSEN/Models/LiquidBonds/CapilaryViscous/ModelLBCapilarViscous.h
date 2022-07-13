@@ -9,5 +9,5 @@ class CModelLBCapilarViscous : public CLiquidBondModel
 {
 public:
 	CModelLBCapilarViscous();
-	void CalculateLBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const override;
+	void CalculateLBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const override;
 };

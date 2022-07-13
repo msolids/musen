@@ -39,7 +39,7 @@ void CModelSB::PrecalculateSBModel(double _time, double _timeStep, SParticleStru
 	// TODO: Write your pre-calculation step here.
 }
 
-void CModelSB::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const
+void CModelSB::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
 	// TODO: Write your model here.
 }

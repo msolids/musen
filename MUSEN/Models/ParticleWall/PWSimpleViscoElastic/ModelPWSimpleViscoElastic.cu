@@ -60,31 +60,34 @@ void __global__ CUDA_CalcPWForce_VE_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		const unsigned iColl = _collActivityIndices[iActivColl];
-		const unsigned iWall = _collSrcIDs[iColl];
-		const unsigned iPart = _collDstIDs[iColl];
+		const unsigned iColl      = _collActivityIndices[iActivColl];
+		const unsigned iWall      = _collSrcIDs[iColl];
+		const unsigned iPart      = _collDstIDs[iColl];
+		const CVector3 normVector = _wallNormalVecs[iWall];
 
-		const double dKn = m_vConstantModelParameters[0];
-		const double dMu = m_vConstantModelParameters[1];
+		// model parameters
+		const double Kn = m_vConstantModelParameters[0];
+		const double mu = m_vConstantModelParameters[1];
 
-		const CVector3 vRc = GPU_GET_VIRTUAL_COORDINATE(_partCoords[iPart]) - _collContactPoints[iColl];
-		const double   dRc = vRc.Length();
-		const CVector3 nRc = vRc / dRc; // = vRc.Normalized()
+		const CVector3 rc     = GPU_GET_VIRTUAL_COORDINATE(_partCoords[iPart]) - _collContactPoints[iColl];
+		const double   rcLen  = rc.Length();
+		const CVector3 rcNorm = rc / rcLen;
 
-		const CVector3 vNormalVector = _wallNormalVecs[iWall];
+		// normal overlap
+		const double normOverlap = _partRadii[iPart] - rcLen;
+		if (normOverlap < 0) continue;
 
-		// relative velocity (normal and tangential)
-		CVector3 vRelVelocity = _partVels[iPart] - _wallVels[iWall];
-		if (!_wallRotVels[iWall].IsZero()) // velocity due to rotations
-			vRelVelocity += (_collContactPoints[iColl] - _wallRotCenters[iWall]) * _wallRotVels[iWall];
-		const double dRelVelNormal = DotProduct(vNormalVector, vRelVelocity);
-
-		// normal and tangential overlaps
-		const double dNormalOverlap = _partRadii[iPart] - dRc;
+		// normal and tangential relative velocity
+		const CVector3 rotVel   = !_wallRotVels[iWall].IsZero() ? (_collContactPoints[iColl] - _wallRotCenters[iWall]) * _wallRotVels[iWall] : CVector3{ 0 };
+		const CVector3 relVel   = _partVels[iPart] - _wallVels[iWall] + rotVel;
+		const double normRelVel = DotProduct(normVector, relVel);
 
 		// normal force with damping
-		const double dDampingForce = dMu * dRelVelNormal;
+		const double normContactForceLen = normOverlap * Kn * fabs(DotProduct(rcNorm, normVector));
+		const double normDampingForceLen = -mu * normRelVel;
+		const CVector3 normForce = normVector * (normContactForceLen + normDampingForceLen);
 
-		_collTotalForces[iColl] = vNormalVector * (dNormalOverlap * dKn * fabs(DotProduct(nRc, vNormalVector)) + dDampingForce);
+		// store results in collision
+		_collTotalForces[iColl] = normForce;
 	}
 }

@@ -7,6 +7,9 @@
 #include "ModelManager.h"
 #include "VerletList.h"
 #include <list>
+#include <csignal>
+
+inline volatile sig_atomic_t g_extSignal{ 0 };	// Value of external signal for premature termination in internal loops.
 
 class CBaseSimulator : public CMusenComponent
 {
@@ -44,10 +47,11 @@ protected:
 	CVector3 m_externalAcceleration{ 0, 0, -GRAVITY_CONSTANT };	// Value of external acceleration in the system.
 
 	size_t m_nInactiveParticles{ 0 };								// Number of particles which lost their activity during simulation.
-	size_t m_nBrockenBonds{ 0 };									// Number of the broken bonds.
-	size_t m_nBrockenLiquidBonds{ 0 };								// Number of the ruptured liquid bonds.
+	size_t m_nBrokenBonds{ 0 };									// Number of the broken bonds.
+	size_t m_nBrokenLiquidBonds{ 0 };								// Number of the ruptured liquid bonds.
 	size_t m_nGeneratedObjects{ 0 };								// Number of generated objects.
 	double m_maxParticleVelocity{ 0 };								// Maximal velocity of particle which is used to calculate verlet list.
+	double m_maxParticleTemperature{ 0 };							// Maximal temperature of particles.
 	double m_maxWallVelocity{ 0 };									// Maximal velocity of walls.
 	bool m_wallsVelocityChanged{ true };							// Need to recalculate maximal wall velocity.
 	uint32_t m_cellsMax{ DEFAULT_MAX_CELLS };						// Maximum allowed number of cells in each direction of verlet list.
@@ -67,13 +71,14 @@ protected:
 	CSolidBondModel* m_pSBModel{ nullptr };
 	CLiquidBondModel* m_pLBModel{ nullptr };
 	CExternalForceModel* m_pEFModel{ nullptr };
+	CPPHeatTransferModel* m_pPPHTModel{ nullptr };
 	std::vector<CAbstractDEMModel*> m_models;	// All active models.
 
 	std::vector<SAdditionalSavingData> m_additionalSavingData;
 
 	// For performance analysis in console
-	std::chrono::steady_clock::time_point m_chronoSimStart;
-	std::chrono::steady_clock::time_point m_chronoPauseStart;
+	std::chrono::system_clock::time_point m_chronoSimStart;
+	std::chrono::system_clock::time_point m_chronoPauseStart;
 	int64_t m_chronoPauseLength{ 0 }; // [ms]
 
 private:
@@ -115,6 +120,9 @@ public:
 	ERunningStatus GetCurrentStatus() const;					// Returns current status of simulator.
 	void SetCurrentStatus(const ERunningStatus& _nNewStatus);	// Sets new status of simulator.
 
+	std::chrono::time_point<std::chrono::system_clock> GetStartDateTime() const;	// Returns time point when the simulation has started.
+	std::chrono::time_point<std::chrono::system_clock> GetFinishDateTime() const;	// Returns approximated time point when the simulation should finish.
+
 	double GetCurrentTime() const;
 	void SetCurrentTime(double _dTime);
 	double GetEndTime() const;
@@ -143,8 +151,8 @@ public:
 	SSelectiveSavingFlags GetSelectiveSavingFlags() const;
 
 	size_t GetNumberOfInactiveParticles() const;
-	size_t GetNumberOfBrockenBonds() const;
-	size_t GetNumberOfBrockenLiquidBonds() const;
+	size_t GetNumberOfBrokenBonds() const;
+	size_t GetNumberOfBrokenLiquidBonds() const;
 	size_t GetNumberOfGeneratedObjects() const;
 	double GetMaxParticleVelocity() const;
 	// Returns all current maximal and average overlap between particles with particle indexes smaller than _nMaxParticleID.
@@ -171,10 +179,12 @@ public:
 	virtual void CalculateForcesSB(double _timeStep) {}
 	virtual void CalculateForcesLB(double _timeStep) {}
 	virtual void CalculateForcesEF(double _timeStep) {}
+	virtual void CalculateHeatTransferPP(double _dTimeStep) {}
 
 	virtual void MoveObjectsStep(double _timeStep, bool _predictionStep = false);
 	virtual void MoveParticles(bool _predictionStep = false) {}
 	virtual void MoveWalls(double _timeStep) {}
+	virtual void UpdateTemperatures(double _timeStep, bool _predictionStep = false) {}
 
 	CSimplifiedScene& GetPointerToSimplifiedScene() { return m_scene; }
 
@@ -195,8 +205,8 @@ protected:
 
 	virtual size_t GenerateNewObjects();	// Generates new objects if necessary, returns number of generated objects.
 	virtual void UpdatePBC() {}				// Updates moving PBC.
-	void p_SaveData();				// Saves current state of simplified scene into system structure.
-	void PrintStatus() const;		// Prints the current simulation status into console.
+	void p_SaveData();						// Saves current state of simplified scene into system structure.
+	void PrintStatus() const;				// Prints the current simulation status into console.
 
 	bool AdditionalStopCriterionMet(); // Checks whether any additional stop criterion is met.
 

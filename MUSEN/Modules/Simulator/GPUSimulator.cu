@@ -191,6 +191,12 @@ void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, cons
 		_walls.MaxCoords, _walls.NormalVectors, _walls.Vels, _walls.RotCenters, _walls.RotVels);
 }
 
+void CGPU::UpdateTemperatures(double _currTimeStep, SGPUParticles& _particles)
+{
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::UpdateTemperatures_kernel, _currTimeStep, static_cast<unsigned>(_particles.nElements), _particles.HeatCapacities,
+		_particles.Masses, _particles.HeatFluxes, _particles.Temperatures);
+}
+
 void CGPU::UpdateVerletLists(bool _bPPVerlet, const SGPUParticles& _particles, const SGPUWalls& _walls, const h_vec_u& _vVerListSrcNew, const h_vec_u& _vVerListDstNew,
 	const h_vec_u& _vVerListIndNew, const h_vec_u8& _vVirtShifts, d_vec_u& _vVerListSrcOld, d_vec_u& _vVerListDstOld, d_vec_u& _vVerListIndOld, SGPUCollisions& _collisions) const
 {
@@ -205,6 +211,7 @@ void CGPU::UpdateVerletLists(bool _bPPVerlet, const SGPUParticles& _particles, c
 	CUDA_MEMSET(newCollisions.TotalForces,	  0, collNum * sizeof(*newCollisions.TotalForces));
 	CUDA_MEMSET(newCollisions.NormalOverlaps, 0, collNum * sizeof(*newCollisions.NormalOverlaps));
 	CUDA_MEMSET(newCollisions.ActivityFlags,  0, collNum * sizeof(*newCollisions.ActivityFlags));
+	CUDA_MEMSET(newCollisions.InitNormalOverlaps, 0, collNum * sizeof(*newCollisions.InitNormalOverlaps));
 
 	if (m_PBCEnabled)
 		CUDA_MEMCPY_H2D(newCollisions.VirtualShifts, _vVirtShifts.data(), collNum * sizeof(*newCollisions.VirtualShifts));
@@ -220,8 +227,8 @@ void CGPU::UpdateVerletLists(bool _bPPVerlet, const SGPUParticles& _particles, c
 			CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CopyCollisionsPP_kernel,
 				static_cast<unsigned>(_vVerListDstOld.size()),
 				_vVerListSrcOld.data().get(), _vVerListDstOld.data().get(), dvVerlDstNew.data().get(), dvVerlIndNew.data().get(), _collisions.ActivityFlags,
-				_collisions.NormalOverlaps, _collisions.TangOverlaps, _collisions.ContactVectors, _collisions.TotalForces,
-				newCollisions.NormalOverlaps, newCollisions.TangOverlaps, newCollisions.ContactVectors, newCollisions.TotalForces);
+				_collisions.NormalOverlaps, _collisions.InitNormalOverlaps, _collisions.TangOverlaps, _collisions.ContactVectors, _collisions.TotalForces,
+				newCollisions.NormalOverlaps, newCollisions.InitNormalOverlaps, newCollisions.TangOverlaps, newCollisions.ContactVectors, newCollisions.TotalForces);
 	}
 	else
 	{
@@ -264,7 +271,8 @@ void CGPU::UpdateActiveCollisionsPP(const SGPUParticles& _particles)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::UpdateActiveCollisionsPP_kernel, static_cast<unsigned>(m_CollisionsPP.vVerletSrc.size()), m_CollisionsPP.vVerletSrc.data().get(), m_CollisionsPP.vVerletDst.data().get(),
 		_particles.Coords, m_CollisionsPP.collisions.VirtualShifts, m_CollisionsPP.collisions.SumRadii, m_CollisionsPP.collisions.ActivityFlags,
-		m_CollisionsPP.collisions.NormalOverlaps, m_CollisionsPP.collisions.ContactVectors, m_CollisionsPP.collisions.TangOverlaps);
+		m_CollisionsPP.collisions.NormalOverlaps, m_CollisionsPP.collisions.InitNormalOverlaps,
+		m_CollisionsPP.collisions.ContactVectors, m_CollisionsPP.collisions.TangOverlaps);
 
 	static d_vec_u sequence;			// temporal vector for indices needed internally in Flags2IndicesList
 	static d_vec_i8 tempStorage;		// temporal storage needed internally in Flags2IndicesList

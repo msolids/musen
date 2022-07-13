@@ -137,10 +137,11 @@ void CSampleAnalyzerTab::UpdateWholeView()
 }
 
 void CSampleAnalyzerTab::GetAllParticlesInRegion(double _dTime, std::vector<const CSphere*>* _pAllParticles, double* _pTotalMass, double* _pTotalVolume,
-	bool bPartialyInVolume, bool bConsiderBonds)
+	double* _avrTemperature, bool bPartialyInVolume, bool bConsiderBonds)
 {
 	*_pTotalMass = 0;
 	*_pTotalVolume = 0;
+	*_avrTemperature = 0;
 	_pAllParticles->clear();
 	for ( unsigned i=0; i < m_pSystemStructure->GetTotalObjectsCount(); i++ )
 	{
@@ -158,17 +159,24 @@ void CSampleAnalyzerTab::GetAllParticlesInRegion(double _dTime, std::vector<cons
 					else if ( dDistance+dRParticle <= m_dRadius ) // particle is totally in the volume
 					{
 						_pAllParticles->push_back( (const CSphere*)pTemp );
-						*_pTotalMass += ((CSphere*)pTemp)->GetMass();
+						const double mass = ((CSphere*)pTemp)->GetMass();
+						*_pTotalMass += mass;
 						*_pTotalVolume += 4.0/3.0*PI*pow( dRParticle, 3 );
+						*_avrTemperature += pTemp->GetTemperature(_dTime)*mass;
 					}
 					else  // particle is partially in the volume
 					{
 						if (bPartialyInVolume)
 							_pAllParticles->push_back((const CSphere*)pTemp);
 						double dVolume = SpheresIntersectionVolume(m_dRadius, dRParticle, dDistance);
+						const double mass = ((CSphere*)pTemp)->GetMass() * dVolume / ((CSphere*)pTemp)->GetVolume();
 						*_pTotalVolume += dVolume;
 						if (dVolume >= 0)
-							*_pTotalMass += ((CSphere*)pTemp)->GetMass()*dVolume/((CSphere*)pTemp)->GetVolume();
+						{
+							*_pTotalMass += mass;
+							*_avrTemperature += pTemp->GetTemperature(_dTime)*mass;
+						}
+
 					}
 				}
 				else
@@ -184,6 +192,7 @@ void CSampleAnalyzerTab::GetAllParticlesInRegion(double _dTime, std::vector<cons
 					}
 			}
 	}
+	*_avrTemperature /= *_pTotalMass;
 }
 
 
@@ -230,18 +239,21 @@ double CSampleAnalyzerTab::GetCoordinationNumber(double _time, const std::vector
 void CSampleAnalyzerTab::UpdateMainProperties()
 {
 	ShowConvLabel( ui.massLabel, "Mass", EUnitType::MASS );
+	ShowConvLabel(ui.temperatureLabel, "Average temperature", EUnitType::TEMPERATURE);
 	SetCurrentTime(ui.currentTime->text().toDouble());
 
 	std::vector<const CSphere*> vAllParticles;
 	double dTotalMass;
 	double dTotalVolume;
+	double averageTemperature;
 
-	GetAllParticlesInRegion( m_dCurrentTime, &vAllParticles, &dTotalMass, &dTotalVolume, true, ui.considerBonds->isChecked() );
+	GetAllParticlesInRegion( m_dCurrentTime, &vAllParticles, &dTotalMass, &dTotalVolume, &averageTemperature, true, ui.considerBonds->isChecked());
 	ui.particlesInRegion->setText( QString::number( vAllParticles.size() ) );
 	ShowConvValue( ui.massInRegion, dTotalMass, EUnitType::MASS );
 	ui.coordinationNumber->setText( QString::number( GetCoordinationNumber( m_dCurrentTime, vAllParticles ) ) );
 	if ( m_dRadius > 0 )
 		ui.porosityInRegion->setText( QString::number( 1-dTotalVolume/(4.0/3.0*PI*pow(m_dRadius, 3 )) ) );
+	ShowConvValue(ui.temperature, averageTemperature, EUnitType::TEMPERATURE);
 }
 
 
@@ -341,6 +353,8 @@ void CSampleAnalyzerTab::ExportData()
 		outFile << "Number [-]" << sSep;
 	if ( ui.exportCoordNumber->isChecked() )
 		outFile << "Coord_Number [-] " << sSep;
+	if (ui.exportTemperature->isChecked())
+		outFile << "Average temperature [K]" << sSep;
 
 	if (( ui.exportPSD->isChecked() ) && ( m_nPSDIntervalsNumber != 0))
 		for ( unsigned i=0; i < m_nPSDIntervalsNumber; i++ )
@@ -353,7 +367,7 @@ void CSampleAnalyzerTab::ExportData()
 
 	// export data
 	double dCurrentTime;
-	double dTotalMass, dTotalVolume, dPorosity;
+	double dTotalMass, dTotalVolume, dPorosity, temperature;
 	double dVolumeRegion = 4.0/3.0*PI*pow(m_dRadius, 3 );
 	double dIntervalSize = (m_dPSDEnd - m_dPSDStart)/m_nPSDIntervalsNumber;
 	double dIntervalVel = (m_dVelEnd - m_dVelStart)/m_nVelIntervalsNumber;
@@ -366,7 +380,7 @@ void CSampleAnalyzerTab::ExportData()
 		else
 			dCurrentTime = m_dTimeStart;
 
-		GetAllParticlesInRegion( dCurrentTime, &vAllParticles, &dTotalMass, &dTotalVolume );
+		GetAllParticlesInRegion( dCurrentTime, &vAllParticles, &dTotalMass, &dTotalVolume, &temperature);
 		if ( dVolumeRegion > 0 )
 			dPorosity = 1-dTotalVolume/dVolumeRegion;
 		else
@@ -381,6 +395,8 @@ void CSampleAnalyzerTab::ExportData()
 			outFile << vAllParticles.size() << sSep;
 		if (  ui.exportCoordNumber->isChecked() )
 			outFile << GetCoordinationNumber( dCurrentTime, vAllParticles );
+		if (ui.exportTemperature->isChecked())
+			outFile << temperature << sSep;
 
 		std::vector<double> velDistribution( m_nVelIntervalsNumber, 0 );
 		std::vector<double> sizeDistribution( m_nPSDIntervalsNumber, 0 );

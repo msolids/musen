@@ -73,6 +73,12 @@ namespace CUDALegacy
 		CUDALegacy::myAtomicAdd(&vector3.y, -value.y); \
 		CUDALegacy::myAtomicAdd(&vector3.z, -value.z); \
 	}
+	#define CUDA_ATOMIC_ADD(res, value) { \
+		CUDALegacy::myAtomicAdd(&res, value); \
+	}
+	#define CUDA_ATOMIC_SUB(res, value) { \
+		CUDALegacy::myAtomicAdd(&res, -value); \
+	}
 #else
 	#define CUDA_VECTOR3_ATOMIC_ADD(vector3, value) { \
 		atomicAdd(&vector3.x, value.x); \
@@ -83,6 +89,12 @@ namespace CUDALegacy
 		atomicAdd(&vector3.x, -value.x); \
 		atomicAdd(&vector3.y, -value.y); \
 		atomicAdd(&vector3.z, -value.z); \
+	}
+	#define CUDA_ATOMIC_ADD(res, value) { \
+		atomicAdd(&res, value); \
+	}
+	#define CUDA_ATOMIC_SUB(res, value) { \
+		atomicAdd(&res, -value); \
 	}
 #endif
 #if CUDART_VERSION < 11000
@@ -101,6 +113,8 @@ namespace CUDALegacy
 	#define CUDA_KERNEL_ARGS4(FUN, blocks, threadsPerBlock, sharedMemPerBlock, stream, ...) ((void)(__VA_ARGS__))
 	#define CUDA_MEMCOPY_TO_SYMBOL(symbol, src, size)
 	#define CUDA_SYNCTHREADS
+	#define CUDA_ATOMIC_ADD(res, value) res += value
+	#define CUDA_ATOMIC_SUB(res, value) res -= value
 	#define CUDA_VECTOR3_ATOMIC_ADD(vector3, value) vector3 += value
 	#define CUDA_VECTOR3_ATOMIC_SUB(vector3, value) vector3 -= value
 	#define CUDA_CUB_FLAGGED(d_temp_storage, temp_storage_bytes, d_in, d_flags, d_out, d_num_selected_out, num_items)

@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "SceneEditorTab.h"
+#include "QtSignalBlocker.h"
 #include <QMessageBox>
 
 CSceneEditorTab::CSceneEditorTab(QWidget *parent /*= 0*/) : CMusenDialog(parent)
@@ -172,6 +173,17 @@ void CSceneEditorTab::SetAnisotropy()
 
 void CSceneEditorTab::SetContactRadius()
 {
+	if (m_pSystemStructure->IsContactRadiusEnabled() && !ui.checkBoxContactRadius->isChecked())
+	{
+		const auto answer = QMessageBox::question(this, "Confirmation", "All values of contact radii will be replaced by radii. Continue?",
+			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		if (answer != QMessageBox::Yes)
+		{
+			CQtSignalBlocker blocker{ ui.checkBoxContactRadius };
+			ui.checkBoxContactRadius->setCheckState(Qt::Checked);
+			return;
+		}
+	}
 	m_pSystemStructure->EnableContactRadius(ui.checkBoxContactRadius->isChecked());
 	emit ContactRadiusEnabled();
 }

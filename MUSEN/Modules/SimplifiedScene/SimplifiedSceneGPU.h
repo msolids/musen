@@ -30,8 +30,10 @@ public:
 	inline SGPUWalls& GetPointerToWalls() { return m_Walls; }
 
 	void ClearAllForcesAndMoments();
+	void ClearHeatFluxes() const;
 	void GetMaxSquaredPartDist(double* _bufMaxVelocity);
 	double GetMaxPartVelocity();
+	double GetMaxPartTemperature();
 	void GetMaxWallVelocity(double* _bufMaxVelocity);
 	size_t GetBrokenBondsNumber() const;
 

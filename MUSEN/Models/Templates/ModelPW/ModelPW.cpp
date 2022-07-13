@@ -39,7 +39,7 @@ void CModelPW::PrecalculatePWModel(double _time, double _timeStep, SParticleStru
 	// TODO: Write your pre-calculation step here.
 }
 
-void CModelPW::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _pCollision) const
+void CModelPW::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// TODO: Write your model here.
 }

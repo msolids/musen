@@ -132,6 +132,7 @@ void CCollisionsCalculator::CheckPWCollisions( size_t _nParticle, double _dCurre
 	if ( m_verletList.m_PWList[ _nParticle ].empty() ) return;
 	const SParticleStruct& pParticles = m_Scene.GetRefToParticles();
 	const SWallStruct& pWalls = m_Scene.GetRefToWalls();
+	if (!pParticles.Active(_nParticle)) return;
 
 	std::vector<EIntersectionType> vIntersectionType;
 	std::vector<CVector3> vContactPoint;
@@ -243,6 +244,7 @@ void CCollisionsCalculator::CheckPPCollision(size_t _iPart1, size_t _iPart2, dou
 	const size_t nPart2 = m_verletList.m_PPList[_iPart1][_iPart2];
 	const bool bVirtContact = m_Scene.m_PBC.bEnabled && (m_verletList.m_PPVirtShift[_iPart1][_iPart2] != 0);
 	const SParticleStruct& pParticles = m_Scene.GetRefToParticles();
+	if (!pParticles.Active(nPart1) || !pParticles.Active(nPart2)) return;
 
 	const CVector3 vContactVector = !bVirtContact ?
 		pParticles.Coord(nPart2) - pParticles.Coord(nPart1) :

@@ -98,11 +98,23 @@
     <ProjectReference Include="..\..\GeneralFunctions\SimResultsStorage\SimResultsStorage.vcxproj">
       <Project>{2ef32648-db44-4a95-82c1-2931af3674bc}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\ExternalForce\HeatTransfer\HeatTransfer.vcxproj">
+      <Project>{df0d11c1-a321-4a44-a00e-4913fb446a00}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ExternalForce\CentrifugalCasting\CentrifugalCasting.vcxproj">
+      <Project>{df0d11c1-a321-4a44-a00e-4933fb4469c4}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Models\ExternalForce\ViscousField\ViscousField.vcxproj">
       <Project>{df0d11c1-a321-4a44-a00e-4913fb4469c4}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\HeatTransfer\PPHeatConduction\PPHeatConduction.vcxproj">
+      <Project>{35f3df74-ac00-4849-9360-4c17860acaa6}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Models\LiquidBonds\CapilaryViscous\LiquidBondModelCV.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba82000000}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\ChealNess\ModelChealNess.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b32d-caba821af423}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Models\ParticleParticle\HertzMindlinLiquid\HertzMindlinLiquid.vcxproj">
       <Project>{dc7428ad-0dec-45f2-a95e-f2d4f4da0dc5}</Project>
@@ -125,6 +137,9 @@
     <ProjectReference Include="..\Models\ParticleParticle\SimpleViscoElastic\SimpleViscoElastic.vcxproj">
       <Project>{4b843dcb-2532-4a99-a1b0-bce3194a303c}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\SinteringTemperature\SinteringModelTemperature.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-ca0000000000}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Models\ParticleParticle\TestSinteringModel\TestSinteringModel.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba82ad3423}</Project>
     </ProjectReference>
@@ -143,8 +158,14 @@
     <ProjectReference Include="..\Models\ParticleWall\PWSimpleViscoElastic\PWSimpleViscoElastic.vcxproj">
       <Project>{f2936b6b-3137-4b04-be80-c4cdb383d7a2}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelAerogel\BondModelAerogel.vcxproj">
+      <Project>{229C56BB-4EC6-4097-B52D-CABA121AF420}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Models\SolidBonds\BondModelCreep\BondModelCreep.vcxproj">
       <Project>{f984c638-d38f-4633-11cf-645f367e41ba}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelElasticPerfectlyPlastic\BondModelElasticPerfectlyPlastic.vcxproj">
+      <Project>{f984c638-d38f-4633-98cf-645f367e41ba}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Models\SolidBonds\BondModelElastic\BondModelPotyondy.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba821af420}</Project>
@@ -157,6 +178,9 @@
     </ProjectReference>
     <ProjectReference Include="..\Models\SolidBonds\BondModelThermal\BondModelThermal.vcxproj">
       <Project>{289c56bb-4ec6-4d97-b52d-caba821af420}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelWeakening\BondModelWeakening.vcxproj">
+      <Project>{350017db-c7a2-438a-aaa7-d7c58d3d3270}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Modules\BondsGenerator\BondsGenerator.vcxproj">
       <Project>{739e5585-3715-40ea-99fb-ab1adb2e2dc3}</Project>

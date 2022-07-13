@@ -16,7 +16,7 @@ class CBasicQuaternion
 public:
 	T q0, q1, q2, q3;
 
-	CUDA_HOST_DEVICE CBasicQuaternion() {}
+	CBasicQuaternion() = default;
 	CUDA_HOST_DEVICE explicit CBasicQuaternion(const T& _q0, const T& _q1, const T& _q2, const T& _q3) : q0(_q0), q1(_q1), q2(_q2), q3(_q3) {}
 	CUDA_HOST_DEVICE CBasicQuaternion(const CBasicVector3<T>& _vec) { SetFromEulerAnglesXYZ(_vec); }
 	CUDA_HOST_DEVICE CBasicQuaternion(const CBasicMatrix3<T>& _M) { FromRotmat(_M); }

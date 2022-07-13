@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Vector3.h"
-#include "Matrix3.h"
 #include "Quaternion.h"
 #include <vector>
 #include <sstream>
@@ -25,6 +24,7 @@ struct SSelectiveSavingFlags
 	bool bQuaternion    = true;
 	bool bForce         = true;
 	bool bTensor        = true;
+	bool bTemperature   = false;
 	// solid bonds
 	bool bSBForce       = true;
 	bool bSBTangOverlap = true;
@@ -36,9 +36,9 @@ struct SSelectiveSavingFlags
 	bool bTWForce       = true;
 	bool bTWVelocity    = true;
 
-	void SetAll(bool _flag)	{ bCoordinates = bVelocity = bAngVelocity = bQuaternion = bForce = bTensor = bSBForce = bSBTangOverlap = bSBTotTorque = bLBForce = bTWPlaneCoord = bTWForce = bTWVelocity = _flag;	}
+	void SetAll(bool _flag)	{ bCoordinates = bVelocity = bAngVelocity = bQuaternion = bForce = bTensor = bSBForce = bSBTangOverlap = bSBTotTorque = bLBForce = bTWPlaneCoord = bTWForce = bTWVelocity = bTemperature = _flag;	}
 
-	void SetAllParticles(bool _flag) { bCoordinates = bVelocity = bAngVelocity = bQuaternion = bForce = bTensor = _flag; }
+	void SetAllParticles(bool _flag) { bCoordinates = bVelocity = bAngVelocity = bQuaternion = bForce = bTensor = bTemperature = _flag; }
 	void SetAllSolidBonds(bool _flag) { bSBForce = bSBTangOverlap = bSBTotTorque = _flag; }
 	void SetAllLiquidBonds(bool _flag) { bLBForce = _flag; }
 	void SetAllWalls(bool _flag) { bTWPlaneCoord = bTWForce = bTWVelocity = _flag; }
@@ -50,7 +50,8 @@ struct SVolumeType
 	CVector3 coordBeg;
 	CVector3 coordEnd;
 	bool IsInf() const { return coordBeg.IsInf() || coordEnd.IsInf(); }
-	friend std::istream& operator >> (std::istream& _s, SVolumeType& _v) { _s >> _v.coordBeg >> _v.coordEnd; return _s; }
+	friend std::istream& operator>> (std::istream& _s, SVolumeType& _v) { _s >> _v.coordBeg >> _v.coordEnd; return _s; }
+	friend std::ostream& operator<< (std::ostream& _s, const SVolumeType& _v) { _s << _v.coordBeg << " " << _v.coordEnd; return _s; }
 };
 
 struct SInteractProps
@@ -63,7 +64,6 @@ struct SInteractProps
 	double dEquivShearModulus;
 	double dEquivSurfaceTension;
 	double dEquivSurfaceEnergy;
-	double dEquivThermalConductivity;
 };
 
 namespace
@@ -154,7 +154,7 @@ inline std::map<EVolumeShape, std::string> AllStandardVolumeTypes()
 
 #define _VIRTUAL_COORDINATE(coord, shift_info, m_PBC) (((shift_info) != 0) ? GetVirtualProperty(coord, shift_info, m_PBC) : (coord))
 
-#define CPU_GET_VIRTUAL_COORDINATE(coord)	_VIRTUAL_COORDINATE(coord, _pCollision->nVirtShift, m_PBC)
+#define CPU_GET_VIRTUAL_COORDINATE(coord)	_VIRTUAL_COORDINATE(coord, _collision->nVirtShift, m_PBC)
 #define GPU_GET_VIRTUAL_COORDINATE(coord)	_VIRTUAL_COORDINATE(coord, _collVirtShifts[iColl], PBC)
 
 namespace

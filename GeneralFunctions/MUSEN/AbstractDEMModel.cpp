@@ -210,9 +210,9 @@ void CSolidBondModel::Precalculate(double _time, double _timeStep)
 	PrecalculateSBModel(_time, _timeStep, m_particles, m_bonds);
 }
 
-void CSolidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const
+void CSolidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
-	CalculateSBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrockenBondsNum);
+	CalculateSBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
 }
 
 
@@ -236,9 +236,9 @@ void CLiquidBondModel::Precalculate(double _time, double _timeStep)
 	PrecalculateLBModel(_time, _timeStep, m_particles, m_bonds);
 }
 
-void CLiquidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrockenBondsNum) const
+void CLiquidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
-	CalculateLBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrockenBondsNum);
+	CalculateLBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
 }
 
 
@@ -264,4 +264,32 @@ void CExternalForceModel::Precalculate(double _time, double _timeStep)
 void CExternalForceModel::Calculate(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
 	CalculateEFForce(_time, _timeStep, _iPart, _particles);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////// CHeatTransferPPModel
+
+CPPHeatTransferModel::CPPHeatTransferModel()
+{
+	m_type = EMusenModelType::PPHT;
+	m_requieredVariables.bThermals = true;
+}
+
+bool CPPHeatTransferModel::Initialize(SParticleStruct* _particles, SWallStruct* _walls, SSolidBondStruct* _solidBinds, SLiquidBondStruct* _liquidBonds, std::vector<SInteractProps>* _interactProps)
+{
+	m_particles = _particles;
+	m_interactProps = _interactProps;
+	if (!m_particles || !m_interactProps) return false;
+	if (!m_particles->ThermalsExist()) return false;
+	return true;
+}
+
+void CPPHeatTransferModel::Precalculate(double _time, double _timeStep)
+{
+	PrecalculatePPHTModel(_time, _timeStep, m_particles);
+}
+
+void CPPHeatTransferModel::Calculate(double _time, double _timeStep, SCollision* _collision) const
+{
+	CalculatePPHeatTransfer(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
 }

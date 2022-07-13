@@ -49,6 +49,7 @@ void CBaseSimulator::LoadConfiguration()
 		m_selectiveSavingFlags.bQuaternion    = selectiveSaving.p_quatern();
 		m_selectiveSavingFlags.bForce         = selectiveSaving.p_force();
 		m_selectiveSavingFlags.bTensor        = selectiveSaving.p_tensor();
+		m_selectiveSavingFlags.bTemperature =	selectiveSaving.p_temperature();
 		// solid bonds
 		m_selectiveSavingFlags.bSBForce       = selectiveSaving.sb_force();
 		m_selectiveSavingFlags.bSBTangOverlap = selectiveSaving.sb_tangoverlap();
@@ -97,6 +98,7 @@ void CBaseSimulator::SaveConfiguration()
 	selectiveSaving->set_p_quatern(m_selectiveSavingFlags.bQuaternion);
 	selectiveSaving->set_p_force(m_selectiveSavingFlags.bForce);
 	selectiveSaving->set_p_tensor(m_selectiveSavingFlags.bTensor);
+	selectiveSaving->set_p_temperature(m_selectiveSavingFlags.bTemperature);
 	// solid bonds
 	selectiveSaving->set_sb_force(m_selectiveSavingFlags.bSBForce);
 	selectiveSaving->set_sb_tangoverlap(m_selectiveSavingFlags.bSBTangOverlap);
@@ -211,6 +213,19 @@ void CBaseSimulator::SetCurrentStatus(const ERunningStatus& _nNewStatus)
 	m_status = _nNewStatus;
 }
 
+std::chrono::time_point<std::chrono::system_clock> CBaseSimulator::GetStartDateTime() const
+{
+	return m_chronoSimStart;
+}
+
+std::chrono::time_point<std::chrono::system_clock> CBaseSimulator::GetFinishDateTime() const
+{
+	const double currProgress = m_currentTime / m_endTime;
+	const int64_t currDuration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_chronoSimStart).count() - m_chronoPauseLength;
+	const int64_t remainingTime = static_cast<int64_t>(static_cast<double>(currDuration) / currProgress) - currDuration;
+	return std::chrono::system_clock::now() + std::chrono::milliseconds(remainingTime);
+}
+
 double CBaseSimulator::GetCurrentTime() const
 {
 	return m_currentTime;
@@ -256,14 +271,14 @@ size_t CBaseSimulator::GetNumberOfInactiveParticles() const
 	return m_nInactiveParticles;
 }
 
-size_t CBaseSimulator::GetNumberOfBrockenBonds() const
+size_t CBaseSimulator::GetNumberOfBrokenBonds() const
 {
-	return m_nBrockenBonds;
+	return m_nBrokenBonds;
 }
 
-size_t CBaseSimulator::GetNumberOfBrockenLiquidBonds() const
+size_t CBaseSimulator::GetNumberOfBrokenLiquidBonds() const
 {
-	return m_nBrockenLiquidBonds;
+	return m_nBrokenLiquidBonds;
 }
 
 size_t CBaseSimulator::GetNumberOfGeneratedObjects() const
@@ -384,6 +399,8 @@ void CBaseSimulator::p_SaveData()
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bForce)       pPart->SetForce(particles.Force(i));
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bQuaternion)  pPart->SetOrientation(particles.Quaternion(i));
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bTensor)      pPart->SetStressTensor(m_additionalSavingData[i].stressTensor);
+		if ((!m_selectiveSaving || m_selectiveSavingFlags.bTemperature) && particles.ThermalsExist()) pPart->SetTemperature(particles.Temperature(i));
+
 		pPart->SetObjectActivity(particles.Active(i) ? m_currentTime : particles.EndActivity(i), particles.Active(i));
 	});
 
@@ -429,16 +446,17 @@ void CBaseSimulator::PrintStatus() const
 
 	// calculate progress
 	const double currProgress = m_currentTime / m_endTime;
-	const int64_t currDuration = duration_cast<milliseconds>(steady_clock::now() - m_chronoSimStart).count() - m_chronoPauseLength;
-	const int64_t remainingTime = static_cast<int64_t>(static_cast<double>(currDuration) / currProgress) - currDuration;
-	std::time_t endTime = system_clock::to_time_t(system_clock::now() + milliseconds(remainingTime));
+	const auto finishTimePoint = GetFinishDateTime();
+	const auto finishTimeTimePointC = system_clock::to_time_t(finishTimePoint);
+	const int64_t remainingMs = duration_cast<milliseconds>(finishTimePoint - system_clock::now()).count();
 
 	// print out status and progress
 	*p_out << "Current time [s]: " << m_currentTime << std::endl;
 	*p_out << "\tMax particle velocity [m/s]:  " << m_maxParticleVelocity << std::endl;
+	*p_out << "\tMax particle temperature [K]: " << m_maxParticleTemperature << std::endl;
 	*p_out << "\tCurrent progress:             " << Double2Percent(currProgress) << std::endl;
-	*p_out << "\tTime left [d:h:m:s]:          " << MsToTimeSpan(remainingTime) << std::endl;
-	*p_out << "\tWill finish at [d.m.y h:m:s]: " << std::put_time(std::localtime(&endTime), "%d.%m.%y %H:%M:%S") << std::endl;
+	*p_out << "\tTime left [d:h:m:s]:          " << MsToTimeSpan(remainingMs) << std::endl;
+	*p_out << "\tWill finish at [d.m.y h:m:s]: " << std::put_time(std::localtime(&finishTimeTimePointC), "%d.%m.%y %H:%M:%S") << std::endl;
 }
 
 void CBaseSimulator::MoveObjectsStep(double _timeStep, bool _predictionStep)
@@ -497,8 +515,8 @@ void CBaseSimulator::Initialize()
 
 	// statistics
 	m_nInactiveParticles = 0;
-	m_nBrockenBonds = 0;
-	m_nBrockenLiquidBonds = 0;
+	m_nBrokenBonds = 0;
+	m_nBrokenLiquidBonds = 0;
 	m_nGeneratedObjects = 0;
 
 	// settings
@@ -525,18 +543,20 @@ void CBaseSimulator::Initialize()
 
 void CBaseSimulator::InitializeModels()
 {
-	m_pPPModel = dynamic_cast<CParticleParticleModel*>(m_modelManager->GetModel(EMusenModelType::PP));
-	m_pPWModel = dynamic_cast<CParticleWallModel*>(m_modelManager->GetModel(EMusenModelType::PW));
-	m_pSBModel = dynamic_cast<CSolidBondModel*>(m_modelManager->GetModel(EMusenModelType::SB));
-	m_pLBModel = dynamic_cast<CLiquidBondModel*>(m_modelManager->GetModel(EMusenModelType::LB));
-	m_pEFModel = dynamic_cast<CExternalForceModel*>(m_modelManager->GetModel(EMusenModelType::EF));
+	m_pPPModel   = dynamic_cast<CParticleParticleModel*>(m_modelManager->GetModel(EMusenModelType::PP));
+	m_pPWModel   = dynamic_cast<CParticleWallModel*>(m_modelManager->GetModel(EMusenModelType::PW));
+	m_pSBModel   = dynamic_cast<CSolidBondModel*>(m_modelManager->GetModel(EMusenModelType::SB));
+	m_pLBModel   = dynamic_cast<CLiquidBondModel*>(m_modelManager->GetModel(EMusenModelType::LB));
+	m_pEFModel   = dynamic_cast<CExternalForceModel*>(m_modelManager->GetModel(EMusenModelType::EF));
+	m_pPPHTModel = dynamic_cast<CPPHeatTransferModel*>(m_modelManager->GetModel(EMusenModelType::PPHT));
 
 	m_models.clear();
-	if (m_pPPModel) m_models.push_back(m_pPPModel);
-	if (m_pPWModel) m_models.push_back(m_pPWModel);
-	if (m_pSBModel) m_models.push_back(m_pSBModel);
-	if (m_pLBModel) m_models.push_back(m_pLBModel);
-	if (m_pEFModel) m_models.push_back(m_pEFModel);
+	if (m_pPPModel)   m_models.push_back(m_pPPModel);
+	if (m_pPWModel)   m_models.push_back(m_pPWModel);
+	if (m_pSBModel)   m_models.push_back(m_pSBModel);
+	if (m_pLBModel)   m_models.push_back(m_pLBModel);
+	if (m_pEFModel)   m_models.push_back(m_pEFModel);
+	if (m_pPPHTModel) m_models.push_back(m_pPPHTModel);
 
 	m_verletList.SetConnectedPPContact(m_modelManager->GetConnectedPPContact());
 
@@ -552,19 +572,20 @@ void CBaseSimulator::InitializeModelParameters()
 void CBaseSimulator::Simulate()
 {
 	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
-	RandomSeed(); // needed for some contact models
-
-	if (m_status == ERunningStatus::IDLE)
-		Initialize();
 
 	// performance measurement
 	if (m_status == ERunningStatus::IDLE)
 	{
 		m_chronoPauseLength = 0;
-		m_chronoSimStart = std::chrono::steady_clock::now();
+		m_chronoSimStart = std::chrono::system_clock::now();
 	}
 	else if (m_status == ERunningStatus::PAUSED)
-		m_chronoPauseLength += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoPauseStart).count();
+		m_chronoPauseLength += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_chronoPauseStart).count();
+
+	RandomSeed(); // needed for some contact models
+
+	if (m_status == ERunningStatus::IDLE)
+		Initialize();
 
 	// start simulation
 	m_status = ERunningStatus::RUNNING;
@@ -572,11 +593,11 @@ void CBaseSimulator::Simulate()
 
 	// performance measurement
 	if (m_status == ERunningStatus::TO_BE_PAUSED)
-		m_chronoPauseStart = std::chrono::steady_clock::now();
+		m_chronoPauseStart = std::chrono::system_clock::now();
 	else if (m_status == ERunningStatus::TO_BE_STOPPED)
 	{
 		// output performance statistic
-		const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_chronoSimStart).count();
+		const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - m_chronoSimStart).count();
 		*p_out << "Elapsed time [d:h:m:s]: " << MsToTimeSpan(elapsedTime) << std::endl;
 	}
 
@@ -595,6 +616,8 @@ void CBaseSimulator::StartSimulation()
 		UpdateCollisionsStep(m_currSimulationStep);
 		CalculateForcesStep(m_currSimulationStep);
 		MoveObjectsStep(m_currSimulationStep, m_isPredictionStep);
+		if (m_scene.GetRefToParticles().ThermalsExist())
+			UpdateTemperatures(m_currSimulationStep, m_isPredictionStep);
 
 		if (m_isPredictionStep) // makes prediction step
 			m_isPredictionStep = false;
@@ -602,7 +625,7 @@ void CBaseSimulator::StartSimulation()
 			m_currentTime += m_currSimulationStep;
 
 		// analyze about possible end of interval
-		if (m_currentTime >= m_endTime)
+		if (m_currentTime >= m_endTime || g_extSignal != 0)
 			m_status = ERunningStatus::TO_BE_STOPPED;
 	}
 
@@ -612,7 +635,8 @@ void CBaseSimulator::StartSimulation()
 
 void CBaseSimulator::FinalizeSimulation()
 {
-	SaveData();
+	if (!g_extSignal)	// if stopped by signal, only close file properly; do not save current time point, as this does not coincide with savings step
+		SaveData();
 	m_pSystemStructure->SaveToFile();
 }
 
@@ -643,7 +667,7 @@ bool CBaseSimulator::AdditionalStopCriterionMet()
 		{
 		case EStopCriteria::NONE: break;
 		case EStopCriteria::BROKEN_BONDS:
-			if (m_nBrockenBonds > m_stopValues.maxBrokenBonds)
+			if (m_nBrokenBonds > m_stopValues.maxBrokenBonds)
 				return true;
 			break;
 		}
@@ -668,8 +692,8 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 	SetTimeStepFactor(_other.m_timeStepFactor);
 
 	m_nInactiveParticles = _other.m_nInactiveParticles;
-	m_nBrockenBonds = _other.m_nBrockenBonds;
-	m_nBrockenLiquidBonds = _other.m_nBrockenLiquidBonds;
+	m_nBrokenBonds = _other.m_nBrokenBonds;
+	m_nBrokenLiquidBonds = _other.m_nBrokenLiquidBonds;
 	m_nGeneratedObjects = _other.m_nGeneratedObjects;
 
 	SetSystemStructure(_other.m_pSystemStructure);
@@ -679,11 +703,12 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 	SetModelManager(_other.m_modelManager);
 	SetGenerationManager(_other.m_generationManager);
 
-	m_pPPModel = _other.m_pPPModel;
-	m_pPWModel = _other.m_pPWModel;
-	m_pSBModel = _other.m_pSBModel;
-	m_pLBModel = _other.m_pLBModel;
-	m_pEFModel = _other.m_pEFModel;
+	m_pPPModel   = _other.m_pPPModel;
+	m_pPWModel   = _other.m_pPWModel;
+	m_pSBModel   = _other.m_pSBModel;
+	m_pLBModel   = _other.m_pLBModel;
+	m_pEFModel   = _other.m_pEFModel;
+	m_pPPHTModel = _other.m_pPPHTModel;
 
 	m_stopCriteria = _other.m_stopCriteria;
 	m_stopValues = _other.m_stopValues;

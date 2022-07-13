@@ -127,7 +127,7 @@ void CAnalysisVolume::LoadFromProto_v0(const ProtoAnalysisVolume_v0& _proto)
 	if (_proto.has_rotation())
 		SetRotationMatrix(Proto2Val(_proto.rotation()));
 	else if (Shape() != EVolumeShape::VOLUME_STL) // compatibility with older versions
-		m_mesh.SetTriangles(CMeshGenerator::GenerateMesh(Shape(), Sizes(), Proto2Val(_proto.vcenter()), CMatrix3::Diagonal()).Triangles());
+		m_mesh.SetTriangles(CMeshGenerator::GenerateMesh(Shape(), Sizes(), Proto2Val(_proto.vcenter()), CMatrix3::Identity()).Triangles());
 	if (_proto.has_color())
 		SetColor(Proto2Val(_proto.color()));
 
@@ -269,7 +269,7 @@ std::vector<size_t> CAnalysisVolume::GetWallIndicesInside(double _time) const
 	for (const auto& w : walls)
 	{
 		wallsID.push_back(w->m_lObjectID);
-		const CTriangle t = w->GetCoords(_time);
+		const CTriangle t = w->GetPlaneCoords(_time);
 		wallsCoordX.push_back(t.p1);
 		wallsCoordY.push_back(t.p2);
 		wallsCoordZ.push_back(t.p3);

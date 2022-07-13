@@ -40,9 +40,11 @@ public:
 	void CalculateForcesSB(double _dTimeStep) override;
 	void CalculateForcesLB(double _dTimeStep) override;
 	void CalculateForcesEF(double _dTimeStep) override;
+	void CalculateHeatTransferPP(double _dTimeStep) override;
 
 	void MoveParticles(bool _bPredictionStep = false) override;
 	void MoveWalls(double _dTimeStep) override;
+	void UpdateTemperatures(double _timeStep, bool _predictionStep = false) override;
 
 	// Returns all current maximal and average overlap between particles with particle indexes smaller than _nMaxParticleID.
 	void GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID) override;

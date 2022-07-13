@@ -7,8 +7,8 @@
 #include "BasicTypes.h"
 
 void __global__ CUDA_CalcPWForce_HM_kernel(
-	double			      _timeStep,
-	const SInteractProps  _interactProps[],
+	double			     _timeStep,
+	const SInteractProps _interactProps[],
 
 	const CVector3	_partAnglVels[],
 	const CVector3	_partCoords[],

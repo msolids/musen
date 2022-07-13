@@ -52,6 +52,7 @@ public:
 
 	void InitializeMaterials();			// Parameters and interactions of materials
 	void ClearAllForcesAndMoments();
+	void ClearHeatFluxes() const;
 
 	void AddVirtualParticles(double _dVerletDistance);
 	void RemoveVirtualParticles();
@@ -63,6 +64,7 @@ public:
 	void GetAllWallsInVolume(const SVolumeType& _volume, std::vector<unsigned>* _pvIndexes) const;
 
 	double GetMaxParticleVelocity() const;
+	double GetMaxParticleTemperature() const;
 	double GetMaxParticleRadius() const;
 	double GetMinParticleRadius() const;
 	double GetMaxParticleContactRadius() const;

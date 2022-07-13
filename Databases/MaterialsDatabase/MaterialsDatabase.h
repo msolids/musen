@@ -141,6 +141,10 @@ public:
 	CInteraction* GetInteraction(const std::string& _sCompoundKey1, const std::string& _sCompoundKey2);
 	/// Returns const pointer to an interaction between compounds with specified keys. Returns nullptr if such interaction has not been defined.
 	const CInteraction* GetInteraction(const std::string& _sCompoundKey1, const std::string& _sCompoundKey2) const;
+	/// Returns pointers to all interactions.
+	std::vector<CInteraction*> GetInteractions();
+	/// Returns const pointers to all interactions.
+	[[nodiscard]] std::vector<const CInteraction*> GetInteractions() const;
 	/// Returns index of an interaction between compounds with specified keys. If not found -1 is returned.
 	int GetInteractionIndex(const std::string& _sCompoundKey1, const std::string& _sCompoundKey2) const;
 
@@ -183,6 +187,10 @@ public:
 	CMixture* GetMixture(const std::string& _sMixtureKey);
 	/// Returns constant pointer to a specified mixture. Returns nullptr if such mixture has not been defined.
 	const CMixture* GetMixture(const std::string& _sMixtureKey) const;
+	/// Returns pointers to all mixtures.
+	std::vector<CMixture*> GetMixtures();
+	/// Returns const pointers to all mixtures.
+	[[nodiscard]] std::vector<const CMixture*> GetMixtures() const;
 	/// Returns pointer to a specified mixture. Returns nullptr if such mixture has not been defined.
 	CMixture* GetMixtureByName(const std::string& _mixtureName);
 	/// Returns constant pointer to a specified mixture. Returns nullptr if such mixture has not been defined.

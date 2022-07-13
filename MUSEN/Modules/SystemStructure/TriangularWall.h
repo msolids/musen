@@ -18,7 +18,7 @@ public:
 	CVector3 GetCoordVertex1(double _time) const { return GetCoordinates(_time); }
 	CVector3 GetCoordVertex2(double _time) const { const CQuaternion quant = GetOrientation(_time); return CVector3(quant.q0, quant.q1, quant.q2); }
 	CVector3 GetCoordVertex3(double _time) const { return GetAngleVelocity(_time); }
-	CTriangle GetCoords(double _time) const { return {GetCoordVertex1(_time), GetCoordVertex2(_time), GetCoordVertex3(_time)}; }
+	CTriangle GetPlaneCoords(double _time) const { return {GetCoordVertex1(_time), GetCoordVertex2(_time), GetCoordVertex3(_time)}; }
 	CVector3 GetOldCoordVertex2(double _time) const { return GetAngles(_time); }
 	CVector3 GetOldCoordVertex3(double _time) const { return GetAngleAcceleration(_time); }
 	CVector3 GetNormalVector(double _time) const;
@@ -28,7 +28,7 @@ public:
 	CVector3 GetCoordVertex1() const { return GetCoordinates(); }
 	CVector3 GetCoordVertex2() const { const CQuaternion quant = GetOrientation(); return CVector3(quant.q0, quant.q1, quant.q2); }
 	CVector3 GetCoordVertex3() const { return GetAngleVelocity(); }
-	CTriangle GetCoords() const { return { GetCoordVertex1(), GetCoordVertex2(), GetCoordVertex3() }; }
+	CTriangle GetPlaneCoords() const { return { GetCoordVertex1(), GetCoordVertex2(), GetCoordVertex3() }; }
 	CVector3 GetOldCoordVertex2() const { return GetAngles(); }
 	CVector3 GetOldCoordVertex3() const { return GetAngleAcceleration(); }
 	CVector3 GetNormalVector() const;

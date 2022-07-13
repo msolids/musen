@@ -6,8 +6,8 @@
 #include "BasicTypes.h"
 
 void __global__ CUDA_CalcPPForce_LE_kernel(
-	double					_timeStep,
-	const SInteractProps	_interactProps[],
+	double				 _timeStep,
+	const SInteractProps _interactProps[],
 
 	const CVector3	_partAnglVels[],
 	const double	_partRadii[],

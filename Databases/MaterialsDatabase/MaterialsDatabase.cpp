@@ -404,6 +404,20 @@ const CInteraction* CMaterialsDatabase::GetInteraction(const std::string& _sComp
 	return nullptr;
 }
 
+std::vector<CInteraction*> CMaterialsDatabase::GetInteractions()
+{
+	return m_vInteractions;
+}
+
+std::vector<const CInteraction*> CMaterialsDatabase::GetInteractions() const
+{
+	std::vector<const CInteraction*> res;
+	res.reserve(m_vInteractions.size());
+	for (const auto& i : m_vInteractions)
+		res.push_back(i);
+	return res;
+}
+
 int CMaterialsDatabase::GetInteractionIndex(const std::string& _sCompoundKey1, const std::string& _sCompoundKey2) const
 {
 	for (size_t i = 0; i < m_vInteractions.size(); ++i)
@@ -520,6 +534,20 @@ const CMixture* CMaterialsDatabase::GetMixture(const std::string& _sMixtureKey) 
 		if (m_vMixtures[i]->GetKey() == _sMixtureKey)
 			return m_vMixtures[i];
 	return nullptr;
+}
+
+std::vector<CMixture*> CMaterialsDatabase::GetMixtures()
+{
+	return m_vMixtures;
+}
+
+std::vector<const CMixture*> CMaterialsDatabase::GetMixtures() const
+{
+	std::vector<const CMixture*> res;
+	res.reserve(m_vMixtures.size());
+	for (const auto& m : m_vMixtures)
+		res.push_back(m);
+	return res;
 }
 
 CMixture* CMaterialsDatabase::GetMixtureByName(const std::string& _mixtureName)

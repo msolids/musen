@@ -7,7 +7,7 @@
     <ClCompile Include="ModelPWSimpleViscoElastic.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ModelPWSimpleViscoElastic.cu" />
-    <None Include="ModelPWSimpleViscoelastic.cuh" />
+    <CudaCompile Include="ModelPWSimpleViscoElastic.cu" />
+    <CudaCompile Include="ModelPWSimpleViscoelastic.cuh" />
   </ItemGroup>
 </Project>

@@ -74,21 +74,29 @@ void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 	// clear all forces and moment on GPU
 	m_sceneGPU.ClearAllForcesAndMoments();
 
+	// check that all particles are remains in simulation domain
+	m_gpu.CheckParticlesInDomain(m_currentTime, m_sceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
+
 	// if there is no contact model, then there is no necessity to calculate contacts
 	if (m_pPPModel || m_pPWModel)
 	{
 		UpdateVerletLists(_dTimeStep); // between PP and PW
 		CUDAUpdateActiveCollisions();
 	}
+
+	if (m_pPPHTModel)
+		m_sceneGPU.ClearHeatFluxes();
 }
 
 void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
-	if (m_pPPModel) CalculateForcesPP(_dTimeStep);
-	if (m_pPWModel) CalculateForcesPW(_dTimeStep);
-	if (m_pSBModel) CalculateForcesSB(_dTimeStep);
-	if (m_pLBModel) CalculateForcesLB(_dTimeStep);
-	if (m_pEFModel) CalculateForcesEF(_dTimeStep);
+	if (m_pPPModel)   CalculateForcesPP(_dTimeStep);
+	if (m_pPWModel)   CalculateForcesPW(_dTimeStep);
+	if (m_pSBModel)   CalculateForcesSB(_dTimeStep);
+	if (m_pLBModel)   CalculateForcesLB(_dTimeStep);
+	if (m_pEFModel)   CalculateForcesEF(_dTimeStep);
+	if (m_pPPHTModel) CalculateHeatTransferPP(_dTimeStep);
+
 	cudaStreamQuery(0);
 }
 
@@ -115,6 +123,11 @@ void CGPUSimulator::CalculateForcesSB(double _dTimeStep)
 void CGPUSimulator::CalculateForcesEF(double _dTimeStep)
 {
 	m_pEFModel->CalculateEFForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
+}
+
+void CGPUSimulator::CalculateHeatTransferPP(double _dTimeStep)
+{
+	m_pPPHTModel->CalculatePPHeatTransferGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
 }
 
 void CGPUSimulator::MoveParticles(bool _bPredictionStep)
@@ -169,6 +182,11 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		m_gpu.MoveWalls(_dTimeStep, iGeom, vVel, vRotVel, vRotCenter, RotMatrix, pGeom->FreeMotion(),
 			pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT, pGeom->RotateAroundCenter(), pGeom->Mass(), m_sceneGPU.GetPointerToWalls(), m_externalAcceleration);
 	}
+}
+
+void CGPUSimulator::UpdateTemperatures(double _timeStep, bool _predictionStep)
+{
+	m_gpu.UpdateTemperatures(_timeStep, m_sceneGPU.GetPointerToParticles());
 }
 
 size_t CGPUSimulator::GenerateNewObjects()
@@ -253,8 +271,10 @@ void CGPUSimulator::SaveData()
 	m_sceneGPU.CUDABondsGPU2CPU( m_scene );
 	m_sceneGPU.CUDAParticlesGPU2CPUAllData(m_scene);
 	m_sceneGPU.CUDAWallsGPU2CPUAllData(m_scene);
-	m_nBrockenBonds = m_sceneGPU.GetBrokenBondsNumber();
+	m_nBrokenBonds = m_sceneGPU.GetBrokenBondsNumber();
 	m_maxParticleVelocity = m_sceneGPU.GetMaxPartVelocity();
+	if (m_scene.GetRefToParticles().ThermalsExist())
+		m_maxParticleTemperature = m_sceneGPU.GetMaxPartTemperature();
 	p_SaveData();
 
 	m_verletList.AddDisregardingTimeInterval(clock() - t);
@@ -278,9 +298,6 @@ void CGPUSimulator::UpdateVerletLists(double _dTimeStep)
 
 void CGPUSimulator::CUDAUpdateGlobalCPUData()
 {
-	// check that all particles are remains in simulation domain
-	m_gpu.CheckParticlesInDomain(m_currentTime, m_sceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
-
 	// update max velocities
 	m_sceneGPU.GetMaxSquaredPartDist(&m_pDispatchedResults_d->dMaxSquaredPartDist);
 	if (m_wallsVelocityChanged)

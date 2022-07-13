@@ -19,6 +19,7 @@ CModelsConfiguratorTab::CModelsConfiguratorTab(CModelManager* _pModelManager, bo
 	m_vCombos[EMusenModelType::SB] = ui.sbDll;
 	m_vCombos[EMusenModelType::LB] = ui.lbDll;
 	m_vCombos[EMusenModelType::EF] = ui.efDll;
+	m_vCombos[EMusenModelType::PPHT] = ui.htPPdll;
 	InitializeConnections();
 }
 
@@ -36,6 +37,7 @@ void CModelsConfiguratorTab::InitializeConnections()
 	connect(ui.specModelParSB, &QPushButton::clicked, this, [this] {SpecModelParameters(EMusenModelType::SB); });
 	connect(ui.specModelParLB, &QPushButton::clicked, this, [this] {SpecModelParameters(EMusenModelType::LB); });
 	connect(ui.specModelParEF, &QPushButton::clicked, this, [this] {SpecModelParameters(EMusenModelType::EF); });
+	connect(ui.specModelParHT_PP, &QPushButton::clicked, this, [this] {SpecModelParameters(EMusenModelType::PPHT); });
 
 	// signals from buttons to see help
 	connect(ui.helpPPModel, &QPushButton::clicked, this, [this] {OpenModelDocumentation(EMusenModelType::PP); });
@@ -43,6 +45,7 @@ void CModelsConfiguratorTab::InitializeConnections()
 	connect(ui.helpSBModel, &QPushButton::clicked, this, [this] {OpenModelDocumentation(EMusenModelType::SB); });
 	connect(ui.helpLBModel, &QPushButton::clicked, this, [this] {OpenModelDocumentation(EMusenModelType::LB); });
 	connect(ui.helpEFModel, &QPushButton::clicked, this, [this] {OpenModelDocumentation(EMusenModelType::EF); });
+	connect(ui.helpHT_PPModel, &QPushButton::clicked, this, [this] {OpenModelDocumentation(EMusenModelType::PPHT); });
 
 	// signals from model combo boxes
 	connect(ui.ppDll, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectedModelsChanged()));
@@ -50,6 +53,7 @@ void CModelsConfiguratorTab::InitializeConnections()
 	connect(ui.sbDll, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectedModelsChanged()));
 	connect(ui.lbDll, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectedModelsChanged()));
 	connect(ui.efDll, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectedModelsChanged()));
+	connect(ui.htPPdll, SIGNAL(currentIndexChanged(int)), this, SLOT(SelectedModelsChanged()));
 }
 
 void CModelsConfiguratorTab::setVisible(bool _bVisible)
@@ -111,11 +115,13 @@ void CModelsConfiguratorTab::UpdateConfigButtons()
 	CAbstractDEMModel *pSB = m_pModelManager->GetModel(EMusenModelType::SB);
 	CAbstractDEMModel *pLB = m_pModelManager->GetModel(EMusenModelType::LB);
 	CAbstractDEMModel *pEF = m_pModelManager->GetModel(EMusenModelType::EF);
+	CAbstractDEMModel *pHTPP = m_pModelManager->GetModel(EMusenModelType::PPHT);
 	ui.specModelParPP->setEnabled(pPP && pPP->GetParametersNumber() != 0);
 	ui.specModelParPW->setEnabled(pPW && pPW->GetParametersNumber() != 0);
 	ui.specModelParSB->setEnabled(pSB && pSB->GetParametersNumber() != 0);
 	ui.specModelParLB->setEnabled(pLB && pLB->GetParametersNumber() != 0);
 	ui.specModelParEF->setEnabled(pEF && pEF->GetParametersNumber() != 0);
+	ui.specModelParHT_PP->setEnabled(pHTPP && pHTPP->GetParametersNumber() != 0);
 }
 
 void CModelsConfiguratorTab::SelectedModelsChanged()

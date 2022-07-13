@@ -23,45 +23,48 @@ CObjectsEditorTab::CObjectsEditorTab(CExportTDPTab* _pTab, CViewSettings* _viewS
 	setContextMenuPolicy(Qt::CustomContextMenu);
 
 	m_dataFieldsPart = {
-		{ EFieldTypes::ID,					"ID",						{ "ID" },													},
-		{ EFieldTypes::MATERIAL,			"Material",					{ "Material" },												},
-		{ EFieldTypes::COORDINATE,			"Coordinate",				{ "X", "Y", "Z" },			EUnitType::LENGTH,				},
-		{ EFieldTypes::VELOCITY,			"Velocity",					{ "Vx", "Vy", "Vz" },		EUnitType::VELOCITY,			},
-		{ EFieldTypes::ROTATION_VELOCITY,	"Rotational velocity",		{ "Wx", "Wy", "Wz" },		EUnitType::ANGULAR_VELOCITY,	},
-		{ EFieldTypes::DIAMETER,			"Diameter",					{ "D" },					EUnitType::PARTICLE_DIAMETER,	},
-		{ EFieldTypes::CONTACT_DIAMETER,	"Contact D",				{ "Contact D" },			EUnitType::PARTICLE_DIAMETER,	},
-		{ EFieldTypes::COORDINATION_NUMBER,	"Coordination number",		{ "Coord number" },											},
-		{ EFieldTypes::MAX_OVERLAP,	        "Max overlap",		        { "Max overlap" },			EUnitType::LENGTH,				},
-		{ EFieldTypes::FORCE,				"Force",					{ "Fx", "Fy", "Fz" },		EUnitType::FORCE,				},
-		{ EFieldTypes::STRESS,				"Stress",					{ "Sx", "Sy", "Sz" },		EUnitType::PRESSURE,			},
-		{ EFieldTypes::TEMPERATURE,			"Temperature",				{ "T" },					EUnitType::TEMPERATURE,			},
-		{ EFieldTypes::ORIENTATION,			"Orientation",				{ "Qx", "Qy", "Qz", "Qw" },									},
+		{ EFieldTypes::ID,					"ID",					{ "ID" },													        },
+		{ EFieldTypes::MATERIAL,			"Material",				{ "Material" },												        },
+		{ EFieldTypes::ACTIVITY_INTERVAL,	"Activity interval",    { "T start", "T end" },		          EUnitType::TIME               },
+		{ EFieldTypes::COORDINATE,			"Coordinate",			{ "X", "Y", "Z" },			          EUnitType::LENGTH,			},
+		{ EFieldTypes::VELOCITY,			"Velocity",				{ "Vx", "Vy", "Vz" },		          EUnitType::VELOCITY,			},
+		{ EFieldTypes::ROTATION_VELOCITY,	"Rotational velocity",	{ "Wx", "Wy", "Wz" },		          EUnitType::ANGULAR_VELOCITY,	},
+		{ EFieldTypes::DIAMETER,			"Diameter",				{ "D" },					          EUnitType::PARTICLE_DIAMETER,	},
+		{ EFieldTypes::CONTACT_DIAMETER,	"Contact D",			{ "Contact D" },			          EUnitType::PARTICLE_DIAMETER,	},
+		{ EFieldTypes::COORDINATION_NUMBER,	"Coordination number",	{ "Coord number" },			          								},
+		{ EFieldTypes::MAX_OVERLAP,	        "Max overlap",		    { "Max overlap" },			          EUnitType::LENGTH,			},
+		{ EFieldTypes::FORCE,				"Force",				{ "Fx", "Fy", "Fz" },		          EUnitType::FORCE,				},
+		{ EFieldTypes::STRESS,				"Stress",				{ "Sx", "Sy", "Sz" },		          EUnitType::PRESSURE,			},
+		{ EFieldTypes::TEMPERATURE,			"Temperature",			{ "T" },					          EUnitType::TEMPERATURE,		},
+		{ EFieldTypes::ORIENTATION,			"Orientation",			{ "Qx", "Qy", "Qz", "Qw" },	          								},
 	};
 
 	m_dataFieldsBond = {
-		{ EFieldTypes::ID,					"ID",						{ "ID" },												    },
-		{ EFieldTypes::MATERIAL,			"Material",					{ "Material" },											    },
-		{ EFieldTypes::COORDINATE,			"Coordinate",				{ "X", "Y", "Z" },			EUnitType::LENGTH,			    },
-		{ EFieldTypes::VELOCITY,			"Velocity",					{ "Vx", "Vy", "Vz" },		EUnitType::VELOCITY,		    },
-		{ EFieldTypes::PARTNERS_ID,			"Particles ID",				{ "ID1", "ID2" },										    },
-		{ EFieldTypes::DIAMETER,			"Diameter",					{ "D" },					EUnitType::PARTICLE_DIAMETER    },
-		{ EFieldTypes::LENGTH,				"Length",					{ "L" },					EUnitType::LENGTH,			    },
-		{ EFieldTypes::INITIAL_LENGTH,		"Initial length",			{ "Initial L" },			EUnitType::LENGTH,			    },
-		{ EFieldTypes::FORCE,				"Force",					{ "Fx", "Fy", "Fz" },		EUnitType::FORCE,			    },
-		{ EFieldTypes::TEMPERATURE,			"Temperature",				{ "T" },					EUnitType::TEMPERATURE,		    },
-		{ EFieldTypes::TANGENTIAL_OVERLAP,	"Tang overlap",				{ "Overl X", "Overl Y", "Overl Z"  },		EUnitType::LENGTH,		    },
+		{ EFieldTypes::ID,					"ID",					{ "ID" },					          							    },
+		{ EFieldTypes::MATERIAL,			"Material",				{ "Material" },				          							    },
+		{ EFieldTypes::ACTIVITY_INTERVAL,	"Activity interval",    { "T start", "T end" },		          EUnitType::TIME               },
+		{ EFieldTypes::COORDINATE,			"Coordinate",			{ "X", "Y", "Z" },			          EUnitType::LENGTH,			},
+		{ EFieldTypes::VELOCITY,			"Velocity",				{ "Vx", "Vy", "Vz" },		          EUnitType::VELOCITY,		    },
+		{ EFieldTypes::PARTNERS_ID,			"Particles ID",			{ "ID1", "ID2" },			          							    },
+		{ EFieldTypes::DIAMETER,			"Diameter",				{ "D" },					          EUnitType::PARTICLE_DIAMETER  },
+		{ EFieldTypes::LENGTH,				"Length",				{ "L" },					          EUnitType::LENGTH,			},
+		{ EFieldTypes::INITIAL_LENGTH,		"Initial length",		{ "Initial L" },			          EUnitType::LENGTH,			},
+		{ EFieldTypes::FORCE,				"Force",				{ "Fx", "Fy", "Fz" },		          EUnitType::FORCE,			    },
+		{ EFieldTypes::TEMPERATURE,			"Temperature",			{ "T" },					          EUnitType::TEMPERATURE,		},
+		{ EFieldTypes::TANGENTIAL_OVERLAP,	"Tang overlap",			{ "Overl X", "Overl Y", "Overl Z"  }, EUnitType::LENGTH,		    },
 	};
 
 	m_dataFieldsWall = {
-		{ EFieldTypes::ID,					"ID",						{ "ID" },								                    },
-		{ EFieldTypes::MATERIAL,			"Material",					{ "Material" },							                    },
-		{ EFieldTypes::GEOMETRY,			"Geometry",					{ "Geometry" },							                    },
-		{ EFieldTypes::COORDINATE,			"Coordinate",				{ "X1", "Y1", "Z1",
-																		  "X2", "Y2", "Z2",
-																		  "X3", "Y3", "Z3" },		EUnitType::LENGTH	            },
-		{ EFieldTypes::NORMAL,				"Normal vector",			{ "Nx", "Ny", "Nz" },		EUnitType::LENGTH	            },
-		{ EFieldTypes::VELOCITY,			"Velocity",					{ "Vx", "Vy", "Vz" },		EUnitType::VELOCITY	            },
-		{ EFieldTypes::FORCE,				"Force",					{ "Fx", "Fy", "Fz" },		EUnitType::FORCE	            },
+		{ EFieldTypes::ID,					"ID",					{ "ID" },								                            },
+		{ EFieldTypes::MATERIAL,			"Material",				{ "Material" },							                            },
+		{ EFieldTypes::ACTIVITY_INTERVAL,	"Activity interval",    { "T start", "T end" },		          EUnitType::TIME               },
+		{ EFieldTypes::GEOMETRY,			"Geometry",				{ "Geometry" },				          			                    },
+		{ EFieldTypes::COORDINATE,			"Coordinate",			{ "X1", "Y1", "Z1",
+																	  "X2", "Y2", "Z2",
+																	  "X3", "Y3", "Z3" },		          EUnitType::LENGTH	            },
+		{ EFieldTypes::NORMAL,				"Normal vector",		{ "Nx", "Ny", "Nz" },		          EUnitType::LENGTH	            },
+		{ EFieldTypes::VELOCITY,			"Velocity",				{ "Vx", "Vy", "Vz" },		          EUnitType::VELOCITY	        },
+		{ EFieldTypes::FORCE,				"Force",				{ "Fx", "Fy", "Fz" },		          EUnitType::FORCE	            },
 	};
 
 	ui.objectsTable->BlockingPaste(true);
@@ -98,7 +101,7 @@ void CObjectsEditorTab::InitializeConnections() const
 
 void CObjectsEditorTab::SetupObjectTypesCombo() const
 {
-	CQtSignalBlocker blocker{ ui.objectTypes };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.objectTypes };
 
 	ui.objectTypes->insertItem(EObjectTypes::PARTICLES,		"Particles",	EObjectTypes::PARTICLES);
 	ui.objectTypes->insertItem(EObjectTypes::SOLID_BONDS,	"Solid bonds",	EObjectTypes::SOLID_BONDS);
@@ -124,7 +127,7 @@ void CObjectsEditorTab::UpdateTimeView() const
 
 void CObjectsEditorTab::UpdateVisibleFields()
 {
-	CQtSignalBlocker blocker{ ui.groupBoxDataFields };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.groupBoxDataFields };
 
 	// clear old checkboxes
 	while (auto* w = ui.groupBoxDataFields->findChild<QWidget*>())
@@ -143,7 +146,7 @@ void CObjectsEditorTab::UpdateVisibleFields()
 
 void CObjectsEditorTab::UpdateAutoButtonBlock() const
 {
-	CQtSignalBlocker blocker{ ui.buttonUpdate, ui.checkBoxAutoUpdate };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.buttonUpdate, ui.checkBoxAutoUpdate };
 	ui.buttonUpdate->setEnabled(!m_autoUpdate);
 	ui.checkBoxAutoUpdate->setChecked(m_autoUpdate);
 }
@@ -158,7 +161,7 @@ void CObjectsEditorTab::TryUpdateTable()
 
 void CObjectsEditorTab::UpdateTable()
 {
-	CQtSignalBlocker blocker{ ui.objectsTable };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.objectsTable };
 	ui.objectsTable->setSortingEnabled(false);
 
 	// count number of columns
@@ -210,6 +213,13 @@ void CObjectsEditorTab::UpdateTableParts() const
 		case EFieldTypes::MATERIAL:
 			for (int iRow = 0; iRow < number; ++iRow)
 				ui.objectsTable->SetItemNotEditable(iRow, iCol, m_pMaterialsDB->GetCompoundName(particles[iRow]->GetCompoundKey()));
+			break;
+		case EFieldTypes::ACTIVITY_INTERVAL:
+			for (int iRow = 0; iRow < number; ++iRow)
+			{
+				ui.objectsTable->SetItemNotEditable(iRow, iCol + 0, particles[iRow]->GetActivityStart());
+				ui.objectsTable->SetItemNotEditable(iRow, iCol + 1, particles[iRow]->GetActivityEnd());
+			}
 			break;
 		case EFieldTypes::COORDINATE:
 		{
@@ -352,6 +362,13 @@ void CObjectsEditorTab::UpdateTableBonds() const
 			for (int iRow = 0; iRow < number; ++iRow)
 				ui.objectsTable->SetItemNotEditable(iRow, iCol, m_pMaterialsDB->GetCompoundName(bonds[iRow]->GetCompoundKey()));
 			break;
+		case EFieldTypes::ACTIVITY_INTERVAL:
+			for (int iRow = 0; iRow < number; ++iRow)
+			{
+				ui.objectsTable->SetItemNotEditable(iRow, iCol + 0, bonds[iRow]->GetActivityStart());
+				ui.objectsTable->SetItemNotEditable(iRow, iCol + 1, bonds[iRow]->GetActivityEnd());
+			}
+			break;
 		case EFieldTypes::COORDINATE:
 		{
 			std::vector<CVector3> data(bonds.size());
@@ -470,6 +487,13 @@ void CObjectsEditorTab::UpdateTableWalls() const
 			for (int iRow = 0; iRow < number; ++iRow)
 				ui.objectsTable->SetItemNotEditable(iRow, iCol, m_pMaterialsDB->GetCompoundName(walls[iRow]->GetCompoundKey()));
 			break;
+		case EFieldTypes::ACTIVITY_INTERVAL:
+			for (int iRow = 0; iRow < number; ++iRow)
+			{
+				ui.objectsTable->SetItemNotEditable(iRow, iCol + 0, walls[iRow]->GetActivityStart());
+				ui.objectsTable->SetItemNotEditable(iRow, iCol + 1, walls[iRow]->GetActivityEnd());
+			}
+			break;
 		case EFieldTypes::GEOMETRY:
 		{
 			std::vector<size_t> geometryID(m_pSystemStructure->GetTotalObjectsCount());
@@ -534,7 +558,7 @@ void CObjectsEditorTab::SetObjectData(int _row) const
 	CPhysicalObject* object = m_pSystemStructure->GetObjectByIndex(ui.objectsTable->GetItemUserData(_row, 0).toUInt());
 	if (!object) return;
 
-	CQtSignalBlocker blocker{ ui.objectsTable };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.objectsTable };
 	m_pSystemStructure->PrepareTimePointForWrite(m_dCurrentTime);
 
 	switch (SelectedObjectsType())
@@ -570,6 +594,7 @@ void CObjectsEditorTab::SetObjectDataPart(int _row, CSphere& _part) const
 		case EFieldTypes::NORMAL:
 		case EFieldTypes::GEOMETRY:
 		case EFieldTypes::TANGENTIAL_OVERLAP:
+		case EFieldTypes::ACTIVITY_INTERVAL:
 		case EFieldTypes::STRESS: break;
 		}
 
@@ -613,8 +638,8 @@ void CObjectsEditorTab::SetObjectDataBond(int _row, CSolidBond& _bond) const
 			// get new diameter
 			const double newD = ui.objectsTable->GetConvValue(_row, iCol, EUnitType::PARTICLE_DIAMETER);
 			// get contact partners
-			auto *part1 = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(_bond.m_nLeftObjectID));
-			auto *part2 = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(_bond.m_nRightObjectID));
+			const auto *part1 = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(_bond.m_nLeftObjectID));
+			const auto *part2 = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(_bond.m_nRightObjectID));
 			// check that the new diameter is not larger then the contact partners
 			if (part1->GetRadius() < newD / 2 || part2->GetRadius() < newD / 2)
 			{
@@ -643,6 +668,7 @@ void CObjectsEditorTab::SetObjectDataBond(int _row, CSolidBond& _bond) const
 		case EFieldTypes::COORDINATION_NUMBER:
 		case EFieldTypes::NORMAL:
 		case EFieldTypes::GEOMETRY:
+		case EFieldTypes::ACTIVITY_INTERVAL:
 		case EFieldTypes::STRESS: break;
 		}
 
@@ -675,6 +701,7 @@ void CObjectsEditorTab::SetObjectDataWall(int _row, CTriangularWall& _wall) cons
 		case EFieldTypes::NORMAL:
 		case EFieldTypes::GEOMETRY:
 		case EFieldTypes::TANGENTIAL_OVERLAP:
+		case EFieldTypes::ACTIVITY_INTERVAL:
 		case EFieldTypes::STRESS: break;
 		}
 
@@ -751,7 +778,7 @@ std::vector<CObjectsEditorTab::SDataField> CObjectsEditorTab::ActiveDataFields()
 void CObjectsEditorTab::UpdateSelectedObjects() const
 {
 	if (!isVisible()) return;
-	CQtSignalBlocker blocker{ ui.objectsTable };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.objectsTable };
 
 	// get objects to select
 	const auto& selectedIDs = m_viewSettings->SelectedObjects();
@@ -816,7 +843,7 @@ void CObjectsEditorTab::ObjectsSelectionChanged() const
 
 void CObjectsEditorTab::DeleteSelectedObjects()
 {
-	CQtSignalBlocker blocker{ ui.objectsTable };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.objectsTable };
 
 	m_pSystemStructure->DeleteObjects(m_viewSettings->SelectedObjects());
 	m_viewSettings->SelectedObjects({});
@@ -827,7 +854,7 @@ void CObjectsEditorTab::DeleteSelectedObjects()
 	emit UpdateOpenGLView();
 }
 
-void CObjectsEditorTab::ObjectDataChanged(QTableWidgetItem* _item)
+void CObjectsEditorTab::ObjectDataChanged(const QTableWidgetItem* _item)
 {
 	ui.statusMessage->clear();
 	SetObjectData(_item->row());
@@ -850,7 +877,7 @@ void CObjectsEditorTab::DataPasted() const
 void CObjectsEditorTab::FitBondsDiameters() const
 {
 	size_t counter = 0;
-	for (auto& bond : m_pSystemStructure->GetAllSolidBonds(0, false))
+	for (const auto& bond : m_pSystemStructure->GetAllSolidBonds(0, false))
 	{
 		auto* part1 = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(bond->m_nLeftObjectID));
 		auto* part2 = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(bond->m_nRightObjectID));
@@ -870,7 +897,7 @@ void CObjectsEditorTab::FitPartsContactRadii() const
 {
 	if (m_pSystemStructure->IsContactRadiusEnabled()) return;
 
-	for (auto& part : m_pSystemStructure->GetAllSpheres(0, false))
+	for (const auto& part : m_pSystemStructure->GetAllSpheres(0, false))
 		if (part->GetRadius() != part->GetContactRadius())
 			part->SetContactRadius(part->GetRadius());
 }
@@ -941,7 +968,7 @@ void CObjectsEditorTab::ShowTDPExportTab() const
 
 void CObjectsEditorTab::SetNewDiameter(double _diameter)
 {
-	for (auto id : m_viewSettings->SelectedObjects())
+	for (const auto id : m_viewSettings->SelectedObjects())
 	{
 		CPhysicalObject* object = m_pSystemStructure->GetObjectByIndex(id);
 		if (auto* sphere = dynamic_cast<CSphere*>(object))
@@ -959,7 +986,7 @@ void CObjectsEditorTab::SetNewDiameter(double _diameter)
 
 void CObjectsEditorTab::SetNewVelocity(double _velocity, EDirection _direction)
 {
-	for (auto id : m_viewSettings->SelectedObjects())
+	for (const auto id : m_viewSettings->SelectedObjects())
 	{
 		CVector3 vel = m_pSystemStructure->GetObjectByIndex(id)->GetVelocity(m_dCurrentTime);
 		switch (_direction)
@@ -979,7 +1006,7 @@ void CObjectsEditorTab::SetNewMaterial(size_t _iCompound)
 	const CCompound* compound = m_pMaterialsDB->GetCompound(_iCompound);
 	if (!compound) return;
 	const std::string key = compound->GetKey();
-	for (auto id : m_viewSettings->SelectedObjects())
+	for (const auto id : m_viewSettings->SelectedObjects())
 		m_pSystemStructure->GetObjectByIndex(id)->SetCompoundKey(key);
 	m_pSystemStructure->UpdateObjectsCompoundProperties(m_viewSettings->SelectedObjects());
 	TryUpdateTable();

@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\MUSEN\BuildVersion\MUSENVersion.h" />
+    <ClInclude Include="..\ByteStream.h" />
     <ClInclude Include="..\DisableWarningHelper.h" />
     <ClInclude Include="..\GeometricFunctions.h" />
     <ClInclude Include="..\GeneratorComponent.h" />

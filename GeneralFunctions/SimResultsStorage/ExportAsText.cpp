@@ -1,81 +1,42 @@
-﻿/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+﻿/* Copyright (c) 2013-2022, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ExportAsText.h"
+#include "Constraints.h"
 #include "PackageGenerator.h"
 #include "BondsGenerator.h"
+#include "MUSENFileFunctions.h"
 
-CExportAsText::CExportAsText() :
-	m_pSystemStructure{ nullptr },
-	m_pConstraints{ nullptr },
-	m_fileName{ "" },
-	m_precision{ std::cout.precision() },
-	m_dProgressPercent{ 0 },
-	m_sProgressMessage{ "" },
-	m_sErrorMessage{ "" },
-	m_nCurrentStatus{ ERunningStatus::IDLE }
+void CExportAsText::SetPointers(const CSystemStructure* _systemStructure, const CConstraints* _constraints, const CPackageGenerator* _pakageGenerator, const CBondsGenerator* _bondsGenerator)
 {
-	m_allFlags = { &m_objectTypeFlags, &m_sceneInfoFlags, &m_constPropsFlags, &m_tdPropsFlags, &m_geometriesFlags, &m_materialsFlags, &m_generatorsFlags };
-}
-
-void CExportAsText::SetPointers(CSystemStructure* _pSystemStructure, CConstraints* _pConstaints, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator)
-{
-	m_pSystemStructure = _pSystemStructure;
-	m_pConstraints = _pConstaints;
+	m_systemStructure  = _systemStructure;
+	m_constraints      = _constraints;
 	m_packageGenerator = _pakageGenerator;
-	m_bondsGenerator = _bondsGenerator;
+	m_bondsGenerator   = _bondsGenerator;
 }
 
-void CExportAsText::SetFlags(const SObjectTypeFlags& _objectTypes, const SSceneInfoFlags& _sceneInfo, const SConstPropsFlags& _constProps, const STDPropsFlags& _tdProps, const SGeometriesFlags& _geometries, const SMaterialsFlags& _materials, const SGeneratorsFlags& _generators)
+void CExportAsText::SetSelectors(const SExportSelector& _selectors)
 {
-	m_objectTypeFlags = _objectTypes;
-	m_sceneInfoFlags = _sceneInfo;
-	m_constPropsFlags = _constProps;
-	m_tdPropsFlags = _tdProps;
-	m_geometriesFlags = _geometries;
-	m_materialsFlags = _materials;
-	m_generatorsFlags = _generators;
+	m_selectors = _selectors;
 }
 
-void CExportAsText::SetFileName(const std::string& _sFileName)
+void CExportAsText::SetFileName(const std::filesystem::path& _name)
 {
-	m_fileName = _sFileName;
+	m_resFileName = _name;
+	// construct the name of a temporary binary file
+	m_tdData.binFileName = _name;
+	m_tdData.binFileName.replace_extension("temp_musen_export");
 }
 
-void CExportAsText::SetTimePoints(const std::vector<double>& _vTimePoints)
+void CExportAsText::SetTimePoints(const std::vector<double>& _timePoints)
 {
-	m_timePoints = _vTimePoints;
+	m_timePoints = _timePoints;
 }
 
-void CExportAsText::SetPrecision(int _nPrecision)
+void CExportAsText::SetPrecision(int _precision)
 {
-	m_precision = _nPrecision;
-}
-
-double CExportAsText::GetProgressPercent() const
-{
-	return m_dProgressPercent;
-}
-
-const std::string& CExportAsText::GetProgressMessage() const
-{
-	return m_sProgressMessage;
-}
-
-const std::string& CExportAsText::GetErrorMessage() const
-{
-	return m_sErrorMessage;
-}
-
-void CExportAsText::SetCurrentStatus(const ERunningStatus& _nNewStatus)
-{
-	m_nCurrentStatus = _nNewStatus;
-}
-
-ERunningStatus CExportAsText::GetCurrentStatus() const
-{
-	return m_nCurrentStatus;
+	m_precision = _precision;
 }
 
 int CExportAsText::GetPrecision() const
@@ -83,429 +44,640 @@ int CExportAsText::GetPrecision() const
 	return static_cast<int>(m_precision);
 }
 
-std::set<size_t> CExportAsText::GetObjectsIDs() const
+ERunningStatus CExportAsText::GetStatus() const
 {
-	std::set<size_t> setObjectsIDs;
-	for (size_t i = 0; i < m_pSystemStructure->GetTotalObjectsCount(); ++i)
-		if (const CPhysicalObject* object = m_pSystemStructure->GetObjectByIndex(i))
-			setObjectsIDs.insert(object->m_lObjectID);
-	return setObjectsIDs;
+	return m_status;
 }
 
-std::vector<CExportAsText::SConstantData> CExportAsText::GetConstantProperties(const std::set<size_t>& _setObjectsIDs) const
+double CExportAsText::GetProgress() const
 {
-	if (_setObjectsIDs.empty())	return {};
-
-	std::vector<SConstantData> vConstData;
-	vConstData.reserve(m_pSystemStructure->GetTotalObjectsCount());
-	for (size_t id : _setObjectsIDs)
-	{
-		const CPhysicalObject* object = m_pSystemStructure->GetObjectByIndex(id);
-		if (!object) continue;
-		SConstantData tmpGenData;
-		tmpGenData.objID = object->m_lObjectID;
-		tmpGenData.objType = object->GetObjectType();
-		tmpGenData.objGeom = object->GetObjectGeometryText();
-		tmpGenData.cmpKey = object->GetCompoundKey().empty() ? "Undefined" : object->GetCompoundKey();
-		object->GetActivityTimeInterval(&tmpGenData.activeStart, &tmpGenData.activeEnd);
-		vConstData.push_back(tmpGenData);
-	}
-	return vConstData;
+	return m_progress;
 }
 
-std::set<size_t> CExportAsText::CheckConstraints(const std::set<size_t>& _setObjectsIDs) const
+std::string CExportAsText::GetStatusMessage() const
 {
-	if (_setObjectsIDs.empty())	return {};
-
-	// selected IDs for each type of object
-	std::set<size_t> setPIDs, setSBIDs, setLBIDs, setTWIDs;
-	setPIDs = setSBIDs = setLBIDs = setTWIDs = _setObjectsIDs;
-
-	// check diameter constraints
-	if (!m_pConstraints->IsAllDiametersSelected())
-	{
-		setPIDs  = m_pConstraints->ApplyDiameterFilter(m_timePoints[0], SPHERE,          &setPIDs);
-		setSBIDs = m_pConstraints->ApplyDiameterFilter(m_timePoints[0], SOLID_BOND,      &setSBIDs);
-		setLBIDs = m_pConstraints->ApplyDiameterFilter(m_timePoints[0], LIQUID_BOND,     &setLBIDs);
-		setTWIDs = m_pConstraints->ApplyDiameterFilter(m_timePoints[0], TRIANGULAR_WALL, &setTWIDs);
-	}
-	// check material constraints
-	if (!m_pConstraints->IsAllMaterialsSelected())
-	{
-		setPIDs  = m_pConstraints->ApplyMaterialFilter(m_timePoints[0], SPHERE,          &setPIDs);
-		setSBIDs = m_pConstraints->ApplyMaterialFilter(m_timePoints[0], SOLID_BOND,      &setSBIDs);
-		setLBIDs = m_pConstraints->ApplyMaterialFilter(m_timePoints[0], LIQUID_BOND,     &setLBIDs);
-		setTWIDs = m_pConstraints->ApplyMaterialFilter(m_timePoints[0], TRIANGULAR_WALL, &setTWIDs);
-	}
-	// check analysis volume constraints
-	if (!m_pConstraints->IsAllVolumeSelected())
-		for (double t : m_timePoints)
-		{
-			if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
-			setPIDs  = m_pConstraints->ApplyVolumeFilter(t, SPHERE,          &setPIDs);
-			setSBIDs = m_pConstraints->ApplyVolumeFilter(t, SOLID_BOND,      &setSBIDs);
-			setLBIDs = m_pConstraints->ApplyVolumeFilter(t, LIQUID_BOND,     &setLBIDs);
-			setTWIDs = m_pConstraints->ApplyVolumeFilter(t, TRIANGULAR_WALL, &setTWIDs);
-		}
-
-	// merge IDs of all selected objects
-	std::set<size_t> setSelectedObjectsIDs;
-	setSelectedObjectsIDs.insert(setPIDs.begin(),  setPIDs.end());
-	setSelectedObjectsIDs.insert(setSBIDs.begin(), setSBIDs.end());
-	setSelectedObjectsIDs.insert(setLBIDs.begin(), setLBIDs.end());
-	setSelectedObjectsIDs.insert(setTWIDs.begin(), setTWIDs.end());
-	return setSelectedObjectsIDs;
+	return m_statusMessage;
 }
 
-bool CExportAsText::SaveTDDataToBinFile(const std::string& _sFileName, const std::set<size_t>& _setObjectsIDs)
+void CExportAsText::RequestStop()
 {
-	if (_setObjectsIDs.empty()) return true;
+	SetStatus("Stopped by user", ERunningStatus::TO_BE_STOPPED);
+}
 
-	// create temporary file for time-dependent data
-	std::ofstream binOut(UnicodePath(_sFileName), std::ios::binary);
-	if (binOut.fail()) return false;
+void CExportAsText::RequestErrorStop(const std::string& _message)
+{
+	SetStatus("Error: " + _message, ERunningStatus::FAILED);
+}
 
-	// get time-dependent data and save into temporary binary file
-	for (size_t i = 0; i < m_timePoints.size(); ++i)
-	{
-		int j = 0;
-		for (size_t id : _setObjectsIDs)
-		{
-			if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
-			CPhysicalObject* object = m_pSystemStructure->GetObjectByIndex(id);
-			if (!object) continue;
-			STDData TDD;
-			TDD.time = m_timePoints[i];
-			TDD.coord = object->GetCoordinates(m_timePoints[i]);
-			TDD.velo = object->GetVelocity(m_timePoints[i]);
-			TDD.angleVel = object->GetAngleVelocity(m_timePoints[i]);
-			TDD.totForce = object->GetForce(m_timePoints[i]).Length();
-			TDD.force = object->GetForce(m_timePoints[i]);
-			TDD.quaternion = object->GetOrientation(m_timePoints[i]);
-			TDD.stressTensor = object->GetStressTensor(m_timePoints[i]);
-			TDD.temperature = object->GetTemperature(m_timePoints[i]);
-			if (object->GetObjectType() == SOLID_BOND)
-				TDD.coord = CVector3(object->GetTotalTorque(m_timePoints[i]), 0, 0);
-
-			const std::streampos pos = sizeof(STDData) * (m_timePoints.size() * j + i);
-			binOut.seekp(pos);
-			binOut.write(reinterpret_cast<char*>(&TDD), sizeof(TDD));
-
-			m_dProgressPercent = double(i *  _setObjectsIDs.size() + j) * 100 / (m_timePoints.size() * _setObjectsIDs.size()) / 2;
-			j++;
-		}
-	}
-	// close temporary binary file
-	binOut.close();
-	return true;
+void CExportAsText::SetStatus(const std::string& _message, ERunningStatus _status/* = ERunningStatus::RUNNING*/)
+{
+	m_statusMessage = _message;
+	m_status = _status;
 }
 
 void CExportAsText::Export()
 {
 	// set initial values
-	m_dProgressPercent = 0;
-	m_sErrorMessage = "";
-	m_sProgressMessage = "Export started. Please wait...";
-	m_nCurrentStatus = ERunningStatus::RUNNING;
+	SetStatus("Export started. Please wait", ERunningStatus::RUNNING);
+	m_progress = 0;
+	m_constData.clear();
+	m_tdData.tpActive.clear();
+	m_tdData.binFileLayout.clear();
+
+	// check file name
+	if (m_resFileName.empty())
+		RequestErrorStop("No output file selected!");
+	if (ToBeStopped()) return Finalize();
+
+	// try open output file
+	TryOpenFileW(m_resFile, m_resFileName);
+	if (ToBeStopped()) return Finalize();
 
 	// check time points
-	if (m_timePoints.empty())
-	{
-		m_sErrorMessage = "Error! There are no time points selected for saving.";
-		return;
-	}
+	if (m_timePoints.empty() && !m_selectors.objectTypes.AllOff() && (!m_selectors.tdPropsPart.AllOff() || !m_selectors.tdPropsBond.AllOff() || !m_selectors.tdPropsWall.AllOff()))
+		RequestErrorStop("No time points selected!");
+	if (ToBeStopped()) return Finalize();
 
-	// get identifiers of all real objects
-	std::set<size_t> setStartIDs = GetObjectsIDs();
+	// get ids of objects that have to be exported
+	const std::set<size_t> IDs = FilterObjects(Vector2Set(m_systemStructure->GetAllObjectsIDs()));
+	if (ToBeStopped()) return Finalize();
 
-	///////////////////////////////////////////////////////  APPLICATION OF CONSTRAINTS ////////////////////////////////////////////////////////////////////
+	// prepare constant data for filtered objects
+	PrepareConstData(IDs);
+	if (ToBeStopped()) return Finalize();
 
-	// check constraints
-	if (!IsSaveAll())
-	{
-		if (m_objectTypeFlags.IsAllOff()) // no object types are selected
-			setStartIDs.clear();
-		else                              // some object types are selected
-		{
-			// remove unnecessary identifiers according to selected object type checkboxes
-			if (!setStartIDs.empty() && !m_objectTypeFlags.IsAllOn()) // not all object types are selected
-			{
-				m_sProgressMessage = "Application of selected object types...";
-				for (auto itCurrID = setStartIDs.begin(), itEndID = setStartIDs.end(); itCurrID != itEndID;)
-				{
-					const unsigned type = m_pSystemStructure->GetObjectByIndex(*itCurrID)->GetObjectType();
-					if (type == SPHERE          && !m_objectTypeFlags.particles
-					 || type == SOLID_BOND      && !m_objectTypeFlags.solidBonds
-					 || type == LIQUID_BOND     && !m_objectTypeFlags.liquidBonds
-					 || type == TRIANGULAR_WALL && !m_objectTypeFlags.triangularWalls)
-						setStartIDs.erase(itCurrID++);
-					else
-						++itCurrID;
-				}
-			}
-			// application of constraints
-			if (!setStartIDs.empty() && (!m_pConstraints->IsAllDiametersSelected() || !m_pConstraints->IsAllMaterialsSelected() || !m_pConstraints->IsAllVolumeSelected()))
-			{
-				m_sProgressMessage = "Application of constraints...";
-				setStartIDs = CheckConstraints(setStartIDs);
-			}
-		}
-	}
+	// prepare time-dependent data for filtered objects
+	PrepareTDData();
+	if (ToBeStopped()) return Finalize();
 
-	///////////////////////////////////////////////////////  DATA PREPARING  /////////////////////////////////////////////////////////////////////////////
+	// write data
+	WriteObjectsData();
+	if (ToBeStopped()) return Finalize();
+	WriteSceneData();
+	if (ToBeStopped()) return Finalize();
+	WriteGeometriesData();
+	if (ToBeStopped()) return Finalize();
+	WriteMaterialsData();
+	if (ToBeStopped()) return Finalize();
+	WriteGeneratorsData();
+	if (ToBeStopped()) return Finalize();
 
-	std::vector<SConstantData> vConstData;
-	std::string sTmpBinFileName = m_fileName + ".exportAsTextTemp";
-	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
-	{
-		// get constant properties for all selected objects
-		m_sProgressMessage = "Preparation of constant properties...";
-		vConstData = GetConstantProperties(setStartIDs);
-
-		// get and save time-dependent data into temporary file
-		if (!vConstData.empty())
-		{
-			m_sProgressMessage = "Preparation of time-dependent properties...";
-			if (!SaveTDDataToBinFile(sTmpBinFileName, setStartIDs))
-			{
-				m_sErrorMessage = "Error! Cannot create a temporary binary file.";
-				return;
-			}
-		}
-	}
-
-	///////////////////////////////////////////////////////  SAVE DATA INTO FINAL TEXT FILE  /////////////////////////////////////////////////////////////
-
-	std::ofstream txtOutFile;
-	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
-	{
-		// create final text file
-		txtOutFile.open(UnicodePath(m_fileName));
-		if (txtOutFile.fail())
-		{
-			m_sErrorMessage = "Error! Cannot open a final text file for writing.";
-			return;
-		}
-
-		// save constant and time-dependent data into final text file
-		m_sProgressMessage = "Export data to text file...";
-		if (!vConstData.empty())
-		{
-			// open temporary binary file for reading
-			std::ifstream binInFile(UnicodePath(sTmpBinFileName), std::ios::binary);
-			if (binInFile.fail())
-			{
-				m_sErrorMessage = "Error! Cannot open a temporary binary file for reading.";
-				return;
-			}
-
-			for (size_t i = 0; i < vConstData.size(); ++i)
-			{
-				if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
-
-				// write constant information
-				if (m_constPropsFlags.id)
-					txtOutFile        << E2I(ETXTCommands::OBJECT_ID)                << " " << vConstData[i].objID;
-				if (m_constPropsFlags.type)
-					txtOutFile << " " << E2I(ETXTCommands::OBJECT_TYPE)              << " " << vConstData[i].objType;
-				if (m_constPropsFlags.geometry)
-					txtOutFile << " " << E2I(ETXTCommands::OBJECT_GEOMETRY)          << " " << vConstData[i].objGeom;
-				if (m_constPropsFlags.material)
-					txtOutFile << " " << E2I(ETXTCommands::OBJECT_COMPOUND_TYPE)     << " " << vConstData[i].cmpKey;
-				if (m_constPropsFlags.activityInterval)
-					txtOutFile << " " << E2I(ETXTCommands::OBJECT_ACTIVITY_INTERVAL) << " " << vConstData[i].activeStart << " " << vConstData[i].activeEnd;
-
-				// set new precision and save default for TD data
-				std::streamsize defaultPrecision = txtOutFile.precision();
-				txtOutFile.precision(m_precision);
-
-				// write time-dependent data into final text file
-				for (size_t j = 0; j < m_timePoints.size(); ++j)
-				{
-					if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
-
-					STDData TDD;
-					const std::streampos pos = sizeof(STDData) * (m_timePoints.size() * i + j);
-					binInFile.seekg(pos);
-					binInFile.read(reinterpret_cast<char*>(&TDD), sizeof(TDD));
-
-					txtOutFile << " " << E2I(ETXTCommands::OBJECT_TIME) << " " << m_timePoints[j];
-					if (m_tdPropsFlags.coordinate        && vConstData[i].objType == SPHERE
-					 || m_tdPropsFlags.coordinate		 && vConstData[i].objType == TRIANGULAR_WALL
-					 || m_tdPropsFlags.totalTorque       && vConstData[i].objType == SOLID_BOND)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_COORDINATES)  << " " << TDD.coord;
-					if (m_tdPropsFlags.velocity)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_VELOCITIES)   << " " << TDD.velo;
-					if (m_tdPropsFlags.angularVelocity   &&  vConstData[i].objType == SPHERE
-					 || m_tdPropsFlags.coordinate		 &&  vConstData[i].objType == TRIANGULAR_WALL
-					 || m_tdPropsFlags.tangOverlap       &&  vConstData[i].objType == SOLID_BOND)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_ANG_VEL)      << " " << TDD.angleVel;
-					if (m_tdPropsFlags.totalForce)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_TOTAL_FORCE)  << " " << TDD.totForce;
-					if (m_tdPropsFlags.force)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_FORCE)        << " " << TDD.force;
-					if (m_tdPropsFlags.quaternion        && vConstData[i].objType == SPHERE
-					 || m_tdPropsFlags.coordinate		 && vConstData[i].objType == TRIANGULAR_WALL)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_QUATERNION)   << " " << TDD.quaternion;
-					if (m_tdPropsFlags.stressTensor      && vConstData[i].objType == SPHERE)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_STRESSTENSOR) << " " << TDD.stressTensor;
-					if (m_tdPropsFlags.temperature       && vConstData[i].objType == SPHERE
-					 || m_tdPropsFlags.temperature       && vConstData[i].objType == SOLID_BOND)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_TEMPERATURE)  << " " << TDD.temperature;
-					if (m_tdPropsFlags.principalStress   && vConstData[i].objType == SPHERE)
-						txtOutFile << " " << E2I(ETXTCommands::OBJECT_PRINCIPALSTRESS) << " " << TDD.stressTensor.GetPrincipalStresses();
-
-					m_dProgressPercent = 50 + double(i *  m_timePoints.size() + j) * 100 / (m_timePoints.size() * setStartIDs.size()) / 2;
-				}
-				txtOutFile << std::endl;
-
-				// set back default precision
-				txtOutFile.precision(defaultPrecision);
-			}
-			// close temporary binary file
-			binInFile.close();
-		}
-	}
-	// remove temporary binary file
-	std::remove(sTmpBinFileName.c_str());
-
-	// save information about scene
-	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
-	{
-		// simulation domain
-		if (m_sceneInfoFlags.domain)
-			txtOutFile << E2I(ETXTCommands::SIMULATION_DOMAIN) << " " << m_pSystemStructure->GetSimulationDomain().coordBeg << " "
-			<< m_pSystemStructure->GetSimulationDomain().coordEnd << std::endl;
-
-		// periodic boundary conditions
-		if (m_sceneInfoFlags.pbc)
-			txtOutFile << E2I(ETXTCommands::PERIODIC_BOUNDARIES) << " " << m_pSystemStructure->GetPBC().bEnabled << " "
-			<< m_pSystemStructure->GetPBC().bX << " " << m_pSystemStructure->GetPBC().bY << " " << m_pSystemStructure->GetPBC().bZ << " "
-			<< m_pSystemStructure->GetPBC().initDomain.coordBeg << " " << m_pSystemStructure->GetPBC().initDomain.coordEnd << std::endl;
-
-		// consideration of anisotropy
-		if (m_sceneInfoFlags.anisotropy)
-			txtOutFile << E2I(ETXTCommands::ANISOTROPY) << " " << m_pSystemStructure->IsAnisotropyEnabled() << std::endl;
-
-		// consideration of contact radius of particles
-		if (m_sceneInfoFlags.contactRadius)
-			txtOutFile << E2I(ETXTCommands::CONTACT_RADIUS) << " " << m_pSystemStructure->IsContactRadiusEnabled() << std::endl;
-	}
-
-	// save info about geometries
-	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
-	{
-		for (size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i)
-		{
-			const CRealGeometry* geometry = m_pSystemStructure->Geometry(i);
-			if (!geometry) continue;
-			if (m_geometriesFlags.baseInfo)
-				txtOutFile << E2I(ETXTCommands::GEOMETRY) << " " << geometry->Name() << " " << geometry->Key() << " "
-			    << geometry->Mass() << " " << geometry->FreeMotion() << std::endl;
-			if (m_geometriesFlags.tdProperties) {
-				txtOutFile << E2I(ETXTCommands::GEOMETRY_TDVEL) << " " << *geometry->Motion() << std::endl;
-			}
-			if (m_geometriesFlags.wallsList)
-			{
-				txtOutFile << E2I(ETXTCommands::GEOMETRY_PLANES) << " " << geometry->Planes().size();
-				for (auto plane : geometry->Planes())
-					txtOutFile << " " << plane;
-				txtOutFile << std::endl;
-			}
-		}
-		if (m_geometriesFlags.analysisVolumes) {
-			for (const auto* v : m_pSystemStructure->AllAnalysisVolumes()) {
-				txtOutFile << E2I(ETXTCommands::ANALYSIS_VOLUME) << " " << *v << std::endl;
-			}
-		}
-	}
-
-	// save info about materials
-	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
-	{
-		// compounds
-		if (m_materialsFlags.compounds)
-		{
-			std::vector<unsigned> vMusenActiveProperties = _MUSEN_ACTIVE_PROPERTIES;
-			const size_t nCompundsNumber = m_pSystemStructure->m_MaterialDatabase.CompoundsNumber();
-			for (size_t i = 0; i < nCompundsNumber; i++)
-			{
-				const CCompound* pCompound = m_pSystemStructure->m_MaterialDatabase.GetCompound(i);
-
-				txtOutFile << E2I(ETXTCommands::MATERIALS_COMPOUNDS) << " " << pCompound->GetKey() << " " << pCompound->GetName();
-
-				for (unsigned int property : vMusenActiveProperties)
-					txtOutFile << " " << property << " " << pCompound->GetProperty(property)->GetValue();
-				txtOutFile << std::endl;
-			}
-		}
-		// interactions
-		if (m_materialsFlags.interactions)
-		{
-			std::vector<unsigned> vMusenActiveInteractions = _MUSEN_ACTIVE_INTERACTIONS;
-			const size_t nInteractionsNumber = m_pSystemStructure->m_MaterialDatabase.InteractionsNumber();
-			for (size_t i = 0; i < nInteractionsNumber; i++)
-			{
-				const CInteraction* pInteraction = m_pSystemStructure->m_MaterialDatabase.GetInteraction(i);
-
-				txtOutFile << E2I(ETXTCommands::MATERIALS_INTERACTIONS) << " " << pInteraction->GetKey1() << " " << pInteraction->GetKey2();
-
-				for (unsigned int interaction : vMusenActiveInteractions)
-					txtOutFile << " " << interaction << " " << pInteraction->GetProperty(interaction)->GetValue();
-				txtOutFile << std::endl;
-			}
-		}
-		// mixtures
-		if (m_materialsFlags.mixtures)
-		{
-			size_t nMixturesNumber = m_pSystemStructure->m_MaterialDatabase.MixturesNumber();
-			for (size_t i = 0; i < nMixturesNumber; i++)
-			{
-				CMixture* pMixture = m_pSystemStructure->m_MaterialDatabase.GetMixture(i);
-
-				txtOutFile << E2I(ETXTCommands::MATERIALS_MIXTURES) << " " << pMixture->GetKey() << " " << pMixture->GetName();
-
-				size_t nFractionsNumber = pMixture->FractionsNumber();
-				for (size_t j = 0; j < nFractionsNumber; j++)
-					txtOutFile << " " << j << " " << pMixture->GetFractionCompound(j) << " " << pMixture->GetFractionDiameter(j) << " " << pMixture->GetFractionValue(j);
-				txtOutFile << std::endl;
-			}
-		}
-	}
-
-	// save info about generators
-	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
-	{
-		// package generator
-		if (m_generatorsFlags.packageGenerator)
-		{
-			for (const auto* g : m_packageGenerator->Generators()) {
-				txtOutFile << E2I(ETXTCommands::PACKAGE_GENERATOR) << " " << *g << std::endl;
-			}
-			txtOutFile << E2I(ETXTCommands::PACKAGE_GENERATOR_CONFIG) << " " << *m_packageGenerator << std::endl;
-		}
-		// bonds generator
-		if (m_generatorsFlags.bondsGenerator) {
-			for (const auto& g : m_bondsGenerator->Generators()) {
-				txtOutFile << E2I(ETXTCommands::BONDS_GENERATOR) << " " << *g << std::endl;
-			}
-		}
-	}
-
-	// close final text file
-	txtOutFile << std::endl;
-	txtOutFile.close();
-
-	if (m_nCurrentStatus != ERunningStatus::TO_BE_STOPPED)
-		m_dProgressPercent = 100;
-	m_nCurrentStatus = ERunningStatus::IDLE;
-	m_sProgressMessage = "Export finished.";
+	// finalize
+	SetStatus("Export finished", ERunningStatus::IDLE);
+	Finalize();
 }
 
-bool CExportAsText::IsSaveAll() const
+std::set<size_t> CExportAsText::FilterObjects(const std::set<size_t>& _ids)
 {
-	for (auto flags : m_allFlags)
-		if (!flags->IsAllOn())
-			return false;
-	return true;
+	if (_ids.empty()) return {};
+
+	// everything selected
+	if (m_selectors.AllOn()) return _ids;
+
+	std::set<size_t> filtered = _ids;
+	filtered = FilterObjectsByType(filtered);
+	filtered = FilterObjectsByActivity(filtered);
+	filtered = FilterObjectsByMaterial(filtered);
+	filtered = FilterObjectsByDiameter(filtered);
+	filtered = FilterObjectsByVolume(filtered);
+	return filtered;
+}
+
+std::set<size_t> CExportAsText::FilterObjectsByType(const std::set<size_t>& _ids)
+{
+	if (_ids.empty()) return {};
+
+	// no types selected
+	if (m_selectors.objectTypes.AllOff()) return {};
+	// all types selected
+	if (m_selectors.objectTypes.AllOn()) return _ids;
+
+	SetStatus("Filtering objects by type");
+
+	std::set<size_t> res;
+	for (const size_t id : _ids)
+	{
+		const auto type = m_systemStructure->GetObjectByIndex(id)->GetObjectType();
+		if (   type == SPHERE          && m_selectors.objectTypes.particles
+			|| type == SOLID_BOND      && m_selectors.objectTypes.bonds
+			|| type == TRIANGULAR_WALL && m_selectors.objectTypes.walls)
+			res.insert(res.end(), id);
+	}
+	return res;
+}
+
+std::set<size_t> CExportAsText::FilterObjectsByActivity(const std::set<size_t>& _ids)
+{
+	// TODO: fill in m_tdFlags
+	if (_ids.empty()) return {};
+
+	// if no time-dependent properties selected, pay no attention to activity
+	if (m_selectors.tdPropsPart.AllOff() && m_selectors.tdPropsBond.AllOff() && m_selectors.tdPropsWall.AllOff()) return _ids;
+
+	SetStatus("Filtering objects by activity");
+
+	// usually very few or none objects are filtered out here, so do it through deletion
+	std::set<size_t> res = _ids;
+	for (const size_t id : _ids)
+	{
+		const auto [intervalBeg, intervalEnd] = m_systemStructure->GetObjectByIndex(id)->GetActivityTimeInterval();
+		if (m_timePoints.back() < intervalBeg || m_timePoints.front() > intervalEnd)
+			res.erase(id);
+	}
+
+	return res;
+}
+
+std::set<size_t> CExportAsText::FilterObjectsByMaterial(const std::set<size_t>& _ids)
+{
+	if (m_constraints->IsAllMaterialsSelected()) return _ids;
+
+	SetStatus("Filtering objects by material");
+
+	return m_constraints->ApplyMaterialFilter(_ids);
+}
+
+std::set<size_t> CExportAsText::FilterObjectsByDiameter(const std::set<size_t>& _ids)
+{
+	if (m_constraints->IsAllDiametersSelected()) return _ids;
+
+	SetStatus("Filtering objects by diameter");
+
+	return m_constraints->ApplyDiameterFilter(_ids);
+}
+
+std::set<size_t> CExportAsText::FilterObjectsByVolume(const std::set<size_t>& _ids)
+{
+	if (m_constraints->IsAllVolumeSelected()) return _ids;
+
+	SetStatus("Filtering objects by volume");
+
+	// prepare time-dependent activity flags
+	m_tdData.tpActive.clear();
+
+	std::set<size_t> res;
+	for (size_t iTime = 0; iTime < m_timePoints.size(); ++iTime)
+	{
+		if (ToBeStopped()) break;
+
+		SetStatus("Filtering objects by volume (time point " + std::to_string(iTime + 1) + "/" + std::to_string(m_timePoints.size()) + ")");
+
+		std::set<size_t> filtered = m_constraints->ApplyVolumeFilter(_ids, m_timePoints[iTime]);
+		res = SetUnion(res, filtered);
+
+		// fill time-dependent activity flags
+		for (const auto id : filtered)
+		{
+			m_tdData.tpActive[id].resize(m_timePoints.size()); // if not exist yet, create the vector and resize it
+			m_tdData.tpActive[id][iTime] = true;
+		}
+
+		m_progress = static_cast<double>(iTime) * 100 / static_cast<double>(m_timePoints.size());
+	}
+
+	return res;
+}
+
+void CExportAsText::PrepareConstData(const std::set<size_t>& _objectsID)
+{
+	if (_objectsID.empty())	return;
+
+	SetStatus("Gathering constant object properties");
+
+	m_constData.reserve(_objectsID.size());
+	size_t iObj = 1;
+	for (const size_t id : _objectsID)
+	{
+		SetStatus("Gathering constant object properties (object " + std::to_string(iObj) + "/" + std::to_string(_objectsID.size()) + ")");
+
+		const CPhysicalObject* object = m_systemStructure->GetObjectByIndex(id);
+		// TODO: write only required or selected values, discard the rest
+		m_constData.emplace_back(
+			  object->m_lObjectID
+			, object->GetObjectType()
+			, object->GetObjectGeometryText()
+			, object->GetCompoundKey().empty() ? "Undefined" : object->GetCompoundKey()
+			, object->GetActivityTimeInterval()
+		);
+
+		m_progress = static_cast<double>(iObj++) * 100 / static_cast<double>(_objectsID.size());
+	}
+}
+
+void CExportAsText::PrepareTDData()
+{
+	if (m_constData.empty() || m_timePoints.empty()) return;
+
+	SetStatus("Gathering time-dependent object properties");
+
+	TryOpenFileW(m_tdData.binFileW, m_tdData.binFileName, std::ios::binary);
+	if (ToBeStopped()) return;
+
+	// prepare file layout information
+	CalculateBinFileLayout();
+	auto& lt = m_tdData.binFileLayout; // alias for layout
+
+	// resize temporary file to fit all data
+	try
+	{
+		std::filesystem::resize_file(m_tdData.binFileName, lt[SPHERE].fullLen + lt[SOLID_BOND].fullLen + lt[TRIANGULAR_WALL].fullLen);
+	}
+	catch (const std::filesystem::filesystem_error& e)
+	{
+		return RequestErrorStop("Can not resize temporary file! " + std::string(e.what()));
+	}
+
+	// get time-dependent data and save into temporary binary file
+	for (size_t iTime = 0; iTime < m_timePoints.size(); ++iTime)
+	{
+		if (ToBeStopped()) break;
+
+		SetStatus("Gathering time-dependent object properties (time point " + std::to_string(iTime + 1) + "/" + std::to_string(m_timePoints.size()) + ")");
+
+		std::map<unsigned, size_t> counter{{SPHERE, 0}, {SOLID_BOND, 0}, {TRIANGULAR_WALL, 0}}; // counters for already processed objects
+		m_systemStructure->PrepareTimePointForRead(m_timePoints[iTime]);
+		for (size_t iObj = 0; iObj < m_constData.size(); ++iObj)
+		{
+			if (ToBeStopped()) break;
+
+			// get selected time-dependent data
+			const CByteStream stream = GetBinData(iObj);
+
+			// write data to temporary binary file
+			const auto& type = m_constData[iObj].type;
+			const std::streampos pos = lt[type].startPos + lt[type].entryLen * (m_timePoints.size() * counter[type]++ + iTime);
+			m_tdData.binFileW.seekp(pos);
+			m_tdData.binFileW.write(&stream.GetDataRef()[0], stream.Size());
+
+			// update progress
+			m_progress = static_cast<double>(iTime * m_constData.size() + iObj) * 100 / (m_timePoints.size() * m_constData.size());
+		}
+	}
+	// close temporary binary file
+	m_tdData.binFileW.close();
+}
+
+void CExportAsText::WriteObjectsData()
+{
+	if (m_constData.empty()) return;
+
+	SetStatus("Writing objects data to result file");
+
+	TryOpenFileR(m_tdData.binFileR, m_tdData.binFileName, std::ios::binary);
+	if (ToBeStopped()) return;
+
+	auto& lt = m_tdData.binFileLayout; // alias for layout
+	std::map<unsigned, size_t> counter{ {SPHERE, 0}, {SOLID_BOND, 0}, {TRIANGULAR_WALL, 0} }; // counters for already processed objects
+	for (size_t iObj = 0; iObj < m_constData.size(); ++iObj)
+	{
+		if (ToBeStopped()) break;
+
+		SetStatus("Writing objects data to result file (object " + std::to_string(iObj + 1) + "/" + std::to_string(m_constData.size()) + ")");
+
+		// write constant data
+		if (m_selectors.constProps.id              ) WriteValue(ETXTCommands::OBJECT_ID               , m_constData[iObj].id);
+		if (m_selectors.constProps.type            ) WriteValue(ETXTCommands::OBJECT_TYPE             , m_constData[iObj].type);
+		if (m_selectors.constProps.geometry        ) WriteValue(ETXTCommands::OBJECT_GEOMETRY         , m_constData[iObj].geometry);
+		if (m_selectors.constProps.material        ) WriteValue(ETXTCommands::OBJECT_COMPOUND_TYPE    , m_constData[iObj].compound);
+		if (m_selectors.constProps.activityInterval) WriteValue(ETXTCommands::OBJECT_ACTIV_INTERV, m_constData[iObj].activity);
+
+		// store default precision and set selected one for time-dependent data
+		const std::streamsize defaultPrecision = m_resFile.precision();
+		m_resFile.precision(m_precision);
+
+		// read all time-dependent data for this object from temporary file
+		const auto& type = m_constData[iObj].type;
+		CByteStream stream;
+		stream.Resize(lt[type].entryLen * m_timePoints.size());
+		const std::streampos pos = lt[type].startPos + lt[type].entryLen * m_timePoints.size() * counter[type]++;
+		m_tdData.binFileR.seekg(pos);
+		m_tdData.binFileR.read(&stream.GetDataRef()[0], stream.Size());
+
+		// write time-dependent data
+		for (size_t iTime = 0; iTime < m_timePoints.size(); ++iTime)
+		{
+			if (ToBeStopped()) break;
+
+			// consider activity flags
+			if (!m_tdData.tpActive.empty() && !m_tdData.tpActive[m_constData[iObj].id][iTime])
+			{
+				stream.Ignore(lt[type].entryLen);
+				continue;
+			}
+
+			WriteValue(ETXTCommands::OBJECT_TIME, m_timePoints[iTime]);
+			WriteFromBinData(type, stream);
+
+			m_progress = static_cast<double>(iObj * m_timePoints.size() + iTime) * 100 / (m_timePoints.size() * m_constData.size());
+		}
+		m_resFile << std::endl;
+
+		// set back default precision
+		m_resFile.precision(defaultPrecision);
+	}
+
+	// close temporary binary file
+	m_tdData.binFileR.close();
+}
+
+void CExportAsText::WriteSceneData()
+{
+	if (m_selectors.sceneInfo.AllOff()) return;
+
+	SetStatus("Writing scene data to result file");
+
+	if (m_selectors.sceneInfo.domain       ) WriteLine(ETXTCommands::SIMULATION_DOMAIN  , m_systemStructure->GetSimulationDomain());
+	if (m_selectors.sceneInfo.pbc          ) WriteLine(ETXTCommands::PERIODIC_BOUNDARIES, m_systemStructure->GetPBC().bEnabled, m_systemStructure->GetPBC().bX, m_systemStructure->GetPBC().bY, m_systemStructure->GetPBC().bZ,	m_systemStructure->GetPBC().initDomain);
+	if (m_selectors.sceneInfo.anisotropy   ) WriteLine(ETXTCommands::ANISOTROPY         , m_systemStructure->IsAnisotropyEnabled());
+	if (m_selectors.sceneInfo.contactRadius) WriteLine(ETXTCommands::CONTACT_RADIUS     , m_systemStructure->IsContactRadiusEnabled());
+}
+
+void CExportAsText::WriteGeometriesData()
+{
+	if (m_selectors.geometries.AllOff()) return;
+
+	SetStatus("Writing geometries data to result file");
+
+	// geometries
+	for (const auto* g: m_systemStructure->AllGeometries())
+	{
+		if (m_selectors.geometries.baseInfo    ) WriteLine(ETXTCommands::GEOMETRY       , g->Name(), g->Key(), g->Mass(), g->FreeMotion());
+		if (m_selectors.geometries.tdProperties) WriteLine(ETXTCommands::GEOMETRY_TDVEL , *g->Motion());
+		if (m_selectors.geometries.wallsList   ) WriteLine(ETXTCommands::GEOMETRY_PLANES, g->Planes().size(), g->Planes());
+	}
+
+	// volumes
+	for (const auto* v : m_systemStructure->AllAnalysisVolumes())
+		if (m_selectors.geometries.analysisVolumes) WriteLine(ETXTCommands::ANALYSIS_VOLUME, *v);
+}
+
+void CExportAsText::WriteMaterialsData()
+{
+	if (m_selectors.materials.AllOff()) return;
+
+	SetStatus("Writing materials data to result file");
+
+	// compounds
+	if (m_selectors.materials.compounds)
+	{
+		const std::vector<unsigned> compProps = _MUSEN_ACTIVE_PROPERTIES;
+		for (const auto* c : m_systemStructure->m_MaterialDatabase.GetCompounds())
+		{
+			WriteValue(ETXTCommands::MATERIALS_COMPOUNDS, c->GetKey(), c->GetName());
+			for (const auto p : compProps)
+				WriteValue(p, c->GetProperty(p)->GetValue());
+			WriteLine();
+		}
+	}
+	// interactions
+	if (m_selectors.materials.interactions)
+	{
+		const std::vector<unsigned> interProps = _MUSEN_ACTIVE_INTERACTIONS;
+		for (const auto* i : m_systemStructure->m_MaterialDatabase.GetInteractions())
+		{
+			WriteValue(ETXTCommands::MATERIALS_INTERACTIONS, i->GetKey1(), i->GetKey2());
+			for (const auto p : interProps)
+				WriteValue(p, i->GetProperty(p)->GetValue());
+			WriteLine();
+		}
+	}
+	// mixtures
+	if (m_selectors.materials.mixtures)
+	{
+		for (const auto* m : m_systemStructure->m_MaterialDatabase.GetMixtures())
+		{
+			WriteValue(ETXTCommands::MATERIALS_MIXTURES, m->GetKey(), m->GetName());
+			for (size_t iFrac = 0; iFrac < m->FractionsNumber(); ++iFrac)
+				WriteValue(iFrac, m->GetFractionCompound(iFrac), m->GetFractionDiameter(iFrac), m->GetFractionContactDiameter(iFrac), m->GetFractionValue(iFrac));
+			WriteLine();
+		}
+	}
+}
+
+void CExportAsText::WriteGeneratorsData()
+{
+	if (m_selectors.generators.AllOff()) return;
+
+	SetStatus("Writing generators data to result file");
+
+	// package generator
+	if (m_selectors.generators.packageGenerator)
+	{
+		for (const auto* g : m_packageGenerator->Generators())
+			WriteLine(ETXTCommands::PACKAGE_GENERATOR, *g);
+		WriteLine(ETXTCommands::PACKAGE_GENERATOR_CONFIG, *m_packageGenerator);
+	}
+
+	// bonds generator
+	if (m_selectors.generators.bondsGenerator)
+		for (const auto& g : m_bondsGenerator->Generators())
+			WriteLine(ETXTCommands::BONDS_GENERATOR, *g);
+}
+
+void CExportAsText::TryOpenFileW(std::ofstream& _file, const std::filesystem::path& _name, std::ios::openmode _mode/* = 0*/)
+{
+	std::filesystem::create_directories(_name.parent_path());
+	_file.open(_name, std::ios::out | _mode);
+	if (!_file)
+	{
+		std::string message = "Can not create file: '" + std::filesystem::absolute(_name).string() + "'!";
+		if (MUSENFileFunctions::IsDirWriteProtected(_name.parent_path()))
+			message += " Path is write protected!";
+		RequestErrorStop(message);
+	}
+}
+
+void CExportAsText::TryOpenFileR(std::ifstream& _file, const std::filesystem::path& _name, std::ios::openmode _mode/* = 0*/)
+{
+	_file.open(_name, std::ios::in | _mode);
+	if (!_file)
+		RequestErrorStop("Can not open file: '" + std::filesystem::absolute(_name).string() + "'!");
+}
+
+bool CExportAsText::ToBeStopped() const
+{
+	return m_status == ERunningStatus::TO_BE_STOPPED || m_status == ERunningStatus::FAILED;
+}
+
+void CExportAsText::Finalize()
+{
+	m_resFile.close();
+	m_tdData.binFileW.close();
+	m_tdData.binFileR.close();
+	std::filesystem::remove(m_tdData.binFileName);
+	if (m_status == ERunningStatus::IDLE)
+		m_progress = 100;
+}
+
+void CExportAsText::CalculateBinFileLayout()
+{
+	auto& lt = m_tdData.binFileLayout; // alias for layout
+
+	/*
+	 * Calculates and sets entry length of an object of a given type.
+	 */
+	const auto CalculateEntryLength = [&](unsigned _type)
+	{
+		if (lt[_type].objNum)
+		{
+			const size_t i = VectorFind(m_constData, [&](const SConstantData& _e) { return _e.type == _type; });
+			lt[_type].entryLen = GetBinData(i).Size();
+		}
+	};
+
+	lt.clear();
+
+	// calculate number of specific objects
+	for (const auto& obj : m_constData)
+		lt[obj.type].objNum++;
+
+	// calculate entry sizes for each object type
+	m_systemStructure->PrepareTimePointForRead(m_timePoints.front());
+	CalculateEntryLength(SPHERE);
+	CalculateEntryLength(SOLID_BOND);
+	CalculateEntryLength(TRIANGULAR_WALL);
+
+	// calculate full sizes for each object type
+	lt[SPHERE         ].fullLen = lt[SPHERE         ].objNum * lt[SPHERE         ].entryLen * m_timePoints.size();
+	lt[SOLID_BOND     ].fullLen = lt[SOLID_BOND     ].objNum * lt[SOLID_BOND     ].entryLen * m_timePoints.size();
+	lt[TRIANGULAR_WALL].fullLen = lt[TRIANGULAR_WALL].objNum * lt[TRIANGULAR_WALL].entryLen * m_timePoints.size();
+
+	// calculate starting positions in file for each object type
+	lt[SPHERE         ].startPos = 0;
+	lt[SOLID_BOND     ].startPos = lt[SPHERE    ].startPos + lt[SPHERE    ].fullLen;
+	lt[TRIANGULAR_WALL].startPos = lt[SOLID_BOND].startPos + lt[SOLID_BOND].fullLen;
+}
+
+CByteStream CExportAsText::GetBinDataPart(size_t _id) const
+{
+	CByteStream stream;
+	const auto* part = dynamic_cast<const CSphere*>(m_systemStructure->GetObjectByIndex(m_constData[_id].id));
+	// NOTE: the sequence of checking flags must be the same when reading from and when writing to the stream
+	if (m_selectors.tdPropsPart.angVel      ) stream.Write(part->GetAngleVelocity());
+	if (m_selectors.tdPropsPart.coord       ) stream.Write(part->GetCoordinates());
+	if (m_selectors.tdPropsPart.force       ) stream.Write(part->GetForce());
+	if (m_selectors.tdPropsPart.forceAmpl   ) stream.Write(part->GetForce().Length());
+	if (m_selectors.tdPropsPart.orient      ) stream.Write(part->GetOrientation());
+	if (m_selectors.tdPropsPart.princStress ) stream.Write(part->GetStressTensor().GetPrincipalStresses());
+	if (m_selectors.tdPropsPart.stressTensor) stream.Write(part->GetStressTensor());
+	if (m_selectors.tdPropsPart.temperature ) stream.Write(part->GetTemperature());
+	if (m_selectors.tdPropsPart.velocity    ) stream.Write(part->GetVelocity());
+	return stream;
+}
+
+void CExportAsText::WriteFromBinDataPart(CByteStream& _stream)
+{
+	// NOTE: the sequence of checking flags must be the same when reading from and when writing to the stream
+	if (m_selectors.tdPropsPart.angVel      ) WriteValue(ETXTCommands::OBJECT_ANG_VEL      , _stream.Read<CVector3   >());
+	if (m_selectors.tdPropsPart.coord       ) WriteValue(ETXTCommands::OBJECT_COORD        , _stream.Read<CVector3   >());
+	if (m_selectors.tdPropsPart.force       ) WriteValue(ETXTCommands::OBJECT_FORCE        , _stream.Read<CVector3   >());
+	if (m_selectors.tdPropsPart.forceAmpl   ) WriteValue(ETXTCommands::OBJECT_FORCE_AMPL   , _stream.Read<double     >());
+	if (m_selectors.tdPropsPart.orient      ) WriteValue(ETXTCommands::OBJECT_ORIENT       , _stream.Read<CQuaternion>());
+	if (m_selectors.tdPropsPart.princStress ) WriteValue(ETXTCommands::OBJECT_PRINC_STRESS , _stream.Read<CVector3   >());
+	if (m_selectors.tdPropsPart.stressTensor) WriteValue(ETXTCommands::OBJECT_STRESS_TENSOR, _stream.Read<CMatrix3   >());
+	if (m_selectors.tdPropsPart.temperature ) WriteValue(ETXTCommands::OBJECT_TEMPERATURE  , _stream.Read<double     >());
+	if (m_selectors.tdPropsPart.velocity    ) WriteValue(ETXTCommands::OBJECT_VELOCITY     , _stream.Read<CVector3   >());
+}
+
+CByteStream CExportAsText::GetBinDataBond(size_t _id) const
+{
+	CByteStream stream;
+	const auto* bond = dynamic_cast<const CSolidBond*>(m_systemStructure->GetObjectByIndex(m_constData[_id].id));
+	// NOTE: the sequence of checking flags must be the same when reading from and when writing to the stream
+	if (m_selectors.tdPropsBond.coord      ) stream.Write(m_systemStructure->GetBondCoordinate(m_constData[_id].id));
+	if (m_selectors.tdPropsBond.force      ) stream.Write(bond->GetForce());
+	if (m_selectors.tdPropsBond.forceAmpl  ) stream.Write(bond->GetForce().Length());
+	if (m_selectors.tdPropsBond.tangOverlap) stream.Write(bond->GetTangentialOverlap());
+	if (m_selectors.tdPropsBond.temperature) stream.Write(bond->GetTemperature());
+	if (m_selectors.tdPropsBond.totTorque  ) stream.Write(bond->GetTotalTorque());
+	if (m_selectors.tdPropsBond.velocity   ) stream.Write(m_systemStructure->GetBondVelocity(m_constData[_id].id));
+	return stream;
+}
+
+void CExportAsText::WriteFromBinDataBond(CByteStream& _stream)
+{
+	// NOTE: the sequence of checking flags must be the same when reading from and when writing to the stream
+	if (m_selectors.tdPropsBond.coord      ) WriteValue(ETXTCommands::OBJECT_COORD       , _stream.Read<CVector3>());
+	if (m_selectors.tdPropsBond.force      ) WriteValue(ETXTCommands::OBJECT_FORCE       , _stream.Read<CVector3>());
+	if (m_selectors.tdPropsBond.forceAmpl  ) WriteValue(ETXTCommands::OBJECT_FORCE_AMPL  , _stream.Read<double  >());
+	if (m_selectors.tdPropsBond.tangOverlap) WriteValue(ETXTCommands::OBJECT_TANG_OVERLAP, _stream.Read<CVector3>());
+	if (m_selectors.tdPropsBond.temperature) WriteValue(ETXTCommands::OBJECT_TEMPERATURE , _stream.Read<double  >());
+	if (m_selectors.tdPropsBond.totTorque  ) WriteValue(ETXTCommands::OBJECT_TOT_TORQUE  , _stream.Read<double  >());
+	if (m_selectors.tdPropsBond.velocity   ) WriteValue(ETXTCommands::OBJECT_VELOCITY    , _stream.Read<CVector3>());
+}
+
+CByteStream CExportAsText::GetBinDataWall(size_t _id) const
+{
+	CByteStream stream;
+	const auto* wall = dynamic_cast<const CTriangularWall*>(m_systemStructure->GetObjectByIndex(m_constData[_id].id));
+	// NOTE: the sequence of checking flags must be the same when reading from and when writing to the stream
+	if (m_selectors.tdPropsWall.coord    ) stream.Write(wall->GetPlaneCoords());
+	if (m_selectors.tdPropsWall.force    ) stream.Write(wall->GetForce());
+	if (m_selectors.tdPropsWall.forceAmpl) stream.Write(wall->GetForce().Length());
+	if (m_selectors.tdPropsWall.velocity ) stream.Write(wall->GetVelocity());
+	return stream;
+}
+
+void CExportAsText::WriteFromBinDataWall(CByteStream& _stream)
+{
+	// NOTE: the sequence of checking flags must be the same when reading from and when writing to the stream
+	if (m_selectors.tdPropsWall.coord    ) WriteValue(ETXTCommands::OBJECT_PLANE_COORD, _stream.Read<CTriangle>());
+	if (m_selectors.tdPropsWall.force    ) WriteValue(ETXTCommands::OBJECT_FORCE      , _stream.Read<CVector3 >());
+	if (m_selectors.tdPropsWall.forceAmpl) WriteValue(ETXTCommands::OBJECT_FORCE_AMPL , _stream.Read<double   >());
+	if (m_selectors.tdPropsWall.velocity ) WriteValue(ETXTCommands::OBJECT_VELOCITY   , _stream.Read<CVector3 >());
+}
+
+CByteStream CExportAsText::GetBinData(size_t _id) const
+{
+	switch (m_constData[_id].type)
+	{
+	case SPHERE:          return GetBinDataPart(_id);
+	case SOLID_BOND:      return GetBinDataBond(_id);
+	case TRIANGULAR_WALL: return GetBinDataWall(_id);
+	default:              return CByteStream{};
+	}
+}
+
+void CExportAsText::WriteFromBinData(unsigned _type, CByteStream& _stream)
+{
+	switch (_type)
+	{
+	case SPHERE:          WriteFromBinDataPart(_stream); break;
+	case SOLID_BOND:      WriteFromBinDataBond(_stream); break;
+	case TRIANGULAR_WALL: WriteFromBinDataWall(_stream); break;
+	default: break;
+	}
+}
+
+template <typename T, typename ... Ts>
+void CExportAsText::WriteValue(T&& _val, Ts&&... _vals)
+{
+	m_resFile << std::forward<T>(_val) << " ";
+	((m_resFile << std::forward<Ts>(_vals) << " "), ...);
+}
+
+template <typename T, typename ... Ts>
+void CExportAsText::WriteValue(ETXTCommands _key, T&& _val, Ts&&... _vals)
+{
+	m_resFile << E2I(_key) << " ";
+	WriteValue(std::forward<T>(_val), std::forward<Ts>(_vals)...);
+}
+
+void CExportAsText::WriteLine()
+{
+	m_resFile << std::endl;
+}
+
+template <typename T, typename ... Ts>
+void CExportAsText::WriteLine(T&& _val, Ts&&... _vals)
+{
+	WriteValue(std::forward<T>(_val), std::forward<Ts>(_vals)...);
+	WriteLine();
+}
+
+template <typename T, typename ... Ts>
+void CExportAsText::WriteLine(ETXTCommands _key, T&& _val, Ts&&... _vals)
+{
+	WriteValue(_key, std::forward<T>(_val), std::forward<Ts>(_vals)...);
+	WriteLine();
 }

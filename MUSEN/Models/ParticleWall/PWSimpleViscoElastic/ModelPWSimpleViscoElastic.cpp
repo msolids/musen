@@ -6,41 +6,41 @@
 
 CModelPWSimpleViscoElastic::CModelPWSimpleViscoElastic()
 {
-	m_name = "Simple viscoelastic";
-	m_uniqueKey = "522836B77298445A8FFD02CA55FFF717";
-	m_helpFileName = "/Contact Models/SimpleViscoElastic.pdf";
-
-	AddParameter("NORMAL_FORCE_COEFF", "Coefficient of normal force", 1);
-	AddParameter("NORMAL_DAMPING_PARAMETER", "Damping parameter", 0);
-
+	m_name          = "Simple viscoelastic";
+	m_uniqueKey     = "522836B77298445A8FFD02CA55FFF717";
+	m_helpFileName  = "/Contact Models/SimpleViscoElastic.pdf";
 	m_hasGPUSupport = true;
+
+	/* 0*/ AddParameter("NORMAL_FORCE_COEFF"      , "Coefficient of normal force", 1);
+	/* 1*/ AddParameter("NORMAL_DAMPING_PARAMETER", "Damping parameter"          , 0);
 }
 
-void CModelPWSimpleViscoElastic::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _pCollision) const
+void CModelPWSimpleViscoElastic::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
-	const double dKn = m_parameters[0].value;
-	const double dMu = m_parameters[1].value;
+	// model parameters
+	const double Kn = m_parameters[0].value;
+	const double mu = m_parameters[1].value;
 
-	const CVector3 vRc = CPU_GET_VIRTUAL_COORDINATE(Particles().Coord(_iPart)) - _pCollision->vContactVector;
-	const double   dRc = vRc.Length();
-	const CVector3 nRc = vRc / dRc; // = vRc.Normalized()
+	const CVector3 normVector = Walls().NormalVector(_iWall);
 
-	// normal and Tangential overlaps
-	const double dNormalOverlap =  Particles().Radius(_iPart) - dRc;
-	if (dNormalOverlap < 0) return;
+	const CVector3 rc     = CPU_GET_VIRTUAL_COORDINATE(Particles().Coord(_iPart)) - _collision->vContactVector;
+	const double   rcLen  = rc.Length();
+	const CVector3 rcNorm = rc / rcLen;
 
-	_pCollision->vTotalForce = Walls().NormalVector(_iWall) * (dNormalOverlap * dKn * std::abs(DotProduct(nRc, Walls().NormalVector(_iWall))));
+	// normal overlap
+	const double normOverlap =  Particles().Radius(_iPart) - rcLen;
+	if (normOverlap < 0) return;
 
-	if (dMu != 0)
-	{
-		const CVector3 vVelDueToRot = !Walls().RotVel(_iWall).IsZero() ? (_pCollision->vContactVector - Walls().RotCenter(_iWall)) * Walls().RotVel(_iWall) : CVector3{ 0 };
+	// normal and tangential relative velocity
+	const CVector3 rotVel      = !Walls().RotVel(_iWall).IsZero() ? (_collision->vContactVector - Walls().RotCenter(_iWall)) * Walls().RotVel(_iWall) : CVector3{ 0 };
+	const CVector3 relVel      = Particles().Vel(_iPart) - Walls().Vel(_iWall) + rotVel;
+	const double normRelVelLen = DotProduct(normVector, relVel);
 
-		// relative velocity (normal and tangential)
-		const CVector3 vRelVel     =  Particles().Vel(_iPart) - Walls().Vel(_iWall) + vVelDueToRot;
-		const double dRelVelNormal = DotProduct(Walls().NormalVector(_iWall), vRelVel);
-		// normal force with damping
-		const double dDampingForce = dMu * dRelVelNormal;
+	// normal force with damping
+	const double normContactForceLen = normOverlap * Kn * std::abs(DotProduct(rcNorm, normVector));
+	const double normDampingForceLen = -mu * normRelVelLen;
+	const CVector3 normForce = normVector * (normContactForceLen + normDampingForceLen);
 
-		_pCollision->vTotalForce += dDampingForce * Walls().NormalVector(_iWall);
-	}
+	// store results in collision
+	_collision->vTotalForce = normForce;
 }

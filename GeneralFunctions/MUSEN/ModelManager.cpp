@@ -3,15 +3,18 @@
    See LICENSE file for license and warranty information. */
 
 #include "ModelManager.h"
+#include "MUSENFileFunctions.h"
 
 #include "../MUSEN/Models/ParticleParticle/Hertz/ModelPPHertz.h"
 #include "../MUSEN/Models/ParticleParticle/HertzMindlin/ModelPPHertzMindlin.h"
+#include "../MUSEN/Models/ParticleParticle/ChealNess/ModelPPChealNess.h"
 #include "../MUSEN/Models/ParticleParticle/HertzMindlinLiquid/ModelPPHertzMindlinLiquid.h"
 #include "../MUSEN/Models/ParticleParticle/JKR/ModelPPJKR.h"
 #include "../MUSEN/Models/ParticleParticle/LinearElastic/ModelPPLinearElastic.h"
 #include "../MUSEN/Models/ParticleParticle/PopovJKR/ModelPPPopovJKR.h"
 #include "../MUSEN/Models/ParticleParticle/SimpleViscoElastic/ModelPPSimpleViscoElastic.h"
 #include "../MUSEN/Models/ParticleParticle/TestSinteringModel/ModelPPSintering.h"
+#include "../MUSEN/Models/ParticleParticle/SinteringTemperature/ModelPPSinteringTemperature.h"
 
 #include "../MUSEN/Models/ParticleWall/PWHertzMindlin/ModelPWHertzMindlin.h"
 #include "../MUSEN/Models/ParticleWall/PWHertzMindlinLiquid/ModelPWHertzMindlinLiquid.h"
@@ -19,15 +22,22 @@
 #include "../MUSEN/Models/ParticleWall/PWPopovJKR/ModelPWPopovJKR.h"
 #include "../MUSEN/Models/ParticleWall/PWSimpleViscoElastic/ModelPWSimpleViscoElastic.h"
 
+#include "../MUSEN/Models/SolidBonds/BondModelAerogel/ModelSBAerogel.h"
 #include "../MUSEN/Models/SolidBonds/BondModelElastic/ModelSBElastic.h"
+#include "../MUSEN/Models/SolidBonds/BondModelElasticPerfectlyPlastic/ModelSBElasticPerfectlyPlastic.h"
 #include "../MUSEN/Models/SolidBonds/BondModelCreep/ModelSBCreep.h"
 #include "../MUSEN/Models/SolidBonds/BondModelKelvin/ModelSBKelvin.h"
 #include "../MUSEN/Models/SolidBonds/BondModelLinearPlastic/ModelSBLinearPlastic.h"
 #include "../MUSEN/Models/SolidBonds/BondModelThermal/ModelSBThermal.h"
+#include "../MUSEN/Models/SolidBonds/BondModelWeakening/ModelSBWeakening.h"
 
 #include "../MUSEN/Models/LiquidBonds/CapilaryViscous/ModelLBCapilarViscous.h"
 
+#include "../MUSEN/Models/ExternalForce/CentrifugalCasting/ModelEFCentrifugalCasting.h"
 #include "../MUSEN/Models/ExternalForce/ViscousField/ModelEFViscousField.h"
+#include "../MUSEN/Models/ExternalForce/HeatTransfer/ModelEFHeatTransfer.h"
+
+#include "../MUSEN/Models/HeatTransfer/PPHeatConduction/ModelPPHeatConduction.h"
 
 
 namespace StaticLibs
@@ -63,11 +73,13 @@ namespace StaticLibs
 		Constructor<CModelPPHertz>::get(),
 		Constructor<CModelPPHertzMindlin>::get(),
 		Constructor<CModelPPHertzMindlinLiquid>::get(),
+		Constructor<CModelPPChealNess>::get(),
 		Constructor<CModelPPJKR>::get(),
 		Constructor<CModelPPLinearElastic>::get(),
 		Constructor<CModelPPPopovJKR>::get(),
 		Constructor<CModelPPSimpleViscoElastic>::get(),
 		Constructor<CModelPPSintering>::get(),
+		Constructor<CModelPPSinteringTemperature>::get(),
 
 		Constructor<CModelPWHertzMindlin>::get(),
 		Constructor<CModelPWHertzMindlinLiquid>::get(),
@@ -75,15 +87,22 @@ namespace StaticLibs
 		Constructor<CModelPWPopovJKR>::get(),
 		Constructor<CModelPWSimpleViscoElastic>::get(),
 
+		Constructor<CModelSBAerogel>::get(),
 		Constructor<CModelSBElastic>::get(),
+		Constructor<CModelSBElasticPerfectlyPlastic>::get(),
 		Constructor<CModelSBCreep>::get(),
 		Constructor<CModelSBKelvin>::get(),
 		Constructor<CModelSBLinearPlastic>::get(),
 		Constructor<CModelSBThermal>::get(),
+		Constructor<CModelSBWeakening>::get(),
 
 		Constructor<CModelLBCapilarViscous>::get(),
 
-		Constructor<CModelEFViscousField>::get()
+		Constructor<CModelEFCentrifugalCasting>::get(),
+		Constructor<CModelEFViscousField>::get(),
+		Constructor<CModelEFHeatTransfer>::get(),
+
+		Constructor<CModelPPHeatConduction>::get(),
 	};
 
 	SModule* LoadLibrary_static(const std::string& _sName)
@@ -98,11 +117,12 @@ namespace StaticLibs
 
 CModelManager::CModelManager()
 {
-	m_vCurrentModels[EMusenModelType::PP] = SModelInfo();
-	m_vCurrentModels[EMusenModelType::PW] = SModelInfo();
-	m_vCurrentModels[EMusenModelType::SB] = SModelInfo();
-	m_vCurrentModels[EMusenModelType::LB] = SModelInfo();
-	m_vCurrentModels[EMusenModelType::EF] = SModelInfo();
+	m_vCurrentModels[EMusenModelType::PP]   = SModelInfo();
+	m_vCurrentModels[EMusenModelType::PW]   = SModelInfo();
+	m_vCurrentModels[EMusenModelType::SB]   = SModelInfo();
+	m_vCurrentModels[EMusenModelType::LB]   = SModelInfo();
+	m_vCurrentModels[EMusenModelType::EF]   = SModelInfo();
+	m_vCurrentModels[EMusenModelType::PPHT] = SModelInfo();
 	UpdateAvailableModels();
 }
 
@@ -255,11 +275,12 @@ void CModelManager::LoadConfiguration()
 
 	const ProtoModuleModelManager& MM = _pProtoMessage.model_manager();
 
-	LoadModelConfiguration(MM.pp_model(), EMusenModelType::PP, &m_vCurrentModels[EMusenModelType::PP]);
-	LoadModelConfiguration(MM.pw_model(), EMusenModelType::PW, &m_vCurrentModels[EMusenModelType::PW]);
-	LoadModelConfiguration(MM.sb_model(), EMusenModelType::SB, &m_vCurrentModels[EMusenModelType::SB]);
-	LoadModelConfiguration(MM.lb_model(), EMusenModelType::LB, &m_vCurrentModels[EMusenModelType::LB]);
-	LoadModelConfiguration(MM.ef_model(), EMusenModelType::EF, &m_vCurrentModels[EMusenModelType::EF]);
+	LoadModelConfiguration(MM.pp_model(),    EMusenModelType::PP,   &m_vCurrentModels[EMusenModelType::PP]);
+	LoadModelConfiguration(MM.pw_model(),    EMusenModelType::PW,   &m_vCurrentModels[EMusenModelType::PW]);
+	LoadModelConfiguration(MM.sb_model(),    EMusenModelType::SB,   &m_vCurrentModels[EMusenModelType::SB]);
+	LoadModelConfiguration(MM.lb_model(),    EMusenModelType::LB,   &m_vCurrentModels[EMusenModelType::LB]);
+	LoadModelConfiguration(MM.ef_model(),    EMusenModelType::EF,   &m_vCurrentModels[EMusenModelType::EF]);
+	LoadModelConfiguration(MM.ht_pp_model(), EMusenModelType::PPHT, &m_vCurrentModels[EMusenModelType::PPHT]);
 	m_bConnectedPPContact = MM.connected_pp_contact();
 }
 
@@ -268,11 +289,12 @@ void CModelManager::SaveConfiguration()
 	ProtoModulesData& _pProtoMessage = *m_pSystemStructure->GetProtoModulesData();
 	ProtoModuleModelManager* pMM = _pProtoMessage.mutable_model_manager();
 
-	SaveModelConfiguration(pMM->mutable_pp_model(), m_vCurrentModels[EMusenModelType::PP]);
-	SaveModelConfiguration(pMM->mutable_pw_model(), m_vCurrentModels[EMusenModelType::PW]);
-	SaveModelConfiguration(pMM->mutable_sb_model(), m_vCurrentModels[EMusenModelType::SB]);
-	SaveModelConfiguration(pMM->mutable_lb_model(), m_vCurrentModels[EMusenModelType::LB]);
-	SaveModelConfiguration(pMM->mutable_ef_model(), m_vCurrentModels[EMusenModelType::EF]);
+	SaveModelConfiguration(pMM->mutable_pp_model(),    m_vCurrentModels[EMusenModelType::PP]);
+	SaveModelConfiguration(pMM->mutable_pw_model(),    m_vCurrentModels[EMusenModelType::PW]);
+	SaveModelConfiguration(pMM->mutable_sb_model(),    m_vCurrentModels[EMusenModelType::SB]);
+	SaveModelConfiguration(pMM->mutable_lb_model(),    m_vCurrentModels[EMusenModelType::LB]);
+	SaveModelConfiguration(pMM->mutable_ef_model(),    m_vCurrentModels[EMusenModelType::EF]);
+	SaveModelConfiguration(pMM->mutable_ht_pp_model(), m_vCurrentModels[EMusenModelType::PPHT]);
 	pMM->set_connected_pp_contact( m_bConnectedPPContact );
 }
 
@@ -455,6 +477,8 @@ std::string CModelManager::BuildErrorDescription(const EMusenModelType& _modelTy
 		sModelTypeDescr = "liquid bond "; break;
 	case EMusenModelType::EF:
 		sModelTypeDescr = "external force "; break;
+	case EMusenModelType::PPHT:
+		sModelTypeDescr = "heat transfer PP "; break;
 	default: break;
 	}
 

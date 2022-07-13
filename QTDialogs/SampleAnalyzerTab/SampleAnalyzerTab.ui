@@ -127,17 +127,24 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="coordinationNumber">
+          <item row="1" column="1">
+           <widget class="QLabel" name="porosityInRegion">
             <property name="toolTip">
-             <string>Coordination number (overlap between particles + interparticle bonds)</string>
+             <string>Porosity in the sampling volume</string>
             </property>
             <property name="text">
              <string/>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>Time [s]</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
            <spacer name="horizontalSpacer_3">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -150,34 +157,23 @@
             </property>
            </spacer>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_24">
-            <property name="text">
-             <string>Time [s]</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Porosity</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="massLabel">
-            <property name="text">
-             <string>Mass</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QPushButton" name="updateMainData">
             <property name="toolTip">
              <string>Update main characteristics</string>
             </property>
             <property name="text">
              <string>Update</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="coordinationNumber">
+            <property name="toolTip">
+             <string>Coordination number (overlap between particles + interparticle bonds)</string>
+            </property>
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
@@ -188,13 +184,10 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="porosityInRegion">
-            <property name="toolTip">
-             <string>Porosity in the sampling volume</string>
-            </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_5">
             <property name="text">
-             <string/>
+             <string>Porosity</string>
             </property>
            </widget>
           </item>
@@ -208,10 +201,31 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="massLabel">
+            <property name="text">
+             <string>Mass</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
            <widget class="QLineEdit" name="currentTime">
             <property name="text">
              <string>0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="temperatureLabel">
+            <property name="text">
+             <string>Average temperature</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="temperature">
+            <property name="text">
+             <string/>
             </property>
            </widget>
           </item>
@@ -267,6 +281,13 @@
           </property>
           <property name="text">
            <string>Coordination number</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="exportTemperature">
+          <property name="text">
+           <string>Temperature</string>
           </property>
          </widget>
         </item>

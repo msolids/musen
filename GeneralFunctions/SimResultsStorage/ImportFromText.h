@@ -49,6 +49,7 @@ private:
 		std::vector<CQuaternion> vQuaternion;
 		std::vector<CMatrix3> vStressTensor;
 		std::vector<double> vTemperature;
+		std::vector<double> vTotalTorque;
 	};
 	std::set<double> m_allTimePoints;				// Set of all time points specified in file.
 	std::vector<STDObjectInfo*> m_vObjects;		// Local storage of all TD properties of all objects.

@@ -63,11 +63,13 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "MODEL_SB")								m_jobs.back().models[EMusenModelType::SB].name = GetRestOfLine(&ss);
 	else if (key == "MODEL_LB")								m_jobs.back().models[EMusenModelType::LB].name = GetRestOfLine(&ss);
 	else if (key == "MODEL_EF" || key == "MODEL_EXT_FORCE")	m_jobs.back().models[EMusenModelType::EF].name = GetRestOfLine(&ss);
+	else if (key == "MODEL_PPHT")							m_jobs.back().models[EMusenModelType::PPHT].name = GetRestOfLine(&ss);
 	else if (key == "MODEL_PP_PARAMS")										m_jobs.back().models[EMusenModelType::PP].parameters = GetRestOfLine(&ss);
 	else if (key == "MODEL_PW_PARAMS")										m_jobs.back().models[EMusenModelType::PW].parameters = GetRestOfLine(&ss);
 	else if (key == "MODEL_SB_PARAMS")										m_jobs.back().models[EMusenModelType::SB].parameters = GetRestOfLine(&ss);
 	else if (key == "MODEL_LB_PARAMS")										m_jobs.back().models[EMusenModelType::LB].parameters = GetRestOfLine(&ss);
 	else if (key == "MODEL_EF_PARAMS" || key == "MODEL_EXT_FORCE_PARAMS")	m_jobs.back().models[EMusenModelType::EF].parameters = GetRestOfLine(&ss);
+	else if (key == "MODEL_PPHT_PARAMS")									m_jobs.back().models[EMusenModelType::PPHT].parameters = GetRestOfLine(&ss);
 	else if (key == "SNAPSHOT_TIME")								ss >> m_jobs.back().dSnapshotTP;
 	else if (key == "SIMULATION_STEP" || key == "SIMULATION_TSTEP")	ss >> m_jobs.back().dSimulationTimeStep;
 	else if (key == "SAVING_STEP" || key == "SAVING_TSTEP")			ss >> m_jobs.back().dSavingTimeStep;
@@ -81,7 +83,9 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "DIFF_CONTACT_RADIUS")	ss >> m_jobs.back().contactRadiusFlag;
 	else if (key == "EXT_ACCEL")			ss >> m_jobs.back().vExtAccel;
 	else if (key == "SIMULATION_DOMAIN")	ss >> m_jobs.back().simulationDomain;
-	else if (key == "SELECTIVE_SAVING_P")  { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bAngVelocity >> m_jobs.back().selectiveSavingFlags.bCoordinates >> m_jobs.back().selectiveSavingFlags.bForce >> m_jobs.back().selectiveSavingFlags.bQuaternion >> m_jobs.back().selectiveSavingFlags.bVelocity >> m_jobs.back().selectiveSavingFlags.bTensor; }
+	else if (key == "PBC_FLAGS")            ss >> m_jobs.back().pbcFlags[0] >> m_jobs.back().pbcFlags[1] >> m_jobs.back().pbcFlags[2];
+	else if (key == "PBC_DOMAIN")           ss >> m_jobs.back().pbcDomain;
+	else if (key == "SELECTIVE_SAVING_P")  { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bAngVelocity >> m_jobs.back().selectiveSavingFlags.bCoordinates >> m_jobs.back().selectiveSavingFlags.bForce >> m_jobs.back().selectiveSavingFlags.bQuaternion >> m_jobs.back().selectiveSavingFlags.bVelocity >> m_jobs.back().selectiveSavingFlags.bTensor >> m_jobs.back().selectiveSavingFlags.bTemperature; }
 	else if (key == "SELECTIVE_SAVING_SB") { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bSBForce >> m_jobs.back().selectiveSavingFlags.bSBTangOverlap >> m_jobs.back().selectiveSavingFlags.bSBTotTorque; }
 	else if (key == "SELECTIVE_SAVING_LB") { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bLBForce; }
 	else if (key == "SELECTIVE_SAVING_TW") { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bTWPlaneCoord >> m_jobs.back().selectiveSavingFlags.bTWForce >> m_jobs.back().selectiveSavingFlags.bTWVelocity; }
@@ -161,66 +165,81 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	}
 	else if (key == "MIXTURE_PROPERTY")
 	{
-		const auto iMixture    = GetValueFromStream<size_t>(&ss);
-		const auto iFraction   = GetValueFromStream<size_t>(&ss);
-		const auto compoundKey = GetValueFromStream<std::string>(&ss);
-		const auto diameter    = GetValueFromStream<double>(&ss);
-		const auto fraction    = GetValueFromStream<double>(&ss);
-		m_jobs.back().mixtureProperties.push_back(SJob::SMDBMixtureProperties{ iMixture - 1, iFraction - 1, compoundKey, diameter, fraction });
+		const auto iMixture        = GetValueFromStream<size_t>(&ss);
+		const auto iFraction       = GetValueFromStream<size_t>(&ss);
+		const auto compoundKey     = GetValueFromStream<std::string>(&ss);
+		const auto diameter        = GetValueFromStream<double>(&ss);
+		const auto contactDiameter = GetValueFromStream<double>(&ss);
+		const auto fraction        = GetValueFromStream<double>(&ss);
+		m_jobs.back().mixtureProperties.push_back(SJob::SMDBMixtureProperties{ iMixture - 1, iFraction - 1, compoundKey, diameter, contactDiameter, fraction });
 	}
 	else if (key == "TEXT_EXPORT_OBJECTS")
 	{
-		m_jobs.back().txtExportObjects.particles       = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportObjects.solidBonds      = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportObjects.liquidBonds     = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportObjects.triangularWalls = GetValueFromStream<CTriState>(&ss).ToBool(true);
-	}
-	else if (key == "TEXT_EXPORT_SCENE")
-	{
-		m_jobs.back().txtExportScene.domain        = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportScene.pbc           = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportScene.anisotropy    = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportScene.contactRadius = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.objectTypes.particles = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.objectTypes.bonds     = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.objectTypes.walls     = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_CONST")
 	{
-		m_jobs.back().txtExportConst.id               = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportConst.type             = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportConst.geometry         = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportConst.material         = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportConst.activityInterval = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.constProps.id               = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.constProps.type             = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.constProps.geometry         = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.constProps.material         = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.constProps.activityInterval = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
-	else if (key == "TEXT_EXPORT_TD")
+	else if (key == "TEXT_EXPORT_TD_PART")
 	{
-		m_jobs.back().txtExportTD.coordinate        = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.velocity          = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.angularVelocity   = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.totalForce        = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.force             = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.quaternion        = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.stressTensor      = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.totalTorque       = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.tangOverlap       = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.temperature       = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportTD.principalStress   = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.angVel      = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.coord       = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.force       = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.forceAmpl   = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.orient      = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.princStress = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.stressTensor= GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.temperature = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsPart.velocity    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+	}
+	else if (key == "TEXT_EXPORT_TD_BOND")
+	{
+		m_jobs.back().txtExportSettings.tdPropsBond.coord       = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsBond.force       = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsBond.forceAmpl   = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsBond.tangOverlap = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsBond.temperature = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsBond.totTorque   = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsBond.velocity    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+	}
+	else if (key == "TEXT_EXPORT_TD_WALL")
+	{
+		m_jobs.back().txtExportSettings.tdPropsWall.coord     = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsWall.force     = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsWall.forceAmpl = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsWall.velocity  = GetValueFromStream<CTriState>(&ss).ToBool(true);
+	}
+	else if (key == "TEXT_EXPORT_SCENE")
+	{
+		m_jobs.back().txtExportSettings.sceneInfo.domain        = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.sceneInfo.pbc           = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.sceneInfo.anisotropy    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.sceneInfo.contactRadius = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_GEOMETRIES")
 	{
-		m_jobs.back().txtExportGeometries.baseInfo        = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportGeometries.tdProperties    = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportGeometries.wallsList       = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportGeometries.analysisVolumes = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.geometries.baseInfo        = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.geometries.tdProperties    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.geometries.wallsList       = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.geometries.analysisVolumes = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_MATERIALS")
 	{
-		m_jobs.back().txtExportMaterials.compounds    = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportMaterials.interactions = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportMaterials.mixtures     = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.materials.compounds    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.materials.interactions = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.materials.mixtures     = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_GENERATORS")
 	{
-		m_jobs.back().txtExportGenerators.packageGenerator = GetValueFromStream<CTriState>(&ss).ToBool(true);
-		m_jobs.back().txtExportGenerators.bondsGenerator   = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.generators.packageGenerator = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.generators.bondsGenerator   = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_PRECISION")
 	{

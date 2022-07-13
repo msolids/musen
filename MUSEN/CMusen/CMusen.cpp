@@ -3,11 +3,23 @@
    See LICENSE file for license and warranty information. */
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include "BuildVersion.h"
 #include "ScriptAnalyzer.h"
 #include "ScriptRunner.h"
 #include "ArgumentsParser.h"
 #include "MUSENVersion.h"
+
+// Handler of external signals.
+void SignalHandler(const int _signal)
+{
+	g_extSignal = _signal;		// this is checked in internal loops for premature termination depending on signal
+	std::cout << "Terminating after receiving signal " << _signal << ". Waiting up to 120s for graceful saving. <Ctrl+C> to exit immediately." << std::endl;
+	// wait for 120s
+	std::thread delay{ [_signal]() { std::this_thread::sleep_for(std::chrono::seconds(120)); std::exit(_signal); } };
+	delay.detach();
+}
 
 void PrintArgumentsInfo()
 {
@@ -118,6 +130,16 @@ void RunMusen(const std::string& _arg)
 
 int main(int argc, const char *argv[])
 {
+	// register signal handling
+	std::signal(SIGTERM , SignalHandler);
+#ifdef _WIN32
+	std::signal(SIGBREAK, SignalHandler);
+#else
+	std::signal(SIGQUIT , SignalHandler);
+	std::signal(SIGUSR1 , SignalHandler);
+	std::signal(SIGUSR2 , SignalHandler);
+#endif
+
 	const CArgumentsParser parser(argc, argv);
 
 	if (parser.ArgumentsNumber() == 0)

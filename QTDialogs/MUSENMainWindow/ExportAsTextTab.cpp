@@ -9,361 +9,307 @@
 #include <QMessageBox>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Thread
+/// Worker
 
-CExportAsTextThread::CExportAsTextThread(CExportAsText* _exporter, QObject* parent) :
-	QObject(parent),
-	m_pExporter{ _exporter }
+CExportWorker::CExportWorker(CExportAsText* _exporter, QObject* _parent)
+	: QObject{ _parent }
+	, m_exporter{ _exporter }
 {}
 
-void CExportAsTextThread::StartExporting()
+void CExportWorker::StartExporting()
 {
-	m_pExporter->Export();
+	m_exporter->Export();
 	emit finished();
 }
 
-void CExportAsTextThread::StopExporting() const
+void CExportWorker::StopExporting() const
 {
-	if (m_pExporter->GetCurrentStatus() != ERunningStatus::IDLE)
-		m_pExporter->SetCurrentStatus(ERunningStatus::TO_BE_STOPPED);
+	if (m_exporter->GetStatus() == ERunningStatus::RUNNING)
+		m_exporter->RequestStop();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Tab
 
 CExportAsTextTab::CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, QWidget* _parent)
-	: CMusenDialog(_parent)
-	, m_pQTThread{ nullptr }
-	, m_pExportThread{ nullptr }
+	: CMusenDialog{ _parent }
 	, m_packageGenerator{ _pakageGenerator }
 	, m_bondsGenerator{ _bondsGenerator }
 {
 	ui.setupUi(this);
 
+	// setup constraints widget
 	ui.constraintsTab->SetGeometriesVisible(false);
 	ui.constraintsTab->SetMaterials2Visible(false);
 	ui.constraintsTab->SetDiameters2Visible(false);
 
 	ui.tabWidget->setEnabled(false);
 
-	// Regular expression for floating point numbers
-	const QRegExp regExpFloat("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
-	// Set regular expression for limitation of input in QLineEdits
-	ui.lineEditTimeStep->setValidator(new QRegExpValidator(regExpFloat, this));
-	ui.lineEditTimeFrom->setValidator(new QRegExpValidator(regExpFloat, this));
-	ui.lineEditTimeTo->setValidator(new QRegExpValidator(regExpFloat, this));
-
-	UpdatePrecision();
+	// regular expression for positive floating point numbers
+	const QRegExp regExpPosFloat("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
+	// set regular expression for limitation of input in QLineEdits
+	ui.lineTimeStep->setValidator(new QRegExpValidator(regExpPosFloat, this));
+	ui.lineTimeBeg ->setValidator(new QRegExpValidator(regExpPosFloat, this));
+	ui.lineTimeEnd ->setValidator(new QRegExpValidator(regExpPosFloat, this));
 
 	InitializeConnections();
 	m_sHelpFileName = "Users Guide/Export as text.pdf";
 }
 
-void CExportAsTextTab::SetPointers(CSystemStructure* _pSystemStructure, CUnitConvertor* _pUnitConvertor, CMaterialsDatabase* _pMaterialsDB, CGeometriesDatabase* _pGeometriesDB, CAgglomeratesDatabase* _pAgglomDB)
+void CExportAsTextTab::SetPointers(CSystemStructure* _systemStructure, CUnitConvertor* _unitConvertor, CMaterialsDatabase* _materialsDB, CGeometriesDatabase* _geometriesDB, CAgglomeratesDatabase* _agglomeratesDB)
 {
-	CMusenDialog::SetPointers(_pSystemStructure, _pUnitConvertor, _pMaterialsDB, _pGeometriesDB, _pAgglomDB);
-	m_constraints.SetPointers(_pSystemStructure, _pMaterialsDB);
-	ui.constraintsTab->SetPointers(_pSystemStructure, _pUnitConvertor, _pMaterialsDB, _pGeometriesDB, _pAgglomDB);
+	CMusenDialog::SetPointers(_systemStructure, _unitConvertor, _materialsDB, _geometriesDB, _agglomeratesDB);
+	m_constraints.SetPointers(_systemStructure, _materialsDB);
+	ui.constraintsTab->SetPointers(_systemStructure, _unitConvertor, _materialsDB, _geometriesDB, _agglomeratesDB);
 	ui.constraintsTab->SetConstraintsPtr(&m_constraints);
-	m_exporter.SetPointers(_pSystemStructure, &m_constraints, m_packageGenerator, m_bondsGenerator);
+	m_exporter.SetPointers(_systemStructure, &m_constraints, m_packageGenerator, m_bondsGenerator);
+}
+
+void CExportAsTextTab::setVisible(bool _visible)
+{
+	CMusenDialog::setVisible(_visible);
+	if (_visible)
+		UpdateWholeView();
 }
 
 void CExportAsTextTab::UpdateWholeView()
 {
 	if (!isVisible()) return;
 	UpdatePrecision();        // update precision value
-	SelectiveSavingToggled(); // update view and time-related values
+	UpdateAllFlags(); // update view and time-related values
+	UpdateOrientationFlag();  // update state of Orientation check box
 }
 
 void CExportAsTextTab::InitializeConnections() const
 {
 	// radioButtons
-	connect(ui.radioButtonSaveAll,		 &QRadioButton::clicked, this, &CExportAsTextTab::SelectiveSavingToggled);
-	connect(ui.radioButtonSaveSelective, &QRadioButton::clicked, this, &CExportAsTextTab::SelectiveSavingToggled);
+	connect(ui.radioSaveAll      , &QRadioButton::clicked, this, &CExportAsTextTab::UpdateAllFlags);
+	connect(ui.radioSaveSelective, &QRadioButton::clicked, this, &CExportAsTextTab::UpdateAllFlags);
 
 	// buttons
-	connect(ui.pushButtonExport,	   &QPushButton::clicked, this, &CExportAsTextTab::ExportPressed);
-	connect(ui.pushButtonCancel,  	   &QPushButton::clicked, this, &CExportAsTextTab::reject);
-	connect(ui.toolButtonUpdateTimeTo, &QPushButton::clicked, this, &CExportAsTextTab::UpdateTimeFromSimulation);
+	connect(ui.buttonExport    , &QPushButton::clicked, this, &CExportAsTextTab::ExportPressed);
+	connect(ui.buttonCancel    , &QPushButton::clicked, this, &CExportAsTextTab::reject);
+	connect(ui.buttonTimeUpdate, &QPushButton::clicked, this, &CExportAsTextTab::UpdateTimeFromSimulation);
 
 	// checkboxes
-	connect(ui.groupBoxObjectType,	   &QGroupBox::toggled,		 this, &CExportAsTextTab::SetObjectTypeCheckBoxes);
-	connect(ui.checkBoxParticle,	   &QCheckBox::stateChanged, this, &CExportAsTextTab::SetRelevantCheckBoxesParticle);
-	connect(ui.checkBoxSolidBond,	   &QCheckBox::stateChanged, this, &CExportAsTextTab::SetRelevantCheckBoxesSB);
-	connect(ui.checkBoxTriangularWall, &QCheckBox::stateChanged, this, &CExportAsTextTab::SetRelevantCheckBoxesTW);
-	connect(ui.checkBoxQuaternion,	   &QCheckBox::stateChanged, this, &CExportAsTextTab::SetQuaternionCheckBox);
+	connect(ui.groupObjectType  , &QGroupBox::toggled     , this, &CExportAsTextTab::SetEnabledObjectWidgets);
+	connect(ui.checkTypeParts   , &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+	connect(ui.checkTypeBonds   , &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+	connect(ui.checkTypeWalls   , &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
 
 	// time data
-	connect(ui.lineEditTimeFrom,	 &QLineEdit::editingFinished, this, &CExportAsTextTab::SetNewTime);
-	connect(ui.lineEditTimeTo,		 &QLineEdit::editingFinished, this, &CExportAsTextTab::SetNewTime);
-	connect(ui.lineEditTimeStep,	 &QLineEdit::editingFinished, this, &CExportAsTextTab::SetNewTime);
-	connect(ui.radioButtonTimeSaved, &QRadioButton::clicked,	  this, &CExportAsTextTab::SetNewTime);
-	connect(ui.radioButtonTimeStep,  &QRadioButton::clicked,	  this, &CExportAsTextTab::SetNewTime);
+	connect(ui.lineTimeBeg   , &QLineEdit::editingFinished, this, &CExportAsTextTab::UpdateTime);
+	connect(ui.lineTimeEnd   , &QLineEdit::editingFinished, this, &CExportAsTextTab::UpdateTime);
+	connect(ui.lineTimeStep  , &QLineEdit::editingFinished, this, &CExportAsTextTab::UpdateTime);
+	connect(ui.radioTimeSaved, &QRadioButton::clicked     , this, &CExportAsTextTab::UpdateTime);
+	connect(ui.radioTimeStep , &QRadioButton::clicked     , this, &CExportAsTextTab::UpdateTime);
 
 	// timer
-	connect(&m_UpdateTimer, &QTimer::timeout, this, &CExportAsTextTab::UpdateProgressInfo);
+	connect(&m_updateTimer, &QTimer::timeout, this, &CExportAsTextTab::UpdateProgressInfo);
+}
+
+void CExportAsTextTab::UpdateAllFlags()
+{
+	ui.tabWidget->setCurrentIndex(0);
+	ui.tabWidget->setEnabled(!ui.radioSaveAll->isChecked());
+	UpdateTimeFromSimulation();
+	UpdateOrientationFlag();
+}
+
+void CExportAsTextTab::UpdateOrientationFlag() const
+{
+	const bool anisotropy = m_pSystemStructure->IsAnisotropyEnabled();
+	ui.checkTDPartOrient->setEnabled(anisotropy);
+	if (!anisotropy)
+		ui.checkTDPartOrient->setChecked(false);
 }
 
 void CExportAsTextTab::UpdatePrecision() const
 {
-	ui.spinBoxPrecision->setValue(m_exporter.GetPrecision());
+	ui.spinAddTDPrecision->setValue(m_exporter.GetPrecision());
 }
 
-void CExportAsTextTab::SelectiveSavingToggled()
+void CExportAsTextTab::UpdateTime()
 {
-	ui.checkBoxQuaternion->setChecked(m_pSystemStructure->IsAnisotropyEnabled());
-	ui.tabWidget->setCurrentIndex(0);
-	ui.tabWidget->setEnabled(!ui.radioButtonSaveAll->isChecked());
-	UpdateTimeFromSimulation();
-}
-
-void CExportAsTextTab::SetObjectTypeCheckBoxes(bool _active) const
-{
-	ui.groupBoxConstProperties->setEnabled(_active);
-	ui.groupBoxTDProperties->setEnabled(_active);
-	ui.groupBoxTime->setEnabled(_active);
-}
-
-void CExportAsTextTab::SetRelevantCheckBoxesParticle() const
-{
-	ui.checkBoxQuaternion->setEnabled(ui.checkBoxParticle->isChecked());
-	ui.checkBoxAngularVelocity->setEnabled(ui.checkBoxParticle->isChecked());
-	ui.checkBoxCoordinate->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxTriangularWall->isChecked());
-	ui.checkBoxStressTensor->setEnabled(ui.checkBoxParticle->isChecked());
-	ui.checkBoxPrincipalStress->setEnabled(ui.checkBoxParticle->isChecked());
-	ui.checkBoxTemperature->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxSolidBond->isChecked());
-}
-
-void CExportAsTextTab::SetRelevantCheckBoxesSB() const
-{
-	ui.checkBoxTangOverlap->setEnabled(ui.checkBoxSolidBond->isChecked());
-	ui.checkBoxTotalTorque->setEnabled(ui.checkBoxSolidBond->isChecked());
-	ui.checkBoxTemperature->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxSolidBond->isChecked());
-}
-
-void CExportAsTextTab::SetRelevantCheckBoxesTW() const
-{
-	ui.checkBoxCoordinate->setEnabled(ui.checkBoxParticle->isChecked() || ui.checkBoxTriangularWall->isChecked());
-}
-
-void CExportAsTextTab::SetQuaternionCheckBox()
-{
-	if (ui.checkBoxQuaternion->isChecked())
-		if (!m_pSystemStructure->IsAnisotropyEnabled())
-		{
-			QMessageBox::warning(this, "Wrong parameters", "Export of Quaternions is not possible. Flag 'Consider particles anisotropy' has to be set in Scene Editor.");
-			ui.checkBoxQuaternion->setCheckState(Qt::CheckState::Unchecked);
-		}
-}
-
-void CExportAsTextTab::SetWholeTabEnabled(bool _enabled) const
-{
-	if (ui.radioButtonSaveSelective->isChecked())
-		ui.tabWidget->setEnabled(_enabled);
-	ui.radioButtonSaveSelective->setEnabled(_enabled);
-	ui.radioButtonSaveAll->setEnabled(_enabled);
-}
-
-void CExportAsTextTab::UpdateProgressInfo() const
-{
-	ui.progressBarExporting->setValue(int(m_exporter.GetProgressPercent()));
-	ui.statusLabel->setText(ss2qs(m_exporter.GetProgressMessage()));
-}
-
-void CExportAsTextTab::SetNewTime()
-{
-	CalculateTimePoints();
-	UpdateTimeParameters();
-}
-
-void CExportAsTextTab::CalculateTimePoints()
-{
-	m_vTimePoints.clear();
-
-	if (ui.radioButtonSaveAll->isChecked())
-		m_vTimePoints = m_pSystemStructure->GetAllTimePoints();
-	else
-	{
-		const double timeMin = ui.lineEditTimeFrom->text().toDouble();
-		const double timeMax = ui.lineEditTimeTo->text().toDouble();
-		if (timeMin > timeMax)
-		{
-			QMessageBox::critical(this, "Wrong parameters", "Time 'From' is larger than Time 'To'.");
-			return;
-		}
-		if (ui.radioButtonTimeSaved->isChecked())
-		{
-			auto allTP = m_pSystemStructure->GetAllTimePoints();
-			std::copy_if(allTP.begin(), allTP.end(), std::back_inserter(m_vTimePoints), [&timeMin, &timeMax](double t) { return (t >= timeMin) && (t <= timeMax); });
-		}
-		else
-		{
-			const double timeStep = ui.lineEditTimeStep->text().toDouble();
-			const size_t num = size_t((timeMax - timeMin) / timeStep);
-			for (size_t i = 0; i <= num; ++i)
-				m_vTimePoints.push_back(timeMin + i * timeStep);
-		}
-	}
-
-	if (m_vTimePoints.empty())
-		m_vTimePoints.push_back(0);
-}
-
-void CExportAsTextTab::UpdateTimeParameters() const
-{
-	ui.lineEditTimePoints->setText(QString::number(m_vTimePoints.size()));
-	ui.lineEditTimeStep->setEnabled(!ui.radioButtonTimeSaved->isChecked());
+	const auto timePoints = CalculateTimePoints();
+	ui.lineTimePoints->setText(QString::number(timePoints.size()));
+	ui.lineTimeStep->setEnabled(!ui.radioTimeSaved->isChecked());
 }
 
 void CExportAsTextTab::UpdateTimeFromSimulation()
 {
-	ui.lineEditTimeFrom->setText(QString::number(m_pSystemStructure->GetMinTime()));
-	ui.lineEditTimeTo->setText(QString::number(m_pSystemStructure->GetMaxTime()));
+	ui.lineTimeBeg->setText(QString::number(m_pSystemStructure->GetMinTime()));
+	ui.lineTimeEnd->setText(QString::number(m_pSystemStructure->GetMaxTime()));
 	const auto allTP = m_pSystemStructure->GetAllTimePoints();
-	ui.lineEditTimeStep->setText(QString::number(allTP.size() < 2 ? m_pSystemStructure->GetRecommendedTimeStep() : allTP[1] - allTP[0]));
-	SetNewTime();
+	ui.lineTimeStep->setText(QString::number(allTP.size() < 2 ? 1 : allTP[1] - allTP[0]));
+	UpdateTime();
+}
+
+void CExportAsTextTab::UpdateProgressInfo() const
+{
+	ui.progressBar->setValue(static_cast<int>(m_exporter.GetProgress()));
+	ui.labelStatus->setText(QString::fromStdString(m_exporter.GetStatusMessage()));
+}
+
+void CExportAsTextTab::SetEnabledObjectWidgets(bool _active) const
+{
+	ui.groupConst->setEnabled(_active);
+	ui.groupTDParts->setEnabled(_active);
+	ui.groupTDBonds->setEnabled(_active);
+	ui.groupTDWalls->setEnabled(_active);
+	ui.groupTime->setEnabled(_active);
+}
+
+void CExportAsTextTab::SetEnabledTDWidgets() const
+{
+	ui.groupTDParts->setEnabled(ui.checkTypeParts->isChecked());
+	ui.groupTDBonds->setEnabled(ui.checkTypeBonds->isChecked());
+	ui.groupTDWalls->setEnabled(ui.checkTypeWalls->isChecked());
+}
+
+void CExportAsTextTab::SetEnabledAll(bool _enabled) const
+{
+	if (ui.radioSaveSelective->isChecked())
+		ui.tabWidget->setEnabled(_enabled);
+	ui.radioSaveSelective->setEnabled(_enabled);
+	ui.radioSaveAll->setEnabled(_enabled);
+}
+
+std::vector<double> CExportAsTextTab::CalculateTimePoints()
+{
+	std::vector<double> res;
+
+	if (ui.radioSaveAll->isChecked())
+		res = m_pSystemStructure->GetAllTimePoints();
+	else
+	{
+		const double timeMin = ui.lineTimeBeg->text().toDouble();
+		const double timeMax = ui.lineTimeEnd->text().toDouble();
+		if (timeMin > timeMax)
+		{
+			QMessageBox::critical(this, "Wrong parameters", "Time 'From' is larger than Time 'To'.");
+			return {};
+		}
+		if (ui.radioTimeSaved->isChecked())
+		{
+			auto allTP = m_pSystemStructure->GetAllTimePoints();
+			std::copy_if(allTP.begin(), allTP.end(), std::back_inserter(res), [&timeMin, &timeMax](double t) { return t >= timeMin && t <= timeMax; });
+		}
+		else
+		{
+			const double timeStep = ui.lineTimeStep->text().toDouble();
+			const auto num = static_cast<size_t>((timeMax - timeMin) / timeStep);
+			for (size_t i = 0; i <= num; ++i)
+				res.push_back(timeMin + i * timeStep);
+		}
+	}
+
+	if (res.empty())
+		res.push_back(0);
+
+	return res;
 }
 
 void CExportAsTextTab::ApplyAllFlags()
 {
-	CExportAsText::SObjectTypeFlags objectTypeFlags;
-	CExportAsText::SSceneInfoFlags sceneInfoFlags;
-	CExportAsText::SConstPropsFlags constPropsFlags;
-	CExportAsText::STDPropsFlags tdPropsFlags;
-	CExportAsText::SGeometriesFlags geometriesFlags;
-	CExportAsText::SMaterialsFlags materialsFlags;
-	CExportAsText::SGeneratorsFlags generatorFlags;
-
-	if (ui.radioButtonSaveAll->isChecked())
+	constexpr auto SetFlags = [](SBaseFlags* _flags, const QGroupBox* _group, const std::initializer_list<QCheckBox*>& _boxes)
 	{
-		objectTypeFlags.SetAll(true);
-		sceneInfoFlags.SetAll(true);
-		constPropsFlags.SetAll(true);
-		tdPropsFlags.SetAll(true);
-		geometriesFlags.SetAll(true);
-		materialsFlags.SetAll(true);
-		generatorFlags.SetAll(true);
-	}
+		if (!_group->isChecked())
+			_flags->SetAll(false);
+		else
+		{
+			std::vector<bool> vals;
+			for (const auto* b : _boxes)
+				vals.push_back(b->isChecked());
+			_flags->SetFlags(vals);
+		}
+	};
+
+	CExportAsText::SExportSelector settings;
+
+	if (ui.radioSaveAll->isChecked())
+		settings.SetAll(true);
 	else
 	{
-		if (ui.groupBoxObjectType->isChecked())
-			objectTypeFlags.SetFlags({ ui.checkBoxParticle->isChecked(), ui.checkBoxSolidBond->isChecked(), ui.checkBoxLiquidBond->isChecked(), ui.checkBoxTriangularWall->isChecked() });
-		else
-			objectTypeFlags.SetAll(false);
-
-		if (ui.groupBoxSceneInfo->isChecked())
-			sceneInfoFlags.SetFlags({ ui.checkBoxComputationalDomain->isChecked(), ui.checkBoxBoundaryConditions->isChecked(), ui.checkBoxAnisotropy->isChecked(), ui.checkBoxContactRadius->isChecked() });
-		else
-			sceneInfoFlags.SetAll(false);
-
-		if (ui.groupBoxConstProperties->isChecked())
-			constPropsFlags.SetFlags({ ui.checkBoxIdObject->isChecked(), ui.checkBoxObjectType->isChecked(), ui.checkBoxObjectGeometry->isChecked(), ui.checkBoxMaterial->isChecked(), ui.checkBoxIntervalActivity->isChecked() });
-		else
-			constPropsFlags.SetAll(false);
-
-		if (ui.groupBoxTDProperties->isChecked())
-			tdPropsFlags.SetFlags({ ui.checkBoxCoordinate->isChecked(), ui.checkBoxVelocity->isChecked(), ui.checkBoxAngularVelocity->isChecked(), ui.checkBoxTotalForce->isChecked(), ui.checkBoxForce->isChecked(), ui.checkBoxQuaternion->isChecked(), ui.checkBoxStressTensor->isChecked(), ui.checkBoxTotalTorque->isChecked(), ui.checkBoxTangOverlap->isChecked(), ui.checkBoxTemperature->isChecked(), ui.checkBoxPrincipalStress->isChecked() });
-		else
-			tdPropsFlags.SetAll(false);
-
-		if (ui.groupBoxGeometries->isChecked())
-			geometriesFlags.SetFlags({ ui.checkBoxGeometry->isChecked(), ui.checkBoxTDPGeometry->isChecked(), ui.checkBoxIndOfPlanesGeometry->isChecked() , ui.checkBoxAnalysisVolumes->isChecked() });
-		else
-			geometriesFlags.SetAll(false);
-
-		if (ui.groupBoxMaterials->isChecked())
-			materialsFlags.SetFlags({ ui.checkBoxCompounds->isChecked(), ui.checkBoxInteractions->isChecked(), ui.checkBoxMixtures->isChecked() });
-		else
-			materialsFlags.SetAll(false);
-
-		if (ui.groupBoxGenerators->isChecked())
-			generatorFlags.SetFlags({ ui.checkBoxPackageGenerator->isChecked(), ui.checkBoxBondsGenerator->isChecked() });
-		else
-			generatorFlags.SetAll(false);
+		SetFlags(&settings.objectTypes, ui.groupObjectType, { ui.checkTypeParts, ui.checkTypeBonds, ui.checkTypeWalls });
+		SetFlags(&settings.constProps , ui.groupConst     , { ui.checkConstID, ui.checkConstType, ui.checkConstGeometry, ui.checkConstMaterial, ui.checkConstActivity });
+		SetFlags(&settings.tdPropsPart, ui.groupTDParts   , { ui.checkTDPartAngVel, ui.checkTDPartCoord, ui.checkTDPartForce, ui.checkTDPartForceAmpl, ui.checkTDPartOrient, ui.checkTDPartPrincStress, ui.checkTDPartStressTens, ui.checkTDPartTemp, ui.checkTDPartVel });
+		SetFlags(&settings.tdPropsBond, ui.groupTDBonds   , { ui.checkTDBondCoord, ui.checkTDBondForce, ui.checkTDBondForceAmpl, ui.checkTDBondTangOverl, ui.checkTDBondTemp, ui.checkTDBondTotTorque, ui.checkTDBondVel });
+		SetFlags(&settings.tdPropsWall, ui.groupTDWalls   , { ui.checkTDWallCoord, ui.checkTDWallForce, ui.checkTDWallForceAmpl, ui.checkTDWallVel });
+		SetFlags(&settings.sceneInfo  , ui.groupScene     , { ui.checkInfoDomain, ui.checkInfoPBC, ui.checkInfoAnisotropy, ui.checkInfoContactRadius });
+		SetFlags(&settings.geometries , ui.groupGeometries, { ui.checkGeometryGeneral, ui.checkGeometryTDP, ui.checkGeometryWalls, ui.checkGeometryVolumes });
+		SetFlags(&settings.materials  , ui.groupMaterials , { ui.checkMaterialCompounds, ui.checkMaterialInteractions, ui.checkMaterialMixtures });
+		SetFlags(&settings.generators , ui.groupGenerators, { ui.checkGeneratorPackage, ui.checkGeneratorBonds });
 	}
 
-	m_exporter.SetFlags(objectTypeFlags, sceneInfoFlags, constPropsFlags, tdPropsFlags, geometriesFlags, materialsFlags, generatorFlags);
+	m_exporter.SetSelectors(settings);
 }
 
 void CExportAsTextTab::ExportPressed()
 {
 	static QString fileName;
 
-	if (m_exporter.GetCurrentStatus() == ERunningStatus::IDLE) // start button pressed
+	// start button pressed
+	if (m_exporter.GetStatus() == ERunningStatus::IDLE)
 	{
 		if (fileName.isEmpty())
 			fileName = QString::fromStdString(m_pSystemStructure->GetFileName());
-		const QFileInfo fi(fileName);
+		const QFileInfo fi{ fileName };
 		fileName = QFileDialog::getSaveFileName(this, tr("Export as text file"), fi.absolutePath(), tr("MUSEN files (*.txt);;All files (*.*);;"));
 		if (fileName.simplified().isEmpty()) return;
-		if (!IsFileWritable(fileName))
-		{
-			QMessageBox::warning(this, "Writing error", "Unable to save - the selected file is not writable.");
-			return;
-		}
-
-		// update running status
-		m_exporter.SetCurrentStatus(ERunningStatus::RUNNING);
 
 		// update UI elements
 		emit DisableOpenGLView();
 		emit RunningStatusChanged(ERunningStatus::RUNNING);
-		SetWholeTabEnabled(false);
-		ui.pushButtonExport->setText("Stop");
-		ui.pushButtonCancel->setEnabled(false);
+		SetEnabledAll(false);
+		ui.buttonExport->setText("Stop");
+		ui.buttonCancel->setEnabled(false);
 
 		// setup exporter
 		ApplyAllFlags();
-		m_exporter.SetTimePoints(m_vTimePoints);
-		m_exporter.SetFileName(qs2ss(fileName));
-		m_exporter.SetPrecision(ui.spinBoxPrecision->value());
+		m_exporter.SetFileName(fileName.toStdString());
+		m_exporter.SetTimePoints(CalculateTimePoints());
+		m_exporter.SetPrecision(ui.spinAddTDPrecision->value());
 
 		// run exporting
-		m_pExportThread = new CExportAsTextThread(&m_exporter);
-		m_pQTThread = new QThread();
-		connect(m_pQTThread, &QThread::started, m_pExportThread, &CExportAsTextThread::StartExporting);
-		connect(m_pExportThread, &CExportAsTextThread::finished, this, &CExportAsTextTab::ExportingFinished);
-		m_pExportThread->moveToThread(m_pQTThread);
-		m_pQTThread->start();
-		m_UpdateTimer.start(100);
+		m_exportWorker = new CExportWorker(&m_exporter);
+		m_exportThread = new QThread();
+		connect(m_exportThread, &QThread::started, m_exportWorker, &CExportWorker::StartExporting);
+		connect(m_exportWorker, &CExportWorker::finished, this, &CExportAsTextTab::ExportingFinished);
+		m_exportWorker->moveToThread(m_exportThread);
+		m_exportThread->start();
+		m_updateTimer.start(100);
 	}
-	else // stop button was pressed
+	// stop button was pressed
+	else
 	{
-		m_pExportThread->StopExporting();
-		while (m_exporter.GetCurrentStatus() != ERunningStatus::IDLE)
-			m_pQTThread->wait(100);
-		m_UpdateTimer.stop();
-		ui.progressBarExporting->setValue(0);
-		const double dRealProgressPercent = m_exporter.GetProgressPercent() > 50 ? m_exporter.GetProgressPercent() - 50 : 0;
-		QMessageBox::information(this, "Information", tr("About %1% of data has been exported.").arg(unsigned(dRealProgressPercent)));
+		m_exportWorker->StopExporting();
+		while (m_exporter.GetStatus() == ERunningStatus::RUNNING)
+			m_exportThread->wait(100);
+		m_updateTimer.stop();
+		QMessageBox::warning(this, "Information", tr("Export was interrupted."));
 		ExportingFinished();
 	}
 }
 
 void CExportAsTextTab::ExportingFinished()
 {
-	m_UpdateTimer.stop();
-	ui.statusLabel->setText("Export finished.");
-	if (m_pQTThread != nullptr)
+	m_updateTimer.stop();
+	if (m_exportThread != nullptr)
 	{
-		m_pQTThread->exit();
-		m_pQTThread = nullptr;
-		delete m_pExportThread;
-		m_pExportThread = nullptr;
+		m_exportThread->exit();
+		m_exportThread = nullptr;
+		delete m_exportWorker;
+		m_exportWorker = nullptr;
 	}
 
-	m_exporter.SetCurrentStatus(ERunningStatus::IDLE);
-	if (!m_exporter.GetErrorMessage().empty())
-	{
-		QMessageBox::warning(this, "Error", tr("%1").arg(ss2qs(m_exporter.GetErrorMessage())));
-		ui.statusLabel->setText("Export error.");
-		ui.progressBarExporting->setValue(0);
-	}
-	else
-		ui.progressBarExporting->setValue(100);
-	ui.pushButtonExport->setText("Export");
-	ui.pushButtonCancel->setEnabled(true);
+	if (m_exporter.GetStatus() == ERunningStatus::FAILED)
+		QMessageBox::warning(this, "Error", tr("%1").arg(QString::fromStdString(m_exporter.GetStatusMessage())));
+	UpdateProgressInfo();
+	m_exporter.SetStatus("", ERunningStatus::IDLE);
+	ui.buttonExport->setText("Export");
+	ui.buttonCancel->setEnabled(true);
 	emit RunningStatusChanged(ERunningStatus::IDLE);
 	emit EnableOpenGLView();
-	SetWholeTabEnabled(true);
+	SetEnabledAll(true);
 }

@@ -280,7 +280,7 @@ void CViewManager::SetCameraStandardView(const CVector3& _position) const
 		// for all walls
 		for (const auto* wall : m_systemStructure->GetAllWalls(m_time, true))
 		{
-			const CTriangle t = wall->GetCoords(m_time);
+			const CTriangle t = wall->GetPlaneCoords(m_time);
 			minCoord = Min(minCoord, Min(t.p1, t.p2, t.p3));
 			maxCoord = Max(maxCoord, Max(t.p1, t.p2, t.p3));
 		}
@@ -866,22 +866,25 @@ void CViewManager::DoUpdateParticles() const
 	// obtain colors
 	const std::vector<QColor> colors = GetObjectsColors(particles, {});
 
+	// prepare system structure to read from time point
+	m_systemStructure->PrepareTimePointForRead(m_time);
+
 	// for all visible particles
 	for (const auto& p : particles)
 	{
-		const CVector3 coord = p->GetCoordinates(m_time);
+		const CVector3 coord = p->GetCoordinates();
 		const auto r = static_cast<float>(p->GetRadius());
 		const QColor color = colors[&p - &particles[0]];
 		data.emplace_back(COpenGLViewShader::SParticle{ C2Q(coord), color, r });
 		// add orientations for this particle if necessary
 		if (m_viewSettings->Visibility().orientations)
-			data2.emplace_back(COpenGLViewShader::SOrientation{ C2Q(coord), C2Q(p->GetOrientation(m_time)), r });
+			data2.emplace_back(COpenGLViewShader::SOrientation{ C2Q(coord), C2Q(p->GetOrientation()), r });
 	}
 
 	// add selected particles disregarding any filters and cuttings
 	for (const auto& id : m_viewSettings->SelectedObjects())
 		if (const CSphere* p = dynamic_cast<CSphere*>(m_systemStructure->GetObjectByIndex(id)))
-			data.emplace_back(COpenGLViewShader::SParticle{ C2Q(p->GetCoordinates(m_time)), Qt::yellow, static_cast<float>(p->GetRadius()) * 1.1f });
+			data.emplace_back(COpenGLViewShader::SParticle{ C2Q(p->GetCoordinates()), Qt::yellow, static_cast<float>(p->GetRadius()) * 1.1f });
 
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetParticles(data);
 	dynamic_cast<COpenGLViewShader*>(m_widget)->SetOrientations(data2);
@@ -903,12 +906,18 @@ void CViewManager::DoUpdateBonds() const
 	// periodic boundary conditions
 	const SPBC& pbc = m_systemStructure->GetPBC();
 
+	// prepare system structure to read from time point
+	m_systemStructure->PrepareTimePointForRead(m_time);
+
 	// for all active bonds
 	for (const auto& b : bonds)
 	{
 		// gather coordinates
-		const CVector3 p1 = m_systemStructure->GetObjectByIndex(b->m_nLeftObjectID)->GetCoordinates(m_time);
-		const CVector3 p2 = m_systemStructure->GetObjectByIndex(b->m_nRightObjectID)->GetCoordinates(m_time);
+		const auto* s1 = m_systemStructure->GetObjectByIndex(b->m_nLeftObjectID);
+		const auto* s2 = m_systemStructure->GetObjectByIndex(b->m_nRightObjectID);
+		if (!s1 || !s2) continue;
+		const CVector3 p1 = s1->GetCoordinates();
+		const CVector3 p2 = s2->GetCoordinates();
 		const CVector3 coord1 = p1;
 		const CVector3 coord2 = !pbc.bEnabled ? p2 : p1 + GetSolidBond(p1, p2, pbc); // to consider PBC, calculate the second coordinate through the bond's length
 		// add bond
@@ -957,7 +966,7 @@ void CViewManager::DoUpdateWalls() const
 		for (const auto& w : m_systemStructure->GetAllWallsForGeometry(m_time, geometry->Key()))
 		{
 			if (m_viewSettings->Cutting().cutByVolumes && !visible[w->m_lObjectID]) continue;	// cut by volume
-			const CTriangle t = w->GetCoords(m_time);
+			const CTriangle t = w->GetPlaneCoords(m_time);
 			if (m_viewSettings->Cutting().CutByPlanes() && (IsCutByPlanes(t.p1) || IsCutByPlanes(t.p2) || IsCutByPlanes(t.p3))) continue;	// cut by planes
 			data.emplace_back(COpenGLViewShader::STriangle{ C2Q(t.p1), C2Q(t.p2), C2Q(t.p3), color });
 		}

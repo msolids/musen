@@ -51,12 +51,9 @@ private:
 
 	CSimulatorManager* m_pSimulatorManager;
 	QTimer m_UpdateTimer;	// timer which is used to update statistic
-	QElapsedTimer m_SimIntervalTimer;	// real-time timer to measure simulation time
-	qint64 m_PausedTime; // stores value of real-time timer during pause
 	CSimulatorThread* m_pDEMThreadNew;
 	QThread* m_pQTThread;
 	bool m_bSimulationStarted;
-	QDateTime m_startDateTime;
 
 public:
 	CSimulatorTab(CSimulatorManager* _pSimManager, QSettings* _pSettings, QWidget *parent = 0);

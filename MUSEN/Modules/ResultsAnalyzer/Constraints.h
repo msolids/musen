@@ -146,6 +146,13 @@ public:
 	// Returns list of objects with type _nObjType filtered by diameters constraints. _vIndexes will be filtered if specified, or global list of objects from SystemStructure otherwise.
 	std::set<size_t> ApplyDiameterFilter(double _dTime, unsigned _nObjType, std::set<size_t>* _vIndexes = nullptr) const;
 
+	// Returns a list of objects filtered by materials.
+	[[nodiscard]] std::set<size_t> ApplyMaterialFilter(const std::set<size_t>& _ids) const;
+	// Returns a list of objects filtered by diameters.
+	[[nodiscard]] std::set<size_t> ApplyDiameterFilter(const std::set<size_t>& _ids) const;
+	// Returns a list of objects filtered by position in volumes at the selected time point.
+	[[nodiscard]] std::set<size_t> ApplyVolumeFilter(const std::set<size_t>& _ids, double _time) const;
+
 	// Returns list of active particles filtered by all active constraints.
 	std::vector<size_t> FilteredParticles(double _dTime) const;
 	// Returns list of active bonds filtered by all active constraints.

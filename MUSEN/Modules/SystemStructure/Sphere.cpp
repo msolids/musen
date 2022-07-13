@@ -11,6 +11,7 @@ CSphere::CSphere(unsigned _id, CDemStorage* _storage) : CPhysicalObject(_id, _st
 	m_storage->Object(m_lObjectID)->set_type(ProtoParticleInfo::kSphere);
 	m_dRadius = 0;
 	m_dContactRadius = 0;
+	m_dHeatCapacity = _HEAT_CAPACITY_DEFAULT;
 	UpdatePrecalculatedValues();
 }
 
@@ -59,6 +60,7 @@ void CSphere::SetContactRadius(const double& _radius)
 void CSphere::UpdateCompoundProperties(const CCompound* _pCompound)
 {
 	m_dMass = GetVolume() * _pCompound->GetPropertyValue(PROPERTY_DENSITY);
+	m_dHeatCapacity = _pCompound->GetPropertyValue(PROPERTY_HEAT_CAPACITY);
 	UpdatePrecalculatedValues();
 }
 

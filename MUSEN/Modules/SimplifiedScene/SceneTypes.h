@@ -83,10 +83,11 @@ private:
 	{
 		double temperature;
 		double heatCapacity;
+		double heatFlux;
 
 		SThermals() = default;
-		SThermals(double _temperature, double _heatCapacity)
-			: temperature{ _temperature }, heatCapacity{ _heatCapacity } {}
+		SThermals(double _temperature, double _heatCapacity, double _heatFlux = 0)
+			: temperature{ _temperature }, heatCapacity{ _heatCapacity }, heatFlux{ _heatFlux } {}
 	};
 
 	// required variables
@@ -112,6 +113,7 @@ public:
 
 	ADD_GET_SET(Temperature,	thermalInfo, temperature)
 	ADD_GET_SET(HeatCapacity,	thermalInfo, heatCapacity)
+	ADD_GET_SET(HeatFlux,       thermalInfo, heatFlux)
 
 	bool ThermalsExist() const { return thermalInfo.size() == Size() && !Empty(); }
 	bool QuaternionExist() const { return quaternion.size() == Size() && !Empty(); }
@@ -392,20 +394,22 @@ struct SSavedCollision
 // Used to describe particle-particle and particle-wall collision.
 struct SCollision
 {
-	bool bContactStillExist; // this flag is used to determine if the contact still exist in compare to previous step
-	uint8_t nVirtShift;      // shifts to calculate parameters of virtual particles in case of PBC. For BOX: shift {x, y, z}, for CYLINDER: rotation angle {cos(a), sin (a), 0}.
-	uint16_t nInteractProp;  // index of interaction property
-	unsigned nSrcID;		 // identifier of first contact partner or wall (nWallID)
-	unsigned nDstID;		 // identifier of second contact partner
-	double dNormalOverlap;	 //
-	double dEquivMass;		 // equivalent mass
-	double dEquivRadius;	 // equivalent radius
-	CVector3 vTangOverlap;	 // old tangential overlap
-	CVector3 vTangForce;	 // total tangential force
+	bool bContactStillExist;   // this flag is used to determine if the contact still exist in compare to previous step
+	uint8_t nVirtShift;        // shifts to calculate parameters of virtual particles in case of PBC. For BOX: shift {x, y, z}, for CYLINDER: rotation angle {cos(a), sin (a), 0}.
+	uint16_t nInteractProp;    // index of interaction property
+	unsigned nSrcID;		   // identifier of first contact partner or wall (nWallID)
+	unsigned nDstID;		   // identifier of second contact partner
+	double dNormalOverlap;	   //
+	double dEquivMass;		   // equivalent mass
+	double dEquivRadius;	   // equivalent radius
+	double dInitNormalOverlap; // used for modeling of sintering process
+	double dHeatFlux;		   // heat flux to this particle caused
+	CVector3 vTangOverlap;	   // old tangential overlap
+	CVector3 vTangForce;	   // total tangential force
 	CVector3 vTotalForce;
-	CVector3 vResultMoment1; // moment which acts on first particle
-	CVector3 vResultMoment2; // moment which acts on first particle
-	CVector3 vContactVector; // For PP contact: dstCoord - srcCoord. For PW contact: contact point.
+	CVector3 vResultMoment1;   // moment which acts on first particle
+	CVector3 vResultMoment2;   // moment which acts on first particle
+	CVector3 vContactVector;   // For PP contact: dstCoord - srcCoord. For PW contact: contact point.
 	SSavedCollision *pSave;
 	SCollision()
 	{
@@ -415,6 +419,8 @@ struct SCollision
 		vResultMoment1.Init(0);
 		vResultMoment2.Init(0);
 		vContactVector.Init(0);
+		dInitNormalOverlap = 0;
+		dHeatFlux = 0;
 	}
 };
 

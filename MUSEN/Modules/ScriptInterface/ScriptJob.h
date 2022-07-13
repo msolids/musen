@@ -6,6 +6,7 @@
 #include "BaseSimulator.h"
 #include "ExportAsText.h"
 #include "TriState.h"
+#include <array>
 
 struct SJob
 {
@@ -62,6 +63,7 @@ struct SJob
 		size_t iFraction;			// Index of a fraction within the mixture.
 		std::string compoundKey;	// Unique key of compound.
 		double diameter;			// Diameter of particles.
+		double contactDiameter;		// Contact diameter of particles.
 		double fraction;			// Number fraction of particles.
 	};
 
@@ -123,6 +125,8 @@ struct SJob
 	CTriState contactRadiusFlag{ CTriState::EState::UNDEFINED };
 	CVector3 vExtAccel{ std::numeric_limits<double>::infinity() };
 	SVolumeType simulationDomain{ CVector3{ std::numeric_limits<double>::infinity() }, CVector3{ std::numeric_limits<double>::infinity() } };
+	std::array<CTriState, 3> pbcFlags; // is it enabled in X,Y,Z directions
+	SVolumeType pbcDomain{ CVector3{ std::numeric_limits<double>::infinity() }, CVector3{ std::numeric_limits<double>::infinity() } };
 
 	// materials
 	std::vector<SMDBMaterialProperties> materialProperties;
@@ -146,13 +150,7 @@ struct SJob
 	std::map<size_t, SBondGenerator> bondGenerators;
 
 	// export as text
-	CExportAsText::SObjectTypeFlags txtExportObjects;
-	CExportAsText::SSceneInfoFlags txtExportScene;
-	CExportAsText::SConstPropsFlags txtExportConst;
-	CExportAsText::STDPropsFlags txtExportTD;
-	CExportAsText::SGeometriesFlags txtExportGeometries;
-	CExportAsText::SMaterialsFlags txtExportMaterials;
-	CExportAsText::SGeneratorsFlags txtExportGenerators;
+	CExportAsText::SExportSelector txtExportSettings;
 	double timeBeg{ -1 };
 	double timeEnd{ -1 };
 	int txtPrecision{ 6 };

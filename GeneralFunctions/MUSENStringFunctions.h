@@ -182,6 +182,25 @@ template<typename E> ReadEnumFromStreamHelper<E> S2E(E& _e)
 	return ReadEnumFromStreamHelper<E>(_e);
 }
 
+// Writes pair into stream
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& _s, const std::pair<T1, T2>& _val)
+{
+	_s << _val.first << " " << _val.second;
+	return _s;
+}
+
+// Writes vector into stream
+template<typename T>
+std::ostream& operator<<(std::ostream& _s, const std::vector<T>& _val)
+{
+	if (_val.empty()) return _s;
+	_s << _val.front();
+	for (size_t i = 1; i < _val.size(); ++i)
+		_s << " " << _val[i];
+	return _s;
+}
+
 inline size_t findStringAfter(std::istream& _file, const std::string& _string, std::string& _sRetString)
 {
 	std::string line;

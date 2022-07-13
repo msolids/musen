@@ -151,6 +151,20 @@ void CMixture::SetFractionValue(size_t _iFraction, double _dFraction)
 		m_vFractions[_iFraction]->dFraction = _dFraction;
 }
 
+std::vector<SCompoundFraction*> CMixture::GetFractions()
+{
+	return m_vFractions;
+}
+
+std::vector<const SCompoundFraction*> CMixture::GetFractions() const
+{
+	std::vector<const SCompoundFraction*> res;
+	res.reserve(m_vFractions.size());
+	for (const auto& f : m_vFractions)
+		res.push_back(f);
+	return res;
+}
+
 std::string CMixture::GetFractionName(size_t _iFraction) const
 {
 	if (_iFraction < m_vFractions.size())

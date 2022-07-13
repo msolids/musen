@@ -113,6 +113,9 @@ struct SGPUParticles : SBasicGPUStruct
 	unsigned* CompoundIndices;
 	unsigned* Activities;		// List of flags for particles activity.
 	double* EndActivities;		// End time of activity for particles.
+	double* Temperatures;
+	double* HeatFluxes;
+	double* HeatCapacities;
 	double* TempDouble1;		// Temporary data to use in GPU::GetMaxParticleVelocity().
 	double* TempDouble2;		// Temporary data to use in GPU::GetMaxParticleVelocity().
 	unsigned *TempUInt;			// Temporary data to use in GPU::CheckParticlesInDomain().
@@ -135,6 +138,9 @@ private:
 		ADD_FIELD(CompoundIndices);
 		ADD_FIELD(Activities);
 		ADD_FIELD(EndActivities);
+		ADD_FIELD(Temperatures);
+		ADD_FIELD(HeatFluxes);
+		ADD_FIELD(HeatCapacities);
 		ADD_FIELD(TempDouble1);
 		ADD_FIELD(TempDouble2);
 		ADD_FIELD(TempUInt);
@@ -251,6 +257,7 @@ struct SGPUCollisions : SBasicGPUStruct
 	unsigned* SrcIDs;			// Identifier of first contact partner or wall (nWallID).
 	unsigned* DstIDs;			// Identifier of second contact partner.
 	double* NormalOverlaps;
+	double* InitNormalOverlaps;
 	double* EquivMasses;		// Equivalent mass.
 	double* EquivRadii;			// Equivalent radius.
 	double* SumRadii;			// summarized radii
@@ -271,6 +278,7 @@ private:
 		ADD_FIELD(SrcIDs);
 		ADD_FIELD(DstIDs)
 		ADD_FIELD(NormalOverlaps);
+		ADD_FIELD(InitNormalOverlaps);
 		ADD_FIELD(EquivMasses);
 		ADD_FIELD(EquivRadii);
 		ADD_FIELD(SumRadii);

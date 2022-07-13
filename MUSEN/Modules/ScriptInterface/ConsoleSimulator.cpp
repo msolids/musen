@@ -66,6 +66,21 @@ void CConsoleSimulator::SetupSystemStructure() const
 	if (m_job.anisotropyFlag.IsDefined())		m_systemStructure.EnableAnisotropy(m_job.anisotropyFlag.ToBool());
 	if (m_job.contactRadiusFlag.IsDefined())	m_systemStructure.EnableContactRadius(m_job.contactRadiusFlag.ToBool());
 	if (!m_job.simulationDomain.IsInf())		m_systemStructure.SetSimulationDomain(m_job.simulationDomain);
+	if (m_job.pbcFlags[0].IsDefined())
+	{
+		SPBC pbc = m_systemStructure.GetPBC();
+		pbc.bX = m_job.pbcFlags[0].ToBool();
+		pbc.bY = m_job.pbcFlags[1].ToBool();
+		pbc.bZ = m_job.pbcFlags[2].ToBool();
+		pbc.bEnabled = pbc.bX || pbc.bY || pbc.bZ;
+		m_systemStructure.SetPBC(pbc);
+	}
+	if (!m_job.pbcDomain.IsInf())
+	{
+		SPBC pbc = m_systemStructure.GetPBC();
+		pbc.SetDomain(m_job.pbcDomain.coordBeg, m_job.pbcDomain.coordEnd);
+		m_systemStructure.SetPBC(pbc);
+	}
 
 	const auto GetGeometryPtr = [&](const SJob::SGeometryMotionInterval& _motion) -> CRealGeometry*
 	{
@@ -138,6 +153,7 @@ void CConsoleSimulator::SetupModelManager()
 	SetupModel(EMusenModelType::SB);
 	SetupModel(EMusenModelType::LB);
 	SetupModel(EMusenModelType::EF);
+	SetupModel(EMusenModelType::PPHT);
 
 	if (m_job.connectedPPContactFlag.IsDefined()) m_modelManager.SetConnectedPPContact(m_job.connectedPPContactFlag.ToBool());
 }
@@ -224,6 +240,7 @@ bool CConsoleSimulator::SimulationPrecheck() const
 	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::SB));
 	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::LB));
 	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::EF));
+	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::PPHT));
 
 	if (!m_modelManager.IsModelDefined(EMusenModelType::PP))
 		warningMessage += "Warning: Particle-particle contact model is not specified\n";
@@ -337,11 +354,12 @@ void CConsoleSimulator::PrintModelsInfo()
 		if (!_model->GetParametersStr().empty())
 			m_out << "\t" << _model->GetParametersStr() << std::endl;
 	};
-	PrintModel(m_modelManager.GetModel(EMusenModelType::PP), "Particle-particle contacts");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::PW), "Particle-wall contacts");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::SB), "Solid bonds");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::LB), "Liquid bonds");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::EF), "External force");
+	PrintModel(m_modelManager.GetModel(EMusenModelType::PP)  , "Particle-particle contacts");
+	PrintModel(m_modelManager.GetModel(EMusenModelType::PW)  , "Particle-wall contacts");
+	PrintModel(m_modelManager.GetModel(EMusenModelType::SB)  , "Solid bonds");
+	PrintModel(m_modelManager.GetModel(EMusenModelType::LB)  , "Liquid bonds");
+	PrintModel(m_modelManager.GetModel(EMusenModelType::EF)  , "External force");
+	PrintModel(m_modelManager.GetModel(EMusenModelType::PPHT), "Particle-particle heat transfer");
 }
 
 void CConsoleSimulator::PrintGPUInfo() const

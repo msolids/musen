@@ -7,7 +7,7 @@
     <ClCompile Include="ModelSBKelvin.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ModelSBKelvin.cu" />
-    <None Include="ModelSBKelvin.cuh" />
+    <CudaCompile Include="ModelSBKelvin.cu" />
+    <CudaCompile Include="ModelSBKelvin.cuh" />
   </ItemGroup>
 </Project>

@@ -98,6 +98,9 @@ public:
 	/** This function returns the vector which contains the indexes of all objects which related to input parameters */
 	void GetAllObjectsOfSpecifiedCompound(double _dTime, std::vector<CPhysicalObject*>* _vecIndexes, unsigned _nObjectType, const std::string& _sCompoundKey = "");
 
+	// Returns IDs of all defined objects.
+	std::vector<size_t> GetAllObjectsIDs() const;
+
 	std::vector<CPhysicalObject*> GetAllActiveObjects(double _dTime, unsigned _nObjectType = UNKNOWN_OBJECT);
 	std::vector<CSphere*> GetAllSpheres(double _time, bool _onlyActive = true);
 	std::vector<const CSphere*> GetAllSpheres(double _time, bool _onlyActive = true) const;
@@ -134,9 +137,17 @@ public:
 
 	// returns the volume of the bond
 	double GetBondVolume(double _dTime, size_t _nBondID);
-	CVector3 GetBondVelocity(double _dTime, size_t _nBondID);
+	// Returns velocity of the bond at given time point.
+	CVector3 GetBondVelocity(double _dTime, size_t _nBondID) const;
+	// Returns coordinate of the bond at given time point.
 	CVector3 GetBondCoordinate(double _dTime, size_t _nBondID) const;
+	// Returns vector of the bond at given time point.
 	CVector3 GetBond(double _dTime, size_t _nBondID) const;
+
+	// Returns velocity of the bond at current time point (selected with PrepareTimePointForRead).
+	CVector3 GetBondVelocity(size_t _bondID) const;
+	// Returns coordinate of the bond at current time point (selected with PrepareTimePointForRead).
+	CVector3 GetBondCoordinate(size_t _bondID) const;
 
 	// return the maximal time for which the objects have been defined
 	double GetMaxTime() const;

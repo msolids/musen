@@ -142,8 +142,6 @@ void CViewOptionsTab::UpdateMaterials() const
 
 void CViewOptionsTab::UpdateGeometries() const
 {
-	SelectAllGeometries();
-	SelectAllVolumes();
 	UpdateGeometriesVisibility();
 	UpdateVolumesVisibility();
 }

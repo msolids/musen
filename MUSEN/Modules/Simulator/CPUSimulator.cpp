@@ -75,6 +75,7 @@ void CCPUSimulator::PreCalculationStep()
 void CCPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 {
 	m_scene.ClearAllForcesAndMoments();
+	CheckParticlesInDomain();
 
 	// if there is no contact model, then there is no necessity to calculate contacts
 	if (m_pPPModel || m_pPWModel)
@@ -82,15 +83,19 @@ void CCPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 		UpdateVerletLists(_dTimeStep); // between PP and PW
 		m_collisionsCalculator.UpdateCollisionMatrixes(_dTimeStep, m_currentTime);
 	}
+
+	if (m_pPPHTModel)
+		m_scene.ClearHeatFluxes();
 }
 
 void CCPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
-	if (m_pEFModel) CalculateForcesEF(_dTimeStep);
-	if (m_pPPModel) CalculateForcesPP(_dTimeStep);
-	if (m_pPWModel) CalculateForcesPW(_dTimeStep);
-	if (m_pSBModel) CalculateForcesSB(_dTimeStep);
-	if (m_pLBModel) CalculateForcesLB(_dTimeStep);
+	if (m_pEFModel)   CalculateForcesEF(_dTimeStep);
+	if (m_pPPModel)   CalculateForcesPP(_dTimeStep);
+	if (m_pPWModel)   CalculateForcesPW(_dTimeStep);
+	if (m_pSBModel)   CalculateForcesSB(_dTimeStep);
+	if (m_pLBModel)   CalculateForcesLB(_dTimeStep);
+	if (m_pPPHTModel) CalculateHeatTransferPP(_dTimeStep);
 	m_collisionsCalculator.CalculateTotalStatisticsInfo();
 }
 
@@ -167,14 +172,14 @@ void CCPUSimulator::CalculateForcesSB(double _dTimeStep)
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 	SSolidBondStruct& bonds = m_scene.GetRefToSolidBonds();
 	std::vector<std::vector<unsigned>>& partToSolidBonds = *m_scene.GetPointerToPartToSolidBonds();
-	std::vector<unsigned> vBrockenBonds(m_nThreads, 0);
+	std::vector<unsigned> vBrokenBonds(m_nThreads, 0);
 
 	ParallelFor(m_scene.GetBondsNumber(), [&](size_t i)
 	{
 		if (bonds.Active(i))
-			m_pSBModel->Calculate(m_currentTime, _dTimeStep, i, bonds, &vBrockenBonds[i% m_nThreads]);
+			m_pSBModel->Calculate(m_currentTime, _dTimeStep, i, bonds, &vBrokenBonds[i% m_nThreads]);
 	});
-	m_nBrockenBonds += VectorSum(vBrockenBonds);
+	m_nBrokenBonds += VectorSum(vBrokenBonds);
 
 	ParallelFor(partToSolidBonds.size(), [&](size_t i)
 	{
@@ -204,14 +209,14 @@ void CCPUSimulator::CalculateForcesLB(double _dTimeStep)
 
 	SLiquidBondStruct& bonds = m_scene.GetRefToLiquidBonds();
 	SParticleStruct& particles = m_scene.GetRefToParticles();
-	std::vector<unsigned> vBrockenBonds(m_nThreads, 0);
+	std::vector<unsigned> vBrokenBonds(m_nThreads, 0);
 
 	ParallelFor(m_scene.GetLiquidBondsNumber(), [&](size_t i)
 	{
 		if (bonds.Active(i))
-			m_pLBModel->Calculate(m_currentTime, _dTimeStep,i, bonds, &vBrockenBonds[i%m_nThreads]);
+			m_pLBModel->Calculate(m_currentTime, _dTimeStep,i, bonds, &vBrokenBonds[i%m_nThreads]);
 	});
-	m_nBrockenLiquidBonds += VectorSum(vBrockenBonds);
+	m_nBrokenLiquidBonds += VectorSum(vBrokenBonds);
 
 	for (size_t i = 0; i < m_scene.GetLiquidBondsNumber(); ++i)
 		if (bonds.Active(i))
@@ -233,6 +238,35 @@ void CCPUSimulator::CalculateForcesEF(double _dTimeStep)
 	{
 		if (particles.Active(i))
 			m_pEFModel->Calculate(m_currentTime, _dTimeStep,i, particles);
+	});
+}
+
+void CCPUSimulator::CalculateHeatTransferPP(double _dTimeStep)
+{
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+
+	m_pPPHTModel->Precalculate(m_currentTime, _dTimeStep);
+
+	for (auto& vCollisions : m_tempCollPPArray)
+		for (auto& coll : vCollisions)
+			coll.clear();
+
+	ParallelFor(m_collisionsCalculator.m_vCollMatrixPP.size(), [&](size_t i)
+	{
+		const size_t nIndex = i % m_nThreads;
+		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
+		{
+			m_pPPHTModel->Calculate(m_currentTime, _dTimeStep, pColl);
+			particles.HeatFlux(i) += pColl->dHeatFlux;
+			m_tempCollPPArray[nIndex][pColl->nDstID % m_nThreads].push_back(pColl);
+		}
+	});
+
+	ParallelFor([&](size_t i)
+	{
+		for (size_t j = 0; j < m_nThreads; ++j)
+			for (auto* pColl : m_tempCollPPArray[j][i])
+				particles.HeatFlux(pColl->nDstID) -= pColl->dHeatFlux;
 	});
 }
 
@@ -404,6 +438,18 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 	}
 }
 
+void CCPUSimulator::UpdateTemperatures(double _timeStep, bool _predictionStep)
+{
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	const double timeStep = !_predictionStep ? m_currSimulationStep : m_currSimulationStep / 2.;
+	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
+	{
+		const double tempCelcius = particles.Temperature(i) - 273.15;
+		const double heatCapacity = 1117 + 0.14*tempCelcius - 411 * exp(-0.006*tempCelcius);
+		particles.Temperature(i) += particles.HeatFlux(i) / (heatCapacity*particles.Mass(i)) * timeStep;
+	});
+}
+
 void CCPUSimulator::MoveMultispheres(double _dTimeStep, bool _bPredictionStep)
 {
 	SMultiSphere& pMultispheres = m_scene.GetRefToMultispheres();
@@ -531,6 +577,8 @@ void CCPUSimulator::PrepareAdditionalSavingData()
 void CCPUSimulator::SaveData()
 {
 	const clock_t t = clock();
+	if (m_scene.GetRefToParticles().ThermalsExist())
+		m_maxParticleTemperature = m_scene.GetMaxParticleTemperature();
 	p_SaveData();
 	m_verletList.AddDisregardingTimeInterval(clock() - t);
 }
@@ -541,7 +589,6 @@ void CCPUSimulator::UpdateVerletLists(double _dTimeStep)
 	m_maxParticleVelocity = m_scene.GetMaxParticleVelocity();
 	if (m_wallsVelocityChanged)
 		m_maxWallVelocity = m_scene.GetMaxWallVelocity();
-	CheckParticlesInDomain();
 	if (m_verletList.IsNeedToBeUpdated(_dTimeStep, m_scene.GetMaxPartVerletDistance(), m_maxWallVelocity))
 	{
 		m_verletList.UpdateList(m_currentTime);

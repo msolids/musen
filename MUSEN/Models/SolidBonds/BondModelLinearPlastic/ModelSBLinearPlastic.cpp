@@ -13,11 +13,10 @@ CModelSBLinearPlastic::CModelSBLinearPlastic()
 	AddParameter("KLoad", "Loading stiffness", 1e+6);
 	AddParameter("KUnLoad", "Unloading stiffness", 1e+6);
 
-
 	m_hasGPUSupport = true;
 }
 
-void CModelSBLinearPlastic::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrockenBondsNum)   const
+void CModelSBLinearPlastic::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	// relative angle velocity of contact partners
 	CVector3 relAngleVel = Particles().AnglVel(_iLeft) - Particles().AnglVel(_iRight);
@@ -87,6 +86,6 @@ void CModelSBLinearPlastic::CalculateSBForce(double _time, double _timeStep, siz
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;
-		*_pBrockenBondsNum += 1;
+		*_pBrokenBondsNum += 1;
 	}
 }

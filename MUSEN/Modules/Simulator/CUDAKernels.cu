@@ -105,6 +105,17 @@ namespace CUDAKernels
 		}
 	}
 
+	__global__ void UpdateTemperatures_kernel(double _dTimeStep, unsigned _nParticles, const double* _partHeatCapacities, const double* _partMasses,
+		const double* _partHeatFluxes, double* _partTemperatures)
+	{
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
+		{
+			const double tempCelcius = _partTemperatures[i] - 273.15;
+			const double heatCapacity = 1117 + 0.14*tempCelcius - 411 * exp(-0.006*tempCelcius);
+			_partTemperatures[i] += _partHeatFluxes[i] / (heatCapacity * _partMasses[i]) * _dTimeStep;
+		}
+	}
+
 	__global__ void CalculateGeometryCenter_kernel(unsigned _nWallsInGeom, const unsigned* _wallsInGeom,
 		CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3, CVector3* _vCenter)
 	{
@@ -169,8 +180,8 @@ namespace CUDAKernels
 
 	__global__ void CopyCollisionsPP_kernel(unsigned _nCollisionsOld,
 		const unsigned* _vVerlSrcOld, const unsigned* _vVerlDstOld, const unsigned* _vVerlDstNew, const unsigned* _vPartInd_VerNew, const bool* _oldActiveCollFlags,
-		const double* _oldNormalOverlap, const CVector3* _oldTangOverlap, const CVector3* _oldContactVector, const CVector3* _oldTotalForce,
-		double* _newNormalOverlap, CVector3* _newTangOverlap, CVector3* _newContactVector, CVector3* _newTotalForce)
+		const double* _oldNormalOverlap, const double* _oldInitNormalOverlap, const CVector3* _oldTangOverlap, const CVector3* _oldContactVector, const CVector3* _oldTotalForce,
+		double* _newNormalOverlap, double* _newInitNormalOverlap, CVector3* _newTangOverlap, CVector3* _newContactVector, CVector3* _newTotalForce)
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nCollisionsOld; i += blockDim.x * gridDim.x)
 		{
@@ -185,6 +196,7 @@ namespace CUDAKernels
 				if (_vVerlDstNew[k] == iDstOld)
 				{
 					_newNormalOverlap[k] = _oldNormalOverlap[i];
+					_newInitNormalOverlap[k] = _oldInitNormalOverlap[i];
 					_newTangOverlap[k] = _oldTangOverlap[i];
 					_newContactVector[k] = _oldContactVector[i];
 					_newTotalForce[k] = _oldTotalForce[i];
@@ -251,7 +263,8 @@ namespace CUDAKernels
 	}
 
 	__global__ void UpdateActiveCollisionsPP_kernel(const unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst, const CVector3* _partCoords,
-		const uint8_t* _collVirtShifts, const double* _collSumRadii, bool* _collActiveFlags, double* _collNormalOverlaps, CVector3* _collContactVectors, CVector3* _collTangOverlaps)
+		const uint8_t* _collVirtShifts, const double* _collSumRadii, bool* _collActiveFlags, double* _collNormalOverlaps, double* _collInitNormalOverlaps,
+		CVector3* _collContactVectors, CVector3* _collTangOverlaps)
 	{
 		for (unsigned iColl = blockIdx.x * blockDim.x + threadIdx.x; iColl < _nCollisions; iColl += blockDim.x * gridDim.x)
 		{
@@ -278,7 +291,10 @@ namespace CUDAKernels
 				_collContactVectors[iColl] = contactVector;
 			}
 			else
+			{
 				_collTangOverlaps[iColl].Init(0);
+				_collInitNormalOverlaps[iColl] = 0;
+			}
 		}
 	}
 

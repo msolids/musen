@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include <string>
+#include "MUSENStringFunctions.h"
+#include <filesystem>
 #include <sys/stat.h>
 #ifdef PATH_CONFIGURED
 #include <dirent.h>
@@ -112,5 +113,19 @@ namespace MUSENFileFunctions
 	inline bool renameFile(const std::string& _oldName, const std::string& _newName)
 	{
 		return std::rename(_oldName.c_str(), _newName.c_str()) == 0;
+	}
+
+	inline bool IsDirWriteProtected(const std::filesystem::path& _dir)
+	{
+		std::string testDir;
+		do
+		{
+			testDir = "temp_musen_write_test_" + GenerateKey();
+		} while (std::filesystem::exists(testDir));
+		const std::filesystem::path path = _dir / testDir;
+		if (!create_directories(path)) return true;
+		if (!exists(path)) return true;
+		remove_all(path);
+		return false;
 	}
 }

@@ -50,6 +50,25 @@ double CGPUScene::GetMaxPartVelocity(SGPUParticles& _particles) const
 	return std::sqrt(maxVelocity);
 }
 
+double CGPUScene::GetMaxPartTemperature(SGPUParticles& _particles) const
+{
+	if (!_particles.nElements)
+		return 0.0;
+
+	static thrust::device_vector<double> maxTemperature;
+	if (maxTemperature.empty())
+		maxTemperature.resize(1);
+	static thrust::device_vector<double> temp;
+	if (temp.size() != _particles.nElements)
+		temp.resize(_particles.nElements);
+
+	CUDA_REDUCE_CALLER(CUDAKernels::ReduceMax_kernel, _particles.nElements, _particles.Temperatures, temp.data().get(), maxTemperature.data().get());
+
+	double res;
+	CUDA_MEMCPY_D2H(&res, maxTemperature.data().get(), sizeof(double));
+	return res;
+}
+
 void CGPUScene::GetMaxWallVelocity(SGPUWalls& _walls, double* _bufMaxVel) const
 {
 	if (!_walls.nElements)

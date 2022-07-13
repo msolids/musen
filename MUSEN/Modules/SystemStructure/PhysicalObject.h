@@ -117,6 +117,8 @@ public:
 
 	bool IsActive(const double& _dTime) const;
 	void GetActivityTimeInterval(double* _pStartTime, double* _pEndTime) const;
+	[[nodiscard]] std::pair<double, double> GetActivityTimeInterval() const;
+	double GetActivityStart() const; // return time point when object has become active
 	double GetActivityEnd() const; // return time point when object has become inactive
 	void SetStartActivityTime(double _dTime);
 	void SetEndActivityTime(double _dTime);

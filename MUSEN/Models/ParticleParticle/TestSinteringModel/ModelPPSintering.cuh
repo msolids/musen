@@ -7,10 +7,10 @@
 #include "BasicTypes.h"
 
 void __global__ CUDA_CalcPPForce_S_kernel(
-	const SInteractProps	_interactProps[],
+	const SInteractProps _interactProps[],
 
-	const CVector3	_partVels[],
-	CVector3		_partForces[],
+	const CVector3 _partVels[],
+	CVector3       _partForces[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],

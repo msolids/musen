@@ -82,7 +82,7 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 	if (!m_bActive) return 0;
 	if ( (_dCurrentTime < m_dStartGenerationTime) || (_dCurrentTime > m_dEndGenerationTime )  ) return 0;
 	if (_dCurrentTime < m_dLastGenerationTime + m_dUpdateStep) return 0;
-	unsigned nNewObjects = (unsigned)floor((_dCurrentTime - m_dLastGenerationTime)*m_dGenerationRate);
+	unsigned nNewObjects = (unsigned)floor((_dCurrentTime - (m_dLastGenerationTime - m_dStartGenerationTime)) * m_dGenerationRate);
 	if ( nNewObjects < 1 ) return 0;
 
 	SPBC m_PBC = _Scene.GetPBC();

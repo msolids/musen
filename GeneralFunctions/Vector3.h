@@ -31,7 +31,7 @@ class CBasicVector3
 public:
 	T x, y, z;
 
-	CUDA_HOST_DEVICE CBasicVector3() {}
+	CBasicVector3() = default;
 
 	CUDA_HOST_DEVICE explicit CBasicVector3(const T& _d) : x(_d), y(_d), z(_d) {}
 	CUDA_HOST_DEVICE explicit CBasicVector3(const T& _dx, const T& _dy, const T& _dz) : x(_dx), y(_dy), z(_dz) {}

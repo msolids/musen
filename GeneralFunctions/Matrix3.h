@@ -5,6 +5,7 @@
 #pragma once
 #include "Vector3.h"
 #include "MUSENDefinitions.h"
+#include <algorithm>
 
 template<typename T>
 class CBasicMatrix3
@@ -12,7 +13,7 @@ class CBasicMatrix3
 public:
 	T values[3][3];
 
-	CUDA_HOST_DEVICE CBasicMatrix3() {}
+	CBasicMatrix3() = default;
 	CUDA_HOST_DEVICE CBasicMatrix3(const T& _d) : values{ { _d, _d, _d },{ _d, _d, _d },{ _d, _d, _d } } {}
 	CUDA_HOST_DEVICE CBasicMatrix3(
 		const T& _d00, const T& _d01, const T& _d02,
@@ -30,7 +31,7 @@ public:
 	}
 
 	// Returns diagonal matrix.
-	static CUDA_HOST_DEVICE CBasicMatrix3 Diagonal()
+	static CUDA_HOST_DEVICE CBasicMatrix3 Identity()
 	{
 		return {
 			1, 0, 0,
@@ -89,12 +90,13 @@ public:
 		const double I3 = values[0][0] * values[1][1] * values[2][2]
 			- values[0][0] * pow(values[1][2], 2.) - values[1][1] * pow(values[0][2], 2.) - values[2][2] * pow(values[0][1], 2.)
 			+ 2 * values[0][1] * values[0][2] * values[1][2];
-		const double Q = (3 * I2 - pow(I1, 2.)) / 9.0;
+		const double Q = fmin((3 * I2 - pow(I1, 2.)) / 9.0, 0.0);
 		const double R = (2 * pow(I1, 3.) - 9 * I1 * I2 + 27 * I3) / 54;
-		const double Te = Q < 0.0 ? acos(R / sqrt(pow(-Q, 3.))) : 0.0;
-		res.x = 2 * sqrt(-Q) * cos(Te / 3) + 1.0 / 3 * I1;
-		res.y = 2 * sqrt(-Q) * cos((Te + 2 * PI) / 3) + 1.0 / 3 * I1;
-		res.z = 2 * sqrt(-Q) * cos((Te + 4 * PI) / 3) + 1.0 / 3 * I1;
+		const double G = fmin(fmax(R / sqrt(pow(-Q, 3.)), -1.), 1.);
+		const double Te = acos(G);
+		res.x = 2 * sqrt(-Q) * cos (Te           / 3) + I1 / 3.;
+		res.y = 2 * sqrt(-Q) * cos((Te + 2 * PI) / 3) + I1 / 3.;
+		res.z = 2 * sqrt(-Q) * cos((Te + 4 * PI) / 3) + I1 / 3.;
 		return res;
 	}
 
@@ -181,3 +183,12 @@ public:
 using CMatrix3  = CBasicMatrix3<double>;
 using CMatrix3d = CBasicMatrix3<double>;
 using CMatrix3f = CBasicMatrix3<float>;
+
+using CMatrix3f = CBasicMatrix3<float>;
+
+template<typename T>
+CUDA_HOST_DEVICE CBasicMatrix3<T> OuterProduct(const CBasicVector3<T>& _v1, const CBasicVector3<T>& _v2) {
+	return CBasicMatrix3<T>{ _v1.x* _v2.x, _v1.x* _v2.y, _v1.x* _v2.z,
+		_v1.y* _v2.x, _v1.y* _v2.y, _v1.y* _v2.z,
+		_v1.z* _v2.x, _v1.z* _v2.y, _v1.z* _v2.z };
+}

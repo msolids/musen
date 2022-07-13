@@ -593,6 +593,59 @@ std::set<size_t> CConstraints::ApplyDiameterFilter(double _dTime, unsigned _nObj
 	return vFiltered;
 }
 
+std::set<size_t> CConstraints::ApplyMaterialFilter(const std::set<size_t>& _ids) const
+{
+	std::set<size_t> res;
+	for (const size_t id : _ids)
+	{
+		const CPhysicalObject* obj = m_pSystemStructure->GetObjectByIndex(id);
+		if (!obj) continue;
+		if (CheckMaterial(obj->GetCompoundKey()))
+			res.insert(res.end(), id);
+	}
+	return res;
+}
+
+std::set<size_t> CConstraints::ApplyDiameterFilter(const std::set<size_t>& _ids) const
+{
+	std::set<size_t> res;
+	for (const size_t id : _ids)
+	{
+		const CPhysicalObject* obj = m_pSystemStructure->GetObjectByIndex(id);
+		if (!obj) continue;
+		switch (obj->GetObjectType())
+		{
+		case SPHERE:
+			if (CheckDiameter(dynamic_cast<const CSphere*>(obj)->GetRadius() * 2))
+				res.insert(res.end(), id);
+			break;
+		case SOLID_BOND:
+		case LIQUID_BOND:
+			if (CheckDiameter(dynamic_cast<const CBond*>(obj)->GetDiameter()))
+				res.insert(res.end(), id);
+			break;
+		default:
+			res.insert(res.end(), id);
+		}
+	}
+	return res;
+}
+
+std::set<size_t> CConstraints::ApplyVolumeFilter(const std::set<size_t>& _ids, double _time) const
+{
+	std::set<size_t> inside;
+	for (const auto& volume : m_vVolumes)
+	{
+		const std::vector<size_t> parts = m_pSystemStructure->AnalysisVolume(volume)->GetParticleIndicesInside(_time, false);
+		const std::vector<size_t> bonds = m_pSystemStructure->AnalysisVolume(volume)->GetBondIndicesInside(_time);
+		const std::vector<size_t> walls = m_pSystemStructure->AnalysisVolume(volume)->GetWallIndicesInside(_time);
+		const std::vector<size_t> all = VectorUnion(VectorUnion(parts, bonds), walls);
+		inside.insert(all.begin(), all.end());
+	}
+
+	return SetIntersection(inside, _ids);
+}
+
 std::vector<size_t> CConstraints::FilteredParticles(double _dTime) const
 {
 	std::set<size_t> vFilteredParticles;

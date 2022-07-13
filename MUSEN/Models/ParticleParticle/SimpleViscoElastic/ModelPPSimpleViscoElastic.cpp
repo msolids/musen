@@ -6,33 +6,32 @@
 
 CModelPPSimpleViscoElastic::CModelPPSimpleViscoElastic()
 {
-	m_name = "Simple viscoelastic";
-	m_uniqueKey = "5B1DBC037BAE488086159B7731E1D68F";
-	m_helpFileName = "/Contact Models/SimpleViscoElastic.pdf";
-
-	AddParameter("NORMAL_FORCE_COEFF", "Coefficient of normal force", 1);
-	AddParameter("NORMAL_DAMPING_PARAMETER", "Damping parameter", 0);
-
+	m_name          = "Simple viscoelastic";
+	m_uniqueKey     = "5B1DBC037BAE488086159B7731E1D68F";
+	m_helpFileName  = "/Contact Models/SimpleViscoElastic.pdf";
 	m_hasGPUSupport = true;
+
+	/* 0*/ AddParameter("NORMAL_FORCE_COEFF"      , "Coefficient of normal force", 1);
+	/* 1*/ AddParameter("NORMAL_DAMPING_PARAMETER", "Damping parameter"          , 0);
 }
 
-void CModelPPSimpleViscoElastic::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _pCollision) const
+void CModelPPSimpleViscoElastic::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
-	const double dKn = m_parameters[0].value;
-	const double dMu = m_parameters[1].value;
+	// model parameters
+	const double Kn = m_parameters[0].value;
+	const double mu = m_parameters[1].value;
 
-	const CVector3 vNormalVector = _pCollision->vContactVector.Normalized();
-	_pCollision->vTotalForce = vNormalVector * (-_pCollision->dNormalOverlap * dKn);
+	const CVector3 normVector = _collision->vContactVector.Normalized();
 
-	if (dMu != 0)
-	{
-		// relative velocity (normal)
-		const CVector3 vRelVelocity =  Particles().Vel(_iDst) -  Particles().Vel(_iSrc);
-		const double dRelVelNormal  = DotProduct(vNormalVector, vRelVelocity);
+	// relative velocity (normal)
+	const CVector3 relVel      = Particles().Vel(_iDst) - Particles().Vel(_iSrc);
+	const double normRelVelLen = DotProduct(normVector, relVel);
 
-		// normal force with damping
-		const double dDampingForce = -dMu * dRelVelNormal;
+	// normal force with damping
+	const double normContactForceLen = -_collision->dNormalOverlap * Kn;
+	const double normDampingForceLen = mu * normRelVelLen;
+	const CVector3 normForce = normVector * (normContactForceLen + normDampingForceLen);
 
-		_pCollision->vTotalForce += vNormalVector * dDampingForce;
-	}
+	// store results in collision
+	_collision->vTotalForce = normForce;
 }

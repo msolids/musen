@@ -48,7 +48,7 @@ protected:
 	GLint m_cylinderSlices{ 20 };	// Quality-dependent setting to draw cylinders.
 	GLint m_cylinderStacks{ 1 };	// Quality-dependent setting to draw cylinders.
 
-	std::vector<bool> m_vBrokenBonds;	// vector containing indexes of bonds which was brocken in specific time interval
+	std::vector<bool> m_vBrokenBonds;	// vector containing indexes of bonds which was broken in specific time interval
 
 	CViewSettings* m_viewSettings;  // Contains all visualization settings.
 

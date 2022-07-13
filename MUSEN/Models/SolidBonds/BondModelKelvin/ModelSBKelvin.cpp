@@ -15,7 +15,7 @@ CModelSBKelvin::CModelSBKelvin()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBKelvin::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrockenBondsNum)   const
+void CModelSBKelvin::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	// relative angle velocity of contact partners
 	CVector3 relAngleVel = Particles().AnglVel(_iLeft) - Particles().AnglVel(_iRight);
@@ -85,7 +85,7 @@ void CModelSBKelvin::CalculateSBForce(double _time, double _timeStep, size_t _iL
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;
-		*_pBrockenBondsNum += 1;
+		*_pBrokenBondsNum += 1;
 	}
 }
 

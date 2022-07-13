@@ -35,7 +35,6 @@ CSimulatorTab::CSimulatorTab(CSimulatorManager* _pSimManager, QSettings* _pSetti
 	m_bSimulationStarted = false;
 	m_pDEMThreadNew = nullptr;
 	m_pQTThread = nullptr;
-	m_PausedTime = 0;
 	m_bShowSimDomain = false;
 
 	int nGPUs;
@@ -119,11 +118,13 @@ void CSimulatorTab::UpdateModelsView()
 	const CAbstractDEMModel *pSB = pManager->GetModel(EMusenModelType::SB);
 	const CAbstractDEMModel *pLB = pManager->GetModel(EMusenModelType::LB);
 	const CAbstractDEMModel *pEF = pManager->GetModel(EMusenModelType::EF);
+	const CAbstractDEMModel *pHTPP = pManager->GetModel(EMusenModelType::PPHT);
 	ui.labelPP->setText(pPP ? ss2qs(pPP->GetName()) : "-");
 	ui.labelPW->setText(pPW ? ss2qs(pPW->GetName()) : "-");
 	ui.labelSB->setText(pSB ? ss2qs(pSB->GetName()) : "-");
 	ui.labelLB->setText(pLB ? ss2qs(pLB->GetName()) : "-");
 	ui.labelEF->setText(pEF ? ss2qs(pEF->GetName()) : "-");
+	ui.labelHT_PP->setText(pHTPP ? ss2qs(pHTPP->GetName()) : "-");
 }
 
 void CSimulatorTab::UpdateCollisionsFlag() const
@@ -294,6 +295,12 @@ void CSimulatorTab::StartSimulation()
 		ui.statusMessage->setText(ss2qs(sErrorMessage));
 		return;
 	}
+	sErrorMessage = pModelManager->GetModelError(EMusenModelType::PPHT);
+	if (!sErrorMessage.empty())
+	{
+		ui.statusMessage->setText(ss2qs(sErrorMessage));
+		return;
+	}
 
 	const auto simType = static_cast<ESimulatorType>(ui.comboSimulatorType->currentIndex() + 1);
 
@@ -337,19 +344,6 @@ void CSimulatorTab::StartSimulation()
 			return;
 		}
 	}
-	if (m_pSystemStructure->GetNumberOfSpecificObjects(LIQUID_BOND) != 0 || pGenerationManager->GetActiveGeneratorsNumber() != 0)
-	{
-		if (!pModelManager->IsModelDefined(EMusenModelType::LB))
-		{
-			if (QMessageBox::question(this, "Confirmation", "Liquid bond model is not specified. Liquid bonds will not be considered during the simulation. Continue?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
-				return;
-		}
-		else if (simType == ESimulatorType::GPU && !pModelManager->IsModelGPUCompatible(EMusenModelType::LB))
-		{
-			ui.statusMessage->setText(ss2qs("Selected liquid bond model has no GPU support"));
-			return;
-		}
-	}
 
 	// check whether all particles are within the PBC boundaries
 	SPBC pbc = m_pSystemStructure->GetPBC();
@@ -357,7 +351,7 @@ void CSimulatorTab::StartSimulation()
 	{
 		std::vector<CPhysicalObject*> vSpheres = m_pSystemStructure->GetAllActiveObjects(0, SPHERE);
 		for (size_t i = 0; i < vSpheres.size(); ++i)
-			if (!pbc.IsCoordInPBC(vSpheres[i]->GetCoordinates(0),0))
+			if (!pbc.IsCoordInPBC(vSpheres[i]->GetCoordinates(0), 0))
 			{
 				ui.statusMessage->setText(ss2qs("Some objects are not in the domain of PBC: Object ID:") + QString::number(vSpheres[i]->m_lObjectID));
 				return;
@@ -386,8 +380,6 @@ void CSimulatorTab::StartSimulation()
 			return;
 		}
 
-	m_SimIntervalTimer.start();
-
 	m_pDEMThreadNew = new CSimulatorThread();
 	m_pDEMThreadNew->m_pSimulator = m_pSimulatorManager->GetSimulatorPtr();
 
@@ -401,12 +393,8 @@ void CSimulatorTab::StartSimulation()
 	m_pQTThread->start();
 
 	// start update timer
-	m_UpdateTimer.start(500);
+	m_UpdateTimer.start(100);
 	m_bSimulationStarted = true;
-
-	m_startDateTime = QDateTime::currentDateTime();
-	const QString sTemp = m_startDateTime.toString("dd.MM hh:mm:ss");
-	ui.statTable->item(EStatTable::SIM_STARTED, 0)->setText(sTemp);
 }
 
 void CSimulatorTab::ResumeSimulation()
@@ -417,11 +405,10 @@ void CSimulatorTab::ResumeSimulation()
 	emit DisableOpenGLView();
 	emit SimulatorStatusChanged(ERunningStatus::RUNNING);
 
-	m_SimIntervalTimer.restart();
 	m_pQTThread->start();
 
 	// start update timer
-	m_UpdateTimer.start(500);
+	m_UpdateTimer.start(100);
 }
 
 void CSimulatorTab::StopSimulation()
@@ -455,8 +442,6 @@ void CSimulatorTab::PauseSimulation()
 
 	UpdateSimulationStatistics();
 
-	m_PausedTime += m_SimIntervalTimer.elapsed();
-
 	emit EnableOpenGLView();
 	emit SimulatorStatusChanged(ERunningStatus::PAUSED);
 	emit NumberOfTimePointsChanged();
@@ -476,7 +461,6 @@ void CSimulatorTab::SimulationFinished()
 	}
 	UpdateSimulationStatistics();
 	m_bSimulationStarted = false;
-	m_PausedTime = 0;
 	emit EnableOpenGLView();
 	emit SimulatorStatusChanged(ERunningStatus::IDLE);
 	emit NumberOfTimePointsChanged();
@@ -484,22 +468,27 @@ void CSimulatorTab::SimulationFinished()
 
 void CSimulatorTab::UpdateSimulationStatistics() const
 {
-	ui.statTable->item(EStatTable::SIM_TIME, 0)->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetCurrentTime()));
-	ui.statTable->item(EStatTable::SIM_TIME_STEP, 0)->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetCurrSimulationStep()));
-	ui.statTable->item(EStatTable::MAX_PART_VELO, 0)->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetMaxParticleVelocity()));
-	ui.statTable->item(EStatTable::NUM_BROKEN_S_BONDS, 0)->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetNumberOfBrockenBonds()));
-	ui.statTable->item(EStatTable::NUM_BROKEN_L_BONDS, 0)->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetNumberOfBrockenLiquidBonds()));
-	ui.statTable->item(EStatTable::NUM_GENERATED, 0)->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetNumberOfGeneratedObjects()));
-	ui.statTable->item(EStatTable::NUM_INACTIVE, 0)->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetNumberOfInactiveParticles()));
+	const auto& sim = m_pSimulatorManager->GetSimulatorPtr();
 
-	const qint64 nAddTime = qint64(ui.endTime->text().toDouble() / m_pSimulatorManager->GetSimulatorPtr()->GetCurrentTime() * (static_cast<double>(m_SimIntervalTimer.elapsed()) + m_PausedTime) / 1000.);
-	const QDateTime endTime = m_startDateTime.addSecs(nAddTime);
-	ui.statTable->item(EStatTable::SIM_FINISHED, 0)->setText(endTime.toString("dd.MM hh:mm:ss"));
+	ui.statTable->item(EStatTable::SIM_TIME, 0)->setText(QString::number(sim->GetCurrentTime()));
+	ui.statTable->item(EStatTable::SIM_TIME_STEP, 0)->setText(QString::number(sim->GetCurrSimulationStep()));
+	ui.statTable->item(EStatTable::MAX_PART_VELO, 0)->setText(QString::number(sim->GetMaxParticleVelocity()));
+	ui.statTable->item(EStatTable::NUM_BROKEN_S_BONDS, 0)->setText(QString::number(sim->GetNumberOfBrokenBonds()));
+	ui.statTable->item(EStatTable::NUM_BROKEN_L_BONDS, 0)->setText(QString::number(sim->GetNumberOfBrokenLiquidBonds()));
+	ui.statTable->item(EStatTable::NUM_GENERATED, 0)->setText(QString::number(sim->GetNumberOfGeneratedObjects()));
+	ui.statTable->item(EStatTable::NUM_INACTIVE, 0)->setText(QString::number(sim->GetNumberOfInactiveParticles()));
 
-	const qint64 left = QDateTime::currentDateTime().msecsTo(endTime);
-	ui.statTable->item(EStatTable::SIM_LEFT, 0)->setText(QString::fromStdString(MsToTimeSpan(left >= 0 ? left : 0)));
+	const auto now = std::chrono::system_clock::now();
+	const auto startTimePointQt = QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(sim->GetStartDateTime()));
+	const auto finishTimePoint = sim->GetFinishDateTime();
+	const auto finishTimePointQt = QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(finishTimePoint));
+	const auto remainingMs = std::chrono::duration_cast<std::chrono::milliseconds>(finishTimePoint - now).count();
+	const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - sim->GetStartDateTime()).count();
 
-	ui.statTable->item(EStatTable::SIM_ELAPSED, 0)->setText(QString::fromStdString(MsToTimeSpan(m_SimIntervalTimer.elapsed() + m_PausedTime)));
+	ui.statTable->item(EStatTable::SIM_STARTED, 0)->setText(startTimePointQt.toString("dd.MM hh:mm:ss"));
+	ui.statTable->item(EStatTable::SIM_FINISHED, 0)->setText(finishTimePointQt.toString("dd.MM hh:mm:ss"));
+	ui.statTable->item(EStatTable::SIM_LEFT, 0)->setText(QString::fromStdString(MsToTimeSpan(remainingMs >= 0 ? remainingMs : 0)));
+	ui.statTable->item(EStatTable::SIM_ELAPSED, 0)->setText(QString::fromStdString(MsToTimeSpan(elapsedMs >= 0 ? elapsedMs : 0)));
 }
 
 void CSimulatorTab::SetParameters()

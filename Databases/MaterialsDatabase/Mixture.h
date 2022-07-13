@@ -74,6 +74,10 @@ public:
 	void SetFractionContactDiameter(size_t _iFraction, double _dContactDiameter);
 	/// Sets new value of the specified fraction.
 	void SetFractionValue(size_t _iFraction, double _dFraction);
+	/// Returns pointers to all fractions.
+	std::vector<SCompoundFraction*> GetFractions();
+	/// Returns const pointers to all fractions.
+	[[nodiscard]] std::vector<const SCompoundFraction*> GetFractions() const;
 	/// Returns name of the specified fraction. Returns empty string if such fraction has not been defined.
 	std::string GetFractionName(size_t _iFraction) const;
 	/// Returns compound key of the specified fraction. Returns empty string if such fraction has not been defined.

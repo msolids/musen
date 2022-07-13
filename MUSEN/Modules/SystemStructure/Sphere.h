@@ -26,6 +26,7 @@ class CSphere : public CPhysicalObject
 	double m_dContactRadius;	// Contact radius of particle, used in some models. If it is not set explicitly, it is equal to radius.
 	double m_dRadiusSqrt;		// The square root of radius.
 	double m_dInertiaMoment;
+	double m_dHeatCapacity;
 
 public:
 	CSphere(unsigned _id, CDemStorage* _storage);
@@ -40,6 +41,7 @@ public:
 	inline double GetContactRadius() const { return m_dContactRadius; }
 	inline double GetSqrtRadius() const { return m_dRadiusSqrt; }
 	inline double GetInertiaMoment() const { return m_dInertiaMoment; }
+	inline double GetHeatCapacity() const { return m_dHeatCapacity; }
 	inline double GetVolume() const { return 4 / 3.0*PI*m_dRadius*m_dRadius*m_dRadius; }
 
 	void SetRadius(const double& _radius);

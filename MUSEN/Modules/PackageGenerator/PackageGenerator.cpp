@@ -8,7 +8,10 @@
 #include "CPUSimulator.h"
 #include "GPUSimulator.h"
 #include "ParticleFilter.h"
+#include "MUSENFileFunctions.h"
 #include <random>
+
+#undef GetCurrentTime
 
 CPackageGenerator::~CPackageGenerator()
 {
@@ -358,7 +361,7 @@ void CPackageGenerator::AddGeometries(SPackage& _generator, CSystemStructure& _s
 		{
 			std::vector<CTriangle> triangles;
 			for (const auto& wall : g->Walls())
-				triangles.push_back(wall->GetCoords(0));
+				triangles.push_back(wall->GetPlaneCoords(0));
 			geometry = _scene.AddGeometry(CTriangularMesh{ g->Name(), triangles });
 			geometry->SetMaterial(wallCompound->GetKey());
 		}
@@ -431,7 +434,7 @@ std::vector<size_t> CPackageGenerator::ParticlesPerFraction(const SPackage& _gen
 	const double targetSolidVolume = (1.0 - _generator.targetPorosity) * volumeToFill;
 	double volume = 0.0;
 	for (size_t i = 0; i < mixture->FractionsNumber(); ++i)
-		volume += mixture->GetFractionValue(i) * PI / 6.0 * std::pow(mixture->GetFractionContactDiameter(i), 3);
+		volume += mixture->GetFractionValue(i) * PI / 6.0 * std::pow(mixture->GetFractionDiameter(i), 3);
 	for (size_t i = 0; i < mixture->FractionsNumber(); ++i) // to consider correct number of discrete particles to be generated
 		res[i] = static_cast<size_t>(targetSolidVolume / volume * mixture->GetFractionValue(i));
 	return res;

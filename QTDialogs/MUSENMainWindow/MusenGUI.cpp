@@ -6,6 +6,8 @@
 #include "AboutWindow.h"
 #include "ImportFromText.h"
 
+#undef GetCurrentTime
+
 const QString MusenGUI::m_sRecentFilesParamName	= "recentFiles";
 
 MusenGUI::MusenGUI(const QString& _buildVersion, QWidget* parent /*= nullptr*/, Qt::WindowFlags flags /*= {}*/) :
@@ -551,6 +553,7 @@ void MusenGUI::ClearAllTimePoints()
 {
 	if (QMessageBox::question(this, "Confirmation", "Clear all time points?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel) != QMessageBox::Yes) return;
 	m_SystemStructure.ClearAllStatesFrom(0);
+	ui.timeSlider->UpdateWholeView();
 	emit NewSystemStructureGenerated();
 	emit NumberOfTimePointsChanged();
 }

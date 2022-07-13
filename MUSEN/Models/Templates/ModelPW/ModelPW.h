@@ -19,7 +19,7 @@ public:
 	/// Is called each time step before real calculations. Can be removed if not used.
 	void PrecalculatePWModel(double _time, double _timeStep, SParticleStruct* _particles, SWallStruct* _walls) override;
 	/// The model itself.
-	void CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _pCollision) const override;
+	void CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const override;
 	//////////////////////////////////////////////////////////////////////////
 
 

@@ -6,73 +6,76 @@
 
 CModelPPJKR::CModelPPJKR()
 {
-	m_name = "JKR";
-	m_uniqueKey = "8AC39F3E9D054A548CEB9CD44ACFE751";
-	m_helpFileName = "/Contact Models/JKR.pdf";
-
+	m_name          = "JKR";
+	m_uniqueKey     = "8AC39F3E9D054A548CEB9CD44ACFE751";
+	m_helpFileName  = "/Contact Models/JKR.pdf";
 	m_hasGPUSupport = true;
 }
 
-void CModelPPJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _pCollision) const
+void CModelPPJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
-	const CVector3 srcAnglVel   = Particles().AnglVel(_iSrc);
-	const CVector3 dstAnglVel   = Particles().AnglVel(_iDst);
-	const double dPartSrcRadius = Particles().Radius(_iSrc);
-	const double dPartDstRadius = Particles().Radius(_iDst);
+	const CVector3 anglVel1 = Particles().AnglVel(_iSrc);
+	const CVector3 anglVel2 = Particles().AnglVel(_iDst);
+	const double   radius1  = Particles().Radius(_iSrc);
+	const double   radius2  = Particles().Radius(_iDst);
 
-	const CVector3 vRcSrc        = _pCollision->vContactVector * ( dPartSrcRadius / (dPartSrcRadius + dPartDstRadius));
-	const CVector3 vRcDst        = _pCollision->vContactVector * (-dPartDstRadius / (dPartSrcRadius + dPartDstRadius));
-	const CVector3 vNormalVector = _pCollision->vContactVector.Normalized();
+	const CVector3 rc1        = _collision->vContactVector * ( radius1 / (radius1 + radius2));
+	const CVector3 rc2        = _collision->vContactVector * (-radius2 / (radius1 + radius2));
+	const CVector3 normVector = _collision->vContactVector.Normalized();
 
-	// relative velocity (normal and tangential)
-	const CVector3 vRelVel       = Particles().Vel(_iDst) + dstAnglVel * vRcDst - (Particles().Vel(_iSrc) + srcAnglVel * vRcSrc);
-	const double   dRelVelNormal = DotProduct(vNormalVector, vRelVel);
-	const CVector3 vRelVelNormal = dRelVelNormal * vNormalVector;
-	const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
+	// normal and tangential relative velocity
+	const CVector3 relVel        = (Particles().Vel(_iDst) + anglVel2 * rc2) - (Particles().Vel(_iSrc) + anglVel1 * rc1);
+	const double   normRelVelLen = DotProduct(normVector, relVel);
+	const CVector3 normRelVel    = normRelVelLen * normVector;
+	const CVector3 tangRelVel    = relVel - normRelVel;
 
-	// normal and tangential overlaps
-	const double dContactRadius = std::sqrt(_pCollision->dNormalOverlap * _pCollision->dEquivRadius);
+	// radius of the contact area
+	const double contactAreaRadius = std::sqrt(_collision->dEquivRadius * _collision->dNormalOverlap);
 
 	// normal force with damping
-	const double Kn = 2 * _interactProp.dEquivYoungModulus * dContactRadius;
-	const double dNormalForce = -1 * (4. * std::pow(dContactRadius, 3.) * _interactProp.dEquivYoungModulus / (3. * _pCollision->dEquivRadius) -
-		std::sqrt(8 * PI * _interactProp.dEquivYoungModulus * _interactProp.dEquivSurfaceEnergy * std::pow(dContactRadius, 3.)));
-	const double dDampingForce = -1.8257 * _interactProp.dAlpha * dRelVelNormal * std::sqrt(Kn * _pCollision->dEquivMass);
+	const double Kn = 2 * _interactProp.dEquivYoungModulus * contactAreaRadius;
+	const double normContactForceLen = -1 * (4. * std::pow(contactAreaRadius, 3.) * _interactProp.dEquivYoungModulus / (3. * _collision->dEquivRadius) -
+		std::sqrt(8 * PI * _interactProp.dEquivYoungModulus * _interactProp.dEquivSurfaceEnergy * std::pow(contactAreaRadius, 3.)));
+	const double normDampingForceLen = -_2_SQRT_5_6 * _interactProp.dAlpha * normRelVelLen * std::sqrt(Kn * _collision->dEquivMass);
+	const CVector3 normForce = normVector * (normContactForceLen + normDampingForceLen);
 
-	// increment of tangential force with damping
-	const double Kt = 8 *  _interactProp.dEquivShearModulus * dContactRadius;
-	const CVector3 vDampingTangForce = vRelVelTang * (-1.8257 * _interactProp.dAlpha * std::sqrt(Kt * _pCollision->dEquivMass));
+	// rotate old tangential overlap
+	CVector3 tangOverlapRot = _collision->vTangOverlap - normVector * DotProduct(normVector, _collision->vTangOverlap);
+	if (tangOverlapRot.IsSignificant())
+		tangOverlapRot *= _collision->vTangOverlap.Length() / tangOverlapRot.Length();
+	// calculate new tangential overlap
+	CVector3 tangOverlap = tangOverlapRot + tangRelVel * _timeStep;
 
-	// rotate old tangential force
-	CVector3 vTangOverlap = _pCollision->vTangOverlap - vNormalVector * DotProduct(vNormalVector, _pCollision->vTangOverlap);
-	if (vTangOverlap.IsSignificant())
-		vTangOverlap = vTangOverlap * _pCollision->vTangOverlap.Length() / vTangOverlap.Length();
-	_pCollision->vTangOverlap = vTangOverlap + vRelVelTang * _timeStep;
+	// tangential force with damping
+	const double Kt = 8 * _interactProp.dEquivShearModulus * contactAreaRadius;
+	const CVector3 tangShearForce = tangOverlap * Kt;
+	const CVector3 tangDampingForce = tangRelVel * (-_2_SQRT_5_6 * _interactProp.dAlpha * std::sqrt(Kt * _collision->dEquivMass));
 
-	CVector3 vTangForce = _pCollision->vTangOverlap * Kt;
-
-	// check slipping condition
-	const double dNewTangForce = vTangForce.Length();
-	if (dNewTangForce > _interactProp.dSlidingFriction * std::abs(dNormalForce))
+	// check slipping condition and calculate total tangential force
+	CVector3 tangForce;
+	const double tangShearForceLen = tangShearForce.Length();
+	const double frictionForceLen = _interactProp.dSlidingFriction * std::abs(normContactForceLen + normDampingForceLen);
+	if (tangShearForceLen > frictionForceLen)
 	{
-		vTangForce = vTangForce * _interactProp.dSlidingFriction * std::abs(dNormalForce) / dNewTangForce;
-		_pCollision->vTangOverlap = vTangForce / Kt;
+		tangForce   = tangShearForce * frictionForceLen / tangShearForceLen;
+		tangOverlap = tangForce / Kt;
 	}
 	else
-		vTangForce += vDampingTangForce;
+		tangForce   = tangShearForce + tangDampingForce;
 
-	// calculate rolling friction
-	const CVector3 vRollingTorque1 = srcAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
-		srcAnglVel * (-_interactProp.dRollingFriction * std::abs(dNormalForce) * dPartSrcRadius / srcAnglVel.Length()) : CVector3{ 0 };
-	const CVector3 vRollingTorque2 = dstAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
-		dstAnglVel * (-_interactProp.dRollingFriction * std::abs(dNormalForce) * dPartDstRadius / dstAnglVel.Length()) : CVector3{ 0 };
+	// rolling torque
+	const CVector3 rollingTorque1 = anglVel1.IsSignificant() ? anglVel1 * (-_interactProp.dRollingFriction * std::abs(normContactForceLen) * radius1 / anglVel1.Length()) : CVector3{ 0 };
+	const CVector3 rollingTorque2 = anglVel2.IsSignificant() ? anglVel2 * (-_interactProp.dRollingFriction * std::abs(normContactForceLen) * radius2 / anglVel2.Length()) : CVector3{ 0 };
 
-	// calculate moment of TangForce
-	const CVector3 vMoment1 = vNormalVector * _pCollision->vTangForce * dPartSrcRadius + vRollingTorque1;
-	const CVector3 vMoment2 = vNormalVector * _pCollision->vTangForce * dPartDstRadius + vRollingTorque2;
+	// final forces and moments
+	const CVector3 totalForce = normForce + tangForce;
+	const CVector3 moment1 = normVector * tangForce * radius1 + rollingTorque1;
+	const CVector3 moment2 = normVector * tangForce * radius2 + rollingTorque2;
 
-	_pCollision->vTangForce     = vTangForce;
-	_pCollision->vTotalForce    = vNormalVector * (dNormalForce + dDampingForce) + _pCollision->vTangForce;
-	_pCollision->vResultMoment1 = vMoment1;
-	_pCollision->vResultMoment2 = vMoment2;
+	// store results in collision
+	_collision->vTangOverlap   = tangOverlap;
+	_collision->vTangForce     = tangForce;
+	_collision->vTotalForce    = totalForce;
+	_collision->vResultMoment1 = moment1;
+	_collision->vResultMoment2 = moment2;
 }

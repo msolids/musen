@@ -32,8 +32,8 @@ void CModelPPSimpleViscoElastic::CalculatePPForceGPU(double _time, double _timeS
 }
 
 void __global__ CUDA_CalcPPForce_VE_kernel(
-	const CVector3	_partVels[],
-	CVector3		_partForces[],
+	const CVector3 _partVels[],
+	CVector3	   _partForces[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],
@@ -47,32 +47,31 @@ void __global__ CUDA_CalcPPForce_VE_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		const unsigned iColl    = _collActivityIndices[iActivColl];
-		const unsigned iSrcPart = _collSrcIDs[iColl];
-		const unsigned iDstPart = _collDstIDs[iColl];
+		const unsigned iColl       = _collActivityIndices[iActivColl];
+		const unsigned iPart1      = _collSrcIDs[iColl];
+		const unsigned iPart2      = _collDstIDs[iColl];
+		const double   normOverlap = _collNormalOverlaps[iColl];
 
-		const double dKn = m_vConstantModelParameters[0];
-		const double dMu = m_vConstantModelParameters[1];
+		// model parameters
+		const double Kn = m_vConstantModelParameters[0];
+		const double mu = m_vConstantModelParameters[1];
 
-		const double dNormalOverlap  = _collNormalOverlaps[iColl];
-		const CVector3 vNormalVector = _collContactVectors[iColl].Normalized();
+		const CVector3 normVector = _collContactVectors[iColl].Normalized();
 
-		// relative velocity (normal and tangential)
-		const CVector3 vRelVelocity = _partVels[iDstPart] - _partVels[iSrcPart];
-		const double dRelVelNormal  = DotProduct(vNormalVector, vRelVelocity);
+		// relative velocity (normal)
+		const CVector3 relVel      = _partVels[iPart2] - _partVels[iPart1];
+		const double normRelVelLen = DotProduct(normVector, relVel);
 
 		// normal force with damping
-		const double dDampingForce = -dMu * dRelVelNormal;
-
-		// calculate forces
-		const double dNormalForce = -dNormalOverlap * dKn;
-		const CVector3 vTotalForce = (dNormalForce + dDampingForce) * vNormalVector;
+		const double normContactForceLen = -normOverlap * Kn;
+		const double normDampingForceLen = mu * normRelVelLen;
+		const CVector3 normForce = normVector * (normContactForceLen + normDampingForceLen);
 
 		// store results in collision
-		_collTotalForces[iColl] = vTotalForce;
+		_collTotalForces[iColl] = normForce;
 
 		// apply forces
-		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iSrcPart], vTotalForce);
-		CUDA_VECTOR3_ATOMIC_SUB(_partForces[iDstPart], vTotalForce);
+		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart1], normForce);
+		CUDA_VECTOR3_ATOMIC_SUB(_partForces[iPart2], normForce);
 	}
 }

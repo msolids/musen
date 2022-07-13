@@ -127,7 +127,7 @@ void CSimplifiedScene::UpdateParticlesToBonds()
 	}
 }
 
-void  CSimplifiedScene::AddParticle(size_t _index, double _dTime)
+void CSimplifiedScene::AddParticle(size_t _index, double _dTime)
 {
 	CSphere* pSphere = dynamic_cast<CSphere*>(m_pSystemStructure->GetObjectByIndex(_index));
 	if (!pSphere) return;
@@ -145,7 +145,8 @@ void  CSimplifiedScene::AddParticle(size_t _index, double _dTime)
 	m_Objects.vParticles->CoordVerlet(m_Objects.vParticles->Size() - 1) = pSphere->GetCoordinates(_dTime); // needed for proper work of dynamic generator
 	m_Objects.vParticles->AddQuaternion(pSphere->GetOrientation(_dTime));
 	m_Objects.vParticles->AddContactRadius(pSphere->GetContactRadius());
-
+	if (m_ActiveVariables.bThermals)
+		m_Objects.vParticles->AddThermals(pSphere->GetTemperature(_dTime), pSphere->GetHeatCapacity());
 	while (m_vNewIndexes.size() <= _index)
 		m_vNewIndexes.emplace_back(0);
 	m_vNewIndexes[_index] = m_Objects.vParticles->Size() - 1;
@@ -368,6 +369,14 @@ void CSimplifiedScene::ClearAllForcesAndMoments()
 	});
 }
 
+void CSimplifiedScene::ClearHeatFluxes() const
+{
+	ParallelFor(m_Objects.vParticles->Size(), [&](size_t i)
+	{
+		m_Objects.vParticles->HeatFlux(i) = 0.0;
+	});
+}
+
 void CSimplifiedScene::AddVirtualParticles(double _dVerletDistance)
 {
 	if (!m_PBC.bEnabled) return;
@@ -484,6 +493,23 @@ double CSimplifiedScene::GetMaxParticleVelocity() const
 	return sqrt(VectorMax(vMaxVel));
 }
 
+double CSimplifiedScene::GetMaxParticleTemperature() const
+{
+	size_t nThreads = GetThreadsNumber();
+	std::vector<double> maxTemps(nThreads, 0);
+	ParallelFor(m_Objects.vParticles->Size(), [&](size_t i)
+	{
+		const size_t index = i % nThreads;
+		if (m_Objects.vParticles->Active(i))
+		{
+			const double temp = m_Objects.vParticles->Temperature(i);
+			maxTemps[index] = std::max(maxTemps[index], temp);
+		}
+	});
+
+	return sqrt(VectorMax(maxTemps));
+}
+
 double CSimplifiedScene::GetMaxParticleRadius() const
 {
 	if (m_Objects.vParticles->Empty())
@@ -598,7 +624,7 @@ void CSimplifiedScene::InitializeGeometricalObjects(double _dTime)
 SInteractProps CSimplifiedScene::CalculateInteractionProperty(const std::string& _sCompound1, const std::string& _sCompound2) const
 {
 	const CInteraction* pInteraction = m_pSystemStructure->m_MaterialDatabase.GetInteraction(_sCompound1, _sCompound2);
-	SInteractProps InterProp;
+	SInteractProps InterProp{};
 
 
 	InterProp.dRollingFriction = pInteraction->GetPropertyValue(PROPERTY_ROLLING_FRICTION);
@@ -620,11 +646,7 @@ SInteractProps CSimplifiedScene::CalculateInteractionProperty(const std::string&
 	InterProp.dEquivShearModulus = 1.0 / ((2 - dPoisson1) / dShearModulusPart1 + (2 - dPoisson2) / dShearModulusPart2);
 	InterProp.dEquivSurfaceTension = sqrt(dSurfaceTension1 * dSurfaceTension2);
 	InterProp.dEquivSurfaceEnergy = sqrt(dSurfaceEnergy1 * dSurfaceEnergy2);
-	const double dK1 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound1, PROPERTY_THERMAL_CONDUCTIVITY);
-	const double dK2 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound2, PROPERTY_THERMAL_CONDUCTIVITY);
-	InterProp.dEquivThermalConductivity = 1 / (0.5 * 1 / dK1 + 0.5*dK2);
-
-	return std::move(InterProp);
+	return InterProp;
 }
 
 void CSimplifiedScene::AddVirtualParticleBox(size_t _nSourceID, const CVector3& _vShift)

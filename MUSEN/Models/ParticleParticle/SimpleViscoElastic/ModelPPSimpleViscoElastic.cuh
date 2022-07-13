@@ -6,8 +6,8 @@
 #include "BasicTypes.h"
 
 void __global__ CUDA_CalcPPForce_VE_kernel(
-	const CVector3	_partVels[],
-	CVector3		_partForces[],
+	const CVector3 _partVels[],
+	CVector3	   _partForces[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],

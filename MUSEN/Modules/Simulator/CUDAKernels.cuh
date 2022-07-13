@@ -46,6 +46,9 @@ namespace CUDAKernels
 		const double* _partMasses, const double* _partInertiaMoments, const CVector3* _partMoments,
 		CVector3* _partForces, CVector3* _partVels, CVector3* _partAnglVels, CQuaternion* _partQuaternions);
 
+	__global__ void UpdateTemperatures_kernel(double _dTimeStep, unsigned _nParticles, const double* _partHeatCapacities,
+		const double* _partMasses, const double* _partHeatFluxes, double* _partTemperatures);
+
 	__global__ void CalculateGeometryCenter_kernel( unsigned _nWallsInGeom, const unsigned* _wallsInGeom,
 		CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3, CVector3* _vCenter);
 
@@ -59,8 +62,8 @@ namespace CUDAKernels
 	// Copies old existing new collisions according to new verlet lists.
 	__global__ void CopyCollisionsPP_kernel(unsigned _nCollisionsOld,
 		const unsigned* _vVerlSrcOld, const unsigned* _vVerlDstOld, const unsigned* _vVerlDstNew, const unsigned* _vPartInd_VerNew, const bool* _oldActiveCollFlags,
-		const double* _oldNormalOverlap, const CVector3* _oldTangOverlap, const CVector3* _oldContactVector, const CVector3* _oldTotalForce,
-		double* _newNormalOverlap, CVector3* _newTangOverlap, CVector3* _newContactVector, CVector3* _newTotalForce);
+		const double* _oldNormalOverlap, const double* _oldInitNormalOverlap, const CVector3* _oldTangOverlap, const CVector3* _oldContactVector, const CVector3* _oldTotalForce,
+		double* _newNormalOverlap, double* _newInitNormalOverlap, CVector3* _newTangOverlap, CVector3* _newContactVector, CVector3* _newTotalForce);
 
 	__global__ void CopyCollisionsPW_kernel(unsigned _nCollisionsOld,
 		const unsigned* _vVerlSrcOld, const unsigned* _vVerlDstOld, const unsigned* _vVerlDstNew, const unsigned* _vPartInd_VerNew, const bool* _oldActiveCollFlags,
@@ -80,8 +83,9 @@ namespace CUDAKernels
 		unsigned* _collSrcID, unsigned* _collDstID, uint16_t* _collInteractPropID);
 
 	// Checks activity of available collisions and initializes new ones.
-	__global__ void UpdateActiveCollisionsPP_kernel(unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst, const CVector3* _partCoords,
-		const uint8_t* _collVirtShifts, const double* _collSumRadii, bool* _collActiveFlags, double* _collNormalOverlaps, CVector3* _collContactVectors, CVector3* _collTangOverlaps);
+	__global__ void UpdateActiveCollisionsPP_kernel(const unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst, const CVector3* _partCoords,
+		const uint8_t* _collVirtShifts, const double* _collSumRadii, bool* _collActiveFlags, double* _collNormalOverlaps, double* _collInitNormalOverlaps,
+		CVector3* _collContactVectors, CVector3* _collTangOverlaps);
 
 	__global__ void GetIntersectTypePW_kernel(unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst,
 		const double* _partRadii, const CVector3* _partCoords,

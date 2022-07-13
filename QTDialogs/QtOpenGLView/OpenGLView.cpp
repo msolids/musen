@@ -427,7 +427,7 @@ void COpenGLView::DrawGeometricalObjects() const
 		const auto geometry = m_pSystemStructure->Geometry(geometryKey);
 		const CColor color{ geometry->Color(), 1.f - m_viewSettings->GeometriesTransparency() };
 		for (const auto& w : m_pSystemStructure->GetAllWallsForGeometry(m_dCurrentTime, geometryKey))
-			DrawTriangularPlane(w->GetCoords(m_dCurrentTime), w->GetNormalVector(m_dCurrentTime), color);
+			DrawTriangularPlane(w->GetPlaneCoords(m_dCurrentTime), w->GetNormalVector(m_dCurrentTime), color);
 	}
 }
 

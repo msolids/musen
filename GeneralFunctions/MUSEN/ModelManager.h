@@ -6,8 +6,6 @@
 
 #include "MUSENComponent.h"
 #include "AbstractDEMModel.h"
-#include "MUSENFileFunctions.h"
-#include <unordered_set>
 
 class CModelManager : public CMusenComponent
 {

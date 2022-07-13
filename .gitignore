@@ -93,6 +93,7 @@ GeneratedFiles*/
 /MUSEN/BuildVersion/BuildTime.h
 /MUSEN_Linux/MUSEN_externals*
 /Installers/InstallerProject/data.ini
-/ExternalLibraries
-
+/MUSEN/QT_GUI/Visual Studio 2019/Visualizers/
 /MUSEN_Linux/compiled/
+/MUSEN_Linux/src
+/ExternalLibraries/

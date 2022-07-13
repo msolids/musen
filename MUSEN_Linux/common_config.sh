@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # directory name where third-party libraries are installed
 MUSEN_EXTERNAL_LIBS_DIR="external_libs"
 # directory name where source files are gathered
@@ -27,7 +26,7 @@ MUSEN_RESULTS_PATH="${PWD}/${MUSEN_RESULTS_DIR}"
 
 ### versions of tools and libs
 # gcc
-GCC_VER=10
+GCC_VER=9
 # cmake
 CMAKE_VER=3.18.0
 # zlib

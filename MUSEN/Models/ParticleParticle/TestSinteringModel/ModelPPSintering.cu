@@ -35,9 +35,10 @@ void CModelPPSintering::CalculatePPForceGPU(double _time, double _timeStep, cons
 }
 
 void __global__ CUDA_CalcPPForce_S_kernel(
-	const SInteractProps	_interactProps[],
-	const CVector3	_partVels[],
-	CVector3	_partForces[],
+	const SInteractProps _interactProps[],
+
+	const CVector3 _partVels[],
+	CVector3       _partForces[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],
@@ -53,32 +54,32 @@ void __global__ CUDA_CalcPPForce_S_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		const unsigned iColl = _collActivityIndices[iActivColl];
-		const unsigned iSrcPart = _collSrcIDs[iColl];
-		const unsigned iDstPart = _collDstIDs[iColl];
-		const double dEquivRadius = _collEquivRadii[iColl];
+		const unsigned iColl       = _collActivityIndices[iActivColl];
+		const unsigned iPart1      = _collSrcIDs[iColl];
+		const unsigned iPart2      = _collDstIDs[iColl];
+		const double   equivRadius = _collEquivRadii[iColl];
 
-		CVector3 vNormalVector = _collContactVectors[iColl].Normalized();
+		const CVector3 normVector = _collContactVectors[iColl].Normalized();
 
-		//obtain velocities
-		CVector3 vRelVel           = _partVels[iSrcPart] - _partVels[iDstPart];
-		CVector3 vRelVelNormal     = vNormalVector * DotProduct(vNormalVector, vRelVel);
-		CVector3 vRelVelTangential = vRelVel - vRelVelNormal;
+		// normal and tangential relative velocity
+		CVector3 relVel     = _partVels[iPart1] - _partVels[iPart2];
+		CVector3 normRelVel = normVector * DotProduct(normVector, relVel);
+		CVector3 tangRelVel = relVel - normRelVel;
 
-		//Bouvard and McMeeking's model
-		const double dSquaredContactRadius = 4 * dEquivRadius * _collNormalOverlaps[iColl];
+		// Bouvard and McMeeking's model
+		const double squaredContactRadius = 4 * equivRadius * _collNormalOverlaps[iColl];
 
-		// calculate forces
-		const CVector3 vSinteringForce = vNormalVector * 1.125 * PI * 2 * dEquivRadius * _interactProps[_collInteractPropIDs[iColl]].dEquivSurfaceEnergy;
-		const CVector3 vViscousForce = vRelVelNormal * (-PI * pow(dSquaredContactRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
-		const CVector3 vTangentialForce = vRelVelTangential * (-m_vConstantModelParameters[1] * PI * dSquaredContactRadius * pow(2 * dEquivRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
-		const CVector3 vTotalForce = vSinteringForce + vViscousForce + vTangentialForce;
+		// forces
+		const CVector3 sinteringForce = normVector * 1.125 * PI * 2 * equivRadius * _interactProps[_collInteractPropIDs[iColl]].dEquivSurfaceEnergy;
+		const CVector3 viscousForce   = normRelVel * (-PI * pow(squaredContactRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
+		const CVector3 tangForce      = tangRelVel * (-m_vConstantModelParameters[1] * PI * squaredContactRadius * pow(2 * equivRadius, 2.0) / 8 / m_vConstantModelParameters[0]);
+		const CVector3 totalForce     = sinteringForce + viscousForce + tangForce;
 
 		// store results in collision
-		_collTotalForces[iColl] = vTotalForce;
+		_collTotalForces[iColl] = totalForce;
 
 		// apply forces
-		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iSrcPart], vTotalForce);
-		CUDA_VECTOR3_ATOMIC_SUB(_partForces[iDstPart], vTotalForce);
+		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart1], totalForce);
+		CUDA_VECTOR3_ATOMIC_SUB(_partForces[iPart2], totalForce);
 	}
 }

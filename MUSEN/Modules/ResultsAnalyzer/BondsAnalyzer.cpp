@@ -44,7 +44,7 @@ bool CBondsAnalyzer::Export()
 				dTotalForce = pBond->GetForce(dTime).Length();
 				dInitLength = pBond->GetInitLength();
 				dCurrentLength = m_pSystemStructure->GetBond(dTime, vBonds[j]).Length();
-				if (dCurrentLength > dInitLength) // pulling state
+				if (dCurrentLength < dInitLength) // pulling state
 					dTotalForce *= -1;
 				WriteValueToResults(dTotalForce, iTime);
 				break;

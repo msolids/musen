@@ -9,5 +9,5 @@ class CModelPPHertzMindlinLiquid : public CParticleParticleModel
 {
 public:
 	CModelPPHertzMindlinLiquid();
-	void CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _pCollision) const override;
+	void CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const override;
 };

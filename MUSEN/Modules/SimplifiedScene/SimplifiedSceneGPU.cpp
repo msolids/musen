@@ -35,6 +35,11 @@ void CSimplifiedSceneGPU::ClearAllForcesAndMoments()
 	CUDA_MEMSET_ASYNC(m_Walls.Forces, 0, sizeof(CVector3)*m_Walls.nElements);
 }
 
+void CSimplifiedSceneGPU::ClearHeatFluxes() const
+{
+	CUDA_MEMSET_ASYNC(m_Particles.HeatFluxes, 0, sizeof(double)*m_Particles.nElements);
+}
+
 void CSimplifiedSceneGPU::GetMaxSquaredPartDist(double* _bufMaxVelocity)
 {
 	m_gpuScene.GetMaxSquaredPartVerletDistance(m_Particles, _bufMaxVelocity);
@@ -43,6 +48,11 @@ void CSimplifiedSceneGPU::GetMaxSquaredPartDist(double* _bufMaxVelocity)
 double CSimplifiedSceneGPU::GetMaxPartVelocity()
 {
 	return m_gpuScene.GetMaxPartVelocity(m_Particles);
+}
+
+double CSimplifiedSceneGPU::GetMaxPartTemperature()
+{
+	return m_gpuScene.GetMaxPartTemperature(m_Particles);
 }
 
 void CSimplifiedSceneGPU::GetMaxWallVelocity(double* _bufMaxVelocity)
@@ -161,6 +171,11 @@ void CSimplifiedSceneGPU::CUDAParticlesCPU2GPU(CSimplifiedScene& _pSceneCPU)
 		particlesHost.Moments[i] = particlesCPU.Moment(i);
 		particlesHost.Activities[i] = particlesCPU.Active(i);
 		particlesHost.EndActivities[i] = particlesCPU.EndActivity(i);
+		if (particlesCPU.ThermalsExist())
+		{
+			particlesHost.HeatCapacities[i] = particlesCPU.HeatCapacity(i);
+			particlesHost.Temperatures[i] = particlesCPU.Temperature(i);
+		}
 	});
 
 	m_Particles.CopyFrom(particlesHost);
@@ -196,6 +211,8 @@ void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUAllData(CSimplifiedScene& _pSceneC
 		particlesCPU.Moment(i) = particlesHost.Moments[i];
 		particlesCPU.Active(i) = particlesHost.Activities[i] != 0;
 		particlesCPU.EndActivity(i) = particlesHost.EndActivities[i];
+		if (particlesCPU.ThermalsExist())
+			particlesCPU.Temperature(i) = particlesHost.Temperatures[i];
 	});
 }
 

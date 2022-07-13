@@ -20,7 +20,7 @@ CParticleFilter::CParticleFilter(CSystemStructure& _systemStructure, const SPack
 		{
 			std::vector<CTriangle> triangles;
 			for (const auto& wall : g->Walls())
-				triangles.push_back(wall->GetCoords(0));
+				triangles.push_back(wall->GetPlaneCoords(0));
 			m_geometryCheckers.push_back(new CInsideVolumeChecker{ triangles });
 		}
 }

@@ -131,8 +131,8 @@ std::vector<std::string> CUnitConvertor::GetPossibleUnitsByIndex( unsigned _nPro
 	case EUnitType::PSD_q0: break;
 	case EUnitType::PSD_q3: break;
 	case EUnitType::TEMPERATURE:
-		vResultVector.push_back( "K" );
-		vResultVector.push_back( "C" ); // default value
+		vResultVector.push_back( "K" ); // default value
+		vResultVector.push_back( "C" ); 
 		break;
 	case EUnitType::MASS:
 		vResultVector.push_back( "g" );

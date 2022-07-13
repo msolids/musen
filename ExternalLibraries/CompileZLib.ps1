@@ -7,7 +7,7 @@ $CURRENT_PATH = (Get-Item -Path ".\" -Verbose).FullName
 ################################################################################
 ### Paths
 
-$VERSION = "1.2.11"
+$VERSION = "1.2.12"
 $NAME = "zlib-$VERSION"
 $ZIP_NAME = "$NAME.tar.gz"
 $DOWNLOAD_ADDRESS = "http://www.zlib.net/$ZIP_NAME"

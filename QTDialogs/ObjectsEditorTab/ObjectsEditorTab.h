@@ -55,6 +55,7 @@ class CObjectsEditorTab: public CMusenDialog
 		GEOMETRY,
 		STRESS,
 		TANGENTIAL_OVERLAP,
+		ACTIVITY_INTERVAL,
 	};
 
 	struct SDataField
@@ -96,7 +97,7 @@ public slots:
 	void UpdateSelectedObjects() const; /// Updates objects that were selected elsewhere.
 
 	void ObjectsSelectionChanged() const;				/// Is called when user selects rows in the main table.
-	void ObjectDataChanged(QTableWidgetItem* _item);	/// Is called when user changes some entries in the table.
+	void ObjectDataChanged(const QTableWidgetItem* _item);	/// Is called when user changes some entries in the table.
 	void DataPasted() const;							/// Is called when user pastes data into the main table from clipboard.
 
 	void ShowContextMenu(const QPoint& _pos);	/// Shows context menu for the selected objects.

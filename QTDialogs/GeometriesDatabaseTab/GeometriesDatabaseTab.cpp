@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "GeometriesDatabaseTab.h"
+#include "MUSENFileFunctions.h"
 #include "QtSignalBlocker.h"
 #include <QFileDialog>
 #include <QLockFile>

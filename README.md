@@ -1,8 +1,8 @@
 # MUSEN - GPU-accelerated DEM simulation framework
-- For more information, please check the [documentation](https://msolids.net/documentation).
+- For more information, please check the [documentation](https://msolids.net/documentation). 
 - [Video introduction](https://youtu.be/bH1xydzdrGY)
-- To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618)
-- [New versions and updates](https://msolids.net/musen/download)
+- To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618).
+- [New versions and updates](https://msolids.net/musen/download).
 
 # Requirements 
 MUSEN should install and work on all latest versions of Windows or Linux (Ubuntu or Red Head).
@@ -80,7 +80,7 @@ A fully functional version can be compiled and built with cmake and gcc.
 ## Requirements on Linux
 - gcc-9, g++-9
 - cmake 3.18.0
-- qt 5.15.2 gcc_64 (Optional. Needed to build MUSEN with GUI)
+- qt 5.15.2 gcc_64
 - cuda 11.2
 - zlib 1.2.11
 - protobuf 3.14.0

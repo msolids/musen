@@ -62,9 +62,27 @@ void CScriptRunner::GeneratePackage()
 
 	// set material parameters
 	ApplyMaterialParameters();
+	if (m_job.contactRadiusFlag.IsDefined())	m_systemStructure.EnableContactRadius(m_job.contactRadiusFlag.ToBool());
 
 	// delete all existing particles
 	m_systemStructure.DeleteAllParticles();
+
+	// set pbc
+	if (m_job.pbcFlags[0].IsDefined())
+	{
+		SPBC pbc = m_systemStructure.GetPBC();
+		pbc.bX = m_job.pbcFlags[0].ToBool();
+		pbc.bY = m_job.pbcFlags[1].ToBool();
+		pbc.bZ = m_job.pbcFlags[2].ToBool();
+		pbc.bEnabled = pbc.bX || pbc.bY || pbc.bZ;
+		m_systemStructure.SetPBC(pbc);
+	}
+	if (!m_job.pbcDomain.IsInf())
+	{
+		SPBC pbc = m_systemStructure.GetPBC();
+		pbc.SetDomain(m_job.pbcDomain.coordBeg, m_job.pbcDomain.coordEnd);
+		m_systemStructure.SetPBC(pbc);
+	}
 
 	// setup generators
 	CPackageGenerator generator;
@@ -244,7 +262,7 @@ void CScriptRunner::ExportToText()
 	CConstraints constraints;
 	exporter.SetPointers(&m_systemStructure, &constraints, &packageGenerator, &bondsGenerator);
 	exporter.SetFileName(m_job.resultFileName);
-	exporter.SetFlags(m_job.txtExportObjects, m_job.txtExportScene, m_job.txtExportConst, m_job.txtExportTD, m_job.txtExportGeometries, m_job.txtExportMaterials, m_job.txtExportGenerators);
+	exporter.SetSelectors(m_job.txtExportSettings);
 	exporter.SetPrecision(m_job.txtPrecision);
 
 	std::vector<double> timePoints;
@@ -369,7 +387,7 @@ void CScriptRunner::ApplyMaterialParameters()
 		if (!m_systemStructure.m_MaterialDatabase.GetMixture(mix.iMixture)) continue;
 		m_systemStructure.m_MaterialDatabase.GetMixture(mix.iMixture)->SetFractionCompound(mix.iFraction, mix.compoundKey);
 		m_systemStructure.m_MaterialDatabase.GetMixture(mix.iMixture)->SetFractionDiameter(mix.iFraction, mix.diameter);
-		m_systemStructure.m_MaterialDatabase.GetMixture(mix.iMixture)->SetFractionContactDiameter(mix.iFraction, mix.diameter);
+		m_systemStructure.m_MaterialDatabase.GetMixture(mix.iMixture)->SetFractionContactDiameter(mix.iFraction, mix.contactDiameter);
 		m_systemStructure.m_MaterialDatabase.GetMixture(mix.iMixture)->SetFractionValue(mix.iFraction, mix.fraction);
 	}
 }

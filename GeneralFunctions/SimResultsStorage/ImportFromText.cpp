@@ -51,10 +51,7 @@ void CImportFromText::SetAllTDdataIntoSystemStructure()
 			{
 				pCurrObject->SetForce(dTime, InterpolatedValue(m_vObjects[j]->vTime, m_vObjects[j]->vForce, dTime));
 				pCurrObject->SetAngleVelocity(dTime, InterpolatedValue(m_vObjects[j]->vTime, m_vObjects[j]->vAngleVelocity, dTime));	// tangential overlap
-				std::vector<double> vTotalTorques;
-				for (auto& coord : m_vObjects[j]->vCoordinates)
-					vTotalTorques.push_back(coord.x);
-				pCurrObject->SetTotalTorque(dTime, InterpolatedValue(m_vObjects[j]->vTime, vTotalTorques, dTime));
+				pCurrObject->SetTotalTorque(dTime, InterpolatedValue(m_vObjects[j]->vTime, m_vObjects[j]->vTotalTorque, dTime));
 				pCurrObject->SetTemperature(dTime, InterpolatedValue(m_vObjects[j]->vTime, m_vObjects[j]->vTemperature, dTime));
 				break;
 			}
@@ -153,7 +150,7 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 				}
 				break;
 			}
-			case ETXTCommands::OBJECT_ACTIVITY_INTERVAL:
+			case ETXTCommands::OBJECT_ACTIV_INTERV:
 			{
 				status.importResult = CheckConstantProperties(nIdentifier, requiredProps);
 				if (status.importResult != EImportFileResult::OK)
@@ -185,23 +182,38 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 				m_vObjects[nCurrentObjectID]->vQuaternion.emplace_back(0, 1, 0, 0);
 				m_vObjects[nCurrentObjectID]->vStressTensor.emplace_back(0);
 				m_vObjects[nCurrentObjectID]->vTemperature.emplace_back(0);
+				m_vObjects[nCurrentObjectID]->vTotalTorque.emplace_back(0);
 				break;
 			}
-			case ETXTCommands::OBJECT_COORDINATES:
+			case ETXTCommands::OBJECT_COORD:
 				if (m_pSystemStructure->GetObjectByIndex(nCurrentObjectID)->GetObjectType() == SPHERE)
 					status.bParticleCoordinates = true;
 				tempStream >> m_vObjects[nCurrentObjectID]->vCoordinates.back(); break;
-			case ETXTCommands::OBJECT_VELOCITIES:   tempStream >> m_vObjects[nCurrentObjectID]->vVelocity.back();      break;
-			case ETXTCommands::OBJECT_ANG_VEL:      tempStream >> m_vObjects[nCurrentObjectID]->vAngleVelocity.back(); break;
-			case ETXTCommands::OBJECT_TOTAL_FORCE:  tempStream >> m_vObjects[nCurrentObjectID]->vTotalForce.back();    break;
-			case ETXTCommands::OBJECT_FORCE:        tempStream >> m_vObjects[nCurrentObjectID]->vForce.back();         break;
-			case ETXTCommands::OBJECT_QUATERNION:   tempStream >> m_vObjects[nCurrentObjectID]->vQuaternion.back();    break;
-			case ETXTCommands::OBJECT_STRESSTENSOR: tempStream >> m_vObjects[nCurrentObjectID]->vStressTensor.back();  break;
-			case ETXTCommands::OBJECT_TEMPERATURE:  tempStream >> m_vObjects[nCurrentObjectID]->vTemperature.back();   break;
+			case ETXTCommands::OBJECT_VELOCITY:      tempStream >> m_vObjects[nCurrentObjectID]->vVelocity.back();      break;
+			case ETXTCommands::OBJECT_ANG_VEL:       tempStream >> m_vObjects[nCurrentObjectID]->vAngleVelocity.back(); break;
+			case ETXTCommands::OBJECT_FORCE_AMPL:    tempStream >> m_vObjects[nCurrentObjectID]->vTotalForce.back();    break;
+			case ETXTCommands::OBJECT_FORCE:         tempStream >> m_vObjects[nCurrentObjectID]->vForce.back();         break;
+			case ETXTCommands::OBJECT_ORIENT:        tempStream >> m_vObjects[nCurrentObjectID]->vQuaternion.back();    break;
+			case ETXTCommands::OBJECT_STRESS_TENSOR: tempStream >> m_vObjects[nCurrentObjectID]->vStressTensor.back();  break;
+			case ETXTCommands::OBJECT_TEMPERATURE:   tempStream >> m_vObjects[nCurrentObjectID]->vTemperature.back();   break;
+			case ETXTCommands::OBJECT_TOT_TORQUE:    tempStream >> m_vObjects[nCurrentObjectID]->vTotalTorque.back();   break;
+			case ETXTCommands::OBJECT_TANG_OVERLAP:  tempStream >> m_vObjects[nCurrentObjectID]->vAngleVelocity.back();   break;
+			case ETXTCommands::OBJECT_PLANE_COORD:
+			{
+				const auto coord1 = GetValueFromStream<CVector3>(&tempStream);
+				const auto coord2 = GetValueFromStream<CVector3>(&tempStream);
+				const auto coord3 = GetValueFromStream<CVector3>(&tempStream);
+				m_vObjects[nCurrentObjectID]->vCoordinates.back() = coord1;
+				m_vObjects[nCurrentObjectID]->vQuaternion.back().q0 = coord2.x;
+				m_vObjects[nCurrentObjectID]->vQuaternion.back().q1 = coord2.y;
+				m_vObjects[nCurrentObjectID]->vQuaternion.back().q2 = coord2.z;
+				m_vObjects[nCurrentObjectID]->vAngleVelocity.back() = coord3;
+				break;
+			}
 			case ETXTCommands::OBJECT_ANGL:       GetValueFromStream<CVector3>(&tempStream); break; // skip it
 			case ETXTCommands::OBJECT_ACCEL:      GetValueFromStream<CVector3>(&tempStream); break; // skip it
 			case ETXTCommands::OBJECT_ANGL_ACCEL: GetValueFromStream<CVector3>(&tempStream); break; // skip it
-			case ETXTCommands::OBJECT_PRINCIPALSTRESS: GetValueFromStream<CVector3>(&tempStream); break; // skip it
+			case ETXTCommands::OBJECT_PRINC_STRESS: GetValueFromStream<CVector3>(&tempStream); break; // skip it
 			// import information about scene
 			case ETXTCommands::SIMULATION_DOMAIN:
 				m_pSystemStructure->SetSimulationDomain(GetValueFromStream<SVolumeType>(&tempStream));
@@ -259,9 +271,9 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 				CCompound* pCompound = new CCompound();
 				pCompound->SetKey(GetValueFromStream<std::string>(&tempStream));
 				pCompound->SetName(GetValueFromStream<std::string>(&tempStream));
-				while (tempStream.good())
+				unsigned prop;
+				while (tempStream >> prop)
 				{
-					auto prop = GetValueFromStream<unsigned>(&tempStream);
 					auto value = GetValueFromStream<double>(&tempStream);
 					pCompound->SetPropertyValue(prop, value);
 				}
@@ -273,12 +285,14 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 			{
 				CInteraction* pInteraction = m_pSystemStructure->m_MaterialDatabase.GetInteraction(GetValueFromStream<std::string>(&tempStream), GetValueFromStream<std::string>(&tempStream));
 				if (pInteraction)
-					while (tempStream.good())
+				{
+					unsigned prop;
+					while (tempStream >> prop)
 					{
-						auto prop = GetValueFromStream<unsigned>(&tempStream);
 						auto value = GetValueFromStream<double>(&tempStream);
 						pInteraction->SetPropertyValue(prop, value);
 					}
+				}
 				break;
 			}
 			case ETXTCommands::MATERIALS_MIXTURES:
@@ -286,10 +300,10 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 				CMixture* pMixture = new CMixture();
 				pMixture->SetKey(GetValueFromStream<std::string>(&tempStream));
 				pMixture->SetName(GetValueFromStream<std::string>(&tempStream));
-				while (tempStream.good())
+				unsigned nNumberOfFraction;
+				while (tempStream >> nNumberOfFraction)
 				{
 					size_t iFraction = pMixture->AddFraction();
-					const auto nNumberOfFraction = GetValueFromStream<unsigned>(&tempStream);
 					pMixture->SetFractionCompound(iFraction, GetValueFromStream<std::string>(&tempStream));
 					pMixture->SetFractionDiameter(iFraction, GetValueFromStream<double>(&tempStream));
 					pMixture->SetFractionContactDiameter(iFraction, GetValueFromStream<double>(&tempStream));
@@ -327,6 +341,8 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 	// free local storage
 	for (auto& object : m_vObjects)
 		delete object;
+
+	m_pSystemStructure->SaveToFile();
 
 	status.importResult = EImportFileResult::OK;
 	return status;

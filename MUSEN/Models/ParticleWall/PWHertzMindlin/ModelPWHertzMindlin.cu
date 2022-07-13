@@ -34,7 +34,7 @@ void CModelPWHertzMindlin::CalculatePWForceGPU(double _time, double _timeStep, c
 		_collisions.ActiveCollisionsNum,
 		_collisions.ActivityIndices,
 		_collisions.InteractPropIDs,
-		_collisions.ContactVectors,  // interpreted as Contact Point
+		_collisions.ContactVectors,  // interpreted as contact point
 		_collisions.SrcIDs,
 		_collisions.DstIDs,
 		_collisions.VirtualShifts,
@@ -74,65 +74,75 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		const unsigned iColl       = _collActivityIndices[iActivColl];
-		const unsigned iWall       = _collSrcIDs[iColl];
-		const unsigned iPart       = _collDstIDs[iColl];
-		const SInteractProps prop  = _interactProps[_collInteractPropIDs[iColl]];
-		const double dPartRadius   = _partRadii[iPart];
-		const CVector3 partAnglVel = _partAnglVels[iPart];
+		const unsigned       iColl            = _collActivityIndices[iActivColl];
+		const unsigned       iWall            = _collSrcIDs[iColl];
+		const unsigned       iPart            = _collDstIDs[iColl];
+		const SInteractProps prop             = _interactProps[_collInteractPropIDs[iColl]];
+		const double         partRadius       = _partRadii[iPart];
+		const CVector3       partAnglVel      = _partAnglVels[iPart];
+		const CVector3       normVector       = _wallNormalVecs[iWall];
+		const CVector3       tangOverlapOld   = _collTangOverlaps[iColl];
 
-		const CVector3 vRc = GPU_GET_VIRTUAL_COORDINATE(_partCoords[iPart]) - _collContactPoints[iColl];
-		const double   dRc = vRc.Length();
-		const CVector3 nRc = vRc / dRc; // = vRc.Normalized()
+		const CVector3 rc     = GPU_GET_VIRTUAL_COORDINATE(_partCoords[iPart]) - _collContactPoints[iColl];
+		const double   rcLen  = rc.Length();
+		const CVector3 rcNorm = rc / rcLen;
 
-		CVector3 vNormalVector = _wallNormalVecs[iWall];
-		CVector3 vVelDueToRot  = !_wallRotVels[iWall].IsZero() ? (_collContactPoints[iColl] - _wallRotCenters[iWall]) * _wallRotVels[iWall] : CVector3{ 0 };
+		// normal overlap
+		const double normOverlap = partRadius - rcLen;
+		if (normOverlap < 0) continue;
 
-		// normal and tangential overlaps
-		const double dNormalOverlap = dPartRadius - dRc;
-		if (dNormalOverlap < 0) continue;
+		// normal and tangential relative velocity
+		const CVector3 rotVel        = !_wallRotVels[iWall].IsZero() ? (_collContactPoints[iColl] - _wallRotCenters[iWall]) * _wallRotVels[iWall] : CVector3{ 0 };
+		const CVector3 relVel        = _partVels[iPart] - _wallVels[iWall] + rotVel + rcNorm * partAnglVel * partRadius;
+		const double   normRelVelLen = DotProduct(normVector, relVel);
+		const CVector3 normRelVel    = normRelVelLen * normVector;
+		const CVector3 tangRelVel    = relVel - normRelVel;
 
-		// relative velocity (normal and tangential)
-		const CVector3 vRelVel       = _partVels[iPart] - _wallVels[iWall] + vVelDueToRot + nRc * partAnglVel * dPartRadius;
-		const double   dRelVelNormal = DotProduct(vNormalVector, vRelVel);
-		const CVector3 vRelVelNormal = dRelVelNormal * vNormalVector;
-		const CVector3 vRelVelTang   = vRelVel - vRelVelNormal;
+		// radius of the contact area
+		const double contactAreaRadius = sqrt(partRadius * normOverlap);
 
 		// normal force with damping
-		const double Kn = 2 * prop.dEquivYoungModulus * sqrt(dPartRadius * dNormalOverlap);
-		const double dDampingForce = 1.8257 * prop.dAlpha * dRelVelNormal * sqrt(Kn * _partMasses[iPart]);
-		const double dNormalForce  = 2. / 3. * dNormalOverlap * Kn * fabs(DotProduct(nRc, vNormalVector));
+		const double Kn = 2 * prop.dEquivYoungModulus * contactAreaRadius;
+		const double normContactForceLen = 2. / 3. * normOverlap * Kn * fabs(DotProduct(rcNorm, normVector));
+		const double normDampingForceLen = _2_SQRT_5_6 * prop.dAlpha * normRelVelLen * sqrt(Kn * _partMasses[iPart]);
+		const CVector3 normForce = normVector * (normContactForceLen + normDampingForceLen);
 
-		// increment of tangential force with damping
-		const double Kt = 8 * prop.dEquivShearModulus * sqrt(dPartRadius * dNormalOverlap);
-		const CVector3 vDampingTangForce = vRelVelTang * (1.8257 * prop.dAlpha * sqrt(Kt * _partMasses[iPart]));
+		// rotate old tangential overlap
+		CVector3 tangOverlapRot = tangOverlapOld - normVector * DotProduct(normVector, tangOverlapOld);
+		if (tangOverlapRot.IsSignificant())
+			tangOverlapRot *= tangOverlapOld.Length() / tangOverlapRot.Length();
+		// calculate new tangential overlap
+		CVector3 tangOverlap = tangOverlapRot + tangRelVel * _timeStep;
 
-		// rotate old tangential force
-		CVector3 vTangOverlap = _collTangOverlaps[iColl] - vNormalVector * DotProduct(vNormalVector, _collTangOverlaps[iColl]);
-		if (vTangOverlap.IsSignificant())
-			vTangOverlap = vTangOverlap * _collTangOverlaps[iColl].Length() / vTangOverlap.Length();
+		// tangential force with damping
+		const double Kt = 8 * prop.dEquivShearModulus * contactAreaRadius;
+		const CVector3 tangShearForce = -Kt * tangOverlap;
+		const CVector3 tangDampingForce = tangRelVel * (_2_SQRT_5_6 * prop.dAlpha * sqrt(Kt * _partMasses[iPart]));
 
-		_collTangOverlaps[iColl] = vTangOverlap + vRelVelTang * _timeStep;
-		CVector3 vTangForce = -Kt * _collTangOverlaps[iColl];
-		// check slipping condition
-		const double dNewTangForce = vTangForce.Length();
-		if (dNewTangForce > prop.dSlidingFriction * fabs(dNormalForce))
+		// check slipping condition and calculate total tangential force
+		CVector3 tangForce;
+		const double tangShearForceLen = tangShearForce.Length();
+		const double frictionForceLen = prop.dSlidingFriction * fabs(normContactForceLen + normDampingForceLen);
+		if (tangShearForceLen > frictionForceLen)
 		{
-			vTangForce *= prop.dSlidingFriction * fabs(dNormalForce) / dNewTangForce;
-			_collTangOverlaps[iColl] = vTangForce / -Kt;
+			tangForce   = tangShearForce * frictionForceLen / tangShearForceLen;
+			tangOverlap = tangForce / -Kt;
 		}
 		else
-			vTangForce += vDampingTangForce;
+			tangForce   = tangShearForce + tangDampingForce;
 
-		// calculate rolling friction
-		CVector3 vRollingTorque = partAnglVel.IsSignificant() ? // if it is not zero, but small enough, its Length() can turn into zero and division fails
-			partAnglVel * (-prop.dRollingFriction * fabs(dNormalForce) * dPartRadius / partAnglVel.Length()) : CVector3{ 0 };
+		// rolling torque
+		const CVector3 rollingTorque = partAnglVel.IsSignificant() ? partAnglVel * (-prop.dRollingFriction * fabs(normContactForceLen) * partRadius / partAnglVel.Length()) : CVector3{ 0 };
 
-		// calculate and apply moment
-		const CVector3 vMoment = vNormalVector * vTangForce * -dPartRadius + vRollingTorque;
-		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[iPart], vMoment);
+		// final forces and moments
+		const CVector3 totalForce = normForce + tangForce;
+		const CVector3 moment     = normVector * tangForce * -partRadius + rollingTorque;
 
 		// store results in collision
-		_collTotalForces[iColl] = vTangForce + (dNormalForce + dDampingForce) * vNormalVector;
+		_collTangOverlaps[iColl] = tangOverlap;
+		_collTotalForces[iColl]  = totalForce;
+
+		// apply moment
+		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[iPart], moment);
 	}
 }

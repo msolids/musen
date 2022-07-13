@@ -7,6 +7,9 @@
 #include "BondsAnalyzer.h"
 #include "ParticlesAnalyzer.h"
 #include "AgglomeratesAnalyzer.h"
+#include "MUSENFileFunctions.h"
+
+#undef GetCurrentTime
 
 CConsoleResultsAnalyzer::CConsoleResultsAnalyzer(std::ostream& _out/* = std::cout*/, std::ostream& _err/* = std::cerr*/) :
 	m_out(_out),
@@ -119,7 +122,7 @@ CConsoleResultsAnalyzer::EProcessResultType CConsoleResultsAnalyzer::SetupAnalyz
 		case EAnalyzerTypes::AgglomeratesAnalyzer:
 			m_out << "AgglomeratesAnalyzer " << sResultType << " of " << sProperty;
 			break;
-	} 
+	}
 	m_out << std::endl;
 	*/
 
@@ -127,12 +130,12 @@ CConsoleResultsAnalyzer::EProcessResultType CConsoleResultsAnalyzer::SetupAnalyz
 	if (_commandSet.size() == iParameter + 1)
 		_outAnalyzer->m_sOutputFileName = MUSENFileFunctions::removeFileExt(_commandSet[iParameter]);
 	else
-	{ 
+	{
 		_outAnalyzer->m_sOutputFileName = MUSENFileFunctions::removeFileExt(_systemStructure.GetFileName());
 		switch (analyzerType)
 		{
 		case EAnalyzerTypes::GeometryAnalyzer:
-			_outAnalyzer->m_sOutputFileName += "_" + sProperty + "_" + sGeometry; 
+			_outAnalyzer->m_sOutputFileName += "_" + sProperty + "_" + sGeometry;
 			break;
 		case EAnalyzerTypes::BondsAnalyzer:
 			_outAnalyzer->m_sOutputFileName += "_" + sResultType + "_" + sProperty;
@@ -147,7 +150,7 @@ CConsoleResultsAnalyzer::EProcessResultType CConsoleResultsAnalyzer::SetupAnalyz
 	}
 	_outAnalyzer->m_sOutputFileName += "." + m_sFileExt;
 
-	
+
 
 	// set time
 	_outAnalyzer->SetTime(_systemStructure.GetMinTime(), _systemStructure.GetMaxTime(), 0, true); // TODO: allow input for requested time steps
@@ -187,8 +190,8 @@ std::vector<std::shared_ptr<CResultsAnalyzer>> CConsoleResultsAnalyzer::SetupMon
 
 	m_out << m_sOutputPrefix << "Setting up monitors" << std::endl;
 	std::vector<std::shared_ptr<CResultsAnalyzer>> analyzers(GetAnalyzers(_systemStructure, _job.vMonitors));
-	
-	
+
+
 
 	for (auto const& analyzer : analyzers)
 	{
@@ -204,7 +207,7 @@ std::vector<std::shared_ptr<CResultsAnalyzer>> CConsoleResultsAnalyzer::SetupMon
 
 			currAnalyzer->InitAnalyzer(currAnalyzer->GetProperties());
 
-			
+
 			CBaseSimulator* pBaseSim = _simManager.GetSimulatorPtr();
 			auto myfunction = [analyzer, pBaseSim]()
 			{

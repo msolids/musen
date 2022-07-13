@@ -78,6 +78,30 @@ template<typename T> bool VectorContains(const std::vector<T>& _vec, T _val)
 	return std::find(_vec.begin(), _vec.end(), _val) != _vec.end();
 }
 
+// Returns index of a specified element or -1 if it does not exist.
+template<typename T>
+size_t VectorFind(const std::vector<T>& _vec, T _val)
+{
+	const auto it = std::find(_vec.begin(), _vec.end(), _val);
+	if (it == _vec.end()) return static_cast<size_t>(-1);
+	return std::distance(_vec.begin(), it);
+}
+
+// Returns index of a specified element or -1 if it does not exist.
+template<typename T, typename FUN>
+size_t VectorFind(const std::vector<T>& _vec, const FUN& _fun)
+{
+	const auto it = std::find_if(_vec.begin(), _vec.end(), _fun);
+	if (it == _vec.end()) return static_cast<size_t>(-1);
+	return std::distance(_vec.begin(), it);
+}
+
+// Transforms vector to set
+template<typename T> std::set<T> Vector2Set(const std::vector<T>& _v)
+{
+	return std::set<T>(_v.begin(), _v.end());
+}
+
 template<typename T> std::vector<T> VectorDifference(const std::vector<T>& _v1, const std::vector<T>& _v2)
 {
 	std::vector<T> res;

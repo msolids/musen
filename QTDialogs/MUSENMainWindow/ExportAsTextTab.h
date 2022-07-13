@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2022, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -9,14 +9,14 @@
 #include "ConstraintsEditorTab.h"
 #include <QTimer>
 
-class CExportAsTextThread : public QObject
+class CExportWorker : public QObject
 {
 	Q_OBJECT
 
-	CExportAsText* m_pExporter;
+	CExportAsText* m_exporter;
 
 public:
-	CExportAsTextThread(CExportAsText* _exporter, QObject* parent = nullptr);
+	CExportWorker(CExportAsText* _exporter, QObject* _parent = nullptr);
 
 public slots:
 	void StartExporting();
@@ -30,51 +30,62 @@ class CExportAsTextTab : public CMusenDialog
 {
 	Q_OBJECT
 
-	Ui::CExportAsTextTab ui;
+	Ui::CExportAsTextTab ui{};
 
-	std::vector<double> m_vTimePoints;  // List of time points which should be considered.
+	CExportAsText  m_exporter;       // Text exporter itself.
+	CConstraints   m_constraints;    // Constraints for text exporter.
+	QThread*       m_exportThread{}; // Tread where export worker is running.
+	CExportWorker* m_exportWorker{}; // Runner to execute exporter.
+	QTimer         m_updateTimer;    // Timer to update user interface.
 
-	CConstraints		   m_constraints;
-	CExportAsText          m_exporter;
-	QThread*               m_pQTThread;
-	CExportAsTextThread*   m_pExportThread;
-	QTimer				   m_UpdateTimer;
-
-	CPackageGenerator* m_packageGenerator{ nullptr };
-	CBondsGenerator*   m_bondsGenerator{ nullptr };
+	CPackageGenerator* m_packageGenerator{ nullptr }; // Pointer to actual package generator.
+	CBondsGenerator*   m_bondsGenerator{ nullptr };   // Pointer to actual bonds generator.
 
 public:
 	CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, QWidget* _parent = nullptr);
 
-	void SetPointers(CSystemStructure* _pSystemStructure, CUnitConvertor* _pUnitConvertor, CMaterialsDatabase* _pMaterialsDB, CGeometriesDatabase* _pGeometriesDB, CAgglomeratesDatabase* _pAgglomDB) override;
+	// Sets all pointers to all required data. Must be called before any other function.
+	void SetPointers(CSystemStructure* _systemStructure, CUnitConvertor* _unitConvertor, CMaterialsDatabase* _materialsDB, CGeometriesDatabase* _geometriesDB, CAgglomeratesDatabase* _agglomeratesDB) override;
 
+	// Is called when visibility of the widget changes.
+	void setVisible(bool _visible) override;
+
+	// Updates the whole widget.
 	void UpdateWholeView() override;
 
 private:
 	// Connects qt objects to slots.
 	void InitializeConnections() const;
+
+	// Is called when user switches between save all and save selective.
+	void UpdateAllFlags();
+	// Enable/disables orientation check box.
+	void UpdateOrientationFlag() const;
 	// Update the value of precision.
 	void UpdatePrecision() const;
-	// Creates vector of time points, depending on time parameters and saving mode.
-	void CalculateTimePoints();
-	// Updates size of time points.
-	void UpdateTimeParameters() const;
-	// Sets all flags, which related to all checkboxes.
+	// Updates time from user input.
+	void UpdateTime();
+	// Updates time from simulation parameters.
+	void UpdateTimeFromSimulation();
+	// Updates progress.
+	void UpdateProgressInfo() const;
+
+	// Sets activity of object-related widgets.
+	void SetEnabledObjectWidgets(bool _active) const;
+	// Sets activity of time-dependent object-related widgets.
+	void SetEnabledTDWidgets() const;
+	// Disables the whole tab during exporting.
+	void SetEnabledAll(bool _enabled) const;
+
+	// Returns vector of time points, depending on time parameters and saving mode.
+	std::vector<double> CalculateTimePoints();
+	// Sets all selected flags to exporter.
 	void ApplyAllFlags();
 
-private slots:
-	void SetObjectTypeCheckBoxes(bool _active) const;
-	void SelectiveSavingToggled();
-	void SetNewTime();
-	void UpdateTimeFromSimulation();
-	void UpdateProgressInfo() const;
+	// Is called when export starts.
 	void ExportPressed();
+	// Is called when export finishes.
 	void ExportingFinished();
-	void SetRelevantCheckBoxesParticle() const;
-	void SetRelevantCheckBoxesSB() const;
-	void SetRelevantCheckBoxesTW() const;
-	void SetQuaternionCheckBox();
-	void SetWholeTabEnabled(bool _enabled) const;
 
 signals:
 	void RunningStatusChanged(ERunningStatus _status);

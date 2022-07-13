@@ -260,6 +260,18 @@ void CPhysicalObject::GetActivityTimeInterval(double* _pStartTime, double* _pEnd
 	*_pEndTime = p->activity_end();
 }
 
+std::pair<double, double> CPhysicalObject::GetActivityTimeInterval() const
+{
+	const auto* p = m_storage->Object(m_lObjectID);
+	return { p->activity_start(), p->activity_end() };
+}
+
+double CPhysicalObject::GetActivityStart() const
+{
+	auto p = m_storage->Object(m_lObjectID);
+	return p->activity_start();
+}
+
 double CPhysicalObject::GetActivityEnd() const
 {
 	auto p = m_storage->Object(m_lObjectID);

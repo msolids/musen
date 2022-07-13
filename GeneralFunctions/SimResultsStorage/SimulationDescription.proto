@@ -15,6 +15,7 @@ message ProtoSelectiveSaving
 	bool p_quatern = 4;
 	bool p_force = 5;
 	bool p_tensor = 6;
+	bool p_temperature = 14;
 
 	bool sb_force = 7;
 	bool sb_tangoverlap = 8;
@@ -336,6 +337,7 @@ message ProtoModuleModelManager
 	ProtoMusenModel lb_model = 4;
 	ProtoMusenModel ef_model = 5;
 	bool connected_pp_contact = 6;
+	ProtoMusenModel ht_pp_model = 7;
 }
 
 message ProtoMusenModel

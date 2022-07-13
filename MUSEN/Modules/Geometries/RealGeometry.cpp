@@ -67,7 +67,7 @@ SVolumeType CRealGeometry::BoundingBox(double _time) const
 	bb.coordEnd = bb.coordBeg = walls.front()->GetCoordVertex1();
 	for (const auto& w : walls)
 	{
-		const auto t = w->GetCoords();
+		const auto t = w->GetPlaneCoords();
 		bb.coordBeg = Min(bb.coordBeg, t.p1, t.p2, t.p3);
 		bb.coordEnd = Max(bb.coordEnd, t.p1, t.p2, t.p3);
 	}
@@ -124,7 +124,7 @@ void CRealGeometry::Shift(const CVector3& _offset)
 	m_systemStructure->PrepareTimePointForRead(0.0);
 	m_systemStructure->PrepareTimePointForWrite(0.0);
 	for (auto& wall : Walls())
-		wall->SetPlaneCoord(wall->GetCoords().Shifted(_offset));
+		wall->SetPlaneCoord(wall->GetPlaneCoords().Shifted(_offset));
 }
 
 void CRealGeometry::SetCenter(const CVector3& _coord)
@@ -144,7 +144,7 @@ void CRealGeometry::Scale(double _factor)
 	m_systemStructure->PrepareTimePointForWrite(0.0);
 	const CVector3 center = Center();
 	for (auto& wall : Walls())
-		wall->SetPlaneCoord(wall->GetCoords().Scaled(center, _factor / ScalingFactor()));
+		wall->SetPlaneCoord(wall->GetPlaneCoords().Scaled(center, _factor / ScalingFactor()));
 	CBaseGeometry::Scale(_factor);
 }
 
@@ -156,7 +156,7 @@ void CRealGeometry::DeformSTL(const CVector3& _factors)
 	m_systemStructure->PrepareTimePointForWrite(0.0);
 	const CVector3 center = Center();
 	for (auto& wall : Walls())
-		wall->SetPlaneCoord(wall->GetCoords().Scaled(center, _factors));
+		wall->SetPlaneCoord(wall->GetPlaneCoords().Scaled(center, _factors));
 }
 
 void CRealGeometry::Rotate(const CMatrix3& _rotation)
@@ -166,7 +166,7 @@ void CRealGeometry::Rotate(const CMatrix3& _rotation)
 	m_systemStructure->PrepareTimePointForWrite(0.0);
 	const CVector3 center = Center();
 	for (auto& wall : Walls())
-		wall->SetPlaneCoord(wall->GetCoords().Rotated(center, _rotation));
+		wall->SetPlaneCoord(wall->GetPlaneCoords().Rotated(center, _rotation));
 }
 
 void CRealGeometry::UpdateMotionInfo(double _dependentValue)

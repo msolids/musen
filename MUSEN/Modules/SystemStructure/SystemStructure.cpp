@@ -51,7 +51,7 @@ void CSystemStructure::DeleteObjects(const std::vector<size_t>& _vIndexes)
 	for (size_t i = 0; i < _vIndexes.size(); i++)
 	{
 		size_t nObjIndex = _vIndexes[i];
-		if (objects[nObjIndex] == NULL) continue;
+		if (nObjIndex >= objects.size() || !objects[nObjIndex]) continue;
 
 		// remove all connected bonds
 		if (objects[_vIndexes[i]]->GetObjectType() == SPHERE) // delete all bonds which connects this particle
@@ -206,6 +206,15 @@ void CSystemStructure::GetAllObjectsOfSpecifiedCompound(double _dTime, std::vect
 					else
 						if (objects[i]->GetCompoundKey() == _sCompoundKey)
 							_vecIndexes->push_back(objects[i]);
+}
+
+std::vector<size_t> CSystemStructure::GetAllObjectsIDs() const
+{
+	auto res = ReservedVector<size_t>(objects.size());
+	for (size_t i = 0; i < objects.size(); ++i)
+		if (objects[i])
+			res.push_back(i);
+	return res;
 }
 
 std::vector<CPhysicalObject*> CSystemStructure::GetAllActiveObjects(double _dTime, unsigned _nObjectType)
@@ -420,9 +429,11 @@ double CSystemStructure::GetRecommendedTimeStep(double _dTime /*= 0*/) const
 		else if (auto* bond = dynamic_cast<CBond*>(objects[i]))	// for bonds
 		{
 			// find the smallest mass of contact partner
-			auto* part1 = objects[bond->m_nLeftObjectID];
-			auto* part2 = objects[bond->m_nRightObjectID];
-			const double dMinMass = std::min(part1->GetMass(), part2->GetMass());
+			const auto* part1 = objects[bond->m_nLeftObjectID];
+			const auto* part2 = objects[bond->m_nRightObjectID];
+			const auto mass1 = part1 ? part1->GetMass() : std::numeric_limits<double>::max();
+			const auto mass2 = part2 ? part2->GetMass() : std::numeric_limits<double>::max();
+			const double dMinMass = std::min(mass1, mass2);
 			const double dCrossCut = PI * std::pow(bond->GetDiameter(), 2) / 4.0;
 			const double dYoungModulus = compound->GetPropertyValue(PROPERTY_YOUNG_MODULUS);
 			const CVector3 bondVec = GetBond(_dTime, i);
@@ -551,7 +562,7 @@ void CSystemStructure::ExportGeometriesToSTL(const std::string& _sFileName, doub
 		{
 			CTriangularWall* pWall = static_cast<CTriangularWall*>(objects[plane]);
 			if (!pWall || !pWall->IsActive(_dTime)) continue;
-			geometry.AddTriangle(pWall->GetCoords(_dTime));
+			geometry.AddTriangle(pWall->GetPlaneCoords(_dTime));
 		}
 	CSTLFileHandler::WriteToFile(geometry, _sFileName);
 }
@@ -852,7 +863,7 @@ double CSystemStructure::GetBondVolume(double _dTime, size_t _nBondID)
 	return VCyl - Vss1 - Vss2;
 }
 
-CVector3 CSystemStructure::GetBondVelocity(double _dTime, size_t _nBondID)
+CVector3 CSystemStructure::GetBondVelocity(double _dTime, size_t _nBondID) const
 {
 	CVector3 vResult(0, 0, 0);
 	if (objects[_nBondID] == NULL) return vResult;
@@ -860,7 +871,6 @@ CVector3 CSystemStructure::GetBondVelocity(double _dTime, size_t _nBondID)
 	CBond* pBond = (CBond*)objects[_nBondID];
 	if ((objects[pBond->m_nLeftObjectID] == NULL) || (objects[pBond->m_nRightObjectID] == NULL)) return vResult;
 	return (objects[pBond->m_nLeftObjectID]->GetVelocity(_dTime) + objects[pBond->m_nRightObjectID]->GetVelocity(_dTime)) / 2.0;
-
 }
 
 CVector3 CSystemStructure::GetBondCoordinate(double _dTime, size_t _nBondID) const
@@ -882,10 +892,26 @@ CVector3 CSystemStructure::GetBond(double _dTime, size_t _nBondID) const
 	const CBond* pBond = static_cast<const CBond*>(objects[_nBondID]);
 	const CPhysicalObject* pLParticle = objects[pBond->m_nLeftObjectID];
 	const CPhysicalObject* pRParticle = objects[pBond->m_nRightObjectID];
-	if (!pLParticle->IsActive(_dTime) || !pRParticle->IsActive(_dTime) || !pBond->IsActive(_dTime)) return vResult;
+	if (!pLParticle || !pRParticle || !pLParticle->IsActive(_dTime) || !pRParticle->IsActive(_dTime) || !pBond->IsActive(_dTime)) return vResult;
 	if (m_PBC.bEnabled)
 		m_PBC.UpdatePBC(_dTime);
 	return GetSolidBond(pRParticle->GetCoordinates(_dTime), pLParticle->GetCoordinates(_dTime), m_PBC);
+}
+
+CVector3 CSystemStructure::GetBondVelocity(size_t _bondID) const
+{
+	if (!objects[_bondID] || objects[_bondID]->GetObjectType() != SOLID_BOND) return CVector3{ 0.0 };
+	const auto* bond = dynamic_cast<CBond*>(objects[_bondID]);
+	if (!objects[bond->m_nLeftObjectID] || !objects[bond->m_nRightObjectID]) return CVector3{ 0.0 };
+	return (objects[bond->m_nLeftObjectID]->GetVelocity() + objects[bond->m_nRightObjectID]->GetVelocity()) / 2.0;
+}
+
+CVector3 CSystemStructure::GetBondCoordinate(size_t _bondID) const
+{
+	if (!objects[_bondID] || objects[_bondID]->GetObjectType() != SOLID_BOND) return CVector3{ 0.0 };
+	const auto* bond = dynamic_cast<CBond*>(objects[_bondID]);
+	if (!objects[bond->m_nLeftObjectID] || !objects[bond->m_nRightObjectID]) return CVector3{ 0.0 };
+	return (objects[bond->m_nLeftObjectID]->GetCoordinates() + objects[bond->m_nRightObjectID]->GetCoordinates()) / 2.0;
 }
 
 void CSystemStructure::GetGroup(double _dTime, size_t _nSourceParticleID, std::vector<size_t>* _pVecGroup)
@@ -1281,7 +1307,7 @@ SVolumeType CSystemStructure::GetBoundingBox(double _time) const
 
 	for (const auto& wall : GetAllWalls(_time, true))
 	{
-		const auto coords = wall->GetCoords(_time);
+		const auto coords = wall->GetPlaneCoords(_time);
 		bb.coordBeg = Min(bb.coordBeg, coords.p1, coords.p2, coords.p3);
 		bb.coordEnd = Max(bb.coordEnd, coords.p1, coords.p2, coords.p3);
 	}
@@ -1630,6 +1656,9 @@ bool CSystemStructure::IsContactRadiusEnabled() const
 
 void CSystemStructure::EnableContactRadius(bool _bEnable)
 {
+	if (m_bContactRadius && !_bEnable)
+		for (auto* part : GetAllSpheres(0.0))
+			part->SetContactRadius(part->GetRadius());
 	m_bContactRadius = _bEnable;
 }
 
@@ -1719,7 +1748,7 @@ CRealGeometry* CSystemStructure::AddGeometry(const CTriangularMesh& _mesh)
 
 CRealGeometry* CSystemStructure::AddGeometry(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center)
 {
-	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Diagonal());
+	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Identity());
 	CRealGeometry* geometry = AddGeometry(mesh);
 	geometry->SetShape(_type);
 	geometry->Resize(_sizes);
@@ -1850,7 +1879,7 @@ CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const CTriangularMesh& _mes
 
 CAnalysisVolume* CSystemStructure::AddAnalysisVolume(const EVolumeShape& _type, const CGeometrySizes& _sizes, const CVector3& _center)
 {
-	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Diagonal());
+	const CTriangularMesh mesh = CMeshGenerator::GenerateMesh(_type, _sizes, _center, CMatrix3::Identity());
 
 	CAnalysisVolume* volume = AddAnalysisVolume(mesh);
 	volume->SetShape(_type);

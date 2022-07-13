@@ -18,7 +18,7 @@ class CBaseGeometry
 	std::string m_key;									// Unique key of the geometry.
 	EVolumeShape m_shape{ EVolumeShape::VOLUME_STL };	// Shape of the geometry: sphere, box, etc.
 	CColor m_color;										// Color of the geometry.
-	CMatrix3 m_rotation{ CMatrix3::Diagonal() };		// Rotation matrix.
+	CMatrix3 m_rotation{ CMatrix3::Identity() };		// Rotation matrix.
 	CGeometryMotion m_motion;							// Description of the motion of the geometry.
 	CGeometrySizes m_sizes;								// Geometry specific size parameters.
 	double m_scaling{ 1.0 };							// Current scaling factor applied to the geometry.

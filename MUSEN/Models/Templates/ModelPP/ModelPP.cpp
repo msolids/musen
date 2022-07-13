@@ -39,7 +39,7 @@ void CModelPP::PrecalculatePPModel(double _time, double _timeStep, SParticleStru
 	// TODO: Write your pre-calculation step here.
 }
 
-void CModelPP::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _pCollision) const
+void CModelPP::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// TODO: Write your model here.
 }

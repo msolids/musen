@@ -63,6 +63,7 @@ void CModelManagerTab::UpdateModelsListView()
 		case EMusenModelType::SB:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Solid bond"));			break;
 		case EMusenModelType::LB:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Liquid bond"));		break;
 		case EMusenModelType::EF:			ui.modelsTable->SetItemNotEditable(i, 1, tr("External force"));		break;
+		case EMusenModelType::PPHT:		    ui.modelsTable->SetItemNotEditable(i, 1, tr("PP heat transfer"));	break;
 		case EMusenModelType::UNSPECIFIED:	ui.modelsTable->SetItemNotEditable(i, 1, tr("Unspecified"));		break;
 		}
 

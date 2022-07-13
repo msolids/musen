@@ -9,6 +9,7 @@
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
 #include <thrust/device_vector.h>
+#include <thrust/host_vector.h>
 PRAGMA_WARNING_POP
 
 class CGPU
@@ -67,7 +68,7 @@ public:
 	static void SetAnisotropyFlag(bool _enabled);
 
 	void InitializeWalls(const std::vector<std::vector<unsigned>>& _vvWallsInGeom, const std::vector<std::vector<unsigned>>& _adjacentWalls);
-	void InitializeCollisions();													// create or update information about interaction properties for GPU
+	void InitializeCollisions();	// create or update information about interaction properties for GPU
 
 	//////////////////////////////////////////////////////////////////////////
 	/// Service functions
@@ -84,6 +85,8 @@ public:
 
 	void MoveWalls(double _timeStep, size_t _iWallsInGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix,
 		const CVector3& _freeMotion, bool _bForceDependentMotion, bool _bRotateAroundCenter, double _dMass, SGPUWalls& _walls, const CVector3& _vExternalAccel);
+
+	void UpdateTemperatures(double _currTimeStep, SGPUParticles& _particles);
 
 	void UpdateVerletLists(bool _bPPVerlet, const SGPUParticles& _particles, const SGPUWalls& _walls, const h_vec_u& _vVerListSrcNew, const h_vec_u& _vVerListDstNew,
 		const h_vec_u& _vVerListIndNew, const h_vec_u8& _vVirtShifts, d_vec_u& _vVerListSrcOld, d_vec_u& _vVerListDstOld, d_vec_u& _vVerListIndOld, SGPUCollisions& _collisions) const;

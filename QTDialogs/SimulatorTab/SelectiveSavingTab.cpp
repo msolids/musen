@@ -23,6 +23,7 @@ void CSelectiveSavingTab::InitializeConnections() const
 	connect(ui.checkBoxForce,		  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxQuaternion,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxTensor,		  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxTemperature,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	// solid bonds
 	connect(ui.groupBoxPropertiesSB,  &QGroupBox::toggled,		this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxSBForce,		  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
@@ -48,6 +49,7 @@ void CSelectiveSavingTab::UpdateWholeView()
 	ui.checkBoxForce->setChecked(tmp.bForce);
 	ui.checkBoxQuaternion->setChecked(tmp.bQuaternion);
 	ui.checkBoxTensor->setChecked(tmp.bTensor);
+	ui.checkBoxTemperature->setChecked(tmp.bTemperature);
 	// solid bonds
 	ui.checkBoxSBForce->setChecked(tmp.bSBForce);
 	ui.checkBoxSBTangOverlap->setChecked(tmp.bSBTangOverlap);
@@ -71,6 +73,7 @@ void CSelectiveSavingTab::SetParameters()
 		m_SSelectiveSavingFlags.bQuaternion    = ui.checkBoxQuaternion->isChecked();
 		m_SSelectiveSavingFlags.bVelocity      = ui.checkBoxVelocity->isChecked();
 		m_SSelectiveSavingFlags.bTensor        = ui.checkBoxTensor->isChecked();
+		m_SSelectiveSavingFlags.bTemperature   = ui.checkBoxTemperature->isChecked();
 	}
 	else
 		m_SSelectiveSavingFlags.SetAllParticles(false);

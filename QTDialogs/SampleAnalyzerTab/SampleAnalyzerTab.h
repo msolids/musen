@@ -29,7 +29,7 @@ public:
 
 private:
 	// creates the list of all particles which situated within some region ( if bPartialyInVolume than also particle the centers of which in volume are also included)
-	void GetAllParticlesInRegion(double _dTime, std::vector<const CSphere*> *_pAllParticles, double* _pTotalMass, double* _pTotalVolume, bool bPartialyInVolume = false, bool bConsiderBonds = false);
+	void GetAllParticlesInRegion(double _dTime, std::vector<const CSphere*> *_pAllParticles, double* _pTotalMass, double* _pTotalVolume, double* _avrTemperature, bool bPartialyInVolume = false, bool bConsiderBonds = false);
 	double GetCoordinationNumber(double _time, const std::vector<const CSphere*> &_particles) const; // approximate coordination number of specified particles
 	bool CheckDataCorrectness(); // check that all fields in the edit are correct (if correct return true )
 	void InitializeConnections();
