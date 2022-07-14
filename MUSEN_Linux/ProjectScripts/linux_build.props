@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="LinuxBuildSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64' OR '$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinuxBuild_build_CLI>true</LinuxBuild_build_CLI>
+    <LinuxBuild_build_GUI>false</LinuxBuild_build_GUI>
+    <LinuxBuild_build_MATLAB>false</LinuxBuild_build_MATLAB>
+  </PropertyGroup>
+</Project>
