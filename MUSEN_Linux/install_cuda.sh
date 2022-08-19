@@ -64,18 +64,25 @@ host)
 	/usr/bin/nvidia-uninstall
 	apt -y --purge remove "*cublas*" "*cufft*" "*curand*" "*cusolver*" "*cusparse*" "*npp*" "*nvjpeg*" "cuda*" "nsight*"
 
-	# install kernel headers and development packages for the currently running kernel
-	apt install linux-headers-$(uname -r)
+	KERNEL_RELEASE=$(uname -r)
+	if [[ "${KERNEL_RELEASE}" == *"WSL"* ]]; then # WSL
+		# install repository meta data
+		add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/${DISTRO}/${ARCH}/ /"		
+	else # Ununtu
+		# install kernel headers and development packages for the currently running kernel
+		apt install linux-headers-${KERNEL_RELEASE}
+		# install repository meta data
+		dpkg -i cuda-repo-${DISTRO}_${CUDA_VER_MAJOR}-${CUDA_VER_MINOR}_${ARCH}.deb
+	fi
 
 	# install the CUDA public GPG key
-	apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/${DISTRO}/${ARCH}/7fa2af80.pub
+	apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/${DISTRO}/${ARCH}/3bf863cc.pub
 
-	# pin file to prioritize CUDA repository:
+	# pin file to prioritize CUDA repository
 	wget https://developer.download.nvidia.com/compute/cuda/repos/${DISTRO}/${ARCH}/cuda-${DISTRO}.pin
 	mv cuda-${DISTRO}.pin /etc/apt/preferences.d/cuda-repository-pin-600
 
 	# update apt repository
-	add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/${DISTRO}/${ARCH}/ /"
 	apt update
 
 	# install cuda

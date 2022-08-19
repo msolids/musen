@@ -30,7 +30,7 @@ GCC_VER=9
 # cmake
 CMAKE_VER=3.18.0
 # zlib
-ZLIB_VER=1.2.11
+ZLIB_VER=1.2.12
 # protobuf
 PROTO_VER=3.14.0
 # qt
