@@ -6,4 +6,10 @@
   <ItemGroup>
     <ClCompile Include="ModelPWJKR.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="ModelPWJKR.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="ModelPWJKR.cu" />
+  </ItemGroup>
 </Project>
