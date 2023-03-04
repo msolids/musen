@@ -302,7 +302,7 @@ void CFileMergerTab::UpdateGUI(bool _bIsMergingStarted)
 	if (_bIsMergingStarted)
 	{
 		ui.pushButtonMerge->setText("Stop");
-		ui.pushButtonMerge->setIcon(QIcon(":/QT_GUI/Pictures/stop.png"));
+		ui.pushButtonMerge->setIcon(QIcon(":/MusenGUI/Pictures/stop.png"));
 		if (ui.checkBoxLoadFile->isChecked())
 		{
 			this->hide();
@@ -313,7 +313,7 @@ void CFileMergerTab::UpdateGUI(bool _bIsMergingStarted)
 	else
 	{
 		ui.pushButtonMerge->setText("Merge");
-		ui.pushButtonMerge->setIcon(QIcon(":/QT_GUI/Pictures/play.png"));
+		ui.pushButtonMerge->setIcon(QIcon(":/MusenGUI/Pictures/play.png"));
 		ui.labelStatus->setText("Merging finished");
 		if (ui.checkBoxLoadFile->isChecked())
 		{

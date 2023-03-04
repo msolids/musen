@@ -57,10 +57,10 @@
     <QtUic Include="ClearSpecificTPTab.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="MusenGUI.ui">
+    <QtUic Include="MUSENMainWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtMoc Include="MusenGUI.h">
+    <QtMoc Include="MUSENMainWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="CameraSettings.h">
@@ -92,7 +92,7 @@
     <ClCompile Include="ClearSpecificTPTab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MusenGUI.cpp">
+    <ClCompile Include="MUSENMainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CameraSettings.cpp">

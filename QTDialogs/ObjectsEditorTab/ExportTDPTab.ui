@@ -14,9 +14,9 @@
    <string>Export time dependent properties</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-    <normaloff>:/QT_GUI/transparent_Ico.png</normaloff>
-    <normalon>:/QT_GUI/transparent_Ico.png</normalon>:/QT_GUI/transparent_Ico.png</iconset>
+   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <normaloff>:/MusenGUI/transparent_Ico.png</normaloff>
+    <normalon>:/MusenGUI/transparent_Ico.png</normalon>:/MusenGUI/transparent_Ico.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -290,8 +290,8 @@
           <string>Cancel    </string>
          </property>
          <property name="icon">
-          <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-           <normaloff>:/QT_GUI/transparent_Ico.png</normaloff>:/QT_GUI/transparent_Ico.png</iconset>
+          <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+           <normaloff>:/MusenGUI/transparent_Ico.png</normaloff>:/MusenGUI/transparent_Ico.png</iconset>
          </property>
         </widget>
        </item>
@@ -309,7 +309,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -23,8 +23,8 @@
    <string>About MUSEN</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -65,7 +65,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap resource="../../MUSEN/QT_GUI/qt_gui.qrc">:/QT_GUI/Resources/MUSEN_Ico.png</pixmap>
+           <pixmap resource="../../MusenGUI/MusenGUI/musengui.qrc">:/MusenGUI/Resources/MUSEN_Ico.png</pixmap>
           </property>
           <property name="scaledContents">
            <bool>true</bool>
@@ -220,7 +220,7 @@ p, li { white-space: pre-wrap; }
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

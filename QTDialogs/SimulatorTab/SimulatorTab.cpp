@@ -561,7 +561,7 @@ void CSimulatorTab::UpdateGUI(ERunningStatus _status)
 	{
 	case ERunningStatus::IDLE:
 		ui.statusMessage->setText("Simulation finished");
-		ui.startButton->setIcon(QIcon(":/QT_GUI/Pictures/play.png"));
+		ui.startButton->setIcon(QIcon(":/MusenGUI/Pictures/play.png"));
 		ui.stopButton->setEnabled(false);
 		ui.groupBoxSimOption->setEnabled(true);
 		ui.updateRayleighButton->setEnabled(true);
@@ -575,7 +575,7 @@ void CSimulatorTab::UpdateGUI(ERunningStatus _status)
 	case ERunningStatus::RUNNING:
 		ui.statusMessage->setText("Simulation in progress...");
 		ui.stopButton->setEnabled(true);
-		ui.startButton->setIcon(QIcon(":/QT_GUI/Pictures/pause.png"));
+		ui.startButton->setIcon(QIcon(":/MusenGUI/Pictures/pause.png"));
 		ui.groupBoxSimOption->setEnabled(false);
 		ui.updateRayleighButton->setEnabled(false);
 		ui.groupBoxExternAccel->setEnabled(false);
@@ -587,7 +587,7 @@ void CSimulatorTab::UpdateGUI(ERunningStatus _status)
 		break;
 	case ERunningStatus::PAUSED:
 		ui.statusMessage->setText("Simulation paused");
-		ui.startButton->setIcon(QIcon(":/QT_GUI/Pictures/play.png"));
+		ui.startButton->setIcon(QIcon(":/MusenGUI/Pictures/play.png"));
 		ui.stopButton->setEnabled(false);
 		ui.groupBoxSimOption->setEnabled(true);
 		ui.updateRayleighButton->setEnabled(true);

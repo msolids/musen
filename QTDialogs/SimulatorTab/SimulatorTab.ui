@@ -645,8 +645,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-         <normaloff>:/QT_GUI/Pictures/play.png</normaloff>:/QT_GUI/Pictures/play.png</iconset>
+        <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+         <normaloff>:/MusenGUI/Pictures/play.png</normaloff>:/MusenGUI/Pictures/play.png</iconset>
        </property>
       </widget>
      </item>
@@ -665,8 +665,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-         <normaloff>:/QT_GUI/Pictures/stop.png</normaloff>:/QT_GUI/Pictures/stop.png</iconset>
+        <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+         <normaloff>:/MusenGUI/Pictures/stop.png</normaloff>:/MusenGUI/Pictures/stop.png</iconset>
        </property>
       </widget>
      </item>
@@ -675,7 +675,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

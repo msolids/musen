@@ -14,8 +14,8 @@
    <string>Generation of images </string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0" rowspan="3">
@@ -359,8 +359,8 @@
         <string>Start</string>
        </property>
        <property name="icon">
-        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-         <normaloff>:/QT_GUI/Pictures/Play_Icon.png</normaloff>:/QT_GUI/Pictures/Play_Icon.png</iconset>
+        <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+         <normaloff>:/MusenGUI/Pictures/Play_Icon.png</normaloff>:/MusenGUI/Pictures/Play_Icon.png</iconset>
        </property>
        <property name="default">
         <bool>true</bool>
@@ -389,7 +389,7 @@
   <tabstop>pushButtonStart</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -57,106 +57,106 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\fSphereShader.glsl">
+    <None Include="..\..\MusenGUI\shaders\fSphereShader.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\vSphereShader.glsl">
+    <None Include="..\..\MusenGUI\shaders\vSphereShader.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\AxisFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\AxisFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\AxisVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\AxisVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\AxisVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\BondFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\BondFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\BondFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\BondFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\BondVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\BondVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\BondVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\BondVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\ParticleFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\ParticleFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\ParticleVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\ParticleVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\ParticleVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\WallFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\WallFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\WallFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\WallFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\WallVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\WallVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\WallVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\WallVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\PeriodicFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\PeriodicFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\PeriodicVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\PeriodicVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\PeriodicVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\OrientationFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\OrientationFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\OrientationVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\OrientationVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\OrientationVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\VolumeFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\VolumeVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\VolumeFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\VolumeVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\VolumeVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscFragCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\DiscFragCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscFragCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\DiscFragCore.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscVertCompatibility.glsl">
+    <None Include="..\..\MusenGUI\shaders\DiscVertCompatibility.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\MUSEN\QT_GUI\shaders\DiscVertCore.glsl">
+    <None Include="..\..\MusenGUI\shaders\DiscVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -14,8 +14,8 @@
    <string>Merge files</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -155,7 +155,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../../MUSEN/QT_GUI/Pictures/play.png</normaloff>../../MUSEN/QT_GUI/Pictures/play.png</iconset>
+         <normaloff>../../MUSEN/MusenGUI/Pictures/play.png</normaloff>../../MUSEN/MusenGUI/Pictures/play.png</iconset>
        </property>
       </widget>
      </item>
@@ -210,7 +210,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

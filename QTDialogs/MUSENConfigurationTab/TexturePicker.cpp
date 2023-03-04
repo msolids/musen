@@ -11,7 +11,7 @@ CTexturePicker::CTexturePicker(QWidget *parent)
 
 	for (unsigned i = 0;; ++i)
 	{
-		const QString name = tr(":/QT_GUI/Pictures/SphereTexture%1.png").arg(i);
+		const QString name = tr(":/MusenGUI/Pictures/SphereTexture%1.png").arg(i);
 		QIcon icon(name);
 		if (icon.availableSizes().count() == 0) break;
 		QListWidgetItem* item = new QListWidgetItem(icon, QString::number(i + 1));
