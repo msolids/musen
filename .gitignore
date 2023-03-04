@@ -96,5 +96,7 @@ GeneratedFiles*/
 /MusenGUI/Visual Studio 2019/Visualizers/
 /MUSEN_Linux/compiled/
 /MUSEN_Linux/src
-/ExternalLibraries/
+/ExternalLibraries/_backup/
 /.vs/musen/v16/
+/ExternalLibraries/protobuf/
+/ExternalLibraries/zlib/
