@@ -290,6 +290,12 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowsInstaller", "..\..\Installers\InstallerProject\Installer.vcxproj", "{01050349-6088-461C-9C0F-0B233EBCD2EC}"
 EndProject
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelEFLiquidDiffusion", "Models\ExternalForce\LiquidDiffusion\ModelEFLiquidDiffusion.vcxproj", "{E5C6B68E-0CE5-467C-84BE-18F2F617475E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelPPHertzMindlinVdW", "Models\ParticleParticle\HertzMindlinVdW\HertzMindlinVdW.vcxproj", "{289C56BB-4EC6-4097-B52D-CABA821DF423}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelSBPlasticConcrete", "Models\SolidBonds\BondModelPlasticConcrete\BondModelElasticPlasticConcrete.vcxproj", "{F984C638-D38F-4633-DDCF-645F367E41BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -574,6 +580,18 @@ Global
 		{DF0D11C1-A321-4A44-A00E-4933FB4469C4}.Release|x64.Build.0 = Release|x64
 		{9588E644-BAD1-4B67-9BA2-12E3D29B4AE6}.Debug|x64.ActiveCfg = Debug|x64
 		{9588E644-BAD1-4B67-9BA2-12E3D29B4AE6}.Release|x64.ActiveCfg = Release|x64
+		{E5C6B68E-0CE5-467C-84BE-18F2F617475E}.Debug|x64.ActiveCfg = Debug|x64
+		{E5C6B68E-0CE5-467C-84BE-18F2F617475E}.Debug|x64.Build.0 = Debug|x64
+		{E5C6B68E-0CE5-467C-84BE-18F2F617475E}.Release|x64.ActiveCfg = Release|x64
+		{E5C6B68E-0CE5-467C-84BE-18F2F617475E}.Release|x64.Build.0 = Release|x64
+		{289C56BB-4EC6-4097-B52D-CABA821DF423}.Debug|x64.ActiveCfg = Debug|x64
+		{289C56BB-4EC6-4097-B52D-CABA821DF423}.Debug|x64.Build.0 = Debug|x64
+		{289C56BB-4EC6-4097-B52D-CABA821DF423}.Release|x64.ActiveCfg = Release|x64
+		{289C56BB-4EC6-4097-B52D-CABA821DF423}.Release|x64.Build.0 = Release|x64
+		{F984C638-D38F-4633-DDCF-645F367E41BA}.Debug|x64.ActiveCfg = Debug|x64
+		{F984C638-D38F-4633-DDCF-645F367E41BA}.Debug|x64.Build.0 = Debug|x64
+		{F984C638-D38F-4633-DDCF-645F367E41BA}.Release|x64.ActiveCfg = Release|x64
+		{F984C638-D38F-4633-DDCF-645F367E41BA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -655,9 +673,12 @@ Global
 		{35CB5C7A-91A5-4D1A-BB48-6CDE896C4CA8} = {8B6E2B33-83F1-4E2F-8DCD-DECB88995344}
 		{DF0D11C1-A321-4A44-A00E-4933FB4469C4} = {2CAD47D8-EF48-4A21-98D1-6070D427A87A}
 		{9588E644-BAD1-4B67-9BA2-12E3D29B4AE6} = {2C3C02E8-3C02-4A3B-8C7E-4E3D23C96B2A}
+		{E5C6B68E-0CE5-467C-84BE-18F2F617475E} = {2CAD47D8-EF48-4A21-98D1-6070D427A87A}
+		{289C56BB-4EC6-4097-B52D-CABA821DF423} = {849FA728-0478-490C-B2EF-EB552223CF5D}
+		{F984C638-D38F-4633-DDCF-645F367E41BA} = {E52AF4AC-B0DC-412B-870B-592B9A4DE75A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		Qt5Version = msvc2019_64
 		SolutionGuid = {B4449610-1D23-4C62-8325-77B5FA1A2520}
+		Qt5Version = msvc2019_64
 	EndGlobalSection
 EndGlobal

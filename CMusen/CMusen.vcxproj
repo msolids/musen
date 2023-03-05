@@ -215,6 +215,15 @@
     <ProjectReference Include="$(SolutionDir)Modules\SystemStructure\SystemStructure.vcxproj">
       <Project>{739e5585-3715-40aa-99fb-ab1adb2e2dc3}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\ExternalForce\LiquidDiffusion\ModelEFLiquidDiffusion.vcxproj">
+      <Project>{e5c6b68e-0ce5-467c-84be-18f2f617475e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\HertzMindlinVdW\HertzMindlinVdW.vcxproj">
+      <Project>{289c56bb-4ec6-4097-b52d-caba821df423}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelPlasticConcrete\BondModelElasticPlasticConcrete.vcxproj">
+      <Project>{f984c638-d38f-4633-ddcf-645f367e41ba}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />

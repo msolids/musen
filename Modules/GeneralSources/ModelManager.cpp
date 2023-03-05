@@ -15,6 +15,7 @@
 #include "ParticleParticle/SimpleViscoElastic/ModelPPSimpleViscoElastic.h"
 #include "ParticleParticle/TestSinteringModel/ModelPPSintering.h"
 #include "ParticleParticle/SinteringTemperature/ModelPPSinteringTemperature.h"
+#include "ParticleParticle/HertzMindlinVdW/ModelPPHertzMindlinVdW.h"
 
 #include "ParticleWall/PWHertzMindlin/ModelPWHertzMindlin.h"
 #include "ParticleWall/PWHertzMindlinLiquid/ModelPWHertzMindlinLiquid.h"
@@ -30,12 +31,14 @@
 #include "SolidBonds/BondModelLinearPlastic/ModelSBLinearPlastic.h"
 #include "SolidBonds/BondModelThermal/ModelSBThermal.h"
 #include "SolidBonds/BondModelWeakening/ModelSBWeakening.h"
+#include "SolidBonds/BondModelPlasticConcrete/ModelSBPlasticConcrete.h"
 
 #include "LiquidBonds/CapilaryViscous/ModelLBCapilarViscous.h"
 
 #include "ExternalForce/CentrifugalCasting/ModelEFCentrifugalCasting.h"
 #include "ExternalForce/ViscousField/ModelEFViscousField.h"
 #include "ExternalForce/HeatTransfer/ModelEFHeatTransfer.h"
+#include "ExternalForce/LiquidDiffusion/ModelEFLiquidDiffusion.h"
 
 #include "HeatTransfer/PPHeatConduction/ModelPPHeatConduction.h"
 
@@ -80,6 +83,7 @@ namespace StaticLibs
 		Constructor<CModelPPSimpleViscoElastic>::get(),
 		Constructor<CModelPPSintering>::get(),
 		Constructor<CModelPPSinteringTemperature>::get(),
+		Constructor<CModelPPHertzMindlinVdW>::get(),
 
 		Constructor<CModelPWHertzMindlin>::get(),
 		Constructor<CModelPWHertzMindlinLiquid>::get(),
@@ -95,12 +99,14 @@ namespace StaticLibs
 		Constructor<CModelSBLinearPlastic>::get(),
 		Constructor<CModelSBThermal>::get(),
 		Constructor<CModelSBWeakening>::get(),
+		Constructor<CModelSBPlasticConcrete>::get(),
 
 		Constructor<CModelLBCapilarViscous>::get(),
 
 		Constructor<CModelEFCentrifugalCasting>::get(),
 		Constructor<CModelEFViscousField>::get(),
 		Constructor<CModelEFHeatTransfer>::get(),
+		Constructor<CModelEFLiquidDiffusion>::get(),
 
 		Constructor<CModelPPHeatConduction>::get(),
 	};
