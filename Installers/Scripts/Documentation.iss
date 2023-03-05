@@ -2,7 +2,7 @@
 // ; This file is part of MUSEN framework http://msolids.net/musen.
 // ; See LICENSE file for license and warranty information. 
 
-#define DocsDirSrc 	"MUSEN\Documentation"
+#define DocsDirSrc 	"Documentation"
 #define DocsDirDst 	"Documentation"
 #define GuideDir	"Users Guide"; 
 #define CMHelpDir	"Models\Contact Models"; 

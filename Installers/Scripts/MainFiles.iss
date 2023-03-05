@@ -12,7 +12,7 @@
 Source: "{#ReleaseDir}\{#MyAppExeName}"; 						DestDir: "{app}"; 										Flags: ignoreversion
 Source: "{#ReleaseDir}\CMusen.exe"; 	 						DestDir: "{app}"; 				DestName: "CMUSEN.exe";	Flags: ignoreversion
 Source: "{#SolutionDir}\LICENSE"; 								DestDir: "{app}"; 										Flags: ignoreversion
-Source: "{#SolutionDir}\MUSEN\QT_GUI\styles\musen_style1.qss"; 	DestDir: "{app}\styles"; 								Flags: ignoreversion
+Source: "{#SolutionDir}\MusenGUI\styles\musen_style1.qss"; 	    DestDir: "{app}\styles"; 								Flags: ignoreversion
 Source: "{#DatabasesDirSrc}\{#MADBFileName}";					DestDir: "{#DatabasesDirDst}"; 							Flags: ignoreversion
 Source: "{#DatabasesDirSrc}\{#MGDBFileName}";					DestDir: "{#DatabasesDirDst}"; 							Flags: ignoreversion
 Source: "{#DatabasesDirSrc}\{#MMDBFileName}";					DestDir: "{#DatabasesDirDst}"; 							Flags: ignoreversion

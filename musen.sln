@@ -280,6 +280,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelSBCreep", "Models\Soli
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelPPChealNess", "Models\ParticleParticle\ChealNess\ModelChealNess.vcxproj", "{289C56BB-4EC6-4097-B32D-CABA821AF423}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowsInstaller", "Installers\InstallerProject\Installer.vcxproj", "{01050349-6088-461C-9C0F-0B233EBCD2EC}"
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HeatConduction", "HeatConduction", "{35CB5C7A-91A5-4D1A-BB48-6CDE896C4CA8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelEFCentrifugalCasting", "Models\ExternalForce\CentrifugalCasting\CentrifugalCasting.vcxproj", "{DF0D11C1-A321-4A44-A00E-4933FB4469C4}"
@@ -288,7 +289,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installers", "Installers", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowsInstaller", "..\..\Installers\InstallerProject\Installer.vcxproj", "{01050349-6088-461C-9C0F-0B233EBCD2EC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LinuxBuildWSL", "..\..\MUSEN_Linux\LinuxBuildWSL\LinuxBuildWSL.vcxproj", "{9588E644-BAD1-4B67-9BA2-12E3D29B4AE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

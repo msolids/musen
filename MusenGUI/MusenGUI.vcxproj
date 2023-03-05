@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>MusenGUI</ProjectName>
+    <ProjectName>MUSEN</ProjectName>
     <ProjectGuid>{C37BCE55-C8BA-4AD0-8847-1DEC07A49B7F}</ProjectGuid>
     <RootNamespace>MusenGUI</RootNamespace>
     <Keyword>QtVS_v303</Keyword>

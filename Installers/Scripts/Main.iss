@@ -5,8 +5,8 @@
 #define public SolutionDir 	"..\.."
 #define public ProjectDir 	"..\InstallerProject"
 #define public DataDir 		SolutionDir+"\Installers\Data"
-#define public ReleaseDir 	SolutionDir+"\MUSEN\MUSEN\x64\Release"
-#define public DebugDir 	SolutionDir+"\MUSEN\MUSEN\x64\Debug"
+#define public ReleaseDir 	SolutionDir+"\x64\Release"
+#define public DebugDir 	SolutionDir+"\x64\Debug"
 
 #define MyAppName 			"MUSEN"
 #define MyAppExeName 		MyAppName+".exe"
@@ -20,6 +20,7 @@
 #include "MainFiles.iss"
 #include "ConfigINI.iss"
 #include "QtLibs.iss"
+#include "ModelsCreator.iss"
 #include "Examples.iss"
 #include "Documentation.iss"
 
@@ -39,7 +40,7 @@ AppContact={#MyAppContact}
 OutputBaseFilename={#MyAppName} {#MyAppVersion} {#MyAppBranch} Setup
 OutputDir={#SolutionDir}\Installers\Installers
 LicenseFile={#SolutionDir}\LICENSE
-SetupIconFile={#SolutionDir}\MUSEN\QT_GUI\Resources\MUSEN_Ico.ico
+SetupIconFile={#SolutionDir}\MusenGUI\Resources\MUSEN_Ico.ico
 WizardImageFile={#DataDir}\WizardImageFile.bmp
 WizardSmallImageFile={#DataDir}\WizardSmallImageFile.bmp
 ArchitecturesInstallIn64BitMode=x64
@@ -79,3 +80,12 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 
 [UninstallDelete]
 Type: dirifempty; Name: "{app}"
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    ModifyModelsCreatorFiles();
+  end;
+end;
