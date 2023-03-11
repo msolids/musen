@@ -84,7 +84,7 @@ export OPENGL_PATH=/usr/lib/x86_64-linux-gnu
 
 # update build time
 ./generate_time_header.sh
-mv -f ./BuildTime.h ${MUSEN_SRC_PATH}/MUSEN/BuildVersion/
+mv -f ./BuildTime.h ${MUSEN_SRC_PATH}/Version/
 
 # copy cmake script
 cp CMakeLists.txt ${MUSEN_SRC_PATH}/

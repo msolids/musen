@@ -6,7 +6,7 @@ $compile_mat = $args[3]
 
 # variables
 $compiled_path = "..\compiled"
-$version_file  = "..\..\MUSEN\BuildVersion\MUSENVersion.h"
+$version_file  = "..\..\Version\MUSENVersion.h"
 $current_path  = (Get-Item -Path ".\" -Verbose).FullName
 
 # switch to x64 powershell if it is x86 now

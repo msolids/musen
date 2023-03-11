@@ -21,14 +21,13 @@
 
 # directories to search for files
 DIRS=(
+CMusen
 Databases
-GeneralFunctions
-MUSEN/Models
-MUSEN/Modules
+Models
+Modules
+MusenGUI
 QTDialogs
-MUSEN/BuildVersion
-MUSEN/CMusen
-MUSEN/QT_GUI
+Version
 )
 
 # file extensions to copy
@@ -117,7 +116,7 @@ done
 
 # create a hash header for versioning
 ./generate_hash_header.sh
-mv -f ./BuildHash.h ${SRC_PATH}/MUSEN/BuildVersion/
+mv -f ./BuildHash.h ${SRC_PATH}/Version/
 
 # copy license file
 cp ${PWD}/../LICENSE ${SRC_PATH}/

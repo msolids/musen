@@ -80,7 +80,7 @@ rsync --info=progress2 --copy-links -az ${ACTIVE_EXTERNAL_LIBS_PATH}/qt/${QT_VER
 rsync --info=progress2 --copy-links -az ${ACTIVE_EXTERNAL_LIBS_PATH}/qt/${QT_VER}/gcc_64/plugins/xcbglintegrations/{libqxcb-egl-integration.so,libqxcb-glx-integration.so} ${ASSEMBLY_PATH}/plugins/xcbglintegrations/
 
 # copy styles
-rsync --info=progress2 -az ${ACTIVE_SRC_PATH}/MUSEN/QT_GUI/styles/musen_style1.qss ${ASSEMBLY_PATH}/styles/
+rsync --info=progress2 -az ${ACTIVE_SRC_PATH}/MusenGUI/styles/musen_style1.qss ${ASSEMBLY_PATH}/styles/
 
 # create an archive
 CURR_PATH=${PWD}

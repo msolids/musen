@@ -61,14 +61,14 @@ file(GLOB_RECURSE proj_guimusen_SRC
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cuh
 )
-set (EXCLUDE_DIR "/CMusen/")
+set (EXCLUDE_DIR "CMusen/")
 foreach (TMP_PATH ${proj_guimusen_SRC})
 	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
 	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
 		list (REMOVE_ITEM proj_guimusen_SRC ${TMP_PATH})
 	endif ()
 endforeach(TMP_PATH)
-set (EXCLUDE_DIR "/MMusen/")
+set (EXCLUDE_DIR "MMusen/")
 foreach (TMP_PATH ${proj_guimusen_SRC})
 	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
 	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
@@ -86,14 +86,14 @@ file(GLOB_RECURSE proj_cmusen_SRC
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cuh
 )
-set (EXCLUDE_DIR "/MMusen/")
+set (EXCLUDE_DIR "MMusen/")
 foreach (TMP_PATH ${proj_cmusen_SRC})
 	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
 	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
 		list (REMOVE_ITEM proj_cmusen_SRC ${TMP_PATH})
 	endif ()
 endforeach(TMP_PATH)
-set (EXCLUDE_DIR "/QT_GUI/")
+set (EXCLUDE_DIR "MusenGUI/")
 foreach (TMP_PATH ${proj_cmusen_SRC})
 	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
 	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
@@ -118,14 +118,14 @@ file(GLOB_RECURSE proj_mmusen_SRC
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/*.cuh
 )
-set (EXCLUDE_DIR "/CMusen/")
+set (EXCLUDE_DIR "CMusen/")
 foreach (TMP_PATH ${proj_mmusen_SRC})
 	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
 	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
 		list (REMOVE_ITEM proj_mmusen_SRC ${TMP_PATH})
 	endif ()
 endforeach(TMP_PATH)
-set (EXCLUDE_DIR "/QT_GUI/")
+set (EXCLUDE_DIR "MusenGUI/")
 foreach (TMP_PATH ${proj_mmusen_SRC})
 	string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
 	if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
@@ -174,7 +174,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles)
 
 add_custom_target(
 	protobuf
-	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/GeneralFunctions/SimResultsStorage/ --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/GeneralFunctions/SimResultsStorage/SimulationDescription.proto 
+	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Modules/SimResultsStorage/ --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Modules/SimResultsStorage/SimulationDescription.proto 
 	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/AgglomerateDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/AgglomerateDatabase/AgglomeratesDatabase.proto 
 	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/GeometriesDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/GeometriesDatabase/GeometriesDatabase.proto 
 	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/MaterialsDatabase.proto 
@@ -184,7 +184,7 @@ add_custom_target(
 ###########################################################################
 # GUI MUSEN: graphic user interface musen
 ###########################################################################
-add_executable(musen ${proj_guimusen_SRC} ${generated_SRC} MUSEN/QT_GUI/qt_gui.qrc)
+add_executable(musen ${proj_guimusen_SRC} ${generated_SRC} MusenGUI/musengui.qrc)
 add_dependencies(musen protobuf)
 target_link_libraries(musen
 	${LIBS} 
