@@ -74,7 +74,7 @@ void CCPUSimulator::PreCalculationStep()
 
 void CCPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 {
-	m_scene.ClearAllForcesAndMoments();
+	m_scene.ClearState();
 	CheckParticlesInDomain();
 
 	// if there is no contact model, then there is no necessity to calculate contacts
@@ -444,9 +444,7 @@ void CCPUSimulator::UpdateTemperatures(double _timeStep, bool _predictionStep)
 	const double timeStep = !_predictionStep ? m_currSimulationStep : m_currSimulationStep / 2.;
 	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
-		const double tempCelcius = particles.Temperature(i) - 273.15;
-		const double heatCapacity = 1117 + 0.14*tempCelcius - 411 * exp(-0.006*tempCelcius);
-		particles.Temperature(i) += particles.HeatFlux(i) / (heatCapacity*particles.Mass(i)) * timeStep;
+		particles.Temperature(i) += particles.HeatFlux(i) / (particles.HeatCapacity(i) * particles.Mass(i)) * timeStep;
 	});
 }
 

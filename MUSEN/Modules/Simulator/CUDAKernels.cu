@@ -110,9 +110,7 @@ namespace CUDAKernels
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
 		{
-			const double tempCelcius = _partTemperatures[i] - 273.15;
-			const double heatCapacity = 1117 + 0.14*tempCelcius - 411 * exp(-0.006*tempCelcius);
-			_partTemperatures[i] += _partHeatFluxes[i] / (heatCapacity * _partMasses[i]) * _dTimeStep;
+			_partTemperatures[i] += _partHeatFluxes[i] / (_partHeatCapacities[i] * _partMasses[i]) * _dTimeStep;
 		}
 	}
 

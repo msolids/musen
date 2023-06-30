@@ -32,19 +32,28 @@ void __global__ CUDA_CalcExtForce_HT_kernel(
 {
 	for (unsigned iPart = blockIdx.x * blockDim.x + threadIdx.x; iPart < _partsNum; iPart += blockDim.x * gridDim.x)
 	{
-		if (round(_partHeatCapacities[iPart]) != _partHeatCapacities[iPart]) // indicator that this particle belongs to outer layer
-		{
-			double environmentTemperature;
-			if (_time > m_vConstantModelParameters[2])
-				environmentTemperature = m_vConstantModelParameters[1];
-			else
-				environmentTemperature = m_vConstantModelParameters[0] + _time * (m_vConstantModelParameters[1] - m_vConstantModelParameters[0]) / m_vConstantModelParameters[2];
+		// HACK: heat capacity of the material is not an integer -indicator that this particle belongs to outer layer
+		// TODO: allow material-specific external force models
+		if (round(_partHeatCapacities[iPart]) == _partHeatCapacities[iPart]) // indicator that this particle belongs to outer layer
+			continue;
 
-			const double surface = PI * pow(_partRadii[iPart], 2.0);
-			const double heatFluxConvection = surface * m_vConstantModelParameters[3] * (environmentTemperature - _partTemperatures[iPart]);
-			const double heatFluxRadiation = 5.67 * 1e-5 * m_vConstantModelParameters[4] * surface * (pow(environmentTemperature, 4.0) - pow(_partTemperatures[iPart], 4.0));
+		const double partTemperature = _partTemperatures[iPart];
+		double environmentTemperature;
+		if (_time > m_vConstantModelParameters[2])
+			environmentTemperature = m_vConstantModelParameters[1];
+		else
+			environmentTemperature = m_vConstantModelParameters[0] + _time * (m_vConstantModelParameters[1] - m_vConstantModelParameters[0]) / m_vConstantModelParameters[2];
 
-			_partHeatFluxes[iPart] += m_vConstantModelParameters[5] * (heatFluxConvection + heatFluxRadiation);
-		}
+		const double surface = PI * pow(_partRadii[iPart], 2.0);
+		const double heatFluxConvection = m_vConstantModelParameters[3] * surface * (environmentTemperature - partTemperature);
+		const double heatFluxRadiation = m_vConstantModelParameters[4] * surface * (pow(environmentTemperature, 4.0) - pow(partTemperature, 4.0));
+
+		_partHeatFluxes[iPart] += m_vConstantModelParameters[5] * (heatFluxConvection + heatFluxRadiation);
+
+		// A version with temperature-dependent heat capacity.
+		// To omit influence of material's heat capacity, set it in materials editor to something like 1.000001 (may not be integer).
+		//const double tempCelcius = partTemperature - 273.15;
+		//const double heatCapacity = 1117 + 0.14 * tempCelcius - 411 * exp(-0.006 * tempCelcius);
+		//_partHeatFluxes[iPart] += m_vConstantModelParameters[5] * (heatFluxConvection + heatFluxRadiation) / heatCapacity;
 	}
 }

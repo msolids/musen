@@ -29,8 +29,7 @@ public:
 	inline SGPUParticles& GetPointerToParticles() { return m_Particles; }
 	inline SGPUWalls& GetPointerToWalls() { return m_Walls; }
 
-	void ClearAllForcesAndMoments();
-	void ClearHeatFluxes() const;
+	void ClearStates() const; // Sets current values of running variables (force, moment, heat flux) to 0.
 	void GetMaxSquaredPartDist(double* _bufMaxVelocity);
 	double GetMaxPartVelocity();
 	double GetMaxPartTemperature();

@@ -355,12 +355,16 @@ void CSimplifiedScene::InitializeMaterials()
 	m_vCompoundsNumber = vTempInteractProps.size();
 }
 
-void CSimplifiedScene::ClearAllForcesAndMoments()
+void CSimplifiedScene::ClearState() const
 {
 	ParallelFor(m_Objects.vParticles->Size(), [&](size_t i)
 	{
 		m_Objects.vParticles->Force(i).Init(0);
 		m_Objects.vParticles->Moment(i).Init(0);
+		if (m_Objects.vParticles->ThermalsExist())
+		{
+			m_Objects.vParticles->HeatFlux(i) = 0.0;
+		}
 	});
 
 	ParallelFor(m_Objects.vWalls->Size(), [&](size_t i)

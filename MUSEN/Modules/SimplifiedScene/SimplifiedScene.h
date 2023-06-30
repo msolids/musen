@@ -51,7 +51,7 @@ public:
 	void AddMultisphere(const std::vector<size_t>& _vIndexes);	// Add new multisphere from the system structure
 
 	void InitializeMaterials();			// Parameters and interactions of materials
-	void ClearAllForcesAndMoments();
+	void ClearState() const;            // Sets current values of running variables (force, moment, heat flux) to 0.
 	void ClearHeatFluxes() const;
 
 	void AddVirtualParticles(double _dVerletDistance);

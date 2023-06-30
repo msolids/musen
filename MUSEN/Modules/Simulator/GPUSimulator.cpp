@@ -71,8 +71,8 @@ void CGPUSimulator::InitializeModelParameters()
 
 void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 {
-	// clear all forces and moment on GPU
-	m_sceneGPU.ClearAllForcesAndMoments();
+	// clear current states of particles and walls on GPU
+	m_sceneGPU.ClearStates();
 
 	// check that all particles are remains in simulation domain
 	m_gpu.CheckParticlesInDomain(m_currentTime, m_sceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
@@ -83,9 +83,6 @@ void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 		UpdateVerletLists(_dTimeStep); // between PP and PW
 		CUDAUpdateActiveCollisions();
 	}
-
-	if (m_pPPHTModel)
-		m_sceneGPU.ClearHeatFluxes();
 }
 
 void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
