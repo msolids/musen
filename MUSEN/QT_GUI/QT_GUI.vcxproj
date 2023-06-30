@@ -255,9 +255,6 @@
     <ProjectReference Include="..\Models\SolidBonds\BondModelLinearPlastic\BondModelLinearPlastic.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba823af420}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Models\SolidBonds\BondModelPlasticConcrete\BondModelElasticPlasticConcrete.vcxproj">
-      <Project>{f984c638-d38f-4633-ddcf-645f367e41ba}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Models\SolidBonds\BondModelThermal\BondModelThermal.vcxproj">
       <Project>{289c56bb-4ec6-4d97-b52d-caba821af420}</Project>
     </ProjectReference>
