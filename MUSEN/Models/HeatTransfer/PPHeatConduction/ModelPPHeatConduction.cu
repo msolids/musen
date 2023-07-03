@@ -2,7 +2,7 @@
 #include "ModelPPHeatConduction.h"
 #include <device_launch_parameters.h>
 
-__constant__ double m_vConstantModelParameters[4];
+__constant__ double m_vConstantModelParameters[5];
 
 void CModelPPHeatConduction::SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc)
 {
@@ -40,24 +40,27 @@ void __global__ CUDA_CalcPPHeatTransfer_HC_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		// constants
 		const unsigned iColl = _collActivityIndices[iActivColl];
-
 		const double srcTemperature = _partTemperatures[_collSrcIDs[iColl]];
 		const double dstTemperature = _partTemperatures[_collDstIDs[iColl]];
-		const double contactRadius = 2 * sqrt(4 * _collEquivRadii[iColl] * _collNormalOverlaps[iColl]);
+		const double contactThermalConductivity = m_vConstantModelParameters[4];
 
-		const double temperatureK = (dstTemperature + srcTemperature) / 2;
-		const double tempCelcius = temperatureK - 273.15;
-		double contactThermalConductivity = m_vConstantModelParameters[0] * (5.85 + 15360 * exp(-0.002 * tempCelcius) / (tempCelcius + 516));
+		// A version with temperature-dependent thermal conductivity.
+		// const double temperature = (dstTemperature + srcTemperature) / 2;
+		// const double temperatureCelcius = temperature - 273.15;
+		// const double contactThermalConductivity = m_vConstantModelParameters[0] * (5.85 + 15360 * exp(-0.002 * temperatureCelcius) / (temperatureCelcius + 516));
 
-		const double currentOverlap = _collNormalOverlaps[iColl] / (4 * _collEquivRadii[iColl]);
-		if (currentOverlap <= m_vConstantModelParameters[2])
-			contactThermalConductivity *= m_vConstantModelParameters[1];
-		else if (currentOverlap < m_vConstantModelParameters[3])
-			contactThermalConductivity *= m_vConstantModelParameters[1] + (1 - m_vConstantModelParameters[1]) / (m_vConstantModelParameters[3] - m_vConstantModelParameters[2]) * (currentOverlap - m_vConstantModelParameters[2]);
+		// From https://doi.org/10.1016/j.oceram.2021.100182, Equations 6-8.
+		// Equations are rewritten to use equivalent radius and optimized for performance.
+		const double scaledOverlap = _collNormalOverlaps[iColl] / (4 * _collEquivRadii[iColl]);
+		double effectiveResistivityFactor = 1.0;
+		if (scaledOverlap <= m_vConstantModelParameters[2])
+			effectiveResistivityFactor = m_vConstantModelParameters[1];
+		else if (scaledOverlap < m_vConstantModelParameters[3])
+			effectiveResistivityFactor = m_vConstantModelParameters[1] + (1 - m_vConstantModelParameters[1]) / (m_vConstantModelParameters[3] - m_vConstantModelParameters[2]) * (scaledOverlap - m_vConstantModelParameters[2]);
 
-		const double heatFlux = contactRadius * contactThermalConductivity * (dstTemperature - srcTemperature);
+		const double contactRadius = 2 * sqrt(_collEquivRadii[iColl] * _collNormalOverlaps[iColl]);
+		const double heatFlux = 2 * contactRadius * m_vConstantModelParameters[0] * effectiveResistivityFactor * contactThermalConductivity * (dstTemperature - srcTemperature);
 
 		CUDA_ATOMIC_ADD(_partHeatFluxes[_collSrcIDs[iColl]], heatFlux);
 		CUDA_ATOMIC_SUB(_partHeatFluxes[_collDstIDs[iColl]], heatFlux);
