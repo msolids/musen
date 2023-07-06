@@ -108,11 +108,7 @@ void CGPUSimulator::CalculateForcesPW(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPW.collisions.nElements) return;
 	for (auto* model : m_PWModels)
-	{
 		model->CalculatePWForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
-		// TODO: move this to GPU models
-		m_gpu.GatherForcesFromPWCollisions(m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls());
-	}
 }
 
 void CGPUSimulator::CalculateForcesSB(double _dTimeStep)

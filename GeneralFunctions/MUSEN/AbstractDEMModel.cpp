@@ -161,6 +161,16 @@ void CParticleParticleModel::Calculate(double _time, double _timeStep, SCollisio
 	CalculatePPForce(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
 }
 
+void CParticleParticleModel::ConsolidateSrc(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	ConsolidateSrc(_time, _timeStep, _collision->nSrcID, _particles, _collision);
+}
+
+void CParticleParticleModel::ConsolidateDst(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	ConsolidateDst(_time, _timeStep, _collision->nDstID, _particles, _collision);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////// CParticleWallModel
@@ -189,6 +199,16 @@ void CParticleWallModel::Calculate(double _time, double _timeStep, SCollision* _
 	CalculatePWForce(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
 }
 
+void CParticleWallModel::ConsolidatePart(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	ConsolidatePart(_time, _timeStep, _collision->nDstID, _particles, _collision);
+}
+
+void CParticleWallModel::ConsolidateWall(double _time, double _timeStep, SWallStruct& _walls, const SCollision* _collision) const
+{
+	ConsolidateWall(_time, _timeStep, _collision->nSrcID, _walls, _collision);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////// CSolidBondModel
@@ -215,6 +235,11 @@ void CSolidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, S
 	CalculateSBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
 }
 
+void CSolidBondModel::Consolidate(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	ConsolidatePart(_time, _timeStep, _iBond, _iPart, _particles);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////// CLiquidBondModel
@@ -239,6 +264,11 @@ void CLiquidBondModel::Precalculate(double _time, double _timeStep)
 void CLiquidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
 	CalculateLBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
+}
+
+void CLiquidBondModel::Consolidate(double _time, double _timeStep, size_t _iBond, SParticleStruct& _particles) const
+{
+	ConsolidatePart(_time, _timeStep, _iBond, _particles);
 }
 
 
@@ -292,4 +322,14 @@ void CPPHeatTransferModel::Precalculate(double _time, double _timeStep)
 void CPPHeatTransferModel::Calculate(double _time, double _timeStep, SCollision* _collision) const
 {
 	CalculatePPHeatTransfer(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
+}
+
+void CPPHeatTransferModel::ConsolidateSrc(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	ConsolidateSrc(_time, _timeStep, _collision->nSrcID, _particles, _collision);
+}
+
+void CPPHeatTransferModel::ConsolidateDst(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	ConsolidateDst(_time, _timeStep, _collision->nDstID, _particles, _collision);
 }

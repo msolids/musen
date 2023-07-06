@@ -80,3 +80,14 @@ void CModelPWPopovJKR::CalculatePWForce(double _time, double _timeStep, size_t _
 	_collision->vTotalForce    = totalForce;
 	_collision->vResultMoment1 = moment;
 }
+
+void CModelPWPopovJKR::ConsolidatePart(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPWPopovJKR::ConsolidateWall(double _time, double _timeStep, size_t _iWall, SWallStruct& _walls, const SCollision* _collision) const
+{
+	_walls.Force(_iWall) -= _collision->vTotalForce;
+}

@@ -44,3 +44,13 @@ void CModelPWSimpleViscoElastic::CalculatePWForce(double _time, double _timeStep
 	// store results in collision
 	_collision->vTotalForce = normForce;
 }
+
+void CModelPWSimpleViscoElastic::ConsolidatePart(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+}
+
+void CModelPWSimpleViscoElastic::ConsolidateWall(double _time, double _timeStep, size_t _iWall, SWallStruct& _walls, const SCollision* _collision) const
+{
+	_walls.Force(_iWall) -= _collision->vTotalForce;
+}

@@ -475,22 +475,6 @@ namespace CUDAKernels
 		}
 	}
 
-	__global__ void GatherForcesFromPWCollisions_kernel(CVector3* _partForces, CVector3* _wallForces,
-		const unsigned* _nActiveCollisions, const unsigned* _collActiveIndices,
-		const unsigned* _collSrcID, const unsigned* _collDstID, const CVector3* _collTotalForce)
-	{
-		for (unsigned iActiveColl = blockIdx.x * blockDim.x + threadIdx.x; iActiveColl < *_nActiveCollisions; iActiveColl += blockDim.x * gridDim.x)
-		{
-			const unsigned iColl = _collActiveIndices[iActiveColl];
-			const unsigned iWall = _collSrcID[iColl];
-			const unsigned iPart = _collDstID[iColl];
-
-			const CVector3 vTotalForce = _collTotalForce[iColl];
-			CUDA_VECTOR3_ATOMIC_SUB(_wallForces[iWall], vTotalForce);
-			CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart], vTotalForce);
-		}
-	}
-
 	__global__ void CheckParticlesInDomain_kernel(double _currTime, const unsigned _nParticles,
 		unsigned* _partActivity, double* _partEndActivity, const CVector3* _partCoords)
 	{

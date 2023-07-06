@@ -21,11 +21,14 @@ void CModelPWSimpleViscoElastic::CalculatePWForceGPU(double _time, double _timeS
 		_particles.Coords,
 		_particles.Radii,
 		_particles.Vels,
+		_particles.Forces,
+		_particles.Moments,
 
 		_walls.Vels,
 		_walls.RotCenters,
 		_walls.RotVels,
 		_walls.NormalVectors,
+		_walls.Forces,
 
 		_collisions.ActiveCollisionsNum,
 		_collisions.ActivityIndices,
@@ -42,11 +45,14 @@ void __global__ CUDA_CalcPWForce_VE_kernel(
 	const CVector3	_partCoords[],
 	const double	_partRadii[],
 	const CVector3	_partVels[],
+	CVector3		_partForces[],
+	CVector3		_partMoments[],
 
 	const CVector3	_wallVels[],
 	const CVector3	_wallRotCenters[],
 	const CVector3	_wallRotVels[],
 	const CVector3	_wallNormalVecs[],
+	CVector3        _wallForces[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],
@@ -89,5 +95,9 @@ void __global__ CUDA_CalcPWForce_VE_kernel(
 
 		// store results in collision
 		_collTotalForces[iColl] = normForce;
+
+		// apply forces and moments
+		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart], normForce);
+		CUDA_VECTOR3_ATOMIC_SUB(_wallForces[iWall], normForce);
 	}
 }

@@ -70,10 +70,6 @@ namespace CUDAKernels
 		const double* _oldNormalOverlap, const CVector3* _oldTangOverlap, const CVector3* _oldContactVector, const CVector3* _oldTotalForce,
 		bool* _newActiveCollFlags, double* _newNormalOverlap, CVector3* _newTangOverlap, CVector3* _newContactVector, CVector3* _newTotalForce);
 
-	__global__ void GatherForcesFromPWCollisions_kernel(CVector3* _partForces, CVector3* _wallForces,
-		const unsigned* _nActiveCollisions, const unsigned* _collActiveIndices,
-		const unsigned* _collSrcID, const unsigned* _collDstID, const CVector3* _collTotalForce);
-
 	__global__ void InitializePPCollisions_kernel(unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst,
 		const double* _partRadii, const double* _partMasses, const unsigned* _partCompoundIndices,
 		unsigned* _collSrcID, unsigned* _collDstID, double* _collEquivMass, double* _collEquivRadius, double* _collSumRadii, uint16_t* _collInteractPropID);

@@ -80,3 +80,15 @@ void CModelPPLinearElastic::CalculatePPForce(double _time, double _timeStep, siz
 	_collision->vResultMoment1 = moment1;
 	_collision->vResultMoment2 = moment2;
 }
+
+void CModelPPLinearElastic::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPPLinearElastic::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment2;
+}

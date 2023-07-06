@@ -56,3 +56,11 @@ void CModelLBCapilarViscous::CalculateLBForce(double _time, double _timeStep, si
 		_bonds.TangentialForce(_iBond).Init(0);
 	}*/
 }
+
+void CModelLBCapilarViscous::ConsolidatePart(double _time, double _timeStep, size_t _iBond, SParticleStruct& _particles) const
+{
+	//_particles.Force(Bonds().LeftID(_iBond)) += Bonds().NormalForce(_iBond) + Bonds().TangentialForce(_iBond);
+	//_particles.Force(Bonds().RightID(_iBond)) -= Bonds().NormalForce(_iBond) + Bonds().TangentialForce(_iBond);
+	//_particles.Moment(Bonds().LeftID(_iBond)) -= Bonds().UnsymMoment(_iBond);
+	//_particles.Moment(Bonds().RightID(_iBond)) -= Bonds().UnsymMoment(_iBond);
+}

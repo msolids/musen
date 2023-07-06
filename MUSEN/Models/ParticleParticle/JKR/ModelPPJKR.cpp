@@ -79,3 +79,15 @@ void CModelPPJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc,
 	_collision->vResultMoment1 = moment1;
 	_collision->vResultMoment2 = moment2;
 }
+
+void CModelPPJKR::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPPJKR::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment2;
+}

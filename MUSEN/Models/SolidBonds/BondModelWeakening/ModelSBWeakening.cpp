@@ -51,7 +51,7 @@ void CModelSBWeakening::CalculateSBForce(double _time, double _timeStep, size_t 
 	// calculate the force
 	double dStrainTotal = (dDistanceBetweenCenters-_bonds.InitialLength(_iBond)) / _bonds.InitialLength(_iBond);
 	double dNormalStress = (dStrainTotal - _bonds.NormalPlasticStrain(_iBond))*_bonds.NormalStiffness(_iBond);
-	
+
 	double dWeakeningFactor = m_parameters[3].value;
 	//	if (dStrainTotal > 0 ) // plastic deformation only for tension
 	if (fabs(dNormalStress) > _bonds.YieldStrength(_iBond))
@@ -60,7 +60,7 @@ void CModelSBWeakening::CalculateSBForce(double _time, double _timeStep, size_t 
 		dNormalStress = (dStrainTotal - _bonds.NormalPlasticStrain(_iBond))*_bonds.NormalStiffness(_iBond);
 	}
 	CVector3 vNormalForce = currentContact*dNormalStress*(-1*Bonds().CrossCut(_iBond));
-	
+
 	_bonds.TangentialOverlap(_iBond) = M * Bonds().TangentialOverlap(_iBond) - tangentialVelocity * _timeStep;
 	double dTangentialStress = Length (Bonds().TangentialOverlap(_iBond)*Bonds().TangentialStiffness(_iBond) / Bonds().InitialLength(_iBond));
 	if (dTangentialStress > _bonds.YieldStrength(_iBond))
@@ -75,11 +75,25 @@ void CModelSBWeakening::CalculateSBForce(double _time, double _timeStep, size_t 
 
 	if (m_parameters[0].value == 0 ) return; // consider breakage
 	// check the bond destruction
-	
+
 	if ((dStrainTotal > m_parameters[2].value) || (dStrainTotal < -2*m_parameters[2].value)) // strain greater than breakage strain
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;
 		*_pBrokenBondsNum += 1;
+	}
+}
+
+void CModelSBWeakening::ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	if (Bonds().LeftID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) += Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) += Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) - Bonds().UnsymMoment(_iBond);
+	}
+	else if (Bonds().RightID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) -= Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) -= Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) + Bonds().UnsymMoment(_iBond);
 	}
 }

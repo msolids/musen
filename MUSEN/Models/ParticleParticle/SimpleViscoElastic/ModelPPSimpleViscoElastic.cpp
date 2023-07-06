@@ -35,3 +35,13 @@ void CModelPPSimpleViscoElastic::CalculatePPForce(double _time, double _timeStep
 	// store results in collision
 	_collision->vTotalForce = normForce;
 }
+
+void CModelPPSimpleViscoElastic::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+}
+
+void CModelPPSimpleViscoElastic::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+}

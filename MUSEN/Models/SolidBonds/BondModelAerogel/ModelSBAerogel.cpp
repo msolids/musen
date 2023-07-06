@@ -120,3 +120,17 @@ void CModelSBAerogel::CalculateSBForce(double _time, double _timeStep, size_t _i
 	_bonds.UnsymMoment(_iBond) = rAC * _bonds.TangentialForce(_iBond);
 	_bonds.PrevBond(_iBond) = currentBond;
 }
+
+void CModelSBAerogel::ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	if (Bonds().LeftID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) += Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) += Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) - Bonds().UnsymMoment(_iBond);
+	}
+	else if (Bonds().RightID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) -= Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) -= Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) + Bonds().UnsymMoment(_iBond);
+	}
+}

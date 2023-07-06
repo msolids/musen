@@ -123,3 +123,13 @@ void CModelPPSinteringTemperature::CalculatePPForce(double _time, double _timeSt
 	// store results in collision
 	_collision->vTotalForce = totalForce;
 }
+
+void CModelPPSinteringTemperature::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+}
+
+void CModelPPSinteringTemperature::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+}

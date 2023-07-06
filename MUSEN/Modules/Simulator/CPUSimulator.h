@@ -35,12 +35,12 @@ public:
 	void UpdateCollisionsStep(double _dTimeStep) override;
 
 	void CalculateForcesStep(double _dTimeStep) override;
-	void CalculateForcesPP(double _dTimeStep) override;
-	void CalculateForcesPW(double _dTimeStep) override;
-	void CalculateForcesSB(double _dTimeStep) override;
-	void CalculateForcesLB(double _dTimeStep) override;
-	void CalculateForcesEF(double _dTimeStep) override;
-	void CalculateHeatTransferPP(double _dTimeStep) override;
+	void CalculateForcesPP(double _timeStep) override;
+	void CalculateForcesPW(double _timeStep) override;
+	void CalculateForcesSB(double _timeStep) override;
+	void CalculateForcesLB(double _timeStep) override;
+	void CalculateForcesEF(double _timeStep) override;
+	void CalculateHeatTransferPP(double _timeStep) override;
 
 	void MoveParticles(bool _bPredictionStep = false) override;
 	void MoveWalls(double _dTimeStep) override;

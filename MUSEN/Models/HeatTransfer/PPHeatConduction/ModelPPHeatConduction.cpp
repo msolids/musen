@@ -38,3 +38,13 @@ void CModelPPHeatConduction::CalculatePPHeatTransfer(double _time, double _timeS
 	const double contactRadius = 2 * sqrt(_collision->dEquivRadius * _collision->dNormalOverlap);
 	_collision->dHeatFlux = 2 * contactRadius * m_parameters[0].value * effectiveResistivityFactor * contactThermalConductivity * (dstTemperature - srcTemperature);
 }
+
+void CModelPPHeatConduction::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.HeatFlux(_iPart) += _collision->dHeatFlux;
+}
+
+void CModelPPHeatConduction::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.HeatFlux(_iPart) -= _collision->dHeatFlux;
+}
