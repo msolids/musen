@@ -121,10 +121,10 @@ void CPackageGenerator::StartGeneration()
 
 		// perform generation
 		size_t iteration = 0;
-		simulator->GetModelManager()->SetModelParameters(EMusenModelType::PW, "NORMAL_FORCE_COEFF 0.9");
+		simulator->GetModelManager()->SetModelParameters(c_PWModelName, "NORMAL_FORCE_COEFF 0.9");
 		while (generator.maxReachedOverlap > generator.targetMaxOverlap && iteration < generator.maxIterations && m_status != ERunningStatus::TO_BE_STOPPED)
 		{
-			simulator->GetModelManager()->SetModelParameters(EMusenModelType::PP, "NORMAL_FORCE_COEFF " + Double2String(normForceCoeff));
+			simulator->GetModelManager()->SetModelParameters(c_PPModelName, "NORMAL_FORCE_COEFF " + Double2String(normForceCoeff));
 			simulator->InitializeModelParameters();
 			simulator->UpdateCollisionsStep(timeStep);
 
@@ -371,12 +371,12 @@ void CPackageGenerator::SetupSimulator(SPackage& _generator, CSystemStructure& _
 {
 	// create and initialize model manager
 	auto* modelManager = new CModelManager();
-	modelManager->SetModelPath(EMusenModelType::PP, "ModelPPSimpleViscoElastic");
-	modelManager->SetModelPath(EMusenModelType::PW, "ModelPWSimpleViscoElastic");
+	modelManager->AddActiveModel(c_PPModelName);
+	modelManager->AddActiveModel(c_PWModelName);
 
 	// setup initial model parameters
-	modelManager->SetModelParameters(EMusenModelType::PP, "NORMAL_FORCE_COEFF 0");
-	modelManager->SetModelParameters(EMusenModelType::PW, "NORMAL_FORCE_COEFF 0");
+	modelManager->SetModelParameters(c_PPModelName, "NORMAL_FORCE_COEFF 0");
+	modelManager->SetModelParameters(c_PWModelName, "NORMAL_FORCE_COEFF 0");
 
 	// create and initialize simulator
 	switch (m_simulatorType)

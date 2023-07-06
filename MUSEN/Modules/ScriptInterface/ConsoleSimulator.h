@@ -44,7 +44,7 @@ private:
 	void RunSimulation() const;
 
 	// Prints information about chosen models and their settings.
-	void PrintModelsInfo();
+	void PrintModelsInfo() const;
 	// Prints information about GPU.
 	void PrintGPUInfo() const;
 	// Prints message _m.

@@ -65,6 +65,9 @@ class CPackageGenerator final : public CMusenComponent, public IGenerator<SPacka
 		}
 	};
 
+	inline static const std::string c_PPModelName = "ModelPPSimpleViscoElastic";
+	inline static const std::string c_PWModelName = "ModelPWSimpleViscoElastic";
+
 	ESimulatorType m_simulatorType{ ESimulatorType::CPU };	// Simulator type used to generate packages.
 	double m_verletCoeff{ 2.0 };							// Verlet coefficient used in simulator.
 

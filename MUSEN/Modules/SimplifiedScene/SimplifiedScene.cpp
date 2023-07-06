@@ -373,14 +373,6 @@ void CSimplifiedScene::ClearState() const
 	});
 }
 
-void CSimplifiedScene::ClearHeatFluxes() const
-{
-	ParallelFor(m_Objects.vParticles->Size(), [&](size_t i)
-	{
-		m_Objects.vParticles->HeatFlux(i) = 0.0;
-	});
-}
-
 void CSimplifiedScene::AddVirtualParticles(double _dVerletDistance)
 {
 	if (!m_PBC.bEnabled) return;

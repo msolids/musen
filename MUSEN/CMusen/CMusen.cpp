@@ -43,28 +43,28 @@ void PrintModelsInfo()
 #ifndef STATIC_MODULES
 	modelManager.AddDir(".");	// add current directory
 #endif
-	std::vector<CModelManager::SModelInfo> models = modelManager.GetAllAvailableModels();
+	const auto& models = modelManager.GetAllAvailableModelsDescriptors();
 	std::cout << " ===== Available models ===== " << std::endl;
 	std::cout << "Particle-particle contacts: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::PP)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::PP)
+			std::cout << "  " << model->GetName() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "Particle-wall contacts: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::PW)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::PW)
+			std::cout << "  " << model->GetName() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "Solid bonds: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::SB)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::SB)
+			std::cout << "  " << model->GetName() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "Liquid bonds: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::LB)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::LB)
+			std::cout << "  " << model->GetName() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "External force: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::EF)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::EF)
+			std::cout << "  " << model->GetName() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 }
 
 void PrintVersionInfo()

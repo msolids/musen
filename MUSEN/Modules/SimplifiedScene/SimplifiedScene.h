@@ -52,7 +52,6 @@ public:
 
 	void InitializeMaterials();			// Parameters and interactions of materials
 	void ClearState() const;            // Sets current values of running variables (force, moment, heat flux) to 0.
-	void ClearHeatFluxes() const;
 
 	void AddVirtualParticles(double _dVerletDistance);
 	void RemoveVirtualParticles();

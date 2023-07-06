@@ -78,7 +78,7 @@ void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 	m_gpu.CheckParticlesInDomain(m_currentTime, m_sceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
 
 	// if there is no contact model, then there is no necessity to calculate contacts
-	if (m_pPPModel || m_pPWModel)
+	if (!m_PPModels.empty() || !m_PWModels.empty() || !m_PPHTModels.empty())
 	{
 		UpdateVerletLists(_dTimeStep); // between PP and PW
 		CUDAUpdateActiveCollisions();
@@ -87,12 +87,12 @@ void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 
 void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
-	if (m_pPPModel)   CalculateForcesPP(_dTimeStep);
-	if (m_pPWModel)   CalculateForcesPW(_dTimeStep);
-	if (m_pSBModel)   CalculateForcesSB(_dTimeStep);
-	if (m_pLBModel)   CalculateForcesLB(_dTimeStep);
-	if (m_pEFModel)   CalculateForcesEF(_dTimeStep);
-	if (m_pPPHTModel) CalculateHeatTransferPP(_dTimeStep);
+	if (!m_PPModels.empty())   CalculateForcesPP(_dTimeStep);
+	if (!m_PWModels.empty())   CalculateForcesPW(_dTimeStep);
+	if (!m_SBModels.empty())   CalculateForcesSB(_dTimeStep);
+	if (!m_LBModels.empty())   CalculateForcesLB(_dTimeStep);
+	if (!m_EFModels.empty())   CalculateForcesEF(_dTimeStep);
+	if (!m_PPHTModels.empty()) CalculateHeatTransferPP(_dTimeStep);
 
 	cudaStreamQuery(0);
 }
@@ -100,31 +100,38 @@ void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 void CGPUSimulator::CalculateForcesPP(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPP.collisions.nElements) return;
-	m_pPPModel->CalculatePPForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
+	for (auto* model : m_PPModels)
+		model->CalculatePPForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
 }
 
 void CGPUSimulator::CalculateForcesPW(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPW.collisions.nElements) return;
-	m_pPWModel->CalculatePWForceGPU(m_currentTime, _dTimeStep, m_pInteractProps,
-		m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
-	m_gpu.GatherForcesFromPWCollisions(m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls());
+	for (auto* model : m_PWModels)
+	{
+		model->CalculatePWForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
+		// TODO: move this to GPU models
+		m_gpu.GatherForcesFromPWCollisions(m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls());
+	}
 }
 
 void CGPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
 	if (m_scene.GetBondsNumber() == 0) return;
-	m_pSBModel->CalculateSBForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
+	for (auto* model : m_SBModels)
+		model->CalculateSBForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
 }
 
 void CGPUSimulator::CalculateForcesEF(double _dTimeStep)
 {
-	m_pEFModel->CalculateEFForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
+	for (auto* model : m_EFModels)
+		model->CalculateEFForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
 }
 
 void CGPUSimulator::CalculateHeatTransferPP(double _dTimeStep)
 {
-	m_pPPHTModel->CalculatePPHeatTransferGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
+	for (auto* model : m_PPHTModels)
+		model->CalculatePPHeatTransferGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
 }
 
 void CGPUSimulator::MoveParticles(bool _bPredictionStep)

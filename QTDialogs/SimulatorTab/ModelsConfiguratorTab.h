@@ -32,10 +32,10 @@ public slots:
 private:
 	void InitializeConnections();
 	void UpdateSelectedModelsView();
-	void UpdateConfigButtons();
+	void UpdateConfigButtons() const;
 
 private slots:
-	void SelectedModelsChanged();
-	void SpecModelParameters(const EMusenModelType& _modelType);
-	void OpenModelDocumentation(const EMusenModelType& _modelType);
+	void SelectedModelsChanged() const;
+	void SpecModelParameters(const EMusenModelType& _modelType) const;
+	void OpenModelDocumentation(const EMusenModelType& _modelType) const;
 };

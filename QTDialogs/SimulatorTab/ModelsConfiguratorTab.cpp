@@ -80,73 +80,90 @@ void CModelsConfiguratorTab::UpdateSelectedModelsView()
 	m_bAvoidSignal = true;
 
 	// clear all combos and add possibility to exclude model ("")
-	for (auto it = m_vCombos.begin(); it != m_vCombos.end(); ++it)
+	for (const auto& combo : m_vCombos)
 	{
-		it->second->clear();
-		it->second->addItem("");
+		combo.second->clear();
+		combo.second->addItem("");
 	}
 
 	// put all models into combos
-	std::vector<CModelManager::SModelInfo> vAllModels = m_pModelManager->GetAllAvailableModels();
-	for (size_t i = 0; i < vAllModels.size(); ++i)
+	const auto& allModels = m_pModelManager->GetAllAvailableModelsDescriptors();
+	for (const auto& model : allModels)
 	{
-		if (vAllModels[i].libType == CModelManager::ELibType::STATIC)
-			m_vCombos[vAllModels[i].pModel->GetType()]->addItem(ss2qs(vAllModels[i].pModel->GetName()), ss2qs(vAllModels[i].sPath));
-		else if (vAllModels[i].libType == CModelManager::ELibType::DYNAMIC)
-			m_vCombos[vAllModels[i].pModel->GetType()]->addItem(ss2qs(vAllModels[i].pModel->GetName() + " (" + vAllModels[i].sPath + ")"), ss2qs(vAllModels[i].sPath));
+		std::string displayName;
+		switch (model->GetLibType())
+		{
+		case ELibType::STATIC:	displayName = model->GetModel()->GetName();									break;
+		case ELibType::DYNAMIC:	displayName = model->GetModel()->GetName() + " (" + model->GetName() + ")";	break;
+		}
+		m_vCombos[model->GetModel()->GetType()]->addItem(QString::fromStdString(displayName), QString::fromStdString(model->GetName()));
 	}
 	// set selected model
-	for (auto it = m_vCombos.begin(); it != m_vCombos.end(); ++it)
-		it->second->setCurrentIndex(it->second->findData(ss2qs(m_pModelManager->GetModelPath(it->first))));
+	for (auto& combo : m_vCombos)
+	{
+		const auto& models = m_pModelManager->GetModelsDescriptors(combo.first);
+		combo.second->setCurrentIndex(combo.second->findData(QString::fromStdString(!models.empty() ? models.front()->GetName() : "")));
+	}
 
-	if(m_bBlockModelsChange)
-		for (auto it = m_vCombos.begin(); it != m_vCombos.end(); ++it)
-			it->second->setEnabled(false);
+	if (m_bBlockModelsChange)
+		for (const auto& combo : m_vCombos)
+			combo.second->setEnabled(false);
 
 	UpdateConfigButtons();
 
 	m_bAvoidSignal = false;
 }
 
-void CModelsConfiguratorTab::UpdateConfigButtons()
+void CModelsConfiguratorTab::UpdateConfigButtons() const
 {
-	CAbstractDEMModel *pPP = m_pModelManager->GetModel(EMusenModelType::PP);
-	CAbstractDEMModel *pPW = m_pModelManager->GetModel(EMusenModelType::PW);
-	CAbstractDEMModel *pSB = m_pModelManager->GetModel(EMusenModelType::SB);
-	CAbstractDEMModel *pLB = m_pModelManager->GetModel(EMusenModelType::LB);
-	CAbstractDEMModel *pEF = m_pModelManager->GetModel(EMusenModelType::EF);
-	CAbstractDEMModel *pHTPP = m_pModelManager->GetModel(EMusenModelType::PPHT);
-	ui.specModelParPP->setEnabled(pPP && pPP->GetParametersNumber() != 0);
-	ui.specModelParPW->setEnabled(pPW && pPW->GetParametersNumber() != 0);
-	ui.specModelParSB->setEnabled(pSB && pSB->GetParametersNumber() != 0);
-	ui.specModelParLB->setEnabled(pLB && pLB->GetParametersNumber() != 0);
-	ui.specModelParEF->setEnabled(pEF && pEF->GetParametersNumber() != 0);
-	ui.specModelParHT_PP->setEnabled(pHTPP && pHTPP->GetParametersNumber() != 0);
+	const auto SetParamButtonActive = [&](QPushButton* _button, EMusenModelType _type)
+	{
+		const auto& descriptors = m_pModelManager->GetModelsDescriptors(_type);
+		_button->setEnabled(!descriptors.empty() && descriptors.front()->GetModel() && descriptors.front()->GetModel()->GetParametersNumber() != 0);
+	};
+
+	SetParamButtonActive(ui.specModelParPP   , EMusenModelType::PP);
+	SetParamButtonActive(ui.specModelParPW   , EMusenModelType::PW);
+	SetParamButtonActive(ui.specModelParSB   , EMusenModelType::SB);
+	SetParamButtonActive(ui.specModelParLB   , EMusenModelType::LB);
+	SetParamButtonActive(ui.specModelParEF   , EMusenModelType::EF);
+	SetParamButtonActive(ui.specModelParHT_PP, EMusenModelType::PPHT);
 }
 
-void CModelsConfiguratorTab::SelectedModelsChanged()
+void CModelsConfiguratorTab::SelectedModelsChanged() const
 {
 	if (m_bAvoidSignal) return;
 
-	for (auto it = m_vCombos.begin(); it != m_vCombos.end(); ++it)
-		if (ss2qs(m_pModelManager->GetModelPath(it->first)) != it->second->currentData().toString())	// not the same model
-			m_pModelManager->SetModelPath(it->first, qs2ss(it->second->currentData().toString()));		// set new model
+	for (auto& combo : m_vCombos)
+	{
+		const auto& descriptors = m_pModelManager->GetModelsDescriptors(combo.first);
+		if (!descriptors.empty())
+		{
+			m_pModelManager->RemoveActiveModel(descriptors.front()->GetName());
+			//const std::string oldModelName = combo.second->currentData().toString().toStdString();
+			//if (descriptors.front()->GetName() != oldModelName)	                                                         // not the same model
+			//	m_pModelManager->ReplaceActiveModel(oldModelName, combo.second->currentData().toString().toStdString()); // set new model
+		}
+		m_pModelManager->AddActiveModel(combo.second->currentData().toString().toStdString());
+	}
 	UpdateConfigButtons();
 }
 
-void CModelsConfiguratorTab::SpecModelParameters(const EMusenModelType& _modelType)
+void CModelsConfiguratorTab::SpecModelParameters(const EMusenModelType& _modelType) const
 {
-	if (!m_pModelManager->IsModelDefined(_modelType)) return; // no model specified
+	if (!m_pModelManager->IsModelActive(_modelType)) return; // no model specified
 
-	CModelParameterTab paramEditor(m_pModelManager->GetModel(_modelType));
+	const auto descriptors = m_pModelManager->GetModelsDescriptors(_modelType);
+	CModelParameterTab paramEditor(descriptors.front()->GetModel());
 	paramEditor.exec();
 }
 
-void CModelsConfiguratorTab::OpenModelDocumentation(const EMusenModelType& _modelType)
+void CModelsConfiguratorTab::OpenModelDocumentation(const EMusenModelType& _modelType) const
 {
-	if (!m_pModelManager->IsModelDefined(_modelType))	return; // no model specified
+	if (!m_pModelManager->IsModelActive(_modelType))	return; // no model specified
 
-	QString sHelpFileName = ss2qs(m_pModelManager->GetModel(_modelType)->GetHelpFileName());
-	if (sHelpFileName != "")
-		QDesktopServices::openUrl(QUrl::fromLocalFile("file:///" + QCoreApplication::applicationDirPath() + "/Documentation/Models" + sHelpFileName));
+	const auto& descriptors = m_pModelManager->GetModelsDescriptors(_modelType);
+	const QString helpFileName = QString::fromStdString(descriptors.front()->GetModel()->GetHelpFileName());
+	if (helpFileName != "")
+		QDesktopServices::openUrl(QUrl::fromLocalFile("file:///" + QCoreApplication::applicationDirPath() + "/Documentation/Models" + helpFileName));
 }

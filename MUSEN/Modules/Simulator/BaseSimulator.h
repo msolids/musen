@@ -66,13 +66,13 @@ protected:
 	CSimplifiedScene m_scene;				// simplified scene
 	CVerletList m_verletList{ m_scene };	// verlet lists
 
-	CParticleParticleModel* m_pPPModel{ nullptr };
-	CParticleWallModel* m_pPWModel{ nullptr };
-	CSolidBondModel* m_pSBModel{ nullptr };
-	CLiquidBondModel* m_pLBModel{ nullptr };
-	CExternalForceModel* m_pEFModel{ nullptr };
-	CPPHeatTransferModel* m_pPPHTModel{ nullptr };
-	std::vector<CAbstractDEMModel*> m_models;	// All active models.
+	std::vector<CParticleParticleModel*> m_PPModels{}; // Active particle-particle models.
+	std::vector<CParticleWallModel*> m_PWModels{};     // Active particle-wall models.
+	std::vector<CSolidBondModel*> m_SBModels{};        // Active solid bond models.
+	std::vector<CLiquidBondModel*> m_LBModels{};       // Active liquid bond models.
+	std::vector<CExternalForceModel*> m_EFModels{};    // Active external force models.
+	std::vector<CPPHeatTransferModel*> m_PPHTModels;   // Active particle-particle heat transfer models.
+	std::vector<CAbstractDEMModel*> m_models;	       // All active models.
 
 	std::vector<SAdditionalSavingData> m_additionalSavingData;
 

@@ -78,196 +78,214 @@ void CCPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 	CheckParticlesInDomain();
 
 	// if there is no contact model, then there is no necessity to calculate contacts
-	if (m_pPPModel || m_pPWModel)
+	if (!m_PPModels.empty() || !m_PWModels.empty() || !m_PPHTModels.empty())
 	{
 		UpdateVerletLists(_dTimeStep); // between PP and PW
 		m_collisionsCalculator.UpdateCollisionMatrixes(_dTimeStep, m_currentTime);
 	}
-
-	if (m_pPPHTModel)
-		m_scene.ClearHeatFluxes();
 }
 
 void CCPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
-	if (m_pEFModel)   CalculateForcesEF(_dTimeStep);
-	if (m_pPPModel)   CalculateForcesPP(_dTimeStep);
-	if (m_pPWModel)   CalculateForcesPW(_dTimeStep);
-	if (m_pSBModel)   CalculateForcesSB(_dTimeStep);
-	if (m_pLBModel)   CalculateForcesLB(_dTimeStep);
-	if (m_pPPHTModel) CalculateHeatTransferPP(_dTimeStep);
+	if (!m_EFModels.empty())   CalculateForcesEF(_dTimeStep);
+	if (!m_PPModels.empty())   CalculateForcesPP(_dTimeStep);
+	if (!m_PWModels.empty())   CalculateForcesPW(_dTimeStep);
+	if (!m_SBModels.empty())   CalculateForcesSB(_dTimeStep);
+	if (!m_LBModels.empty())   CalculateForcesLB(_dTimeStep);
+	if (!m_PPHTModels.empty()) CalculateHeatTransferPP(_dTimeStep);
 	m_collisionsCalculator.CalculateTotalStatisticsInfo();
 }
 
 void CCPUSimulator::CalculateForcesPP(double _dTimeStep)
 {
-	m_pPPModel->Precalculate(m_currentTime, _dTimeStep);
-
 	SParticleStruct& particles = m_scene.GetRefToParticles();
-	for (auto& vCollisions : m_tempCollPPArray)
-		for (auto& coll : vCollisions)
-			coll.clear();
 
-	ParallelFor(m_collisionsCalculator.m_vCollMatrixPP.size(), [&](size_t i)
+	for (auto* model : m_PPModels)
 	{
-		const size_t nIndex = i%m_nThreads;
-		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
+		model->Precalculate(m_currentTime, _dTimeStep);
+
+		for (auto& vCollisions : m_tempCollPPArray)
+			for (auto& coll : vCollisions)
+				coll.clear();
+
+		ParallelFor(m_collisionsCalculator.m_vCollMatrixPP.size(), [&](size_t i)
 		{
-			m_pPPModel->Calculate(m_currentTime, _dTimeStep, pColl);
-			particles.Force(i) += pColl->vTotalForce;
-			particles.Moment(i) += pColl->vResultMoment1;
-
-			m_tempCollPPArray[nIndex][pColl->nDstID % m_nThreads].push_back(pColl);
-		}
-	});
-
-	ParallelFor([&](size_t i)
-	{
-		for (size_t j = 0; j < m_nThreads; ++j)
-			for (auto pColl : m_tempCollPPArray[j][i])
+			const size_t nIndex = i % m_nThreads;
+			for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
 			{
-				particles.Force(pColl->nDstID) -= pColl->vTotalForce;
-				particles.Moment(pColl->nDstID) += pColl->vResultMoment2;
+				model->Calculate(m_currentTime, _dTimeStep, pColl);
+				particles.Force(i) += pColl->vTotalForce;
+				particles.Moment(i) += pColl->vResultMoment1;
+
+				m_tempCollPPArray[nIndex][pColl->nDstID % m_nThreads].push_back(pColl);
 			}
-	});
+		});
+
+		ParallelFor([&](size_t i)
+		{
+			for (size_t j = 0; j < m_nThreads; ++j)
+				for (const auto& pColl : m_tempCollPPArray[j][i])
+				{
+					particles.Force(pColl->nDstID) -= pColl->vTotalForce;
+					particles.Moment(pColl->nDstID) += pColl->vResultMoment2;
+				}
+		});
+	}
 }
 
 void CCPUSimulator::CalculateForcesPW(double _dTimeStep)
 {
-	m_pPWModel->Precalculate(m_currentTime, _dTimeStep);
-
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 	SWallStruct& walls = m_scene.GetRefToWalls();
 
-	for (auto& vCollisions : m_tempCollPWArray)
-		for (auto& coll : vCollisions)
-			coll.clear();
-
-	ParallelFor(m_collisionsCalculator.m_vCollMatrixPW.size(), [&](size_t i)
+	for (auto* model : m_PWModels)
 	{
-		const size_t nIndex = i%m_nThreads;
-		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPW[i])
+		model->Precalculate(m_currentTime, _dTimeStep);
+
+		for (auto& vCollisions : m_tempCollPWArray)
+			for (auto& coll : vCollisions)
+				coll.clear();
+
+		ParallelFor(m_collisionsCalculator.m_vCollMatrixPW.size(), [&](size_t i)
 		{
-			m_pPWModel->Calculate(m_currentTime, _dTimeStep, pColl);
-			particles.Force(i) += pColl->vTotalForce;
-			particles.Moment(i) += pColl->vResultMoment1;
-			m_tempCollPWArray[nIndex][pColl->nSrcID % m_nThreads].push_back(pColl);
-		}
-	});
+			const size_t nIndex = i % m_nThreads;
+			for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPW[i])
+			{
+				model->Calculate(m_currentTime, _dTimeStep, pColl);
+				particles.Force(i) += pColl->vTotalForce;
+				particles.Moment(i) += pColl->vResultMoment1;
+				m_tempCollPWArray[nIndex][pColl->nSrcID % m_nThreads].push_back(pColl);
+			}
+		});
 
-	ParallelFor([&](size_t i)
-	{
-		for (size_t j = 0; j < m_nThreads; ++j)
-			for (auto& pColl : m_tempCollPWArray[j][i])
-				walls.Force(pColl->nSrcID) -= pColl->vTotalForce;
-	});
+		ParallelFor([&](size_t i)
+		{
+			for (size_t j = 0; j < m_nThreads; ++j)
+				for (const auto& pColl : m_tempCollPWArray[j][i])
+					walls.Force(pColl->nSrcID) -= pColl->vTotalForce;
+		});
+	}
 }
 
 void CCPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
 	if (m_scene.GetBondsNumber() == 0) return;
 
-	m_pSBModel->Precalculate(m_currentTime, _dTimeStep);
-
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 	SSolidBondStruct& bonds = m_scene.GetRefToSolidBonds();
-	std::vector<std::vector<unsigned>>& partToSolidBonds = *m_scene.GetPointerToPartToSolidBonds();
-	std::vector<unsigned> vBrokenBonds(m_nThreads, 0);
+	const std::vector<std::vector<unsigned>>& partToSolidBonds = *m_scene.GetPointerToPartToSolidBonds();
 
-	ParallelFor(m_scene.GetBondsNumber(), [&](size_t i)
+	for (auto* model : m_SBModels)
 	{
-		if (bonds.Active(i))
-			m_pSBModel->Calculate(m_currentTime, _dTimeStep, i, bonds, &vBrokenBonds[i% m_nThreads]);
-	});
-	m_nBrokenBonds += VectorSum(vBrokenBonds);
+		model->Precalculate(m_currentTime, _dTimeStep);
 
-	ParallelFor(partToSolidBonds.size(), [&](size_t i)
-	{
-		for (size_t j = 0; j < partToSolidBonds[i].size(); j++)
+		std::vector<unsigned> vBrokenBonds(m_nThreads, 0);
+
+		ParallelFor(m_scene.GetBondsNumber(), [&](size_t i)
 		{
-			unsigned nBond = partToSolidBonds[i][j];
-			if (!bonds.Active(nBond)) continue;
-			if (bonds.LeftID(nBond) == i)
+			if (bonds.Active(i))
+				model->Calculate(m_currentTime, _dTimeStep, i, bonds, &vBrokenBonds[i % m_nThreads]);
+		});
+		m_nBrokenBonds += VectorSum(vBrokenBonds);
+
+		ParallelFor(partToSolidBonds.size(), [&](size_t i)
+		{
+			for (size_t j = 0; j < partToSolidBonds[i].size(); j++)
 			{
-				particles.Force(i) += bonds.TotalForce(nBond);
-				particles.Moment(i) += bonds.NormalMoment(nBond) + bonds.TangentialMoment(nBond) - bonds.UnsymMoment(nBond);
+				unsigned nBond = partToSolidBonds[i][j];
+				if (!bonds.Active(nBond)) continue;
+				if (bonds.LeftID(nBond) == i)
+				{
+					particles.Force(i) += bonds.TotalForce(nBond);
+					particles.Moment(i) += bonds.NormalMoment(nBond) + bonds.TangentialMoment(nBond) - bonds.UnsymMoment(nBond);
+				}
+				else if (bonds.RightID(nBond) == i)
+				{
+					particles.Force(i) -= bonds.TotalForce(nBond);
+					particles.Moment(i) -= bonds.NormalMoment(nBond) + bonds.TangentialMoment(nBond) + bonds.UnsymMoment(nBond);
+				}
 			}
-			else if (bonds.RightID(nBond) == i)
-			{
-				particles.Force(i) -= bonds.TotalForce(nBond);
-				particles.Moment(i) -= bonds.NormalMoment(nBond) + bonds.TangentialMoment(nBond) + bonds.UnsymMoment(nBond);
-			}
-		}
-	});
+		});
+	}
 }
 
 void CCPUSimulator::CalculateForcesLB(double _dTimeStep)
 {
 	if (m_scene.GetLiquidBondsNumber() == 0) return;
 
-	m_pLBModel->Precalculate(m_currentTime, _dTimeStep);
-
 	SLiquidBondStruct& bonds = m_scene.GetRefToLiquidBonds();
 	SParticleStruct& particles = m_scene.GetRefToParticles();
-	std::vector<unsigned> vBrokenBonds(m_nThreads, 0);
 
-	ParallelFor(m_scene.GetLiquidBondsNumber(), [&](size_t i)
+	for (auto* model : m_LBModels)
 	{
-		if (bonds.Active(i))
-			m_pLBModel->Calculate(m_currentTime, _dTimeStep,i, bonds, &vBrokenBonds[i%m_nThreads]);
-	});
-	m_nBrokenLiquidBonds += VectorSum(vBrokenBonds);
+		model->Precalculate(m_currentTime, _dTimeStep);
 
-	for (size_t i = 0; i < m_scene.GetLiquidBondsNumber(); ++i)
-		if (bonds.Active(i))
+		std::vector<unsigned> vBrokenBonds(m_nThreads, 0);
+
+		ParallelFor(m_scene.GetLiquidBondsNumber(), [&](size_t i)
 		{
-			particles.Force(bonds.LeftID(i)) += bonds.NormalForce(i) + bonds.TangentialForce(i);
-			particles.Force(bonds.RightID(i)) -= bonds.NormalForce(i) + bonds.TangentialForce(i);
-			particles.Moment(bonds.LeftID(i)) -= bonds.UnsymMoment(i);
-			particles.Moment(bonds.RightID(i)) -= bonds.UnsymMoment(i);
-		}
+			if (bonds.Active(i))
+				model->Calculate(m_currentTime, _dTimeStep, i, bonds, &vBrokenBonds[i % m_nThreads]);
+		});
+		m_nBrokenLiquidBonds += VectorSum(vBrokenBonds);
+
+		for (size_t i = 0; i < m_scene.GetLiquidBondsNumber(); ++i)
+			if (bonds.Active(i))
+			{
+				particles.Force(bonds.LeftID(i)) += bonds.NormalForce(i) + bonds.TangentialForce(i);
+				particles.Force(bonds.RightID(i)) -= bonds.NormalForce(i) + bonds.TangentialForce(i);
+				particles.Moment(bonds.LeftID(i)) -= bonds.UnsymMoment(i);
+				particles.Moment(bonds.RightID(i)) -= bonds.UnsymMoment(i);
+			}
+	}
 }
 
 void CCPUSimulator::CalculateForcesEF(double _dTimeStep)
 {
-	m_pEFModel->Precalculate(m_currentTime, _dTimeStep);
-
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 
-	ParallelFor(particles.Size(), [&](size_t i)
+	for (auto* model : m_EFModels)
 	{
-		if (particles.Active(i))
-			m_pEFModel->Calculate(m_currentTime, _dTimeStep,i, particles);
-	});
+		model->Precalculate(m_currentTime, _dTimeStep);
+
+		ParallelFor(particles.Size(), [&](size_t i)
+		{
+			if (particles.Active(i))
+				model->Calculate(m_currentTime, _dTimeStep, i, particles);
+		});
+	}
 }
 
 void CCPUSimulator::CalculateHeatTransferPP(double _dTimeStep)
 {
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 
-	m_pPPHTModel->Precalculate(m_currentTime, _dTimeStep);
-
-	for (auto& vCollisions : m_tempCollPPArray)
-		for (auto& coll : vCollisions)
-			coll.clear();
-
-	ParallelFor(m_collisionsCalculator.m_vCollMatrixPP.size(), [&](size_t i)
+	for (auto* model : m_PPHTModels)
 	{
-		const size_t nIndex = i % m_nThreads;
-		for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
+		model->Precalculate(m_currentTime, _dTimeStep);
+
+		for (auto& vCollisions : m_tempCollPPArray)
+			for (auto& coll : vCollisions)
+				coll.clear();
+
+		ParallelFor(m_collisionsCalculator.m_vCollMatrixPP.size(), [&](size_t i)
 		{
-			m_pPPHTModel->Calculate(m_currentTime, _dTimeStep, pColl);
-			particles.HeatFlux(i) += pColl->dHeatFlux;
-			m_tempCollPPArray[nIndex][pColl->nDstID % m_nThreads].push_back(pColl);
-		}
-	});
+			const size_t nIndex = i % m_nThreads;
+			for (auto& pColl : m_collisionsCalculator.m_vCollMatrixPP[i])
+			{
+				model->Calculate(m_currentTime, _dTimeStep, pColl);
+				particles.HeatFlux(i) += pColl->dHeatFlux;
+				m_tempCollPPArray[nIndex][pColl->nDstID % m_nThreads].push_back(pColl);
+			}
+		});
 
-	ParallelFor([&](size_t i)
-	{
-		for (size_t j = 0; j < m_nThreads; ++j)
-			for (auto* pColl : m_tempCollPPArray[j][i])
-				particles.HeatFlux(pColl->nDstID) -= pColl->dHeatFlux;
-	});
+		ParallelFor([&](size_t i)
+		{
+			for (size_t j = 0; j < m_nThreads; ++j)
+				for (const auto* pColl : m_tempCollPPArray[j][i])
+					particles.HeatFlux(pColl->nDstID) -= pColl->dHeatFlux;
+		});
+	}
 }
 
 void CCPUSimulator::MoveParticles(bool _bPredictionStep)

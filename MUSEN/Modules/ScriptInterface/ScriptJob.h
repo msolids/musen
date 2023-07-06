@@ -71,6 +71,7 @@ struct SJob
 	{
 		std::string name;
 		std::string parameters;
+		EMusenModelType type; // Needed for compatibility with previous versions.
 	};
 
 	struct SGeometryMotionInterval
@@ -92,12 +93,7 @@ struct SJob
 	std::string logFileName;
 	std::string agglomeratesDBFileName;
 
-	std::map<EMusenModelType, SModel> models{
-		{EMusenModelType::PP, {}},
-		{EMusenModelType::PW, {}},
-		{EMusenModelType::SB, {}},
-		{EMusenModelType::LB, {}},
-		{EMusenModelType::EF, {}} };
+	std::vector<SModel> models;
 
 	EComponent component{ EComponent::SIMULATOR };
 

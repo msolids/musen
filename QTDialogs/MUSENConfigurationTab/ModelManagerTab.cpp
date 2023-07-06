@@ -42,21 +42,21 @@ void CModelManagerTab::UpdateFoldersView()
 		ui.directoryList->insertItem(i, ss2qs(vFoldersList[i]));
 }
 
-void CModelManagerTab::UpdateModelsListView()
+void CModelManagerTab::UpdateModelsListView() const
 {
 	ui.modelsTable->setSortingEnabled(false);
 	ui.modelsTable->setRowCount(0);
 
-	std::vector<CModelManager::SModelInfo> vAllModels = m_pModelManager->GetAllAvailableModels();
+	const auto vAllModels = m_pModelManager->GetAllAvailableModelsDescriptors();
 	for (int i = 0; i < (int)vAllModels.size(); ++i)
 	{
 		ui.modelsTable->insertRow(ui.modelsTable->rowCount());
 
 		// set name
-		ui.modelsTable->SetItemNotEditable(i, 0, ss2qs(vAllModels[i].pModel->GetName()));
+		ui.modelsTable->SetItemNotEditable(i, 0, ss2qs(vAllModels[i]->GetModel()->GetName()));
 
 		// set type
-		switch (vAllModels[i].pModel->GetType())
+		switch (vAllModels[i]->GetModel()->GetType())
 		{
 		case EMusenModelType::PP:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Particle-particle"));	break;
 		case EMusenModelType::PW:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Particle-wall"));		break;
@@ -68,10 +68,10 @@ void CModelManagerTab::UpdateModelsListView()
 		}
 
 		// set path
-		if (vAllModels[i].libType == CModelManager::ELibType::STATIC)
+		if (vAllModels[i]->GetLibType() == ELibType::STATIC)
 			ui.modelsTable->SetItemNotEditable(i, 2, tr("Built-in"));
-		else if (vAllModels[i].libType == CModelManager::ELibType::DYNAMIC)
-			ui.modelsTable->SetItemNotEditable(i, 2, ss2qs(vAllModels[i].sPath));
+		else if (vAllModels[i]->GetLibType() == ELibType::DYNAMIC)
+			ui.modelsTable->SetItemNotEditable(i, 2, ss2qs(vAllModels[i]->GetName()));
 	}
 	ui.modelsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	ui.modelsTable->setSortingEnabled(true);

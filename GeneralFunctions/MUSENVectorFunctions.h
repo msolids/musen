@@ -78,6 +78,13 @@ template<typename T> bool VectorContains(const std::vector<T>& _vec, T _val)
 	return std::find(_vec.begin(), _vec.end(), _val) != _vec.end();
 }
 
+// Returns true if vector contains specified element at leas once.
+template<typename T, typename FUN>
+bool VectorContains(const std::vector<T>& _vec, const FUN& _fun)
+{
+	return std::find_if(_vec.begin(), _vec.end(), _fun) != _vec.end();
+}
+
 // Returns index of a specified element or -1 if it does not exist.
 template<typename T>
 size_t VectorFind(const std::vector<T>& _vec, T _val)
