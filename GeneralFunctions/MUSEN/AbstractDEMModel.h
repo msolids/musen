@@ -227,31 +227,4 @@ protected:
 	virtual void CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const = 0;
 };
 
-
-class CPPHeatTransferModel : public CAbstractDEMModel
-{
-	SParticleStruct* m_particles{ nullptr };
-	std::vector<SInteractProps>* m_interactProps{ nullptr };
-
-public:
-	CPPHeatTransferModel();
-
-	bool Initialize(SParticleStruct* _particles, SWallStruct* _walls, SSolidBondStruct* _solidBinds, SLiquidBondStruct* _liquidBonds, std::vector<SInteractProps>* _interactProps) override;
-	void Precalculate(double _time, double _timeStep) override;
-	void Calculate(double _time, double _timeStep, SCollision* _collision) const;
-	void ConsolidateSrc(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const;
-	void ConsolidateDst(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const;
-
-	virtual void CalculatePPHeatTransferGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions) {}
-
-protected:
-	const SParticleStruct& Particles() const { return *m_particles; }
-	const SInteractProps& InteractionProperty(const size_t _i) const { return (*m_interactProps)[_i]; }
-
-	virtual void PrecalculatePPHTModel(double _time, double _timeStep, SParticleStruct* _particles) const {}
-	virtual void CalculatePPHeatTransfer(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const = 0;
-	virtual void ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const {}
-	virtual void ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const {}
-};
-
 typedef DECLDIR CAbstractDEMModel* (*CreateModelFunction)();

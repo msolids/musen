@@ -78,7 +78,7 @@ void CCPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 	CheckParticlesInDomain();
 
 	// if there is no contact model, then there is no necessity to calculate contacts
-	if (!m_PPModels.empty() || !m_PWModels.empty() || !m_PPHTModels.empty())
+	if (!m_PPModels.empty() || !m_PWModels.empty())
 	{
 		UpdateVerletLists(_dTimeStep); // between PP and PW
 		m_collisionsCalculator.UpdateCollisionMatrixes(_dTimeStep, m_currentTime);
@@ -87,12 +87,11 @@ void CCPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 
 void CCPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
-	if (!m_EFModels.empty())   CalculateForcesEF(_dTimeStep);
-	if (!m_PPModels.empty())   CalculateForcesPP(_dTimeStep);
-	if (!m_PWModels.empty())   CalculateForcesPW(_dTimeStep);
-	if (!m_SBModels.empty())   CalculateForcesSB(_dTimeStep);
-	if (!m_LBModels.empty())   CalculateForcesLB(_dTimeStep);
-	if (!m_PPHTModels.empty()) CalculateHeatTransferPP(_dTimeStep);
+	if (!m_EFModels.empty()) CalculateForcesEF(_dTimeStep);
+	if (!m_PPModels.empty()) CalculateForcesPP(_dTimeStep);
+	if (!m_PWModels.empty()) CalculateForcesPW(_dTimeStep);
+	if (!m_SBModels.empty()) CalculateForcesSB(_dTimeStep);
+	if (!m_LBModels.empty()) CalculateForcesLB(_dTimeStep);
 	m_collisionsCalculator.CalculateTotalStatisticsInfo();
 }
 
@@ -234,39 +233,6 @@ void CCPUSimulator::CalculateForcesEF(double _timeStep)
 		{
 			if (particles.Active(iPart))
 				model->Calculate(m_currentTime, _timeStep, iPart, particles);
-		});
-	}
-}
-
-void CCPUSimulator::CalculateHeatTransferPP(double _timeStep)
-{
-	SParticleStruct& particles = m_scene.GetRefToParticles();
-
-	for (auto* model : m_PPHTModels)
-	{
-		model->Precalculate(m_currentTime, _timeStep);
-
-		for (auto& collisions : m_tempCollPPArray)
-			for (auto& coll : collisions)
-				coll.clear();
-
-		ParallelFor(m_collisionsCalculator.m_vCollMatrixPP.size(), [&](size_t i)
-		{
-			const size_t index = i % m_nThreads;
-			for (auto& coll : m_collisionsCalculator.m_vCollMatrixPP[i])
-			{
-				model->Calculate(m_currentTime, _timeStep, coll);
-				model->ConsolidateSrc(m_currentTime, _timeStep, particles, coll);
-
-				m_tempCollPPArray[index][coll->nDstID % m_nThreads].push_back(coll);
-			}
-		});
-
-		ParallelFor([&](size_t i)
-		{
-			for (size_t j = 0; j < m_nThreads; ++j)
-				for (const auto* coll : m_tempCollPPArray[j][i])
-					model->ConsolidateDst(m_currentTime, _timeStep, particles, coll);
 		});
 	}
 }

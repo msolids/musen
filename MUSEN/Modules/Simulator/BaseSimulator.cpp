@@ -548,18 +548,16 @@ void CBaseSimulator::InitializeModels()
 	m_SBModels.clear();
 	m_LBModels.clear();
 	m_EFModels.clear();
-	m_PPHTModels.clear();
 
 	m_models = m_modelManager->GetAllActiveModels();
 
 	for (auto* model : m_models)
 	{
-		if      (dynamic_cast<CParticleParticleModel*>(model)) m_PPModels  .push_back(dynamic_cast<CParticleParticleModel*>(model));
-		else if (dynamic_cast<CParticleWallModel    *>(model)) m_PWModels  .push_back(dynamic_cast<CParticleWallModel    *>(model));
-		else if (dynamic_cast<CSolidBondModel       *>(model)) m_SBModels  .push_back(dynamic_cast<CSolidBondModel       *>(model));
-		else if (dynamic_cast<CLiquidBondModel      *>(model)) m_LBModels  .push_back(dynamic_cast<CLiquidBondModel      *>(model));
-		else if (dynamic_cast<CExternalForceModel   *>(model)) m_EFModels  .push_back(dynamic_cast<CExternalForceModel   *>(model));
-		else if (dynamic_cast<CPPHeatTransferModel  *>(model)) m_PPHTModels.push_back(dynamic_cast<CPPHeatTransferModel  *>(model));
+		if      (dynamic_cast<CParticleParticleModel*>(model)) m_PPModels.push_back(dynamic_cast<CParticleParticleModel*>(model));
+		else if (dynamic_cast<CParticleWallModel    *>(model)) m_PWModels.push_back(dynamic_cast<CParticleWallModel    *>(model));
+		else if (dynamic_cast<CSolidBondModel       *>(model)) m_SBModels.push_back(dynamic_cast<CSolidBondModel       *>(model));
+		else if (dynamic_cast<CLiquidBondModel      *>(model)) m_LBModels.push_back(dynamic_cast<CLiquidBondModel      *>(model));
+		else if (dynamic_cast<CExternalForceModel   *>(model)) m_EFModels.push_back(dynamic_cast<CExternalForceModel   *>(model));
 	}
 
 	m_verletList.SetConnectedPPContact(m_modelManager->GetConnectedPPContact());
@@ -712,7 +710,6 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 	m_SBModels   = _other.m_SBModels;
 	m_LBModels   = _other.m_LBModels;
 	m_EFModels   = _other.m_EFModels;
-	m_PPHTModels = _other.m_PPHTModels;
 
 	m_stopCriteria = _other.m_stopCriteria;
 	m_stopValues = _other.m_stopValues;

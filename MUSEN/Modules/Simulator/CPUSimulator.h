@@ -40,7 +40,6 @@ public:
 	void CalculateForcesSB(double _timeStep) override;
 	void CalculateForcesLB(double _timeStep) override;
 	void CalculateForcesEF(double _timeStep) override;
-	void CalculateHeatTransferPP(double _timeStep) override;
 
 	void MoveParticles(bool _bPredictionStep = false) override;
 	void MoveWalls(double _dTimeStep) override;

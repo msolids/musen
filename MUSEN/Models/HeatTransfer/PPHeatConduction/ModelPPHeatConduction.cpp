@@ -15,7 +15,7 @@ CModelPPHeatConduction::CModelPPHeatConduction()
 	/* 4 */ AddParameter("THERMAL_CONDUCTIVITY"     , "Thermal conductivity in contact [W/(m*K)]", 25  );
 }
 
-void CModelPPHeatConduction::CalculatePPHeatTransfer(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPHeatConduction::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const double srcTemperature = Particles().Temperature(_iSrc);
 	const double dstTemperature = Particles().Temperature(_iDst);
