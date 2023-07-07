@@ -15,7 +15,7 @@ CModelPWSimpleViscoElastic::CModelPWSimpleViscoElastic()
 	/* 1*/ AddParameter("NORMAL_DAMPING_PARAMETER", "Damping parameter"          , 0);
 }
 
-void CModelPWSimpleViscoElastic::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPWSimpleViscoElastic::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double Kn = m_parameters[0].value;

@@ -14,7 +14,7 @@ CModelLBCapilarViscous::CModelLBCapilarViscous()
 	AddParameter("CONTACT_ANGLE", "Contact angle [grad]", 70);
 }
 
-void CModelLBCapilarViscous::CalculateLBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
+void CModelLBCapilarViscous::CalculateLB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
 /*	double dMinThickness = m_parameters[ 0 ].value;
 	double dContactAngle = m_parameters[ 1 ].value*PI/180;

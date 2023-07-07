@@ -13,7 +13,7 @@ void CModelPPSintering::SetParametersGPU(const std::vector<double>& _parameters,
 	CUDA_MEMCOPY_TO_SYMBOL(m_vConstantModelParameters, *_parameters.data(), sizeof(double) * _parameters.size());
 }
 
-void CModelPPSintering::CalculatePPForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
+void CModelPPSintering::CalculatePPGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPPForce_S_kernel,
 		_interactProps,

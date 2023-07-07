@@ -100,27 +100,27 @@ void CGPUSimulator::CalculateForcesPP(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPP.collisions.nElements) return;
 	for (auto* model : m_PPModels)
-		model->CalculatePPForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
+		model->CalculatePPGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
 }
 
 void CGPUSimulator::CalculateForcesPW(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPW.collisions.nElements) return;
 	for (auto* model : m_PWModels)
-		model->CalculatePWForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
+		model->CalculatePWGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
 }
 
 void CGPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
 	if (m_scene.GetBondsNumber() == 0) return;
 	for (auto* model : m_SBModels)
-		model->CalculateSBForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
+		model->CalculateSBGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
 }
 
 void CGPUSimulator::CalculateForcesEF(double _dTimeStep)
 {
 	for (auto* model : m_EFModels)
-		model->CalculateEFForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
+		model->CalculateEFGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
 }
 
 void CGPUSimulator::MoveParticles(bool _bPredictionStep)

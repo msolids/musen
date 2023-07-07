@@ -16,7 +16,7 @@ void CModelSBCreep::SetParametersGPU(const std::vector<double>& _parameters, con
 	CUDA_MEMCOPY_TO_SYMBOL(PBC, _pbc, sizeof(SPBC));
 }
 
-void CModelSBCreep::CalculateSBForceGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
+void CModelSBCreep::CalculateSBGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcSBForce_CRP_kernel,
 		_time,

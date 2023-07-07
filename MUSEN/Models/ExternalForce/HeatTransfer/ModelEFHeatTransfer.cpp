@@ -15,7 +15,7 @@ CModelEFHeatTransfer::CModelEFHeatTransfer()
 	/* 5 */ AddParameter("SCALING_FACTOR"           , "Scaling factor (mass and size) [-]"     , 1.0 );
 }
 
-void CModelEFHeatTransfer::CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
+void CModelEFHeatTransfer::CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
 	// HACK: heat capacity of the material is not an integer -indicator that this particle belongs to outer layer
 	// TODO: allow material-specific external force models

@@ -16,7 +16,7 @@ CModelPPSinteringTemperature::CModelPPSinteringTemperature()
 	/* 5*/ AddParameter("MAX_OVERLAP_COEFF"   , "Max overlap coefficient for stop criterion [-]"           , 0.2784  );
 }
 
-void CModelPPSinteringTemperature::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPSinteringTemperature::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double grainBoundTimesDiff = m_parameters[0].value;

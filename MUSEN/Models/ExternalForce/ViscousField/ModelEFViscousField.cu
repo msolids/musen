@@ -13,7 +13,7 @@ void CModelEFViscousField::SetParametersGPU(const std::vector<double>& _paramete
 	CUDA_MEMCOPY_TO_SYMBOL(m_vConstantModelParameters, *_parameters.data(), sizeof(double) * _parameters.size());
 }
 
-void CModelEFViscousField::CalculateEFForceGPU(double _time, double _timeStep, SGPUParticles& _particles)
+void CModelEFViscousField::CalculateEFGPU(double _time, double _timeStep, SGPUParticles& _particles)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcExtForce_VF_kernel,
 		static_cast<unsigned>(_particles.nElements),

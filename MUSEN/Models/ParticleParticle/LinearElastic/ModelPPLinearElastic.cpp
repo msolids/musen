@@ -15,7 +15,7 @@ CModelPPLinearElastic::CModelPPLinearElastic()
 	/* 1*/ AddParameter("Kt", "Tangential stiffness [N/m]", 1e+3);
 }
 
-void CModelPPLinearElastic::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPLinearElastic::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double Kn = m_parameters[0].value;

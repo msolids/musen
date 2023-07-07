@@ -12,7 +12,7 @@ CModelPWJKR::CModelPWJKR()
 	m_hasGPUSupport = true;
 }
 
-void CModelPWJKR::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPWJKR::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const double   partRadius  = Particles().Radius(_iPart);
 	const CVector3 partAnglVel = Particles().AnglVel(_iPart);

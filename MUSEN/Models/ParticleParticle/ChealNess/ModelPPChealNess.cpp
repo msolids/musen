@@ -20,7 +20,7 @@ CModelPPChealNess::CModelPPChealNess()
 	/* 2*/ AddParameter("FLUID_VISCOSITY", "Fluid viscosity [Pa*s]"      , 0.1 );
 }
 
-void CModelPPChealNess::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPChealNess::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double minThickness  = m_parameters[0].value;

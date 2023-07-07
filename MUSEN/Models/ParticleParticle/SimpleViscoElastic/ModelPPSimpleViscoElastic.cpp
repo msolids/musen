@@ -15,7 +15,7 @@ CModelPPSimpleViscoElastic::CModelPPSimpleViscoElastic()
 	/* 1*/ AddParameter("NORMAL_DAMPING_PARAMETER", "Damping parameter"          , 0);
 }
 
-void CModelPPSimpleViscoElastic::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPSimpleViscoElastic::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double Kn = m_parameters[0].value;

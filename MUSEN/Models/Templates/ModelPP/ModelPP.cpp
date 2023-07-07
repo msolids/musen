@@ -34,12 +34,28 @@ CModelPP::CModelPP()
 //////////////////////////////////////////////////////////////////////////
 
 /// TODO: This function can be removed if not used.
-void CModelPP::PrecalculatePPModel(double _time, double _timeStep, SParticleStruct* _particles)
+void CModelPP::PrecalculatePP(double _time, double _timeStep, SParticleStruct* _particles)
 {
 	// TODO: Write your pre-calculation step here.
 }
 
-void CModelPP::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPP::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// TODO: Write your model here.
+}
+
+void CModelPP::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	// TODO: Write your consolidation step here.
+	// This example is for calculation of forces and moments.
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPP::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	// TODO: Write your consolidation step here.
+	// This example is for calculation of forces and moments.
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment2;
 }

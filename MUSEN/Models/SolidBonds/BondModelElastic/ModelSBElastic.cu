@@ -15,7 +15,7 @@ void CModelSBElastic::SetParametersGPU(const std::vector<double>& _parameters, c
 	CUDA_MEMCOPY_TO_SYMBOL(PBC, _pbc, sizeof(SPBC));
 }
 
-void CModelSBElastic::CalculateSBForceGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
+void CModelSBElastic::CalculateSBGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcSBForce_E_kernel,
 		_time,

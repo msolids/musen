@@ -153,12 +153,12 @@ bool CParticleParticleModel::Initialize(SParticleStruct* _particles, SWallStruct
 
 void CParticleParticleModel::Precalculate(double _time, double _timeStep)
 {
-	PrecalculatePPModel(_time, _timeStep, m_particles);
+	PrecalculatePP(_time, _timeStep, m_particles);
 }
 
 void CParticleParticleModel::Calculate(double _time, double _timeStep, SCollision* _collision) const
 {
-	CalculatePPForce(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
+	CalculatePP(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
 }
 
 void CParticleParticleModel::ConsolidateSrc(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const
@@ -191,12 +191,12 @@ bool CParticleWallModel::Initialize(SParticleStruct* _particles, SWallStruct* _w
 
 void CParticleWallModel::Precalculate(double _time, double _timeStep)
 {
-	PrecalculatePWModel(_time, _timeStep, m_particles, m_walls);
+	PrecalculatePW(_time, _timeStep, m_particles, m_walls);
 }
 
 void CParticleWallModel::Calculate(double _time, double _timeStep, SCollision* _collision) const
 {
-	CalculatePWForce(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
+	CalculatePW(_time, _timeStep, _collision->nSrcID, _collision->nDstID, InteractionProperty(_collision->nInteractProp), _collision);
 }
 
 void CParticleWallModel::ConsolidatePart(double _time, double _timeStep, SParticleStruct& _particles, const SCollision* _collision) const
@@ -227,12 +227,12 @@ bool CSolidBondModel::Initialize(SParticleStruct* _particles, SWallStruct* _wall
 
 void CSolidBondModel::Precalculate(double _time, double _timeStep)
 {
-	PrecalculateSBModel(_time, _timeStep, m_particles, m_bonds);
+	PrecalculateSB(_time, _timeStep, m_particles, m_bonds);
 }
 
 void CSolidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
-	CalculateSBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
+	CalculateSB(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
 }
 
 void CSolidBondModel::Consolidate(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
@@ -258,12 +258,12 @@ bool CLiquidBondModel::Initialize(SParticleStruct* _particles, SWallStruct* _wal
 
 void CLiquidBondModel::Precalculate(double _time, double _timeStep)
 {
-	PrecalculateLBModel(_time, _timeStep, m_particles, m_bonds);
+	PrecalculateLB(_time, _timeStep, m_particles, m_bonds);
 }
 
 void CLiquidBondModel::Calculate(double _time, double _timeStep, size_t _iBond, SLiquidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
-	CalculateLBForce(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
+	CalculateLB(_time, _timeStep, _bonds.LeftID(_iBond), _bonds.RightID(_iBond), _iBond, _bonds, _pBrokenBondsNum);
 }
 
 void CLiquidBondModel::Consolidate(double _time, double _timeStep, size_t _iBond, SParticleStruct& _particles) const
@@ -288,10 +288,10 @@ bool CExternalForceModel::Initialize(SParticleStruct* _particles, SWallStruct* _
 
 void CExternalForceModel::Precalculate(double _time, double _timeStep)
 {
-	PrecalculateEFModel(_time, _timeStep, m_particles);
+	PrecalculateEF(_time, _timeStep, m_particles);
 }
 
 void CExternalForceModel::Calculate(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
-	CalculateEFForce(_time, _timeStep, _iPart, _particles);
+	CalculateEF(_time, _timeStep, _iPart, _particles);
 }

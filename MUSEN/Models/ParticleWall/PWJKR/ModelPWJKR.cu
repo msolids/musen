@@ -13,7 +13,7 @@ void CModelPWJKR::SetParametersGPU(const std::vector<double>& _parameters, const
 	CUDA_MEMCOPY_TO_SYMBOL(PBC, _pbc, sizeof(SPBC));
 }
 
-void CModelPWJKR::CalculatePWForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, const SGPUWalls& _walls, SGPUCollisions& _collisions)
+void CModelPWJKR::CalculatePWGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, const SGPUWalls& _walls, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPWForce_JKR_kernel,
 		_timeStep,

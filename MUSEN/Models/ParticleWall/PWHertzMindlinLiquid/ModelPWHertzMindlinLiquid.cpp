@@ -16,7 +16,7 @@ CModelPWHertzMindlinLiquid::CModelPWHertzMindlinLiquid()
 	/* 3*/ AddParameter("DYNAMIC_VISCOSITY", "Dynamic viscosity [Pa*s]"    , 0.1 );
 }
 
-void CModelPWHertzMindlinLiquid::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPWHertzMindlinLiquid::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double minThickness   = m_parameters[0].value;

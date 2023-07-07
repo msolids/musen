@@ -11,7 +11,7 @@ CModelPWPopovJKR::CModelPWPopovJKR()
 	m_helpFileName = "/Contact Models/PopovJKR.pdf";
 }
 
-void CModelPWPopovJKR::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPWPopovJKR::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const double   partRadius  = Particles().Radius(_iPart);
 	const CVector3 partAnglVel = Particles().AnglVel(_iPart);

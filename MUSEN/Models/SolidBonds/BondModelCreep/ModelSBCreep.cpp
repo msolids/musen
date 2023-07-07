@@ -21,7 +21,7 @@ CModelSBCreep::CModelSBCreep()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBCreep::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
+void CModelSBCreep::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	double dCreep_A = m_parameters[4].value;
 	double dCreep_m = m_parameters[5].value;

@@ -11,7 +11,7 @@ CModelPPPopovJKR::CModelPPPopovJKR()
 	m_helpFileName = "/Contact Models/PopovJKR.pdf";
 }
 
-void CModelPPPopovJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPPopovJKR::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const CVector3 anglVel1 = Particles().AnglVel(_iSrc);
 	const CVector3 anglVel2 = Particles().AnglVel(_iDst);

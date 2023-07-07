@@ -9,7 +9,7 @@ void CModelEFHeatTransfer::SetParametersGPU(const std::vector<double>& _paramete
 	CUDA_MEMCOPY_TO_SYMBOL(m_vConstantModelParameters, *_parameters.data(), sizeof(double) * _parameters.size());
 }
 
-void CModelEFHeatTransfer::CalculateEFForceGPU(double _time, double _timeStep, SGPUParticles& _particles)
+void CModelEFHeatTransfer::CalculateEFGPU(double _time, double _timeStep, SGPUParticles& _particles)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcExtForce_HT_kernel,
 		static_cast<unsigned>(_particles.nElements),

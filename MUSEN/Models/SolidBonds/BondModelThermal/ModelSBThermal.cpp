@@ -15,7 +15,7 @@ CModelSBThermal::CModelSBThermal()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBThermal::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
+void CModelSBThermal::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	double  deltaT = m_parameters[0].value;
 

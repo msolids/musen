@@ -19,7 +19,7 @@ CModelSBElasticPerfectlyPlastic::CModelSBElasticPerfectlyPlastic()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBElasticPerfectlyPlastic::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
+void CModelSBElasticPerfectlyPlastic::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	// relative angle velocity of contact partners
 	CVector3 relAngleVel = Particles().AnglVel(_iLeft) - Particles().AnglVel(_iRight);

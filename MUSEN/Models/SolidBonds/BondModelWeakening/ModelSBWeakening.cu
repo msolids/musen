@@ -21,7 +21,7 @@ void CModelSBWeakening::SetParametersGPU(const std::vector<double>& _parameters,
 	CUDA_KERNEL_ARGS2_DEFAULT(setup_kernel, randStates);
 }
 
-void CModelSBWeakening::CalculateSBForceGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
+void CModelSBWeakening::CalculateSBGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
 {
 		CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcSBForce_WK_kernel,
 		_time,

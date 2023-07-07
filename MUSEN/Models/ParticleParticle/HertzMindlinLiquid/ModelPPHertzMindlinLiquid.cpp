@@ -16,7 +16,7 @@ CModelPPHertzMindlinLiquid::CModelPPHertzMindlinLiquid()
 	/* 3*/ AddParameter("DYNAMIC_VISCOSITY", "Dynamic viscosity [Pa*s]"    , 0.1 );
 }
 
-void CModelPPHertzMindlinLiquid::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPHertzMindlinLiquid::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double minThickness   = m_parameters[0].value;
