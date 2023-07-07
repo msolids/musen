@@ -36,8 +36,8 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	const auto ReadModelParamsOld = [](std::stringstream& _ss, SJob& _job, EMusenModelType _type)
 	{
 		const std::string params = GetRestOfLine(&_ss);
-		size_t i = VectorFind(_job.models, [&](const SJob::SModel& _model) { return _model.type == _type; });
-		if (i != static_cast<size_t>(-1) && i < _job.models.size())
+		const size_t i = VectorFind(_job.models, [&](const SJob::SModel& _model) { return _model.type == _type; });
+		if (i < _job.models.size())
 			_job.models[i].parameters = params;
 	};
 
@@ -79,7 +79,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "MODEL_SB")								ReadModelOld(ss, m_jobs.back(), EMusenModelType::SB);
 	else if (key == "MODEL_LB")								ReadModelOld(ss, m_jobs.back(), EMusenModelType::LB);
 	else if (key == "MODEL_EF" || key == "MODEL_EXT_FORCE")	ReadModelOld(ss, m_jobs.back(), EMusenModelType::EF);
-	else if (key == "MODEL_PPHT")							ReadModelOld(ss, m_jobs.back(), EMusenModelType::PPHT);
+	else if (key == "MODEL_PPHT")							ReadModelOld(ss, m_jobs.back(), EMusenModelType::PP);
 	// TODO: adjust documentation and scripts
 	else if (key == "MODEL")
 	{
@@ -92,7 +92,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "MODEL_SB_PARAMS")										ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::SB);
 	else if (key == "MODEL_LB_PARAMS")										ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::LB);
 	else if (key == "MODEL_EF_PARAMS" || key == "MODEL_EXT_FORCE_PARAMS")	ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::EF);
-	else if (key == "MODEL_PPHT_PARAMS")									ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::PPHT);
+	else if (key == "MODEL_PPHT_PARAMS")									ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::PP);
 	else if (key == "MODEL_PARAMS")
 	{
 		const auto model = GetValueFromStream<std::string>(&ss);

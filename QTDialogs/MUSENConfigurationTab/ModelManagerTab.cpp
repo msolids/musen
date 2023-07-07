@@ -58,13 +58,12 @@ void CModelManagerTab::UpdateModelsListView() const
 		// set type
 		switch (vAllModels[i]->GetModel()->GetType())
 		{
-		case EMusenModelType::PP:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Particle-particle"));	break;
-		case EMusenModelType::PW:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Particle-wall"));		break;
-		case EMusenModelType::SB:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Solid bond"));			break;
-		case EMusenModelType::LB:			ui.modelsTable->SetItemNotEditable(i, 1, tr("Liquid bond"));		break;
-		case EMusenModelType::EF:			ui.modelsTable->SetItemNotEditable(i, 1, tr("External force"));		break;
-		case EMusenModelType::PPHT:		    ui.modelsTable->SetItemNotEditable(i, 1, tr("PP heat transfer"));	break;
-		case EMusenModelType::UNSPECIFIED:	ui.modelsTable->SetItemNotEditable(i, 1, tr("Unspecified"));		break;
+		case EMusenModelType::PP:          ui.modelsTable->SetItemNotEditable(i, 1, tr("Particle-particle")); break;
+		case EMusenModelType::PW:          ui.modelsTable->SetItemNotEditable(i, 1, tr("Particle-wall"));     break;
+		case EMusenModelType::SB:          ui.modelsTable->SetItemNotEditable(i, 1, tr("Solid bond"));        break;
+		case EMusenModelType::LB:          ui.modelsTable->SetItemNotEditable(i, 1, tr("Liquid bond"));       break;
+		case EMusenModelType::EF:          ui.modelsTable->SetItemNotEditable(i, 1, tr("External force"));    break;
+		case EMusenModelType::UNSPECIFIED: ui.modelsTable->SetItemNotEditable(i, 1, tr("Unspecified"));       break;
 		}
 
 		// set path

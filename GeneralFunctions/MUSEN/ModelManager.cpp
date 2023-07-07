@@ -436,7 +436,7 @@ void CModelManager::LoadConfiguration()
 		LoadModel(mm.sb_model()   , EMusenModelType::SB);
 		LoadModel(mm.lb_model()   , EMusenModelType::LB);
 		LoadModel(mm.ef_model()   , EMusenModelType::EF);
-		LoadModel(mm.ht_pp_model(), EMusenModelType::PPHT);
+		LoadModel(mm.ht_pp_model(), EMusenModelType::PP);
 	}
 	else
 	{

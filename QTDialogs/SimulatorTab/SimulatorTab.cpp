@@ -127,11 +127,10 @@ void CSimulatorTab::UpdateModelsView() const
 		}
 	};
 
-	SetNameToLabel(ui.labelPP   , EMusenModelType::PP);
-	SetNameToLabel(ui.labelPW   , EMusenModelType::PW);
-	SetNameToLabel(ui.labelSB   , EMusenModelType::SB);
-	SetNameToLabel(ui.labelEF   , EMusenModelType::EF);
-	SetNameToLabel(ui.labelHT_PP, EMusenModelType::PPHT);
+	SetNameToLabel(ui.labelPP, EMusenModelType::PP);
+	SetNameToLabel(ui.labelPW, EMusenModelType::PW);
+	SetNameToLabel(ui.labelSB, EMusenModelType::SB);
+	SetNameToLabel(ui.labelEF, EMusenModelType::EF);
 }
 
 void CSimulatorTab::UpdateCollisionsFlag() const
@@ -297,12 +296,6 @@ void CSimulatorTab::StartSimulation()
 		return;
 	}
 	sErrorMessage = pModelManager->IsModelActive(EMusenModelType::EF) ? pModelManager->GetModelsDescriptors(EMusenModelType::EF).front()->GetError() : "";
-	if (!sErrorMessage.empty())
-	{
-		ui.statusMessage->setText(ss2qs(sErrorMessage));
-		return;
-	}
-	sErrorMessage = pModelManager->IsModelActive(EMusenModelType::PPHT) ? pModelManager->GetModelsDescriptors(EMusenModelType::PPHT).front()->GetError() : "";
 	if (!sErrorMessage.empty())
 	{
 		ui.statusMessage->setText(ss2qs(sErrorMessage));

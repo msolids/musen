@@ -36,7 +36,6 @@ enum class EMusenModelType : unsigned
 	LB          = 3,	// liquid bond
 	PW          = 4,	// particle-wall
 	EF          = 5,	// external force
-	PPHT        = 6,	// heat transfer between particle-particle
 };
 
 struct SModelParameter

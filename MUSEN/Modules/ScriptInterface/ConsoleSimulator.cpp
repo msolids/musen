@@ -345,7 +345,6 @@ void CConsoleSimulator::PrintModelsInfo() const
 		case EMusenModelType::LB:			return "Solid bond";
 		case EMusenModelType::PW:			return "Liquid bond";
 		case EMusenModelType::EF:			return "External force";
-		case EMusenModelType::PPHT:			return "Particle-particle heat transfer";
 		}
 		return "";
 	};

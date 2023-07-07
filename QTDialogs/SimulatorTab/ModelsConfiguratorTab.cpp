@@ -18,7 +18,6 @@ CModelsConfiguratorTab::CModelsConfiguratorTab(CModelManager* _modelManager, boo
 	m_layouts[EMusenModelType::PW] = ui.layoutPW;
 	m_layouts[EMusenModelType::SB] = ui.layoutSB;
 	m_layouts[EMusenModelType::EF] = ui.layoutEF;
-	m_layouts[EMusenModelType::PPHT] = ui.layoutHT;
 
 	InitializeConnections();
 }
@@ -31,7 +30,6 @@ void CModelsConfiguratorTab::InitializeConnections()
 	connect(ui.buttonAddPW, &QPushButton::clicked, this, [=] { AddModelClicked(EMusenModelType::PW); });
 	connect(ui.buttonAddSB, &QPushButton::clicked, this, [=] { AddModelClicked(EMusenModelType::SB); });
 	connect(ui.buttonAddEF, &QPushButton::clicked, this, [=] { AddModelClicked(EMusenModelType::EF); });
-	connect(ui.buttonAddHT, &QPushButton::clicked, this, [=] { AddModelClicked(EMusenModelType::PPHT); });
 }
 
 void CModelsConfiguratorTab::setVisible(bool _visible)
@@ -68,7 +66,6 @@ void CModelsConfiguratorTab::UpdateSelectedModels()
 	AddWidgets(EMusenModelType::PW);
 	AddWidgets(EMusenModelType::SB);
 	AddWidgets(EMusenModelType::EF);
-	AddWidgets(EMusenModelType::PPHT);
 }
 
 void CModelsConfiguratorTab::AddModelClicked(EMusenModelType _type)
