@@ -216,7 +216,7 @@ void CModelManager::DownDir(size_t _index)
 		std::iter_swap(m_vDirList.begin() + _index, m_vDirList.begin() + _index + 1);
 }
 
-std::vector<const CModelDescriptor*> CModelManager::GetAllAvailableModelsDescriptors() const
+std::vector<const CModelDescriptor*> CModelManager::GetAvailableModelsDescriptors() const
 {
 	auto res = ReservedVector<const CModelDescriptor*>(m_vAvailableModels.size());
 	for (const auto& descriptor : m_vAvailableModels)
@@ -224,7 +224,25 @@ std::vector<const CModelDescriptor*> CModelManager::GetAllAvailableModelsDescrip
 	return res;
 }
 
-std::vector<const CModelDescriptor*> CModelManager::GetAllActiveModelsDescriptors() const
+std::vector<const CModelDescriptor*> CModelManager::GetAvailableModelsDescriptors(const EMusenModelType& _type) const
+{
+	std::vector<const CModelDescriptor*> res;
+	for (const auto& descriptor : m_vAvailableModels)
+		if (descriptor.GetModel() && descriptor.GetModel()->GetType() == _type)
+			res.push_back(&descriptor);
+	return res;
+}
+
+std::vector<CModelDescriptor*> CModelManager::GetAvailableModelsDescriptors(const EMusenModelType& _type)
+{
+	std::vector<CModelDescriptor*> res;
+	for (auto& descriptor : m_vAvailableModels)
+		if (descriptor.GetModel() && descriptor.GetModel()->GetType() == _type)
+			res.push_back(&descriptor);
+	return res;
+}
+
+std::vector<const CModelDescriptor*> CModelManager::GetModelsDescriptors() const
 {
 	auto res = ReservedVector<const CModelDescriptor*>(m_vCurrentModels.size());
 	for (const auto& descriptor : m_vCurrentModels)
@@ -305,36 +323,49 @@ std::vector<CModelDescriptor*> CModelManager::GetModelsDescriptors(const EMusenM
 //	m_vCurrentModels[_modelType] = LoadModelByName(sNewPath, _modelType);
 //}
 
-void CModelManager::AddActiveModel(const std::string& _name)
+CModelDescriptor* CModelManager::AddActiveModel(const std::string& _name)
 {
 	const std::string name = unifyPath(_name);
 	if (IsModelActive(name)) // this model is already loaded
-		return;
+		return {};
 
 	CModelDescriptor descriptor{ LoadModelByName(name) };
-	if (descriptor.pModel)
-		m_vCurrentModels.push_back(std::move(descriptor));
+	if (!descriptor.pModel) return {};
+
+	m_vCurrentModels.push_back(std::move(descriptor));
+	return &m_vCurrentModels.back();
 }
 
 void CModelManager::RemoveActiveModel(const std::string& _name)
 {
 	const std::string name = unifyPath(_name);
 	const size_t i = VectorFind(m_vCurrentModels, [&](const CModelDescriptor& _descriptor) { return _descriptor.sPath == name; });
-	if (i == static_cast<size_t>(-1) || i >= m_vCurrentModels.size()) return;
+	if (i >= m_vCurrentModels.size()) return;
 	m_vCurrentModels.erase(m_vCurrentModels.begin() + i);
 }
 
-void CModelManager::ReplaceActiveModel(const std::string& _oldName, const std::string& _newName)
+CModelDescriptor* CModelManager::ReplaceActiveModel(const std::string& _oldName, const std::string& _newName)
 {
-	const std::string name = unifyPath(_oldName);
-	const size_t i = VectorFind(m_vCurrentModels, [&](const CModelDescriptor& _descriptor) { return _descriptor.sPath == name; });
-	if (i != static_cast<size_t>(-1) && i < m_vCurrentModels.size())
+	const std::string oldName = unifyPath(_oldName);
+	const size_t i = VectorFind(m_vCurrentModels, [&](const CModelDescriptor& _descriptor) { return _descriptor.sPath == oldName; });
+	if (i < m_vCurrentModels.size())
 		m_vCurrentModels.erase(m_vCurrentModels.begin() + i);
 
-	if (IsModelActive(_newName)) return;
-	CModelDescriptor descriptor{ LoadModelByName(name) };
-	if (descriptor.pModel)
+	const std::string newName = unifyPath(_newName);
+	if (IsModelActive(newName)) return {};
+	CModelDescriptor descriptor{ LoadModelByName(newName) };
+	if (!descriptor.pModel) return {};
+
+	if (i < m_vCurrentModels.size()) // replace
+	{
 		m_vCurrentModels.insert(m_vCurrentModels.begin() + i, std::move(descriptor));
+		return &m_vCurrentModels[i];
+	}
+	else // just add new
+	{
+		m_vCurrentModels.push_back(std::move(descriptor));
+		return &m_vCurrentModels.back();
+	}
 }
 
 SOptionalVariables CModelManager::GetUtilizedVariables() const
@@ -359,7 +390,7 @@ SOptionalVariables CModelManager::GetUtilizedVariables() const
 void CModelManager::SetModelParameters(const std::string& _name, const std::string& _params) const
 {
 	const size_t i = VectorFind(m_vCurrentModels, [&](const CModelDescriptor& _modelInfo) { return _modelInfo.sPath == _name; });
-	if (i == static_cast<size_t>(-1) || i >= m_vCurrentModels.size()) return;
+	if (i >= m_vCurrentModels.size()) return;
 	m_vCurrentModels[i].pModel->SetParametersStr(_params);
 }
 

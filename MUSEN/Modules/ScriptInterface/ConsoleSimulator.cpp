@@ -227,7 +227,7 @@ bool CConsoleSimulator::SimulationPrecheck() const
 	AddErrorMessage(m_systemStructure.m_MaterialDatabase.IsDataCorrect());
 
 	// check models
-	for (const auto& model : m_modelManager.GetAllActiveModelsDescriptors())
+	for (const auto& model : m_modelManager.GetModelsDescriptors())
 		AddErrorMessage(model->GetError());
 
 	if (!m_modelManager.IsModelActive(EMusenModelType::PP))

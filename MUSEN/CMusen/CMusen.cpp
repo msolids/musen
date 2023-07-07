@@ -43,7 +43,7 @@ void PrintModelsInfo()
 #ifndef STATIC_MODULES
 	modelManager.AddDir(".");	// add current directory
 #endif
-	const auto& models = modelManager.GetAllAvailableModelsDescriptors();
+	const auto& models = modelManager.GetAvailableModelsDescriptors();
 	std::cout << " ===== Available models ===== " << std::endl;
 	std::cout << "Particle-particle contacts: " << std::endl;
 	for (const auto& model : models)

@@ -35,6 +35,7 @@ public:
 	[[nodiscard]] const CAbstractDEMModel* GetModel() const;
 	// Returns a pointer to the model itself. If the model was not loaded, returns nullptr.
 	[[nodiscard]] CAbstractDEMModel* GetModel();
+	// TODO: rename name to path and adjust comments
 	// Returns name or full path to the DLL of the model.
 	[[nodiscard]] std::string GetName() const;
 	// Returns description of the error occurred during loading of the model. If no errors occurred, returns empty string.
@@ -75,10 +76,14 @@ public:
 	// Moves path downwards in the list.
 	void DownDir(size_t _index);
 
-	// Returns descriptors of all models found in all added directories.
-	[[nodiscard]] std::vector<const CModelDescriptor*> GetAllAvailableModelsDescriptors() const;
+	// Returns descriptors of all models of all types found in all added directories.
+	[[nodiscard]] std::vector<const CModelDescriptor*> GetAvailableModelsDescriptors() const;
+	// Returns descriptors of all models of the given type found in all added directories.
+	[[nodiscard]] std::vector<const CModelDescriptor*> GetAvailableModelsDescriptors(const EMusenModelType& _type) const;
+	// Returns descriptors of all models of the given type found in all added directories.
+	[[nodiscard]] std::vector<CModelDescriptor*> GetAvailableModelsDescriptors(const EMusenModelType& _type);
 	// Returns descriptors of all models selected for simulation.
-	[[nodiscard]] std::vector<const CModelDescriptor*> GetAllActiveModelsDescriptors() const;
+	[[nodiscard]] std::vector<const CModelDescriptor*> GetModelsDescriptors() const;
 	// Returns pointers to all models selected for simulation.
 	std::vector<CAbstractDEMModel*> GetAllActiveModels() const;
 	// TODO: consistently use loaded/active/selected.
@@ -103,12 +108,14 @@ public:
 	//void SetModelPath(const EMusenModelType& _modelType, const std::string& _sPath);
 	// Adds a model with the given name/full path to the list of active ones.
 	// If such model does not exist, does nothing.
-	void AddActiveModel(const std::string& _name);
+	// Returns a pointer to the model's descriptor.
+	CModelDescriptor* AddActiveModel(const std::string& _name);
 	// Removes a model with the given name/full path from the list of active ones.
 	void RemoveActiveModel(const std::string& _name);
 	// Replaces an active model with the specified name/full path with a new one.
 	// If old model does not exist, just adds the new one. If new model does not exist, only removes the old one.
-	void ReplaceActiveModel(const std::string& _oldName, const std::string& _newName);
+	// Returns a pointer to the new model's descriptor.
+	CModelDescriptor* ReplaceActiveModel(const std::string& _oldName, const std::string& _newName);
 	// Returns parameters of a loaded model of specified type. Returns empty string if no model of this type was loaded.
 	//std::string GetModelParameters(const EMusenModelType& _modelType) const;
 	// Sets parameters to a loaded model.

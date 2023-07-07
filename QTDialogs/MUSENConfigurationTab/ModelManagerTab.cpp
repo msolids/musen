@@ -47,7 +47,7 @@ void CModelManagerTab::UpdateModelsListView() const
 	ui.modelsTable->setSortingEnabled(false);
 	ui.modelsTable->setRowCount(0);
 
-	const auto vAllModels = m_pModelManager->GetAllAvailableModelsDescriptors();
+	const auto vAllModels = m_pModelManager->GetAvailableModelsDescriptors();
 	for (int i = 0; i < (int)vAllModels.size(); ++i)
 	{
 		ui.modelsTable->insertRow(ui.modelsTable->rowCount());

@@ -4,6 +4,7 @@
 
 #include "SimulatorTab.h"
 #include "SelectiveSavingTab.h"
+#include "qtOperations.h"
 #include <QStandardItemModel>
 #include <QMessageBox>
 #include <QThread>
@@ -55,8 +56,6 @@ CSimulatorTab::CSimulatorTab(CSimulatorManager* _pSimManager, QSettings* _pSetti
 	m_sHelpFileName = "Users Guide/Simulator.pdf";
 
 	ui.checkBoxCollisions->setVisible(false);
-	ui.labelLBText->setVisible(false);
-	ui.labelLB->setVisible(false);
 }
 
 void CSimulatorTab::InitializeConnections() const
@@ -113,12 +112,26 @@ void CSimulatorTab::UpdateWholeView()
 void CSimulatorTab::UpdateModelsView() const
 {
 	const CModelManager* manager = m_pSimulatorManager->GetSimulatorPtr()->GetModelManager();
-	ui.labelPP->setText   (manager->IsModelActive(EMusenModelType::PP)   ? QString::fromStdString(manager->GetModelsDescriptors(EMusenModelType::PP)  .front()->GetModel()->GetName()) : "-");
-	ui.labelPW->setText   (manager->IsModelActive(EMusenModelType::PW)   ? QString::fromStdString(manager->GetModelsDescriptors(EMusenModelType::PW)  .front()->GetModel()->GetName()) : "-");
-	ui.labelSB->setText   (manager->IsModelActive(EMusenModelType::SB)   ? QString::fromStdString(manager->GetModelsDescriptors(EMusenModelType::SB)  .front()->GetModel()->GetName()) : "-");
-	ui.labelLB->setText   (manager->IsModelActive(EMusenModelType::LB)   ? QString::fromStdString(manager->GetModelsDescriptors(EMusenModelType::LB)  .front()->GetModel()->GetName()) : "-");
-	ui.labelEF->setText   (manager->IsModelActive(EMusenModelType::EF)   ? QString::fromStdString(manager->GetModelsDescriptors(EMusenModelType::EF)  .front()->GetModel()->GetName()) : "-");
-	ui.labelHT_PP->setText(manager->IsModelActive(EMusenModelType::PPHT) ? QString::fromStdString(manager->GetModelsDescriptors(EMusenModelType::PPHT).front()->GetModel()->GetName()) : "-");
+
+	const auto SetNameToLabel = [&](QLabel* _label, EMusenModelType _type)
+	{
+		const auto descriptors = manager->GetModelsDescriptors(_type);
+		if (descriptors.empty())
+			_label->setText("-");
+		else
+		{
+			std::string names = descriptors.front()->GetName();
+			for (size_t i = 1; i < descriptors.size(); ++i)
+				names += "\n" + descriptors[i]->GetName();
+			_label->setText(QString::fromStdString(names));
+		}
+	};
+
+	SetNameToLabel(ui.labelPP   , EMusenModelType::PP);
+	SetNameToLabel(ui.labelPW   , EMusenModelType::PW);
+	SetNameToLabel(ui.labelSB   , EMusenModelType::SB);
+	SetNameToLabel(ui.labelEF   , EMusenModelType::EF);
+	SetNameToLabel(ui.labelHT_PP, EMusenModelType::PPHT);
 }
 
 void CSimulatorTab::UpdateCollisionsFlag() const

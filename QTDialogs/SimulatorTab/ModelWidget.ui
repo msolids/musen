@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CModelWidgetClass</class>
+ <widget class="QWidget" name="CModelWidgetClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>340</width>
+    <height>24</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CModelWidget</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="1,0,0,0">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QComboBox" name="comboModel">
+     <property name="insertPolicy">
+      <enum>QComboBox::InsertAlphabetically</enum>
+     </property>
+     <property name="duplicatesEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QPushButton" name="buttonConfig">
+     <property name="toolTip">
+      <string>Specify model parameters</string>
+     </property>
+     <property name="text">
+      <string>Configure</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QPushButton" name="buttonHelp">
+     <property name="toolTip">
+      <string>See documentation</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/question.png</normaloff>:/QT_GUI/Pictures/question.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="buttonRemove">
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="toolTip">
+      <string>Remove model</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+       <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>comboModel</tabstop>
+  <tabstop>buttonConfig</tabstop>
+  <tabstop>buttonHelp</tabstop>
+  <tabstop>buttonRemove</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+ </resources>
+ <connections/>
+</ui>
