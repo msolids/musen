@@ -914,6 +914,12 @@ CVector3 CSystemStructure::GetBondCoordinate(size_t _bondID) const
 	return (objects[bond->m_nLeftObjectID]->GetCoordinates() + objects[bond->m_nRightObjectID]->GetCoordinates()) / 2.0;
 }
 
+void CSystemStructure::ResetInitBondLength() const
+{
+	for (const auto& bond : GetAllBonds(0.0))
+		bond->SetInitialLength(GetBond(0.0, bond->m_lObjectID).Length());
+}
+
 void CSystemStructure::GetGroup(double _dTime, size_t _nSourceParticleID, std::vector<size_t>* _pVecGroup)
 {
 	_pVecGroup->clear();

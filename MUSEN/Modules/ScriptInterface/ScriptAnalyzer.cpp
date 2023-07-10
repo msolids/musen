@@ -81,6 +81,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "CONNECTED_PP_CONTACT")	ss >> m_jobs.back().connectedPPContactFlag;
 	else if (key == "ANISOTROPY")			ss >> m_jobs.back().anisotropyFlag;
 	else if (key == "DIFF_CONTACT_RADIUS")	ss >> m_jobs.back().contactRadiusFlag;
+	else if (key == "RESET_INITIAL_BOND_LENGTH")	ss >> m_jobs.back().resetBonds;
 	else if (key == "EXT_ACCEL")			ss >> m_jobs.back().vExtAccel;
 	else if (key == "SIMULATION_DOMAIN")	ss >> m_jobs.back().simulationDomain;
 	else if (key == "PBC_FLAGS")            ss >> m_jobs.back().pbcFlags[0] >> m_jobs.back().pbcFlags[1] >> m_jobs.back().pbcFlags[2];

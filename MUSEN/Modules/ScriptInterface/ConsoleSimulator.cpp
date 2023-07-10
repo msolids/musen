@@ -81,6 +81,7 @@ void CConsoleSimulator::SetupSystemStructure() const
 		pbc.SetDomain(m_job.pbcDomain.coordBeg, m_job.pbcDomain.coordEnd);
 		m_systemStructure.SetPBC(pbc);
 	}
+	if (m_job.resetBonds.ToBool())	m_systemStructure.ResetInitBondLength();
 
 	const auto GetGeometryPtr = [&](const SJob::SGeometryMotionInterval& _motion) -> CRealGeometry*
 	{

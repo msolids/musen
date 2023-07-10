@@ -41,6 +41,8 @@ private:
 private slots:
 	void SetAnisotropy();
 	void SetContactRadius();
+	// Called when Reset Bonds button is activated.
+	void ResetBonds() const;
 
 signals:
 	void ContactRadiusEnabled();
