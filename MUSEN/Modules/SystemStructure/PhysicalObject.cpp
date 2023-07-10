@@ -8,7 +8,6 @@
 CPhysicalObject::CPhysicalObject(unsigned _id, CDemStorage* _storage) : m_lObjectID(_id), m_storage(_storage)
 {
 	m_storage->Object(m_lObjectID)->set_id(_id);
-	if ((m_storage->Object(m_lObjectID)->activity_end()) == 0) m_storage->Object(m_lObjectID)->set_activity_end(1e+300); //proto3
 	m_dMass = 1; // [kg]
 	m_ObjectColor = CColor{ 0, 0, 1, 1 };
 }
