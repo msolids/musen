@@ -177,7 +177,7 @@ __global__ void CUDA_CalcSBForce_WK_kernel(
 		_bondTotalForces[i] = vNormalForce + vTangentialForce;
 
 		if (m_vConstantModelParameters[0]) 			// check the bond destruction
-			if ((dStrainTotal > m_vConstantModelParameters[2]) || (dStrainTotal < -2 * m_vConstantModelParameters[2])) // strain greater than breakage strain
+			if (dStrainTotal > m_vConstantModelParameters[2] || (m_vConstantModelParameters[1] != 0.0 && dStrainTotal < -2 * m_vConstantModelParameters[2])) // strain greater than breakage strain
 			{
 				_bondActivities[i] = false;
 				_bondEndActivities[i] = _time;
