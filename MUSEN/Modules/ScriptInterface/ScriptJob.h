@@ -119,6 +119,7 @@ struct SJob
 	CTriState connectedPPContactFlag{ CTriState::EState::UNDEFINED };	// calculate force between connected particles
 	CTriState anisotropyFlag{ CTriState::EState::UNDEFINED };
 	CTriState contactRadiusFlag{ CTriState::EState::UNDEFINED };
+	CTriState resetBonds{ CTriState::EState::UNDEFINED };
 	CVector3 vExtAccel{ std::numeric_limits<double>::infinity() };
 	SVolumeType simulationDomain{ CVector3{ std::numeric_limits<double>::infinity() }, CVector3{ std::numeric_limits<double>::infinity() } };
 	std::array<CTriState, 3> pbcFlags; // is it enabled in X,Y,Z directions

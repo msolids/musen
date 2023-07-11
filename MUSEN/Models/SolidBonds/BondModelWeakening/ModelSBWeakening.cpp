@@ -10,10 +10,10 @@ CModelSBWeakening::CModelSBWeakening()
 	m_name = "Bond with weakening";
 	m_uniqueKey = "CA3CE500F3FE4E33914EC7D544553847";
 
-	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
-	AddParameter("COMPRESSIVE_BREAK", "Consider compressive breakage Yes=1/No=0", 0);
-	AddParameter("BREAKAGE_STRAIN", "Breakage strain", 0.1);
-	AddParameter("WEAKENING_FACTOR", "Weakening factor", 0.5);
+	/* 0 */ AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
+	/* 1 */ AddParameter("COMPRESSIVE_BREAK", "Consider compressive breakage Yes=1/No=0", 0);
+	/* 2 */ AddParameter("BREAKAGE_STRAIN", "Breakage strain", 0.1);
+	/* 3 */ AddParameter("WEAKENING_FACTOR", "Weakening factor", 0.5);
 
 	m_hasGPUSupport = true;
 }
@@ -76,7 +76,7 @@ void CModelSBWeakening::CalculateSB(double _time, double _timeStep, size_t _iLef
 	if (m_parameters[0].value == 0 ) return; // consider breakage
 	// check the bond destruction
 
-	if ((dStrainTotal > m_parameters[2].value) || (dStrainTotal < -2*m_parameters[2].value)) // strain greater than breakage strain
+	if (dStrainTotal > m_parameters[2].value || (m_parameters[1].value != 0.0 && dStrainTotal < -2 * m_parameters[2].value)) // strain greater than breakage strain
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;

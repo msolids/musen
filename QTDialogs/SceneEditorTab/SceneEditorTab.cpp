@@ -46,6 +46,7 @@ CSceneEditorTab::CSceneEditorTab(QWidget *parent /*= 0*/) : CMusenDialog(parent)
 
 	connect(ui.checkBoxAnisotropy, &QCheckBox::stateChanged, this, &CSceneEditorTab::SetAnisotropy);
 	connect(ui.checkBoxContactRadius, &QCheckBox::stateChanged, this, &CSceneEditorTab::SetContactRadius);
+	connect(ui.buttonResetBonds, &QPushButton::clicked, this, &CSceneEditorTab::ResetBonds);
 }
 
 void CSceneEditorTab::setVisible( bool _bVisible )
@@ -186,4 +187,9 @@ void CSceneEditorTab::SetContactRadius()
 	}
 	m_pSystemStructure->EnableContactRadius(ui.checkBoxContactRadius->isChecked());
 	emit ContactRadiusEnabled();
+}
+
+void CSceneEditorTab::ResetBonds() const
+{
+	m_pSystemStructure->ResetInitBondLength();
 }
