@@ -12,14 +12,13 @@ CModelPPHeatConduction::CModelPPHeatConduction()
 	/* 1 */ AddParameter("RESISTIVITY_FACTOR"       , "Resistivity factor [-]"                   , 0.2 );
 	/* 2 */ AddParameter("MIN_OVERLAP"              , "Minimum overlap factor [-]"               , 0.03);
 	/* 3 */ AddParameter("MAX_OVERLAP"              , "Maximum overlap factor [-]"               , 0.05);
-	/* 4 */ AddParameter("THERMAL_CONDUCTIVITY"     , "Thermal conductivity in contact [W/(m*K)]", 25  );
 }
 
 void CModelPPHeatConduction::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const double srcTemperature = Particles().Temperature(_iSrc);
 	const double dstTemperature = Particles().Temperature(_iDst);
-	const double contactThermalConductivity = m_parameters[4].value;
+	const double contactThermalConductivity = _interactProp.dEquivThermalConductivity;
 
 	// A version with temperature-dependent thermal conductivity.
 	// const double temperature = (dstTemperature + srcTemperature) / 2;

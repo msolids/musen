@@ -2,7 +2,7 @@
 #include "ModelPPHeatConduction.h"
 #include <device_launch_parameters.h>
 
-__constant__ double m_vConstantModelParameters[5];
+__constant__ double m_vConstantModelParameters[4];
 
 void CModelPPHeatConduction::SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc)
 {
@@ -12,12 +12,14 @@ void CModelPPHeatConduction::SetParametersGPU(const std::vector<double>& _parame
 void CModelPPHeatConduction::CalculatePPGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPPHeatTransfer_HC_kernel,
+		_interactProps,
 		_particles.Temperatures,
 
 		_particles.HeatFluxes,
 
 		_collisions.ActiveCollisionsNum,
 		_collisions.ActivityIndices,
+		_collisions.InteractPropIDs,
 		_collisions.SrcIDs,
 		_collisions.DstIDs,
 		_collisions.EquivRadii,
@@ -26,12 +28,15 @@ void CModelPPHeatConduction::CalculatePPGPU(double _time, double _timeStep, cons
 }
 
 void __global__ CUDA_CalcPPHeatTransfer_HC_kernel(
-	const double	_partTemperatures[],
+	const SInteractProps _interactProps[],
+
+	const double _partTemperatures[],
 
 	double	_partHeatFluxes[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],
+	const uint16_t	_collInteractPropIDs[],
 	const unsigned	_collSrcIDs[],
 	const unsigned	_collDstIDs[],
 	const double	_collEquivRadii[],
@@ -40,10 +45,12 @@ void __global__ CUDA_CalcPPHeatTransfer_HC_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		const unsigned iColl = _collActivityIndices[iActivColl];
+		const unsigned iColl        = _collActivityIndices[iActivColl];
+		const SInteractProps prop   = _interactProps[_collInteractPropIDs[iColl]];
 		const double srcTemperature = _partTemperatures[_collSrcIDs[iColl]];
 		const double dstTemperature = _partTemperatures[_collDstIDs[iColl]];
-		const double contactThermalConductivity = m_vConstantModelParameters[4];
+
+		const double contactThermalConductivity = prop.dEquivThermalConductivity;
 
 		// A version with temperature-dependent thermal conductivity.
 		// const double temperature = (dstTemperature + srcTemperature) / 2;

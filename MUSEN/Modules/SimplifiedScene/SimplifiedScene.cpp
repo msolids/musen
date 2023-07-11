@@ -636,12 +636,15 @@ SInteractProps CSimplifiedScene::CalculateInteractionProperty(const std::string&
 	const double dSurfaceTension2 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound2, PROPERTY_SURFACE_TENSION);
 	const double dSurfaceEnergy1 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound1, PROPERTY_SURFACE_ENERGY);
 	const double dSurfaceEnergy2 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound2, PROPERTY_SURFACE_ENERGY);
+	const double thermalConductivity1 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound1, PROPERTY_THERMAL_CONDUCTIVITY);
+	const double thermalConductivity2 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound2, PROPERTY_THERMAL_CONDUCTIVITY);
 	const double dShearModulusPart1 = dYoungModulus1 / (2 * (1 + dPoisson1));
 	const double dShearModulusPart2 = dYoungModulus2 / (2 * (1 + dPoisson2));
 	InterProp.dEquivYoungModulus = 1.0 / ((1 - pow(dPoisson1, 2)) / dYoungModulus1 + (1 - pow(dPoisson2, 2)) / dYoungModulus2);
 	InterProp.dEquivShearModulus = 1.0 / ((2 - dPoisson1) / dShearModulusPart1 + (2 - dPoisson2) / dShearModulusPart2);
 	InterProp.dEquivSurfaceTension = sqrt(dSurfaceTension1 * dSurfaceTension2);
 	InterProp.dEquivSurfaceEnergy = sqrt(dSurfaceEnergy1 * dSurfaceEnergy2);
+	InterProp.dEquivThermalConductivity = 1. / (1. / thermalConductivity1 + 1. / thermalConductivity2);
 	return InterProp;
 }
 
