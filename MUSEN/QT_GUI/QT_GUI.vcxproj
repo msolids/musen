@@ -222,6 +222,9 @@
     <ProjectReference Include="..\Models\ParticleParticle\TestSinteringModel\TestSinteringModel.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba82ad3423}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleWall\PWHeatTransfer\ModelPWHeatTransfer.vcxproj">
+      <Project>{318c46e8-e68a-4a86-b9b8-e77e458f44e8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Models\ParticleWall\PWHertzMindlinLiquid\PWHertzMindlinLiquid.vcxproj">
       <Project>{0d791835-45f7-418e-8f20-14b64224d09f}</Project>
     </ProjectReference>

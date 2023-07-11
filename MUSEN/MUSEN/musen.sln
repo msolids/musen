@@ -282,6 +282,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelPPChealNess", "..\Mode
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelEFCentrifugalCasting", "..\Models\ExternalForce\CentrifugalCasting\CentrifugalCasting.vcxproj", "{DF0D11C1-A321-4A44-A00E-4933FB4469C4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelPWHeatTransfer", "..\Models\ParticleWall\PWHeatTransfer\ModelPWHeatTransfer.vcxproj", "{318C46E8-E68A-4A86-B9B8-E77E458F44E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -560,6 +562,10 @@ Global
 		{DF0D11C1-A321-4A44-A00E-4933FB4469C4}.Debug|x64.Build.0 = Debug|x64
 		{DF0D11C1-A321-4A44-A00E-4933FB4469C4}.Release|x64.ActiveCfg = Release|x64
 		{DF0D11C1-A321-4A44-A00E-4933FB4469C4}.Release|x64.Build.0 = Release|x64
+		{318C46E8-E68A-4A86-B9B8-E77E458F44E8}.Debug|x64.ActiveCfg = Debug|x64
+		{318C46E8-E68A-4A86-B9B8-E77E458F44E8}.Debug|x64.Build.0 = Debug|x64
+		{318C46E8-E68A-4A86-B9B8-E77E458F44E8}.Release|x64.ActiveCfg = Release|x64
+		{318C46E8-E68A-4A86-B9B8-E77E458F44E8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -637,9 +643,10 @@ Global
 		{F984C638-D38F-4633-11CF-645F367E41BA} = {E52AF4AC-B0DC-412B-870B-592B9A4DE75A}
 		{289C56BB-4EC6-4097-B32D-CABA821AF423} = {849FA728-0478-490C-B2EF-EB552223CF5D}
 		{DF0D11C1-A321-4A44-A00E-4933FB4469C4} = {2CAD47D8-EF48-4A21-98D1-6070D427A87A}
+		{318C46E8-E68A-4A86-B9B8-E77E458F44E8} = {52275255-9D02-4EDF-8282-97587CAB3401}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		Qt5Version = msvc2019_64
 		SolutionGuid = {B4449610-1D23-4C62-8325-77B5FA1A2520}
+		Qt5Version = msvc2019_64
 	EndGlobalSection
 EndGlobal

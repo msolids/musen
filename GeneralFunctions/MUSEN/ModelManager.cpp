@@ -17,6 +17,7 @@
 #include "../MUSEN/Models/ParticleParticle/TestSinteringModel/ModelPPSintering.h"
 #include "../MUSEN/Models/ParticleParticle/SinteringTemperature/ModelPPSinteringTemperature.h"
 
+#include "../MUSEN/Models/ParticleWall/PWHeatTransfer/ModelPWHeatTransfer.h"
 #include "../MUSEN/Models/ParticleWall/PWHertzMindlin/ModelPWHertzMindlin.h"
 #include "../MUSEN/Models/ParticleWall/PWHertzMindlinLiquid/ModelPWHertzMindlinLiquid.h"
 #include "../MUSEN/Models/ParticleWall/PWJKR/ModelPWJKR.h"
@@ -82,6 +83,7 @@ namespace StaticLibs
 		Constructor<CModelPPSintering>::get(),
 		Constructor<CModelPPSinteringTemperature>::get(),
 
+		Constructor<CModelPWHeatTransfer>::get(),
 		Constructor<CModelPWHertzMindlin>::get(),
 		Constructor<CModelPWHertzMindlinLiquid>::get(),
 		Constructor<CModelPWJKR>::get(),
