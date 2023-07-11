@@ -186,14 +186,14 @@
     <ProjectReference Include="..\Models\ExternalForce\ViscousField\ViscousField.vcxproj">
       <Project>{df0d11c1-a321-4a44-a00e-4913fb4469c4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Models\HeatTransfer\PPHeatConduction\PPHeatConduction.vcxproj">
-      <Project>{35f3df74-ac00-4849-9360-4c17860acaa6}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Models\LiquidBonds\CapilaryViscous\LiquidBondModelCV.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba82000000}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Models\ParticleParticle\ChealNess\ModelChealNess.vcxproj">
       <Project>{289c56bb-4ec6-4097-b32d-caba821af423}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\HeatConduction\HeatConduction.vcxproj">
+      <Project>{35f3df74-ac00-4849-9360-4c17860acaa6}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Models\ParticleParticle\HertzMindlinLiquid\HertzMindlinLiquid.vcxproj">
       <Project>{dc7428ad-0dec-45f2-a95e-f2d4f4da0dc5}</Project>

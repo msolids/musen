@@ -5,6 +5,7 @@
 #include "ModelManager.h"
 #include "MUSENFileFunctions.h"
 
+#include "../MUSEN/Models/ParticleParticle/HeatConduction/ModelPPHeatConduction.h"
 #include "../MUSEN/Models/ParticleParticle/Hertz/ModelPPHertz.h"
 #include "../MUSEN/Models/ParticleParticle/HertzMindlin/ModelPPHertzMindlin.h"
 #include "../MUSEN/Models/ParticleParticle/ChealNess/ModelPPChealNess.h"
@@ -37,7 +38,6 @@
 #include "../MUSEN/Models/ExternalForce/ViscousField/ModelEFViscousField.h"
 #include "../MUSEN/Models/ExternalForce/HeatTransfer/ModelEFHeatTransfer.h"
 
-#include "../MUSEN/Models/HeatTransfer/PPHeatConduction/ModelPPHeatConduction.h"
 
 
 namespace StaticLibs
@@ -70,6 +70,7 @@ namespace StaticLibs
 
 	SModule all_modules[] =
 	{
+		Constructor<CModelPPHeatConduction>::get(),
 		Constructor<CModelPPHertz>::get(),
 		Constructor<CModelPPHertzMindlin>::get(),
 		Constructor<CModelPPHertzMindlinLiquid>::get(),
@@ -101,8 +102,6 @@ namespace StaticLibs
 		Constructor<CModelEFCentrifugalCasting>::get(),
 		Constructor<CModelEFViscousField>::get(),
 		Constructor<CModelEFHeatTransfer>::get(),
-
-		Constructor<CModelPPHeatConduction>::get(),
 	};
 
 	SModule* LoadLibrary_static(const std::string& _sName)
