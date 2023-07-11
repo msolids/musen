@@ -143,14 +143,14 @@ endforeach(TMP_PATH)
 
 # Protobuf
 file(GLOB_RECURSE generated_SRC
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/SimulationDescription.pb.cc
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/SimulationDescription.pb.h
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/AgglomeratesDatabase.pb.cc
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/AgglomeratesDatabase.pb.h
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/MaterialsDatabase.pb.cc
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/MaterialsDatabase.pb.h
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/GeometriesDatabase.pb.cc
-	${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles/GeometriesDatabase.pb.h
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/SimulationDescription.pb.cc
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/SimulationDescription.pb.h
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/AgglomeratesDatabase.pb.cc
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/AgglomeratesDatabase.pb.h
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/MaterialsDatabase.pb.cc
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/MaterialsDatabase.pb.h
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/GeometriesDatabase.pb.cc
+	${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/GeometriesDatabase.pb.h
 )
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -162,6 +162,7 @@ add_definitions(-DPATH_CONFIGURED)
 include_directories(
 	${PROJ_DIRS} 
 	${CMAKE_CURRENT_BINARY_DIR} 
+	"${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles/"
 	"$ENV{MUSEN_PROTO_PATH}/include/"
 	"$ENV{MUSEN_ZLIB_PATH}/include/"
 	${CUDAToolkit_INCLUDE_DIRS}
@@ -170,14 +171,14 @@ include_directories(
 	${Matlab_INCLUDE_DIRS}
 )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles)
 
 add_custom_target(
 	protobuf
-	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Modules/SimResultsStorage/ --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Modules/SimResultsStorage/SimulationDescription.proto 
-	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/AgglomerateDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/AgglomerateDatabase/AgglomeratesDatabase.proto 
-	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/GeometriesDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/GeometriesDatabase/GeometriesDatabase.proto 
-	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/GeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/MaterialsDatabase.proto 
+	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Modules/SimResultsStorage/ --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Modules/SimResultsStorage/SimulationDescription.proto 
+	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/AgglomerateDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/AgglomerateDatabase/AgglomeratesDatabase.proto 
+	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/GeometriesDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/GeometriesDatabase/GeometriesDatabase.proto 
+	COMMAND $ENV{MUSEN_PROTO_PATH}/bin/protoc --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${CMAKE_CURRENT_BINARY_DIR}/ProtoGeneratedFiles ${CMAKE_CURRENT_SOURCE_DIR}/Databases/MaterialsDatabase/MaterialsDatabase.proto 
 )
 
 

@@ -22,7 +22,7 @@
     <ClCompile Include="TimePointR.cpp" />
     <ClCompile Include="DemStorage.cpp" />
     <ClCompile Include="ExportAsText.cpp" />
-    <ClCompile Include="GeneratedFiles\SimulationDescription.pb.cc">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\SimulationDescription.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
     </ClCompile>
@@ -37,7 +37,7 @@
     <ClInclude Include="ExportAsText.h" />
     <ClInclude Include="ExportAsTextMacro.h" />
     <ClInclude Include="FileHandler.h" />
-    <ClInclude Include="GeneratedFiles\SimulationDescription.pb.h" />
+    <ClInclude Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\SimulationDescription.pb.h" />
     <ClInclude Include="ImportFromText.h" />
     <ClInclude Include="MDEMFile.h" />
     <ClInclude Include="TimePointR.h" />

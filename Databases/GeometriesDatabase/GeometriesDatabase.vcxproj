@@ -16,14 +16,14 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GeneratedFiles\GeometriesDatabase.pb.cc">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\GeometriesDatabase.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="GeometriesDatabase.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GeneratedFiles\GeometriesDatabase.pb.h" />
+    <ClInclude Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\GeometriesDatabase.pb.h" />
     <ClInclude Include="GeometriesDatabase.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

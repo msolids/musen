@@ -29,7 +29,7 @@
     <ClCompile Include="CollisionsStorage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\SimulationDescription.pb.cc">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\SimulationDescription.pb.cc">
       <Filter>GeneratedFiles</Filter>
     </ClCompile>
     <ClCompile Include="ExportAsText.cpp">
@@ -64,7 +64,7 @@
     <ClInclude Include="ProtoFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeneratedFiles\SimulationDescription.pb.h">
+    <ClInclude Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\SimulationDescription.pb.h">
       <Filter>GeneratedFiles</Filter>
     </ClInclude>
     <ClInclude Include="ExportAsText.h">

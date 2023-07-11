@@ -4,11 +4,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)ExternalLibraries\zlib\include;$(SolutionDir)ExternalLibraries\protobuf\include;$(SolutionDir)Databases\AgglomerateDatabase;$(SolutionDir)Databases\GeometriesDatabase;$(SolutionDir)Databases\MaterialsDatabase;$(SolutionDir)Databases\MaterialsDatabase\GeneratedFiles;$(SolutionDir)Modules\GeneralSources;$(SolutionDir)Modules\SimResultsStorage;$(SolutionDir)Modules\BondsGenerator;$(SolutionDir)Modules\ContactAnalyzers;$(SolutionDir)Modules\FileManager;$(SolutionDir)Modules\Geometries;$(SolutionDir)Modules\ObjectsGenerator;$(SolutionDir)Modules\PackageGenerator;$(SolutionDir)Modules\ResultsAnalyzer;$(SolutionDir)Modules\ScriptInterface;$(SolutionDir)Modules\SimplifiedScene;$(SolutionDir)Modules\Simulator;$(SolutionDir)Modules\SystemStructure;$(SolutionDir);$(SolutionDir)Version;$(CUDA_PATH)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ExternalLibraries\zlib\include;$(SolutionDir)ExternalLibraries\protobuf\include;$(SolutionDir)Databases\AgglomerateDatabase;$(SolutionDir)Databases\GeometriesDatabase;$(SolutionDir)Databases\MaterialsDatabase;$(SolutionDir)Databases\MaterialsDatabase\GeneratedFiles;$(SolutionDir)Modules\GeneralSources;$(SolutionDir)Modules\SimResultsStorage;$(SolutionDir)Modules\BondsGenerator;$(SolutionDir)Modules\ContactAnalyzers;$(SolutionDir)Modules\FileManager;$(SolutionDir)Modules\Geometries;$(SolutionDir)Modules\ObjectsGenerator;$(SolutionDir)Modules\PackageGenerator;$(SolutionDir)Modules\ResultsAnalyzer;$(SolutionDir)Modules\ScriptInterface;$(SolutionDir)Modules\SimplifiedScene;$(SolutionDir)Modules\Simulator;$(SolutionDir)Modules\SystemStructure;$(SolutionDir);$(SolutionDir)Version;$(CUDA_PATH)\include;$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/w34062 %(AdditionalOptions)</AdditionalOptions>
@@ -17,11 +17,11 @@
       <PreprocessorDefinitions>_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <CustomBuild>
-      <Command>mkdir GeneratedFiles
-$(SolutionDir)ExternalLibraries\protobuf\bin\protoc.exe --proto_path=$(ProjectDir) --proto_path=$(SolutionDir) --proto_path=$(SolutionDir)Databases\MaterialsDatabase\ --cpp_out=GeneratedFiles $(ProjectDir)%(Identity)</Command>
+      <Command>mkdir $(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles
+$(SolutionDir)ExternalLibraries\protobuf\bin\protoc.exe --proto_path=$(ProjectDir) --proto_path=$(SolutionDir) --proto_path=$(SolutionDir)Databases\MaterialsDatabase\ --cpp_out=$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles $(ProjectDir)%(Identity)</Command>
     </CustomBuild>
     <CustomBuild>
-      <Outputs>GeneratedFiles\%(Filename).pb.h;GeneratedFiles\%(Filename).pb.cc;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\%(Filename).pb.h;$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\%(Filename).pb.cc;%(Outputs)</Outputs>
     </CustomBuild>
     <Link />
     <CudaCompile>

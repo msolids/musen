@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3EE95952-CF82-4C58-BB13-A471932B22C2}</ProjectGuid>
     <RootNamespace>MaterialsDatabase</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -43,11 +44,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -82,7 +84,7 @@
     <ClCompile Include="Compound.cpp" />
     <ClCompile Include="ConstProperty.cpp" />
     <ClCompile Include="Correlation.cpp" />
-    <ClCompile Include="GeneratedFiles\MaterialsDatabase.pb.cc">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\MaterialsDatabase.pb.cc">
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;4267;6011;6387;26110;26451;26495;26812</DisableSpecificWarnings>
     </ClCompile>
@@ -97,7 +99,7 @@
     <ClInclude Include="ConstProperty.h" />
     <ClInclude Include="Correlation.h" />
     <ClInclude Include="DefinesMDB.h" />
-    <ClInclude Include="GeneratedFiles\MaterialsDatabase.pb.h" />
+    <ClInclude Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\MaterialsDatabase.pb.h" />
     <ClInclude Include="Interaction.h" />
     <ClInclude Include="MaterialsDatabase.h" />
     <ClInclude Include="Mixture.h" />

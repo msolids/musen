@@ -6,7 +6,7 @@
 #include "DisableWarningHelper.h"
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
-#include "GeneratedFiles/SimulationDescription.pb.h"
+#include "SimulationDescription.pb.h"
 PRAGMA_WARNING_POP
 
 CVector3 CTimePointR::GetCoord(int _objectID) const

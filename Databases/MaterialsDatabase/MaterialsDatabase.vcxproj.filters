@@ -45,7 +45,7 @@
     <ClCompile Include="TPProperty.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\MaterialsDatabase.pb.cc">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\MaterialsDatabase.pb.cc">
       <Filter>Generated Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,7 +77,7 @@
     <ClInclude Include="TPProperty.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeneratedFiles\MaterialsDatabase.pb.h">
+    <ClInclude Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\MaterialsDatabase.pb.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>

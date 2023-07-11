@@ -6,7 +6,7 @@
 #include "DisableWarningHelper.h"
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
-#include "GeneratedFiles/SimulationDescription.pb.h"
+#include "SimulationDescription.pb.h"
 #include <google/protobuf/io/gzip_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 PRAGMA_WARNING_POP

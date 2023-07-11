@@ -2,13 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="AgglomeratesDatabase.cpp" />
-    <ClCompile Include="GeneratedFiles\AgglomeratesDatabase.pb.cc">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\AgglomeratesDatabase.pb.cc">
       <Filter>GeneratedFiles</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AgglomeratesDatabase.h" />
-    <ClInclude Include="GeneratedFiles\AgglomeratesDatabase.pb.h">
+    <ClInclude Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\AgglomeratesDatabase.pb.h">
       <Filter>GeneratedFiles</Filter>
     </ClInclude>
   </ItemGroup>
