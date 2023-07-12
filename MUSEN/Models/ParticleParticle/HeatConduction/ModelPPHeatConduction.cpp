@@ -2,7 +2,7 @@
 
 CModelPPHeatConduction::CModelPPHeatConduction()
 {
-	m_name = "PP Heat Conduction";
+	m_name = "Heat Conduction";
 	m_uniqueKey = "B18A46C2786D4D44B925A8A04D0D1098";
 	m_helpFileName = "/Contact Models/HeatConduction.pdf";
 	m_requieredVariables.bThermals = true;
