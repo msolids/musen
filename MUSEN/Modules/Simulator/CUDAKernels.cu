@@ -111,6 +111,7 @@ namespace CUDAKernels
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
 		{
 			_partTemperatures[i] += _partHeatFluxes[i] / (_partHeatCapacities[i] * _partMasses[i]) * _dTimeStep;
+			_partTemperatures[i] = _partTemperatures[i] < 0.0 ? 0.0 : _partTemperatures[i];
 		}
 	}
 

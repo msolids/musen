@@ -183,7 +183,7 @@ public:
 	virtual void MoveObjectsStep(double _timeStep, bool _predictionStep = false);
 	virtual void MoveParticles(bool _predictionStep = false) {}
 	virtual void MoveWalls(double _timeStep) {}
-	virtual void UpdateTemperatures(double _timeStep, bool _predictionStep = false) {}
+	virtual void UpdateTemperatures(bool _predictionStep = false) {}
 
 	CSimplifiedScene& GetPointerToSimplifiedScene() { return m_scene; }
 

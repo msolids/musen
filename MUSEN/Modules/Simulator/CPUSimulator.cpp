@@ -405,13 +405,14 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 	}
 }
 
-void CCPUSimulator::UpdateTemperatures(double _timeStep, bool _predictionStep)
+void CCPUSimulator::UpdateTemperatures(bool _predictionStep)
 {
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 	const double timeStep = !_predictionStep ? m_currSimulationStep : m_currSimulationStep / 2.;
 	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
 		particles.Temperature(i) += particles.HeatFlux(i) / (particles.HeatCapacity(i) * particles.Mass(i)) * timeStep;
+		particles.Temperature(i) = particles.Temperature(i) < 0.0 ? 0.0 : particles.Temperature(i);
 	});
 }
 

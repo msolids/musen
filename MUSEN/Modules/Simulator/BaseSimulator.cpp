@@ -620,7 +620,7 @@ void CBaseSimulator::StartSimulation()
 		CalculateForcesStep(m_currSimulationStep);
 		MoveObjectsStep(m_currSimulationStep, m_isPredictionStep);
 		if (m_optionalSceneVars.bThermals)
-			UpdateTemperatures(m_currSimulationStep, m_isPredictionStep);
+			UpdateTemperatures(m_isPredictionStep);
 
 		if (m_isPredictionStep) // makes prediction step
 			m_isPredictionStep = false;

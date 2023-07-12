@@ -177,9 +177,10 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 	}
 }
 
-void CGPUSimulator::UpdateTemperatures(double _timeStep, bool _predictionStep)
+void CGPUSimulator::UpdateTemperatures(bool _predictionStep)
 {
-	m_gpu.UpdateTemperatures(_timeStep, m_sceneGPU.GetPointerToParticles());
+	const double timeStep = !_predictionStep ? m_currSimulationStep : m_currSimulationStep / 2.;
+	m_gpu.UpdateTemperatures(timeStep, m_sceneGPU.GetPointerToParticles());
 }
 
 size_t CGPUSimulator::GenerateNewObjects()
