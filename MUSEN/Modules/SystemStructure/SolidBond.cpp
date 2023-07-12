@@ -17,6 +17,7 @@ CSolidBond::CSolidBond(unsigned _id, CDemStorage* _storage) : CBond(_id, _storag
 	m_dShearModulus = _YOUNG_MODULUS_DEFAULT / (2 * (1 + _POISSON_RATIO_DEFAULT));
 	m_dTimeThermExpCoeff = _TIME_THERM_EXP_DEFAULT;
 	m_dYieldStrength = _YIELD_DEFAULT;
+	m_thermalConductivity = _THERMAL_CONDUCTIVITY_DEFAULT;
 	UpdatePrecalculatedValues();
 }
 
@@ -29,6 +30,7 @@ void CSolidBond::UpdateCompoundProperties(const CCompound* _pCompound)
 	m_dViscosity = _pCompound->GetPropertyValue(PROPERTY_DYNAMIC_VISCOSITY);
 	m_dTimeThermExpCoeff = _pCompound->GetPropertyValue( PROPERTY_TIME_THERM_EXP_COEFF );
 	m_dYieldStrength = _pCompound->GetPropertyValue( PROPERTY_YIELD_STRENGTH );
+	m_thermalConductivity = _pCompound->GetPropertyValue(PROPERTY_THERMAL_CONDUCTIVITY);
 	m_dShearModulus = m_dYoungModulus / (2 * (1 + m_dPoissonRatio));
 	UpdatePrecalculatedValues();
 }

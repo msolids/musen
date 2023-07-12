@@ -74,6 +74,7 @@ protected:
 	std::vector<CAbstractDEMModel*> m_models;	       // All active models.
 
 	std::vector<SAdditionalSavingData> m_additionalSavingData;
+	SOptionalVariables m_optionalSceneVars;
 
 	// For performance analysis in console
 	std::chrono::system_clock::time_point m_chronoSimStart;

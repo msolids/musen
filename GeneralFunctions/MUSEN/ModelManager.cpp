@@ -28,6 +28,7 @@
 #include "../MUSEN/Models/SolidBonds/BondModelElastic/ModelSBElastic.h"
 #include "../MUSEN/Models/SolidBonds/BondModelElasticPerfectlyPlastic/ModelSBElasticPerfectlyPlastic.h"
 #include "../MUSEN/Models/SolidBonds/BondModelCreep/ModelSBCreep.h"
+#include "../MUSEN/Models/SolidBonds/BondModelHeatConduction/ModelSBHeatConduction.h"
 #include "../MUSEN/Models/SolidBonds/BondModelKelvin/ModelSBKelvin.h"
 #include "../MUSEN/Models/SolidBonds/BondModelLinearPlastic/ModelSBLinearPlastic.h"
 #include "../MUSEN/Models/SolidBonds/BondModelThermal/ModelSBThermal.h"
@@ -94,6 +95,7 @@ namespace StaticLibs
 		Constructor<CModelSBElastic>::get(),
 		Constructor<CModelSBElasticPerfectlyPlastic>::get(),
 		Constructor<CModelSBCreep>::get(),
+		Constructor<CModelSBHeatConduction>::get(),
 		Constructor<CModelSBKelvin>::get(),
 		Constructor<CModelSBLinearPlastic>::get(),
 		Constructor<CModelSBThermal>::get(),

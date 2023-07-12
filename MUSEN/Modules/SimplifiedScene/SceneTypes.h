@@ -241,6 +241,16 @@ private:
 		CVector3 unsymMoment{ 0 };		// unsymmetrical moment
 	};
 
+	struct SThermals
+	{
+		double heatFlux;
+		double thermalConductivity;
+
+		SThermals() = default;
+		SThermals(double _heatFlux, double _thermalConductivity)
+			: heatFlux{ _heatFlux }, thermalConductivity{ _thermalConductivity } {}
+	};
+
 	// required variables
 	std::vector<SBaseInfo>		baseInfo;
 	std::vector<SStrength>		strengthInfo;
@@ -252,7 +262,7 @@ private:
 	std::vector<double>		yieldStrength;				// [Pa]
 	std::vector<double>		normalPlasticStrain;		// [-]
 	std::vector<CVector3>	tangentialPlasticStrain;	// [-,-,-]
-	std::vector<double>		thermalConductivity;
+	std::vector<SThermals>	thermalInfo;
 
 public:
 	ADD_GET_SET(Diameter,				baseInfo, diameter)
@@ -278,7 +288,11 @@ public:
 	ADD_GET_SET(YieldStrength,				yieldStrength)
 	ADD_GET_SET(NormalPlasticStrain,		normalPlasticStrain)
 	ADD_GET_SET(TangentialPlasticStrain,	tangentialPlasticStrain)
-	ADD_GET_SET(ThermalConductivity,		thermalConductivity)
+
+	ADD_GET_SET(HeatFlux           , thermalInfo, heatFlux           )
+	ADD_GET_SET(ThermalConductivity, thermalInfo, thermalConductivity)
+
+	bool ThermalsExist() const { return thermalInfo.size() == Size() && !Empty(); }
 
 	void AddSolidBond(bool _active, unsigned _initIndex, size_t _leftID, size_t _rightID, double _diameter, double _crossCut, double _initialLength,
 		CVector3 _vTangOverlap, double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength);
@@ -287,7 +301,7 @@ public:
 	void AddYieldStrength(double _yieldStrength);
 	void AddNormalPlasticStrain(double _normalPlasticStrain);
 	void AddTangentialPlasticStrain(const CVector3& _tangentialPlasticStrain);
-	void AddThermalConductivity(double _thermalConductivity);
+	void AddThermals(double _thermalConductivity);
 
 	void Resize(size_t n);
 };

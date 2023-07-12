@@ -526,8 +526,9 @@ void CBaseSimulator::Initialize()
 	m_pSystemStructure->ClearAllStatesFrom(m_currentTime);
 
 	// scene
+	m_optionalSceneVars = GetModelManager()->GetUtilizedVariables();
 	m_scene.SetSystemStructure(m_pSystemStructure);
-	m_scene.InitializeScene(m_currentTime, GetModelManager()->GetUtilizedVariables());
+	m_scene.InitializeScene(m_currentTime, m_optionalSceneVars);
 
 	// generation manager
 	m_generationManager->Initialize();
@@ -618,7 +619,7 @@ void CBaseSimulator::StartSimulation()
 		UpdateCollisionsStep(m_currSimulationStep);
 		CalculateForcesStep(m_currSimulationStep);
 		MoveObjectsStep(m_currSimulationStep, m_isPredictionStep);
-		if (m_scene.GetRefToParticles().ThermalsExist())
+		if (m_optionalSceneVars.bThermals)
 			UpdateTemperatures(m_currSimulationStep, m_isPredictionStep);
 
 		if (m_isPredictionStep) // makes prediction step

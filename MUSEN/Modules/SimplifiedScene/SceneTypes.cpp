@@ -154,9 +154,9 @@ void SSolidBondStruct::AddTangentialPlasticStrain(const CVector3& _tangentialPla
 	tangentialPlasticStrain.emplace_back(_tangentialPlasticStrain);
 }
 
-void SSolidBondStruct::AddThermalConductivity(double _thermalConductivity)
+void SSolidBondStruct::AddThermals(double _thermalConductivity)
 {
-	thermalConductivity.emplace_back(_thermalConductivity);
+	thermalInfo.emplace_back(0.0, _thermalConductivity);
 }
 
 void SSolidBondStruct::Resize(const size_t n)
@@ -172,7 +172,7 @@ void SSolidBondStruct::Resize(const size_t n)
 	if (!yieldStrength.empty())				yieldStrength.resize(n);
 	if (!normalPlasticStrain.empty())		normalPlasticStrain.resize(n);
 	if (!tangentialPlasticStrain.empty())	tangentialPlasticStrain.resize(n);
-	if (!thermalConductivity.empty())		thermalConductivity.resize(n);
+	if (!thermalInfo.empty())		        thermalInfo.resize(n);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -215,6 +215,7 @@ struct SGPUSolidBonds : SBasicGPUStruct
 	// important for plastic model
 	double* NormalPlasticStrains;		// In [-]
 	CVector3* TangentialPlasticStrains;	// In [-,-,-]
+	double* ThermalConductivities;
 	// forces and moments
 	CVector3* TotalForces;				// Normal + Tangential
 	CVector3* NormalMoments;
@@ -242,6 +243,7 @@ private:
 		ADD_FIELD(PrevBonds);
 		ADD_FIELD(NormalPlasticStrains);
 		ADD_FIELD(TangentialPlasticStrains);
+		ADD_FIELD(ThermalConductivities);
 		ADD_FIELD(TotalForces);
 		ADD_FIELD(NormalMoments);
 		ADD_FIELD(TangentialMoments);

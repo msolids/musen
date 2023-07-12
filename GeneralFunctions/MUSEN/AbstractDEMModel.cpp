@@ -186,6 +186,7 @@ bool CParticleWallModel::Initialize(SParticleStruct* _particles, SWallStruct* _w
 	m_walls = _walls;
 	m_interactProps = _interactProps;
 	if (!m_particles || !m_interactProps) return false;
+	if (m_requieredVariables.bThermals && !m_particles->ThermalsExist()) return false;
 	return true;
 }
 
@@ -222,7 +223,9 @@ bool CSolidBondModel::Initialize(SParticleStruct* _particles, SWallStruct* _wall
 {
 	m_particles = _particles;
 	m_bonds = _solidBinds;
-	return m_particles && m_bonds;
+	if (!m_particles || !m_bonds) return false;
+	if (m_requieredVariables.bThermals && !m_bonds->ThermalsExist()) return false;
+	return true;
 }
 
 void CSolidBondModel::Precalculate(double _time, double _timeStep)

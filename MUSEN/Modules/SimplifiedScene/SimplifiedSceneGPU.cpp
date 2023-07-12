@@ -95,6 +95,10 @@ void CSimplifiedSceneGPU::CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU)
 		bondsHost.TangentialOverlaps[i] = bondsCPU.TangentialOverlap(i);
 		bondsHost.TangentialPlasticStrains[i] = bondsCPU.TangentialPlasticStrain(i);
 		bondsHost.EndActivities[i] = bondsCPU.EndActivity(i);
+		if (bondsCPU.ThermalsExist())
+		{
+			bondsHost.ThermalConductivities[i] = bondsCPU.ThermalConductivity(i);
+		}
 	});
 
 	m_SolidBonds.CopyFrom(bondsHost);

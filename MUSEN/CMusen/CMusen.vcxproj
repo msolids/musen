@@ -173,6 +173,9 @@
     <ProjectReference Include="..\Models\SolidBonds\BondModelElastic\BondModelPotyondy.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba821af420}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelHeatConduction\BondModelHeatConduction.vcxproj">
+      <Project>{24901618-ead9-41d2-9e4f-98e1be647c4f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Models\SolidBonds\BondModelKelvin\BondModelKelvin.vcxproj">
       <Project>{100e46c2-1212-4082-b4a8-0be8407a9009}</Project>
     </ProjectReference>

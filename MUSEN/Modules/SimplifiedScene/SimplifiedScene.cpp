@@ -177,6 +177,8 @@ void CSimplifiedScene::AddSolidBond(size_t _index, double _dTime)
 	m_Objects.vSolidBonds->AddYieldStrength(pBond->GetYieldStrength());
 	m_Objects.vSolidBonds->AddViscosity(pBond->GetViscosity());
 	m_Objects.vSolidBonds->AddTimeThermExpCoeff(pBond->GetTimeThermExpCoeff());
+	if (m_ActiveVariables.bThermals)
+		m_Objects.vSolidBonds->AddThermals(pBond->GetThermalConductivity());
 
 	CPhysicalObject* pLSphere = m_pSystemStructure->GetObjectByIndex(pBond->m_nLeftObjectID);
 	CPhysicalObject* pRSphere = m_pSystemStructure->GetObjectByIndex(pBond->m_nRightObjectID);
