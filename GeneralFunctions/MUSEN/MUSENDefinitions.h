@@ -13,6 +13,8 @@
 
 #define DEFAULT_MAX_CELLS 50
 
+#define DEFAULT_ACTIVITY_END 1e+300
+
 enum class ERunningStatus
 {
 	IDLE          = 0,

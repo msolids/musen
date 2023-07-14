@@ -187,7 +187,7 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 				else
 					pNewSphere->SetVelocity( _dCurrentTime, m_vObjInitVel );
 				pNewSphere->SetStartActivityTime( _dCurrentTime );
-				pNewSphere->SetEndActivityTime( 1e+300 );
+				pNewSphere->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 				_Scene.AddParticle( pNewSphere->m_lObjectID, _dCurrentTime );
 				vPartInVolume.push_back( (unsigned)_Scene.GetTotalParticlesNumber()-1 );
 			}
@@ -211,7 +211,7 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 						pNewBond->m_nLeftObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nLeftID]);
 						pNewBond->m_nRightObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nRightID]);
 						pNewBond->SetStartActivityTime(_dCurrentTime);
-						pNewBond->SetEndActivityTime(1e+300);
+						pNewBond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 						pNewBond->SetInitialLength(_pSystemStructure->GetBond(_dCurrentTime, pNewBond->m_lObjectID).Length());
 						pNewBond->SetTangentialOverlap(_dCurrentTime, CVector3{ 0.0 });
 						_Scene.AddSolidBond(pNewBond->m_lObjectID, _dCurrentTime);

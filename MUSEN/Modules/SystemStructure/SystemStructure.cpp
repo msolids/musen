@@ -601,6 +601,7 @@ void CSystemStructure::CreateFromSystemStructure(CSystemStructure* _pSource, dou
 		CPhysicalObject* pNewObject = AddObject(pOldObject->GetObjectType(), i);
 
 		pNewObject->SetObjectActivity(0, pOldObject->IsActive(_dTime));
+		pNewObject->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		pNewObject->SetTemperature(0, pOldObject->GetTemperature(_dTime));
 		pNewObject->SetCompoundKey(pOldObject->GetCompoundKey());
 

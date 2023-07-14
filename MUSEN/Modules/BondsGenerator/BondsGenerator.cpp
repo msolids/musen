@@ -139,7 +139,7 @@ void CBondsGenerator::StartGeneration()
 			bond->m_nRightObjectID = bonds[i].rightID;
 			bond->SetCompoundKey(generator.compoundKey);
 			bond->SetTangentialOverlap(0.0, CVector3{ 0.0 });
-			bond->SetEndActivityTime(1e+300);
+			bond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 			generator.completeness = i * 100. / bonds.size();
 			generator.generatedBonds++;
 		}

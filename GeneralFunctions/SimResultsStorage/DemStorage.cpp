@@ -147,9 +147,9 @@ bool CDemStorage::ReadInitialData()
 		m_timeEnd = 0;
 
 	// set default value for caches
-	m_SWriteCache.time = 1e+300;
+	m_SWriteCache.time = DEFAULT_ACTIVITY_END;
 	m_SWriteCache.pTimePoint = nullptr;
-	m_SCache.requestedTime = 1e+300;
+	m_SCache.requestedTime = DEFAULT_ACTIVITY_END;
 	m_SCache.pTimePointL = nullptr;
 	m_SCache.pTimePointR = nullptr;
 
@@ -200,10 +200,10 @@ bool CDemStorage::InitEmptyFile()
 	m_iLeftLoadedBlock = 0;
 
 	// set default values in caches
-	m_SCache.requestedTime = 1e+300;
+	m_SCache.requestedTime = DEFAULT_ACTIVITY_END;
 	m_SCache.pTimePointL = nullptr;
 	m_SCache.pTimePointR = nullptr;
-	m_SWriteCache.time = 1e+300;
+	m_SWriteCache.time = DEFAULT_ACTIVITY_END;
 	m_SWriteCache.pTimePoint = nullptr;
 
 	return true;
@@ -219,7 +219,7 @@ void CDemStorage::FlushToDisk(bool _isSaveLastBlock)
 		SaveLastBlock();
 
 	// clear cache for writing
-	m_SWriteCache.time = 1e+300;
+	m_SWriteCache.time = DEFAULT_ACTIVITY_END;
 	m_SWriteCache.pTimePoint = nullptr;
 
 	// serialize time-independent data from proto file to tmpBuffer, binSize - size of tmpBuffer after serialization
@@ -293,7 +293,7 @@ void CDemStorage::RemoveAllAfterTime(double _dTime)
 		pBlock->mutable_time_points()->RemoveLast();
 
 	if (m_SCache.requestedTime > pBlock->time_points().rbegin()->time())
-		m_SCache.requestedTime = 1e+300;
+		m_SCache.requestedTime = DEFAULT_ACTIVITY_END;
 
 	m_simStorage.mutable_info()->set_end_time(pBlock->time_points().rbegin()->time());
 	while (m_simStorage.mutable_info()->savedtimepoints_size() > 0)
@@ -309,7 +309,7 @@ void CDemStorage::RemoveAllAfterTime(double _dTime)
 		while (m_simStorage.mutable_info()->savedtimepoints_size() > 1)
 			SimulationInfo()->mutable_savedtimepoints()->RemoveLast();
 
-	m_SWriteCache.time = 1e+300;
+	m_SWriteCache.time = DEFAULT_ACTIVITY_END;
 }
 
 CDemStorage::STimePointsPairCache& CDemStorage::TimeDependentProperties(double _dTime)
@@ -363,7 +363,7 @@ ProtoTimePoint* CDemStorage::MutableTimeDependentProperties(double _dTime)
 
 	m_SWriteCache.time = _dTime;
 	m_SWriteCache.pTimePoint = pTimePoint;
-	m_SCache.requestedTime = 1e+300;
+	m_SCache.requestedTime = DEFAULT_ACTIVITY_END;
 
 	UnloadUnusedBlocks(m_iLeftLoadedBlock);
 
@@ -524,10 +524,10 @@ std::vector<double> CDemStorage::GetAllTimePointsOldFormat()
 	}
 
 	LoadBlock(0);
-	m_SCache.requestedTime = 1e+300;
+	m_SCache.requestedTime = DEFAULT_ACTIVITY_END;
 	m_SCache.pTimePointL = nullptr;
 	m_SCache.pTimePointR = nullptr;
-	m_SWriteCache.time = 1e+300;
+	m_SWriteCache.time = DEFAULT_ACTIVITY_END;
 	m_SWriteCache.pTimePoint = nullptr;
 
 	return vResult;
