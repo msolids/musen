@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 #include <CodeAnalysis/Warnings.h>
 #define PRAGMA_WARNING_PUSH    __pragma(warning(push))
 #define PRAGMA_WARNING_POP     __pragma(warning(pop))

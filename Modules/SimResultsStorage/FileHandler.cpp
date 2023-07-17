@@ -23,16 +23,7 @@ void CFileHandler::UseFile(const std::string &_sName)
 	}
 	m_sError.clear();		// clear error string
 
-#ifdef PATH_CONFIGURED      // linux
-
-	auto f = fopen(_sName.c_str(), "rb+");
-	if (f == nullptr)
-	{
-		f = fopen(_sName.c_str(), "ab+");
-		if (f) fclose(f);
-		f = fopen(_sName.c_str(), "rb+");
-	}
-#else					    // windows
+#ifdef _WIN32
 	FILE* f;
 	_wfopen_s(&f, UnicodePath(_sName).c_str(), L"rb+");		    // open file for binary reading + writing
 	if (f == nullptr)										    // if file is not exsit
@@ -40,6 +31,14 @@ void CFileHandler::UseFile(const std::string &_sName)
 		_wfopen_s(&f, UnicodePath(_sName).c_str(), L"ab+");		// create file with name = _sName
 		if (f) fclose(f);										// if file is exist -> close file
 		_wfopen_s(&f, UnicodePath(_sName).c_str(), L"rb+");		// open file for binary reading + writing
+	}
+#else
+	auto f = fopen(_sName.c_str(), "rb+");
+	if (f == nullptr)
+	{
+		f = fopen(_sName.c_str(), "ab+");
+		if (f) fclose(f);
+		f = fopen(_sName.c_str(), "rb+");
 	}
 #endif
 
@@ -61,10 +60,10 @@ void CFileHandler::SetPointerInFileTo(uint64_t _nOffset, int _nOrigin)
 {
 	if (!m_pFile) return;
 
-#ifdef PATH_CONFIGURED
-	bool res = 0 == fseeko64(m_pFile, _nOffset, _nOrigin);
-#else
+#ifdef _WIN32
 	bool res = 0 == _fseeki64(m_pFile, _nOffset, _nOrigin);
+#else
+	bool res = 0 == fseeko64(m_pFile, _nOffset, _nOrigin);
 #endif
 
 	if (!res)
@@ -80,10 +79,10 @@ uint64_t CFileHandler::GetPointerInFile()
 {
 	if (!m_pFile) return 0;
 
-#ifdef PATH_CONFIGURED
-	return ftello64(m_pFile);
-#else
+#ifdef _WIN32
 	return _ftelli64(m_pFile);
+#else
+	return ftello64(m_pFile);
 #endif
 }
 
@@ -91,12 +90,12 @@ void CFileHandler::SetFileSize(uint64_t _nSize)
 {
 	if (!m_pFile) return;
 
-#ifdef PATH_CONFIGURED
-	int filedes = fileno(m_pFile);
-	int res = ftruncate(filedes, _nSize);
-#else
+#ifdef _WIN32
 	int filedes = _fileno(m_pFile);
 	int res = _chsize_s(filedes, _nSize); // ftruncate
+#else
+	int filedes = fileno(m_pFile);
+	int res = ftruncate(filedes, _nSize);
 #endif
 }
 

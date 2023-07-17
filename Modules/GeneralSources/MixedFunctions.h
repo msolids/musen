@@ -150,10 +150,10 @@ inline SDate CurrentDate()
 {
 	time_t t = time(0);   // get time now
 	struct tm now;
-#ifdef PATH_CONFIGURED // for Linux
-	localtime_r(&t, &now);
-#else
+#ifdef _WIN32
 	localtime_s(&now, &t);
+#else
+	localtime_r(&t, &now);
 #endif
 	return SDate(now.tm_year + 1900, now.tm_mon + 1, now.tm_mday);
 }

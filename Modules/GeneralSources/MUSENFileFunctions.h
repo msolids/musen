@@ -7,10 +7,7 @@
 #include "MUSENStringFunctions.h"
 #include <filesystem>
 #include <sys/stat.h>
-#ifdef PATH_CONFIGURED
-#include <dirent.h>
-#include <cstring>
-#else
+#ifdef _WIN32
 #ifdef NOMINMAX
 #include <Windows.h>
 #else
@@ -18,6 +15,9 @@
 #include <Windows.h>
 #undef NOMINMAX
 #endif
+#else
+#include <dirent.h>
+#include <cstring>
 #endif
 
 namespace MUSENFileFunctions
@@ -67,7 +67,24 @@ namespace MUSENFileFunctions
 	}
 
 	inline std::vector<std::string> filesList(const std::string& _sPath, const std::string& _sFilter)
-#ifdef PATH_CONFIGURED
+#ifdef _WIN32
+	{
+		std::vector<std::string> vFiles;
+		std::string sSearchPath = _sPath + "/" + _sFilter;
+		WIN32_FIND_DATAA fileData;
+		HANDLE hFile = ::FindFirstFileA(sSearchPath.c_str(), &fileData);
+		if (hFile != INVALID_HANDLE_VALUE)
+		{
+			do
+			{
+				if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+					vFiles.push_back(_sPath + "/" + fileData.cFileName);
+			} while (::FindNextFileA(hFile, &fileData));
+			::FindClose(hFile);
+		}
+		return vFiles;
+	}
+#else
 	{
 		std::vector<std::string> vFiles;
 		DIR* dir = opendir(_sPath.c_str());
@@ -83,23 +100,6 @@ namespace MUSENFileFunctions
 					vFiles.push_back(hDir->d_name);
 			}
 			closedir(dir);
-		}
-		return vFiles;
-	}
-#else
-	{
-		std::vector<std::string> vFiles;
-		std::string sSearchPath = _sPath + "/" + _sFilter;
-		WIN32_FIND_DATAA fileData;
-		HANDLE hFile = ::FindFirstFileA(sSearchPath.c_str(), &fileData);
-		if (hFile != INVALID_HANDLE_VALUE)
-		{
-			do
-			{
-				if (!(fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-					vFiles.push_back(_sPath + "/" + fileData.cFileName);
-			} while (::FindNextFileA(hFile, &fileData));
-			::FindClose(hFile);
 		}
 		return vFiles;
 	}

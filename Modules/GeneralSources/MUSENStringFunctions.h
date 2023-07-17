@@ -13,17 +13,17 @@
 #include <iterator>
 #include <cctype>
 
-#ifdef PATH_CONFIGURED
-std::string inline UnicodePath(const std::string& _sPath)
-{
-	return _sPath;
-}
-#else
+#ifdef _WIN32
 #include <xlocbuf>
 #include <codecvt>
 std::wstring inline UnicodePath(const std::string& _sPath)
 {
 	return std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().from_bytes(_sPath);
+}
+#else
+std::string inline UnicodePath(const std::string& _sPath)
+{
+	return _sPath;
 }
 #endif
 
