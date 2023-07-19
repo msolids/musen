@@ -93,12 +93,8 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ConfigurationTab.h">
-      <QtMocDir>.\GeneratedFiles\$(Configuration)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
     <QtMoc Include="ModelManagerTab.h">
-      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -107,8 +103,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="UnitConverterTab.h">
-      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -117,8 +111,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="TexturePicker.h">
-      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
