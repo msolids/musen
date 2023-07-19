@@ -31,12 +31,10 @@ CMaterialsDatabaseLocalTab::CMaterialsDatabaseLocalTab(const CMaterialsDatabase*
 	ui.buttonDuplicateMixture->setVisible(false);
 
 	// add menu to "add compound" button
-	m_pCompoundsMapper = new QSignalMapper(this);
 	ui.buttonAddCompound->setMenu(new QMenu(this));
 	UpdateGlobalCompounds();
 
 	// add menu to "add mixture" button
-	m_pMixturesMapper = new QSignalMapper(this);
 	ui.buttonAddMixture->setMenu(new QMenu(this));
 	UpdateGlobalMixtures();
 
@@ -57,9 +55,6 @@ void CMaterialsDatabaseLocalTab::SetPointers(CSystemStructure* _pSystemStructure
 
 void CMaterialsDatabaseLocalTab::InitializeConnections()
 {
-	connect(m_pCompoundsMapper, &QSignalMapper::mappedInt, this, &CMaterialsDatabaseLocalTab::AddCompound);
-	connect(m_pMixturesMapper,	&QSignalMapper::mappedInt, this, &CMaterialsDatabaseLocalTab::AddMixture);
-
 	connect(ui.buttonAddAllCompounds,	&QPushButton::clicked, this, &CMaterialsDatabaseLocalTab::AddAllCompounds);
 	connect(ui.buttonAddAllMixtures,	&QPushButton::clicked, this, &CMaterialsDatabaseLocalTab::AddAllMixtures);
 
@@ -263,8 +258,7 @@ void CMaterialsDatabaseLocalTab::UpdateGlobalCompounds()
 	{
 		QAction* pAction = new QAction(ss2qs(m_pMaterialsDBGlobal->GetCompoundName(i)), this);
 		pMenu->addAction(pAction);
-		connect(pAction, &QAction::triggered, m_pCompoundsMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-		m_pCompoundsMapper->setMapping(pAction, i);
+		connect(pAction, &QAction::triggered, this, [&]{ AddCompound(i); });
 	}
 }
 
@@ -280,8 +274,7 @@ void CMaterialsDatabaseLocalTab::UpdateGlobalMixtures()
 	{
 		QAction* pAction = new QAction(ss2qs(m_pMaterialsDBGlobal->GetMixtureName(i)), this);
 		pMenu->addAction(pAction);
-		connect(pAction, &QAction::triggered, m_pMixturesMapper, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-		m_pMixturesMapper->setMapping(pAction, i);
+		connect(pAction, &QAction::triggered, this, [&]{ AddMixture(i); });
 	}
 }
 

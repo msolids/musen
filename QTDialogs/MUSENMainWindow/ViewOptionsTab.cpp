@@ -58,7 +58,7 @@ void CViewOptionsTab::InitializeConnections() const
 	// slicing
 	connect(ui.groupBoxSlices,		&QGroupBox::toggled,				this, &CViewOptionsTab::OnSlicingChanged);
 	connect(ui.spinBoxSliceCoords,  &CQtDoubleSpinBox::ValueChanged,	this, &CViewOptionsTab::OnSlicingChanged);
-	connect(&m_slicingGroup,		&QButtonGroup::idToggled, [=](int, bool _checked) { if (_checked) OnSlicingChanged(); });
+	connect(&m_slicingGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), [=](QAbstractButton*, bool _checked) { if (_checked) OnSlicingChanged(); });
 
 	////////// PAGE 2 - Visibility //////////
 
@@ -91,8 +91,8 @@ void CViewOptionsTab::InitializeConnections() const
 	////////// PAGE 3 - Coloring //////////
 
 	// coloring parameters
-	connect(&m_coloringGroup,		  &QButtonGroup::idToggled,	 [=](int, bool _checked) { if (_checked) OnColoringChanged(); });
-	connect(&m_componentGroup,		  &QButtonGroup::idToggled,	 [=](int, bool _checked) { if (_checked) OnColoringChanged(); });
+	connect(&m_coloringGroup,  QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), [=](QAbstractButton*, bool _checked) { if (_checked) OnColoringChanged(); });
+	connect(&m_componentGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), [=](QAbstractButton*, bool _checked) { if (_checked) OnColoringChanged(); });
 	connect(ui.lineEditColorLimitMin, &QLineEdit::editingFinished, this, &CViewOptionsTab::OnColoringChanged);
 	connect(ui.lineEditColorLimitMax, &QLineEdit::editingFinished, this, &CViewOptionsTab::OnColoringChanged);
 	connect(ui.colorMin,			  &CColorView::ColorChanged,   this, &CViewOptionsTab::OnColoringChanged);

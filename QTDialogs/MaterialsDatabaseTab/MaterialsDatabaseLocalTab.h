@@ -15,9 +15,6 @@ private:
 	const CBondsGenerator* m_pBondsGenerator;
 	const CGenerationManager* m_pDynamicGenerator;
 
-	QSignalMapper* m_pCompoundsMapper;
-	QSignalMapper* m_pMixturesMapper;
-
 public:
 	CMaterialsDatabaseLocalTab(const CMaterialsDatabase* _pMaterialsDBGlobal, CMaterialsDatabase* _pMaterialsDBLocal,
 		const CPackageGenerator* _pPackageGenerator, const CBondsGenerator* _pBondsGenerator, const CGenerationManager* _pDynamicGenerator,
