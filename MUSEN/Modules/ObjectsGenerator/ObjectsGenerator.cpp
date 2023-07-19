@@ -174,6 +174,8 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 			{
 				auto* pNewSphere = dynamic_cast<CSphere*>(_pSystemStructure->AddObject(SPHERE, vFreeIDs[i]));
 				vTempNewIndexes.push_back( pNewSphere->m_lObjectID );
+				pNewSphere->SetStartActivityTime( _dCurrentTime );
+				pNewSphere->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 				pNewSphere->SetRadius(vRadiiNewPart[i]);
 				pNewSphere->SetContactRadius(vContRadiiNewPart[i]);
 				if (m_bGenerateMixture) // this is sphere
@@ -186,8 +188,6 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 					pNewSphere->SetVelocity(_dCurrentTime, initVelocity);
 				else
 					pNewSphere->SetVelocity( _dCurrentTime, m_vObjInitVel );
-				pNewSphere->SetStartActivityTime( _dCurrentTime );
-				pNewSphere->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 				_Scene.AddParticle( pNewSphere->m_lObjectID, _dCurrentTime );
 				vPartInVolume.push_back( (unsigned)_Scene.GetTotalParticlesNumber()-1 );
 			}
@@ -206,12 +206,12 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 					{
 						auto* pNewBond = dynamic_cast<CSolidBond*>(_pSystemStructure->AddObject(SOLID_BOND, vFreeIDsBonds[j]));
 						const SAggloBond& bond = m_PreLoadedAgglomerate.vBonds[j];
+						pNewBond->SetStartActivityTime(_dCurrentTime);
+						pNewBond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 						pNewBond->SetDiameter(2 * bond.dRadius);
 						pNewBond->SetCompound(m_pMaterialsDB->GetCompound(m_bondMaterials[bond.sCompoundAlias]));
 						pNewBond->m_nLeftObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nLeftID]);
 						pNewBond->m_nRightObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nRightID]);
-						pNewBond->SetStartActivityTime(_dCurrentTime);
-						pNewBond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 						pNewBond->SetInitialLength(_pSystemStructure->GetBond(_dCurrentTime, pNewBond->m_lObjectID).Length());
 						pNewBond->SetTangentialOverlap(_dCurrentTime, CVector3{ 0.0 });
 						_Scene.AddSolidBond(pNewBond->m_lObjectID, _dCurrentTime);

@@ -316,6 +316,8 @@ void CPackageGenerator::AddParticles(CSystemStructure& _scene, std::vector<size_
 	{
 		const size_t id = _indices[i];
 		auto* part = dynamic_cast<CSphere*>(newObjects[i]);
+		part->SetStartActivityTime(0.0);
+		part->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		part->SetRadius(_particles.radii[id]);
 		part->SetContactRadius(_particles.contRadii[id]);
 		part->SetCoordinates(0, _particles.coords[id]);
@@ -339,6 +341,8 @@ void CPackageGenerator::AddOverlayedParticles(SPackage& _generator, CSystemStruc
 	for (const auto& oldParticle : existingParticles)
 	{
 		auto* newParticle = dynamic_cast<CSphere*>(_scene.AddObject(SPHERE));
+		newParticle->SetStartActivityTime(0.0);
+		newParticle->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		newParticle->SetRadius(oldParticle->GetRadius());
 		newParticle->SetContactRadius(oldParticle->GetContactRadius());
 		newParticle->SetCoordinates(0, oldParticle->GetCoordinates(0));
@@ -410,6 +414,8 @@ void CPackageGenerator::SaveGeneratedObjects(SPackage& _generator) const
 	{
 		const auto* generated = dynamic_cast<const CSphere*>(_generator.simulator->GetSystemStructure()->GetObjectByIndex(indexes[i])); // first generatedParticles particles are our generated ones
 		auto* sphere = dynamic_cast<CSphere*>(objects[i]);
+		sphere->SetStartActivityTime(0.0);
+		sphere->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		sphere->SetRadius(generated->GetRadius());
 		sphere->SetContactRadius(generated->GetContactRadius());
 		sphere->SetCoordinates(0, generated->GetCoordinates(_generator.simulator->GetSystemStructure()->GetAllTimePoints().back()));

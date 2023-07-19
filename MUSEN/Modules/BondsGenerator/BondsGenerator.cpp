@@ -133,13 +133,14 @@ void CBondsGenerator::StartGeneration()
 		for (size_t i = 0; i < objects.size(); ++i)
 		{
 			auto* bond = dynamic_cast<CSolidBond*>(objects[i]);
+			bond->SetStartActivityTime(0.0);
+			bond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 			bond->SetDiameter(bonds[i].diameter);
 			bond->SetInitialLength(bonds[i].length);
 			bond->m_nLeftObjectID = bonds[i].leftID;
 			bond->m_nRightObjectID = bonds[i].rightID;
 			bond->SetCompoundKey(generator.compoundKey);
 			bond->SetTangentialOverlap(0.0, CVector3{ 0.0 });
-			bond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 			generator.completeness = i * 100. / bonds.size();
 			generator.generatedBonds++;
 		}

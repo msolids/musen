@@ -85,6 +85,8 @@ void CRealGeometry::SetMesh(const CTriangularMesh& _mesh)
 	for (size_t i = 0; i < walls.size(); ++i)
 	{
 		auto* wall = dynamic_cast<CTriangularWall*>(walls[i]);
+		wall->SetStartActivityTime(0.0);
+		wall->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		wall->SetPlaneCoord(triangles[i]);
 		m_planes.push_back(wall->m_lObjectID);
 	}

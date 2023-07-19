@@ -116,6 +116,8 @@ void CNewObjectPanel::AddObject()
 		};
 
 		auto* part = dynamic_cast<CSphere*>(m_systemStructure->AddObject(SPHERE));
+		part->SetStartActivityTime(0.0);
+		part->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		part->SetRadius(diameter / 2.0);
 		part->SetContactRadius(contactDiameter / 2.0);
 		part->SetCoordinates(0, coord);
@@ -133,6 +135,8 @@ void CNewObjectPanel::AddObject()
 		auto* sphere2 = dynamic_cast<CSphere*>(m_systemStructure->GetObjectByIndex(idR));
 
 		auto* bond = dynamic_cast<CSolidBond*>(m_systemStructure->AddObject(SOLID_BOND));
+		bond->SetStartActivityTime(0.0);
+		bond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		bond->SetDiameter(diameter);
 		bond->m_nLeftObjectID = idL;
 		bond->m_nRightObjectID = idR;
