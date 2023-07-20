@@ -1,3 +1,7 @@
+/* Copyright (c) 2023, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
 #include "ModelEFHeatTransfer.h"
 
 CModelEFHeatTransfer::CModelEFHeatTransfer()
@@ -17,10 +21,10 @@ CModelEFHeatTransfer::CModelEFHeatTransfer()
 
 void CModelEFHeatTransfer::CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
-	// HACK: heat capacity of the material is not an integer -indicator that this particle belongs to outer layer
 	// TODO: allow material-specific external force models
-	if (std::round(_particles.HeatCapacity(_iPart)) == _particles.HeatCapacity(_iPart))
-		return;
+	// HACK: heat capacity of the material is not an integer -indicator that this particle belongs to outer layer
+	//if (std::round(_particles.HeatCapacity(_iPart)) == _particles.HeatCapacity(_iPart))
+		//return;
 
 	const double partTemperature = Particles().Temperature(_iPart);
 	double environmentTemperature;

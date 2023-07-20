@@ -1,3 +1,7 @@
+/* Copyright (c) 2023, MUSEN Development Team. All rights reserved.
+   This file is part of MUSEN framework http://msolids.net/musen.
+   See LICENSE file for license and warranty information. */
+
 #include "ModelEFHeatTransfer.cuh"
 #include "ModelEFHeatTransfer.h"
 #include <device_launch_parameters.h>
@@ -32,10 +36,10 @@ void __global__ CUDA_CalcExtForce_HT_kernel(
 {
 	for (unsigned iPart = blockIdx.x * blockDim.x + threadIdx.x; iPart < _partsNum; iPart += blockDim.x * gridDim.x)
 	{
-		// HACK: heat capacity of the material is not an integer -indicator that this particle belongs to outer layer
 		// TODO: allow material-specific external force models
-		if (round(_partHeatCapacities[iPart]) == _partHeatCapacities[iPart]) // indicator that this particle belongs to outer layer
-			continue;
+		// HACK: heat capacity of the material is not an integer -indicator that this particle belongs to outer layer
+		//if (round(_partHeatCapacities[iPart]) == _partHeatCapacities[iPart]) // indicator that this particle belongs to outer layer
+			//continue;
 
 		const double partTemperature = _partTemperatures[iPart];
 		double environmentTemperature;
