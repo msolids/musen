@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -58,7 +58,7 @@ void CModelsConfiguratorTab::UpdateSelectedModels()
 			delete item->widget();
 			delete item;
 		}
-		for (const auto& modelDescriptor : m_modelManager->GetModelsDescriptors(_type))
+		for (const auto& modelDescriptor : m_modelManager->GetActiveModelsDescriptors(_type))
 			AddModelWedget(_type, modelDescriptor);
 	};
 
@@ -77,7 +77,7 @@ void CModelsConfiguratorTab::RemoveModelClicked(EMusenModelType _type, CModelWid
 {
 	const auto* modelDescriptor = _widget->GetModelDescriptor();
 	if (modelDescriptor && modelDescriptor->GetModel())
-		m_modelManager->RemoveActiveModel(modelDescriptor->GetName());
+		m_modelManager->RemoveActiveModel(modelDescriptor->GetPath());
 	m_layouts[_type]->removeWidget(_widget);
 	delete _widget;
 }

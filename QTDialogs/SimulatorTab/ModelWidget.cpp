@@ -49,9 +49,9 @@ void CModelWidget::CreateModelsCombo() const
 		switch (modelDescriptor->GetLibType())
 		{
 		case ELibType::STATIC:	displayName = modelDescriptor->GetModel()->GetName();                                           break;
-		case ELibType::DYNAMIC:	displayName = modelDescriptor->GetModel()->GetName() + " (" + modelDescriptor->GetName() + ")";	break;
+		case ELibType::DYNAMIC:	displayName = modelDescriptor->GetModel()->GetName() + " (" + modelDescriptor->GetPath() + ")";	break;
 		}
-		ui.comboModel->addItem(QString::fromStdString(displayName), QString::fromStdString(modelDescriptor->GetName()));
+		ui.comboModel->addItem(QString::fromStdString(displayName), QString::fromStdString(modelDescriptor->GetPath()));
 	}
 
 	UpdateModelsCombo();
@@ -67,7 +67,7 @@ void CModelWidget::UpdateModelsCombo() const
 		return;
 	}
 
-	ui.comboModel->setCurrentIndex(ui.comboModel->findData(QString::fromStdString(m_modelDescriptor->GetName())));
+	ui.comboModel->setCurrentIndex(ui.comboModel->findData(QString::fromStdString(m_modelDescriptor->GetPath())));
 }
 
 void CModelWidget::UpdateConfigButton() const
@@ -85,7 +85,7 @@ void CModelWidget::UpdateWholeView() const
 
 void CModelWidget::ModelChanged()
 {
-	const std::string oldModelName = m_modelDescriptor ? m_modelDescriptor->GetName() : "";
+	const std::string oldModelName = m_modelDescriptor ? m_modelDescriptor->GetPath() : "";
 	const std::string newModelName = ui.comboModel->currentData().toString().toStdString();
 	if (newModelName == oldModelName) return;
 

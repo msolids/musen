@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -19,7 +19,6 @@ class CModelsConfiguratorTab : public QDialog
 	bool m_blockModelsChange;      // If set, modification of the models will be blocked.
 
 	std::map<EMusenModelType, QBoxLayout*> m_layouts; // List of layouts where model widgets of different types are shown.
-	//std::map<EMusenModelType, std::vector<CModelWidget*>> m_widgets; // List of models' widgets for selected models of each type.
 
 public:
 	CModelsConfiguratorTab(CModelManager* _modelManager, bool _blockModelsChange, QWidget* _parent = nullptr);

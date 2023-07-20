@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -70,7 +70,7 @@ void CModelManagerTab::UpdateModelsListView() const
 		if (vAllModels[i]->GetLibType() == ELibType::STATIC)
 			ui.modelsTable->SetItemNotEditable(i, 2, tr("Built-in"));
 		else if (vAllModels[i]->GetLibType() == ELibType::DYNAMIC)
-			ui.modelsTable->SetItemNotEditable(i, 2, ss2qs(vAllModels[i]->GetName()));
+			ui.modelsTable->SetItemNotEditable(i, 2, ss2qs(vAllModels[i]->GetPath()));
 	}
 	ui.modelsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 	ui.modelsTable->setSortingEnabled(true);

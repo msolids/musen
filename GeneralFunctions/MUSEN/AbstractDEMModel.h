@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -10,14 +10,14 @@
 #include "SceneTypes.h"
 #include "SceneTypesGPU.h"
 #include "SceneOptionalVariables.h"
+#include "MUSENHelperDefines.h"
 
 #ifdef _DEBUG
 #define MUSEN_CREATE_MODEL_FUN MusenCreateModelV10Debug
-#define MUSEN_CREATE_MODEL_FUN_NAME "MusenCreateModelV10Debug"
 #else
 #define MUSEN_CREATE_MODEL_FUN MusenCreateModelV10
-#define MUSEN_CREATE_MODEL_FUN_NAME "MusenCreateModelV10"
 #endif
+#define MUSEN_CREATE_MODEL_FUN_NAME MACRO_TOSTRING(MUSEN_CREATE_MODEL_FUN)
 
 #ifndef DYNAMIC_MODULE
 #define DECLDIR

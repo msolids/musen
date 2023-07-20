@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -228,7 +228,7 @@ bool CConsoleSimulator::SimulationPrecheck() const
 	AddErrorMessage(m_systemStructure.m_MaterialDatabase.IsDataCorrect());
 
 	// check models
-	for (const auto& model : m_modelManager.GetModelsDescriptors())
+	for (const auto& model : m_modelManager.GetActiveModelsDescriptors())
 		AddErrorMessage(model->GetError());
 
 	if (!m_modelManager.IsModelActive(EMusenModelType::PP))

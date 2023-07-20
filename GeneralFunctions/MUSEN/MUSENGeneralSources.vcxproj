@@ -75,6 +75,7 @@
     <ClInclude Include="..\MixedFunctions.h" />
     <ClInclude Include="..\MUSENStringFunctions.h" />
     <ClInclude Include="..\MUSENVectorFunctions.h" />
+    <ClInclude Include="..\SafeWindowsHeader.h" />
     <ClInclude Include="..\UnitConvertor.h" />
     <ClInclude Include="..\Vector3.h" />
     <ClInclude Include="AbstractDEMModel.h" />
@@ -83,6 +84,7 @@
     <ClInclude Include="MUSENComponent.h" />
     <ClInclude Include="MUSENFileFunctions.h" />
     <ClInclude Include="MUSENDefinitions.h" />
+    <ClInclude Include="MUSENHelperDefines.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="ThreadSafeQueue.h" />
     <ClInclude Include="ThreadTask.h" />

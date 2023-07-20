@@ -95,6 +95,12 @@
     <ClInclude Include="..\ByteStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\SafeWindowsHeader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MUSENHelperDefines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicGPUFunctions.cuh">
