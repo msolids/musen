@@ -39,7 +39,7 @@ A fully functional version can be compiled and built with Microsoft Visual Studi
 
 
 # Compilation for Linux on Windows with WSL (Windows Subsystem for Linux)
-A fully functional version can be compiled and built with cmake and gcc in WSL. 
+A fully functional version can be compiled and built in WSL. 
 
 ## Build in WSL:
 1. Enable the Windows Subsystem for Linux. Open PowerShell as Administrator and run:
@@ -59,7 +59,7 @@ dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux 
 	```PowerShell
 	wsl --set-default-version 2
 	```
-3. Open the [Microsoft Store](https://aka.ms/wslstore) and install [Ubuntu 20.04 LTS](https://apps.microsoft.com/store/detail/ubuntu-20044-lts/9MTTCL66CPXJ) distribution.
+3. Open the [Microsoft Store](https://aka.ms/wslstore) and install [Ubuntu](https://www.microsoft.com/store/productId/9PN20MSR04DW) distribution.
 4. Launch the installed distribution and follow the instructions for initial setup.
 5. Login to your distribution and update it by running:
 ```sh
@@ -68,9 +68,7 @@ sudo apt upgrade
 ```
 6. Install all required tools and libraries. E.g. if the project is located at `C:/Projects/msolids/`:
 ```sh
-cd /mnt/c/Projects/msolids/MUSEN_Linux
-sudo chmod +x ./install_prerequisites_host.sh
-sudo ./install_prerequisites_host.sh
+sudo apt install build-essential protobuf-compiler libqt5opengl5-dev
 ```
 7. Compile MUSEN either with Visual Studio (step 7.a) or directly in Ubuntu (step 7.b)
 	
@@ -87,52 +85,42 @@ sudo ./install_prerequisites_host.sh
 # Compilation on Linux
 A fully functional version can be compiled and built with cmake and gcc. 
 
-## Requirements on Linux
+## Minimum requirements on Linux
 - gcc-9, g++-9
-- cmake 3.18.0
-- qt 5.15.2 gcc_64
-- cuda 11.2
-- zlib 1.2.11
-- protobuf 3.14.0
-- (optional) MATLAB R2019a 
+- cmake 3.0.0
+- protobuf 3.12.4
+- qt 5.12
+- cuda 11.1
+The versions of CUDA and C++ compiler must be compatible. See compatibility list e.g. [here](https://gist.github.com/ax3l/9489132#nvcc).
 
 ## Build on Linux (Ubuntu version 18.04 or higher)
-1. Navigate to `/path/to/msolids/MUSEN_Linux/`
-2. Install all required build tools and third-party libraries executing 
+1. Change the current working directory to the desired location and download the MUSEN code:
 ```sh
-./install_prerequisites_host.sh
+cd /path/to/desired/location/
+git clone https://github.com/msolids/musen.git
+cd musen
 ```
-Alternatively, install all required build tools (gcc, cmake, cuda) either manually or executing
+2. Install required tools and libraries.
 ```sh
-./install_gcc.sh
-./install_cmake.sh
-./install_cuda
+sudo apt install build-essential cmake libprotobuf-dev protobuf-compiler libqt5opengl5-dev
 ```
-then compile all third-party libraries executing 
+3. Install CUDA of the required version using official [installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html) or running the script for Ubuntu:
 ```sh
-./install_zlib.sh
-./install_protobuf.sh
-./install_qt.sh
+./scripts/install_cuda.sh
+exec bash
 ```
-3. Start compilation by executing
+4. Build MUSEN
 ```sh
-./compile_on_host.sh --target=cli --target=gui
+mkdir install
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=../install
+cmake --build . --parallel $(nproc)
+make install
 ```
-4. Built executables can be found in `/path/to/msolids/MUSEN_Linux/compiled`.
-
-## Run a GUI version on Linux
-1. Install required additional libraries
+5. Built executables can be found in 
 ```sh
-sudo apt install libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0
-```
-2. Extract the compiled GUI version, e.g.
-```sh
-tar xfvz /path/to/msolids/MUSEN_Linux/compiled/vX.X.X_name/musen_gui.tar.gz
-```
-3. Run the startup script
-```sh
-sudo chmod +x musen_gui/musen.sh
-musen_gui/musen.sh
+cd ../install
 ```
 
 # Code organization
