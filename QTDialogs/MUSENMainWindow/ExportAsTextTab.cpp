@@ -193,7 +193,11 @@ std::vector<double> CExportAsTextTab::CalculateTimePoints()
 		if (ui.radioTimeSaved->isChecked())
 		{
 			auto allTP = m_pSystemStructure->GetAllTimePoints();
-			std::copy_if(allTP.begin(), allTP.end(), std::back_inserter(res), [&timeMin, &timeMax](double t) { return t >= timeMin && t <= timeMax; });
+			const double tolerance = allTP.size() > 1 ? (allTP.back() - allTP.front()) * 1e-6 : 0.0;
+			std::copy_if(allTP.begin(), allTP.end(), std::back_inserter(res), [&](double t)
+			{
+				return t >= timeMin - tolerance && t <= timeMax + tolerance;
+			});
 		}
 		else
 		{
