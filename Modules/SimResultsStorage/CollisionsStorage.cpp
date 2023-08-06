@@ -266,7 +266,11 @@ void CCollisionsStorage::ClearDescriptors()
 int32_t CCollisionsStorage::WriteToBuf(char *&_pBuffer, const google::protobuf::Message& _message)
 {
 	using namespace google::protobuf::io;
+#if GOOGLE_PROTOBUF_VERSION < 3001000
+	int nInitSize = (int)_message.ByteSize() + 10;		    // initial size of data. 10 for black magic
+#else
 	int nInitSize = (int)_message.ByteSizeLong() + 10;		// initial size of data. 10 for black magic
+#endif
 	GzipOutputStream::Options options;
 	options.format = GzipOutputStream::ZLIB;
 	options.compression_level = 9;

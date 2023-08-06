@@ -7,10 +7,10 @@
 #include "ExportAsTextMacro.h"
 #include "Quaternion.h"
 #include "ByteStream.h"
+#include "MUSENfilesystem.h"
 #include <cassert>
 #include <set>
 #include <unordered_map>
-#include <filesystem>
 #include <fstream>
 #include <utility>
 

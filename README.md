@@ -4,6 +4,7 @@
 - To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618).
 - [New versions and updates](https://msolids.net/musen/download).
 
+
 # Requirements 
 MUSEN should install and work on all latest versions of Windows or Linux (Ubuntu or Red Head).
 Requires [Visual C++ Redistributable for Visual Studio 2019](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) to run on Windows.
@@ -42,58 +43,49 @@ A fully functional version can be compiled and built with Microsoft Visual Studi
 A fully functional version can be compiled and built in WSL. 
 
 ## Build in WSL:
-1. Enable the Windows Subsystem for Linux. Open PowerShell as Administrator and run:
+1. Enable the Windows Subsystem for Linux. Open PowerShell and run:
 ```PowerShell
-dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+wsl --install
 ```
-2. Upgrade to WSL 2. Requirements: Windows Version 1903 or higher, with Build 18362 or higher. If you don't want to upgrade, restart your computer and move to step 3.
+Additional information [here](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-	2.1. Enable Virtual Machine feature. Open PowerShell as Administrator and run:
-	```PowerShell
-	dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
-	```
-	
-	2.2. Download and install the latest [Linux kernel update package](https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi).
-	
-	2.3. Set WSL 2 as your default version. Open PowerShell as Administrator and run:
-	```PowerShell
-	wsl --set-default-version 2
-	```
-3. Open the [Microsoft Store](https://aka.ms/wslstore) and install [Ubuntu](https://www.microsoft.com/store/productId/9PN20MSR04DW) distribution.
-4. Launch the installed distribution and follow the instructions for initial setup.
-5. Login to your distribution and update it by running:
+2. Install Ubuntu
+```PowerShell
+wsl --install -d Ubuntu-22.04
+```
+
+3. Launch the installed distribution and follow the instructions for initial setup.
+
+4. Login to your distribution and update it by running:
 ```sh
 sudo apt update
 sudo apt upgrade
 ```
-6. Install all required tools and libraries. E.g. if the project is located at `C:/Projects/msolids/`:
-```sh
-sudo apt install build-essential protobuf-compiler libqt5opengl5-dev
-```
-7. Compile MUSEN either with Visual Studio (step 7.a) or directly in Ubuntu (step 7.b)
+
+5. Install all required tools and libraries, as described in [Build on Linux](#build-on-linux). 
+
+6. Compile MUSEN either with Visual Studio (step 6.a) or directly in Ubuntu (step 6.b)
 	
-	7.a Open `C:/Projects/msolids/MUSEN/MUSEN/musen.sln` file with Visual Studio. In Solution Explorer under `Installers` folder select `LinuxBuildWSL` project, then from the main menu navigate to (Project → Properties → Configuration Properties → Linux Build Settings) and select MUSEN versions that you want to build. Run building project `LinuxBuildWSL` (Build → Build Selection).
+	6.a Open `.../musen/musen.sln` file with Visual Studio 2019. In Solution Explorer under `Installers` folder select `LinuxBuildWSL` project, then from the main menu navigate to (Project → Properties → Configuration Properties → Linux Build Settings) and select MUSEN versions that you want to build. Run building project `LinuxBuildWSL` (Build → Build Selection).
 	
-	7.b Compile MUSEN by running:
-	```sh
-	sudo chmod +x ./compile_on_host.sh
-	./compile_on_host.sh --target=cli --target=gui
-	```
-8. The built executables will be placed in `C:/Projects/msolids/MUSEN_Linux/compiled/`.
+	6.b Compile MUSEN as described in [Build on Linux](#build-on-linux).  
+	
+7. The built executables will be placed in `...musen/Installers/Installers/`.
 
 
 # Compilation on Linux
 A fully functional version can be compiled and built with cmake and gcc. 
 
 ## Minimum requirements on Linux
-- gcc-9, g++-9
+- gcc-7.5, g++-7.5
 - cmake 3.0.0
-- protobuf 3.12.4
-- qt 5.12
-- cuda 11.1
+- protobuf 3.0.0
+- qt 5.9.5
+- cuda 9.1
 The versions of CUDA and C++ compiler must be compatible. See compatibility list e.g. [here](https://gist.github.com/ax3l/9489132#nvcc).
 
-## Build on Linux (Ubuntu version 18.04 or higher)
+## Build on Linux 
+Tested on Ubuntu 18.04, 20.04, 22.04.
 1. Change the current working directory to the desired location and download the MUSEN code:
 ```sh
 cd /path/to/desired/location/
@@ -104,7 +96,11 @@ cd musen
 ```sh
 sudo apt install build-essential cmake libprotobuf-dev protobuf-compiler libqt5opengl5-dev
 ```
-3. Install CUDA of the required version using official [installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html) or running the script for Ubuntu:
+3. Install CUDA
+```sh
+sudo apt install nvidia-cuda-toolkit
+```
+or in case of compatibility issues (usually on Ubuntu 22.04), using official [installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html) or running the script for Ubuntu:
 ```sh
 ./scripts/install_cuda.sh
 exec bash
@@ -124,28 +120,29 @@ cd ../install
 ```
 
 # Code organization
+- CMusen - command-line version of MUSEN
 - Databases - agglomerates, geometries and materials databases
-- ExternalLibraries - external libraries used in MUSEN (zlib and protobuf)
+- Documentation - manuals
+- ExternalLibraries - external libraries used in MUSEN on Windows (zlib and protobuf)
 - GeneralFunctions - main functions and types used in MUSEN 
-- GeneralFunctions\SimResultsStorage - low-level functions for data handling (load and save data)
-- MUSEN
-- MUSEN\CMusen - command-line version of MUSEN
-- MUSEN\Models - contact models (particle-particle, particle-wall, solid bonds, ...)
-- MUSEN\Modules 
-- MUSEN\Modules\BondsGenerator - generate bonds between particles
-- MUSEN\Modules\ContactAnalyzer - general functions for fast contacts detection 
-- MUSEN\Modules\FileManager - set of functions to convert, merge or modify .mdem files with simulation results
-- MUSEN\Modules\Geometries - set of classes and functions to work with geometrical objects
-- MUSEN\Modules\ObjectsGenerator - dynamically generates particles or agglomerates during simulation
-- MUSEN\Modules\PackageGenerator - generate packing of particles prior simulation
-- MUSEN\Modules\ResultsAnalyzer - analyzer of simulation results (export necessary data to csv files)
-- MUSEN\Modules\ScriptInterface - analyze input scripts for command-line version
-- MUSEN\Modules\SimplifiedScene - simplified entity generated from SystemStructure and which is used during simulation
-- MUSEN\Modules\Simulator - CPU and GPU simulators
-- MUSEN\Modules\SystemStructure - main entity which stores the information about whole scene
-- MUSEN\QTDialog - Qt dialog for main window
-- MUSEN_Linux - set of scripts to compile MUSEN for linux
-- QTDialogs - different Qt-based dialogs of GUI
+- Installers - scripts and data needed to build installers on Windows
+- Models - contact models (particle-particle, particle-wall, solid bonds, etc.)
+- Modules\BondsGenerator - generate bonds between particles
+- Modules\ContactAnalyzer - functions for contacts detection 
+- Modules\FileManager - set of functions to convert, merge or modify .mdem files with simulation results
+- Modules\GeneralSources - general components
+- Modules\Geometries - set of classes and functions to work with geometrical objects
+- Modules\ObjectsGenerator - dynamic particles or agglomerates generator
+- Modules\PackageGenerator - generate packing of particles prior simulation
+- Modules\ResultsAnalyzer - analyzer of simulation results (export necessary data to csv files)
+- Modules\ScriptInterface - analyze input scripts for command-line version
+- Modules\SimplifiedScene - simplified entity generated from SystemStructure and which is used during simulation
+- Modules\SimResultsStorage - low-level functions for data handling (load and save data)
+- Modules\Simulator - CPU and GPU simulators
+- Modules\SystemStructure - main entity which stores the information about whole scene
+- MusenGUI - graphical version of MUSEN
+- QTDialog - Qt-based dialogs for graphical user interface
+- Version - version information
 
 
 # Third-party tools and libraries

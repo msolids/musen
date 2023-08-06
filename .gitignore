@@ -100,3 +100,5 @@ GeneratedFiles*/
 /.vs/musen/v16/
 /ExternalLibraries/protobuf/
 /ExternalLibraries/zlib/
+/MUSEN/BuildVersion/BuildHash.h
+/MUSEN/BuildVersion/BuildTime.h

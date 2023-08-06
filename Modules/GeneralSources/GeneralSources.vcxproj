@@ -73,6 +73,7 @@
     <ClInclude Include="GeometricFunctions.h" />
     <ClInclude Include="GeneratorComponent.h" />
     <ClInclude Include="Matrix3.h" />
+    <ClInclude Include="MUSENfilesystem.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="MixedFunctions.h" />
     <ClInclude Include="MUSENStringFunctions.h" />

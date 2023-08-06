@@ -5,7 +5,7 @@
 #pragma once
 
 #include "MUSENStringFunctions.h"
-#include <filesystem>
+#include "MUSENfilesystem.h"
 #include <sys/stat.h>
 #ifdef _WIN32
 #ifdef NOMINMAX

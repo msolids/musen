@@ -423,7 +423,11 @@ void CDemStorage::SaveLastBlock()
 	ProtoBlockDescriptor* pBlockDescriptor = &*m_simStorage.mutable_data_blocks()->rbegin();
 
 	// uncompressed size of block with time-dependena data and value of time points
+#if GOOGLE_PROTOBUF_VERSION < 3001000
+	uint32_t nBinSize = (uint32_t)pProtoBlockOfTimePoints->ByteSize();
+#else
 	uint32_t nBinSize = (uint32_t)pProtoBlockOfTimePoints->ByteSizeLong();
+#endif
 
 	// set type saved time-dependent data block and uncompressed size
 	pBlockDescriptor->set_format(ProtoBlockDescriptor::kZippedProtoBuff);
@@ -547,7 +551,11 @@ bool CDemStorage::ReadFromBuf(const char *_pBuffer, google::protobuf::Message& _
 int32_t CDemStorage::WriteToBuf(char *&_pBuffer, const google::protobuf::Message& _message)
 {
 	using namespace google::protobuf::io;
+#if GOOGLE_PROTOBUF_VERSION < 3001000
+	const int nInitSize = (int)_message.ByteSize() + 10;			    // initial size of data. 10 for black magic
+#else
 	const int nInitSize = (int)_message.ByteSizeLong() + 10;			// initial size of data. 10 for black magic
+#endif
 	GzipOutputStream::Options options;
 	options.format = GzipOutputStream::ZLIB;
 	options.compression_level = 1;

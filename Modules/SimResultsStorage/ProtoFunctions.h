@@ -67,8 +67,10 @@ template<typename T, typename P>
 std::vector<T> Proto2Val(const google::protobuf::RepeatedPtrField<P>& _proto)
 {
 	std::vector<T> values(_proto.size());
-	for (int i = 0; i < _proto.size(); ++i)
-		values[i] = Proto2Val(_proto[i]);
+	size_t i = 0;
+	// this form of loop is kept for compatibility with older proto versions
+	for (const auto& field : _proto)
+		values[i++] = Proto2Val(field);
 	return values;
 }
 
@@ -77,8 +79,10 @@ template<typename T, typename P>
 std::vector<T> Proto2Val(const google::protobuf::RepeatedField<P>& _proto)
 {
 	std::vector<T> values(_proto.size());
-	for (int i = 0; i < _proto.size(); ++i)
-		values[i] = _proto[i];
+	size_t i = 0;
+	// this form of loop is kept for compatibility with older proto versions
+	for (const auto& field : _proto)
+		values[i++] = field;
 	return values;
 }
 

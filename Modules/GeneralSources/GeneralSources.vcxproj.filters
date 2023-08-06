@@ -95,6 +95,9 @@
     <ClInclude Include="..\..\Version\MUSENVersion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MUSENfilesystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicGPUFunctions.cuh">
