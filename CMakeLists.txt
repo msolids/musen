@@ -125,6 +125,9 @@ INCLUDE_DIRECTORIES(${proto_out_path})
   # OUTPUT_NAME "libmusen"
 # )
 
+# generate version info
+EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/Version/generate_build_version.sh)
+
 ADD_LIBRARY(libmusen_static STATIC ${lib_musen_src})
 SET_TARGET_PROPERTIES(libmusen_static PROPERTIES
   VERSION ${VERSION}

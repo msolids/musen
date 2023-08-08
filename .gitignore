@@ -89,8 +89,6 @@ GeneratedFiles*/
 /MUSEN_Linux/MUSEN_externals/
 /MUSEN_Linux/MUSEN_src/
 /MUSEN_Linux/MUSEN_compiled/
-/Version/BuildHash.h
-/Version/BuildTime.h
 /MUSEN_Linux/MUSEN_externals*
 /Installers/InstallerProject/data.ini
 /MusenGUI/Visual Studio 2019/Visualizers/
@@ -100,5 +98,3 @@ GeneratedFiles*/
 /.vs/musen/v16/
 /ExternalLibraries/protobuf/
 /ExternalLibraries/zlib/
-/MUSEN/BuildVersion/BuildHash.h
-/MUSEN/BuildVersion/BuildTime.h
