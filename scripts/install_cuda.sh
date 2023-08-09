@@ -2,8 +2,11 @@
 
 # Copyright (c) 2023, MUSEN Development Team. All rights reserved. This file is part of MUSEN framework http://msolids.net/musen. See LICENSE file for license and warranty information.
 
-# This script installs CUDA toolkit of the specifies version following the official NVIDIA guide for WSL and Ubuntu:
+#######################################################################################
+# This script installs CUDA toolkit of the specified version 
+# following the official NVIDIA guide for WSL and Ubuntu:
 # https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html 
+#######################################################################################
 
 CUDA_VER_MAJOR=11
 CUDA_VER_MINOR=7
