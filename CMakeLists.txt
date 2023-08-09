@@ -10,6 +10,9 @@ SET(SOVERSION 1.71)
 
 PROJECT(MUSEN VERSION ${VERSION} LANGUAGES CXX)
 
+OPTION(BUILD_GUI "Build a version with graphical user interface" ON)
+OPTION(BUILD_CLI "Build a version with command line interface" ON)
+
 ENABLE_LANGUAGE(CUDA)
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CUDA_STANDARD 14)
@@ -101,8 +104,7 @@ ENDIF()
 
 # protobuf
 FIND_PACKAGE(Protobuf REQUIRED)
-INCLUDE_DIRECTORIES(${PROTOBUF_INCLUDE_DIRS})
-LINK_DIRECTORIES(${PROTOBUF_LIBRARY_DIRS})
+INCLUDE_DIRECTORIES(${Protobuf_INCLUDE_DIRS})
 
 # generate protobuf sources
 SET(proto_out_path ${CMAKE_BINARY_DIR}/ProtoGeneratedFiles)
@@ -110,7 +112,7 @@ FILE(MAKE_DIRECTORY ${proto_out_path})
 FOREACH(proto ${proto_files})
   FILE(TO_NATIVE_PATH ${proto} proto_native)
   GET_FILENAME_COMPONENT(proto_path ${proto_native} DIRECTORY)
-  EXECUTE_PROCESS(COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} --proto_path=${proto_path} --proto_path=${CMAKE_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${proto_out_path} ${proto_native})
+  EXECUTE_PROCESS(COMMAND ${Protobuf_PROTOC_EXECUTABLE} --proto_path=${proto_path} --proto_path=${CMAKE_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${proto_out_path} ${proto_native})
   GET_FILENAME_COMPONENT(proto_name_we ${proto_native} NAME_WE)
   SET(lib_musen_src ${lib_musen_src} ${proto_out_path}/${proto_name_we}.pb.cc)
   SET(lib_musen_src ${lib_musen_src} ${proto_out_path}/${proto_name_we}.pb.h)
@@ -136,25 +138,28 @@ SET_TARGET_PROPERTIES(libmusen_static PROPERTIES
   OUTPUT_NAME "libmusen"
 )
 
-ADD_EXECUTABLE(CMUSEN ${proto_src} ${proto_files})
+SET(INSTALL_PATH_ROOT ${CMAKE_INSTALL_PREFIX}/)
 
-# TARGET_LINK_LIBRARIES(libmusen_shared ${PROTOBUF_LIBRARIES} ${CUDA_LIBRARIES})
-TARGET_LINK_LIBRARIES(libmusen_static ${PROTOBUF_LIBRARIES} ${CUDA_LIBRARIES})
-TARGET_LINK_LIBRARIES(CMUSEN libmusen_static)
+# TARGET_LINK_LIBRARIES(libmusen_shared ${Protobuf_LIBRARY} ${CUDA_LIBRARIES})
+TARGET_LINK_LIBRARIES(libmusen_static ${Protobuf_LIBRARY} ${CUDA_LIBRARIES})
 
-# link filesystem or experimantal/filesystem for gcc
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-    TARGET_LINK_LIBRARIES(CMUSEN -lstdc++fs)
+IF(BUILD_CLI)
+  ADD_EXECUTABLE(CMUSEN ${proto_src} ${proto_files})
+  TARGET_LINK_LIBRARIES(CMUSEN libmusen_static)
+  
+  # link filesystem or experimantal/filesystem for gcc
+  IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+      TARGET_LINK_LIBRARIES(CMUSEN -lstdc++fs)
+    ENDIF()
   ENDIF()
-ENDIF()
+  
+  INSTALL(TARGETS CMUSEN DESTINATION ${INSTALL_PATH_ROOT})
+ENDIF(BUILD_CLI)
 
 # TARGET_COMPILE_DEFINITIONS(libmusen_shared PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
 TARGET_COMPILE_DEFINITIONS(libmusen_static PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
 
-SET(INSTALL_PATH_ROOT ${CMAKE_INSTALL_PREFIX}/)
-
-INSTALL(TARGETS CMUSEN DESTINATION ${INSTALL_PATH_ROOT})
 INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Databases/" DESTINATION ${INSTALL_PATH_ROOT}/Databases)
 INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Examples/"  DESTINATION ${INSTALL_PATH_ROOT}/Examples)
 INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Licenses/"  DESTINATION ${INSTALL_PATH_ROOT}/Licenses)
@@ -164,4 +169,6 @@ INSTALL(FILES     "${CMAKE_SOURCE_DIR}/LICENSE"                    DESTINATION $
 # INSTALL(TARGETS libmusen_shared DESTINATION ${CMAKE_INSTALL_LIBDIR})
 # INSTALL(TARGETS libmusen_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/MusenGUI")
+IF(BUILD_GUI)
+  ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/MusenGUI")
+ENDIF(BUILD_GUI)
