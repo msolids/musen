@@ -7,10 +7,10 @@ $CURRENT_PATH = (Get-Item -Path ".\" -Verbose).FullName
 ################################################################################
 ### Paths
 
-$VERSION = "1.2.13"
+$VERSION = "1.3"
 $NAME = "zlib-$VERSION"
 $ZIP_NAME = "$NAME.tar.gz"
-$DOWNLOAD_ADDRESS = "http://www.zlib.net/$ZIP_NAME"
+$DOWNLOAD_ADDRESS = "https://github.com/madler/zlib/releases/download/v$VERSION/$ZIP_NAME"
 $INSTALL_PATH = "$CURRENT_PATH\zlib"
 $SRC_PATH = "$CURRENT_PATH\$NAME"
 $BUILD_PATH = "$SRC_PATH\build"
