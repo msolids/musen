@@ -1,1 +1,0 @@
-powershell -executionpolicy bypass -File %~dp0\compile_via_wsl.ps1 %1 %2 %3 %4

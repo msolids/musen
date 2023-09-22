@@ -22,8 +22,8 @@
     DisplayName="Build GUI"
     Description="Select whether GUI version should be built."/>
   <BoolProperty
-    Name="LinuxBuild_build_MATLAB"
+    Name="LinuxBuild_install_aux"
     Category="LinuxBuildSettings_01_General"
-    DisplayName="Build matlab"
-    Description="Select whether MATLAB version should be built."/>
+    DisplayName="Install auxiliary"
+    Description="Select whether documentation, examples, databases, etc. should be installed."/>
 </Rule>

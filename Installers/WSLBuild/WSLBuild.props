@@ -3,6 +3,6 @@
   <PropertyGroup Label="LinuxBuildSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64' OR '$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinuxBuild_build_CLI>true</LinuxBuild_build_CLI>
     <LinuxBuild_build_GUI>false</LinuxBuild_build_GUI>
-    <LinuxBuild_build_MATLAB>false</LinuxBuild_build_MATLAB>
+    <LinuxBuild_install_aux>false</LinuxBuild_install_aux>
   </PropertyGroup>
 </Project>

@@ -287,6 +287,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelEFCentrifugalCasting",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Installers", "Installers", "{2C3C02E8-3C02-4A3B-8C7E-4E3D23C96B2A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WSLBuild", "Installers\WSLBuild\WSLBuild.vcxproj", "{9588E644-BAD1-4B67-9BA2-12E3D29B4AE6}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WindowsInstaller", "..\..\Installers\InstallerProject\Installer.vcxproj", "{01050349-6088-461C-9C0F-0B233EBCD2EC}"
 EndProject
 EndProject

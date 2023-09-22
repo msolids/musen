@@ -1,4 +1,4 @@
-:: Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+:: Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
 :: This file is part of MUSEN framework http://msolids.net/musen.
 :: See LICENSE file for license and warranty information.
 
@@ -7,6 +7,8 @@
 :: ===== compile solution =====
 echo Compiling Release x64
 devenv %2 /build "Release|x64"
+echo Compiling Debug x64
+devenv %2 /build "Debug|x64"
 
 :: ===== create a file with additional varsion information =====
 echo Getting version information
