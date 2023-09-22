@@ -1,6 +1,5 @@
 # Copyright (c) 2023, MUSEN Development Team. All rights reserved. This file is part of MUSEN framework http://msolids.net/musen. See LICENSE file for license and warranty information.
 
-# TODO: optional GUI
 # TODO: optional GPU
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
@@ -12,6 +11,7 @@ PROJECT(MUSEN VERSION ${VERSION} LANGUAGES CXX)
 
 OPTION(BUILD_GUI "Build a version with graphical user interface" ON)
 OPTION(BUILD_CLI "Build a version with command line interface" ON)
+OPTION(INSTALL_AUX_DATA "Install documentation, examples, databases, etc." ON)
 
 ENABLE_LANGUAGE(CUDA)
 SET(CMAKE_CXX_STANDARD 17)
@@ -92,11 +92,11 @@ IF(${cuda_version_major_name} LESS 10)
   SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_9})
 ELSEIF(${cuda_version_major_name} LESS 11)
   SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_10})
-ELSEIF(${cuda_version_minor_name} LESS 1)
+ELSEIF(${cuda_version_major_name} EQUAL 11 AND ${cuda_version_minor_name} LESS 1)
   SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_0})
-ELSEIF(${cuda_version_minor_name} LESS 5)
+ELSEIF(${cuda_version_major_name} EQUAL 11 AND ${cuda_version_minor_name} LESS 5)
   SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_1})
-ELSEIF(${cuda_version_minor_name} LESS 8)
+ELSEIF(${cuda_version_major_name} EQUAL 11 AND ${cuda_version_minor_name} LESS 8)
   SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_5})
 ELSE()
   SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_8})
@@ -119,6 +119,9 @@ FOREACH(proto ${proto_files})
 ENDFOREACH(proto)
 INCLUDE_DIRECTORIES(${proto_out_path})
 
+# generate version info
+EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/Version/generate_build_version.sh)
+
 # ADD_LIBRARY(libmusen_shared SHARED ${lib_musen_src})
 # SET_TARGET_PROPERTIES(libmusen_shared PROPERTIES
   # VERSION ${VERSION}
@@ -126,9 +129,6 @@ INCLUDE_DIRECTORIES(${proto_out_path})
   # PREFIX ""
   # OUTPUT_NAME "libmusen"
 # )
-
-# generate version info
-EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/Version/generate_build_version.sh)
 
 ADD_LIBRARY(libmusen_static STATIC ${lib_musen_src})
 SET_TARGET_PROPERTIES(libmusen_static PROPERTIES
@@ -147,7 +147,7 @@ IF(BUILD_CLI)
   ADD_EXECUTABLE(CMUSEN ${proto_src} ${proto_files})
   TARGET_LINK_LIBRARIES(CMUSEN libmusen_static)
   
-  # link filesystem or experimantal/filesystem for gcc
+  # link filesystem or experimental/filesystem for gcc
   IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
       TARGET_LINK_LIBRARIES(CMUSEN -lstdc++fs)
@@ -160,11 +160,13 @@ ENDIF(BUILD_CLI)
 # TARGET_COMPILE_DEFINITIONS(libmusen_shared PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
 TARGET_COMPILE_DEFINITIONS(libmusen_static PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
 
-INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Databases/" DESTINATION ${INSTALL_PATH_ROOT}/Databases)
-INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Examples/"  DESTINATION ${INSTALL_PATH_ROOT}/Examples)
-INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Licenses/"  DESTINATION ${INSTALL_PATH_ROOT}/Licenses)
-INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Documentation/"             DESTINATION ${INSTALL_PATH_ROOT}/Documentation)
-INSTALL(FILES     "${CMAKE_SOURCE_DIR}/LICENSE"                    DESTINATION ${INSTALL_PATH_ROOT})
+IF(INSTALL_AUX_DATA)
+  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Databases/" DESTINATION ${INSTALL_PATH_ROOT}/Databases)
+  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Examples/"  DESTINATION ${INSTALL_PATH_ROOT}/Examples)
+  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Licenses/"  DESTINATION ${INSTALL_PATH_ROOT}/Licenses)
+  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Documentation/"             DESTINATION ${INSTALL_PATH_ROOT}/Documentation)
+  INSTALL(FILES     "${CMAKE_SOURCE_DIR}/LICENSE"                    DESTINATION ${INSTALL_PATH_ROOT})
+ENDIF(INSTALL_AUX_DATA)
 
 # INSTALL(TARGETS libmusen_shared DESTINATION ${CMAKE_INSTALL_LIBDIR})
 # INSTALL(TARGETS libmusen_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
