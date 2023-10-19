@@ -89,7 +89,7 @@ Tested on Ubuntu 18.04, 20.04, 22.04.
 1. Change the current working directory to the desired location and download the MUSEN code:
 ```sh
 cd /path/to/desired/location/
-git clone https://github.com/msolids/musen.git
+git clone --depth 1 https://github.com/msolids/musen.git
 cd musen
 ```
 2. Install required tools and libraries.

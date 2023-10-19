@@ -31,7 +31,7 @@ $branch_name = (git rev-parse --abbrev-ref HEAD)
 
 # prepare output directory
 $bin_path = "$($result_path)\v$($version1).$($version2).$($version3)_$($branch_name)"
-Remove-Item -Force -Recurse -Path $bin_path | Out-Null
+Remove-Item -Force -Recurse -Path $bin_path -ErrorAction SilentlyContinue | Out-Null
 New-Item -ItemType Directory -Force -Path $bin_path | Out-Null
 
 # build arguments line with selected targets for compilation script
