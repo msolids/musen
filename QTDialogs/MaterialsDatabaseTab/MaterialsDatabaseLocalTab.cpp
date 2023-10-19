@@ -258,7 +258,7 @@ void CMaterialsDatabaseLocalTab::UpdateGlobalCompounds()
 	{
 		QAction* pAction = new QAction(ss2qs(m_pMaterialsDBGlobal->GetCompoundName(i)), this);
 		pMenu->addAction(pAction);
-		connect(pAction, &QAction::triggered, this, [&]{ AddCompound(i); });
+		connect(pAction, &QAction::triggered, this, [=]{ AddCompound(i); });
 	}
 }
 
@@ -274,7 +274,7 @@ void CMaterialsDatabaseLocalTab::UpdateGlobalMixtures()
 	{
 		QAction* pAction = new QAction(ss2qs(m_pMaterialsDBGlobal->GetMixtureName(i)), this);
 		pMenu->addAction(pAction);
-		connect(pAction, &QAction::triggered, this, [&]{ AddMixture(i); });
+		connect(pAction, &QAction::triggered, this, [=]{ AddMixture(i); });
 	}
 }
 

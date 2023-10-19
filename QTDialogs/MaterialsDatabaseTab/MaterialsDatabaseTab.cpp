@@ -781,7 +781,7 @@ void CMaterialsDatabaseTab::NormalizeFractions()
 void CMaterialsDatabaseTab::FractionChanged(int _iRow, int _iCol)
 {
 	if (m_bAvoidSignal) return;
-	if (_iRow < 0) return;
+	if (_iRow < 0 || _iRow >= ui.tableFractions->rowCount()) return;
 	CMixture* pMixture = m_pMaterialsDB->GetMixture(GetElementKey(ui.listMixtures));
 	if (!pMixture) return;
 
@@ -815,7 +815,7 @@ void CMaterialsDatabaseTab::FractionChanged(int _iRow, int _iCol)
 void CMaterialsDatabaseTab::FractionCompoundChanged(int _iRow)
 {
 	if (m_bAvoidSignal) return;
-	if (_iRow < 0) return;
+	if (_iRow < 0 || _iRow >= ui.tableFractions->rowCount()) return;
 	CMixture* pMixture = m_pMaterialsDB->GetMixture(GetElementKey(ui.listMixtures));
 	if (!pMixture) return;
 	int index = static_cast<QComboBox*>(ui.tableFractions->cellWidget(_iRow, EFractionsColumns::COMPOUND))->currentIndex();
@@ -914,7 +914,7 @@ void CMaterialsDatabaseTab::AddCombobBoxOnFractionsTable(int _iRow, int _iCol, c
 
 	ui.tableFractions->setCellWidget(_iRow, _iCol, pComboBox);
 
-	connect(pComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [&] { FractionCompoundChanged(_iRow); });
+	connect(pComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [=] { FractionCompoundChanged(_iRow); });
 }
 
 int CMaterialsDatabaseTab::GetPropertyType(QTableWidget *_pTable, int _nRow) const
