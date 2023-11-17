@@ -167,7 +167,9 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		const auto value = GetValueFromStream<double>(&ss);
 		ETPPropertyTypes propertyKey{ PROPERTY_NO_PROPERTY };
 		if		(propertyStr == "DENSITY")				propertyKey = PROPERTY_DENSITY;
+		else if (propertyStr == "HEAT_CAPACITY")		propertyKey = PROPERTY_HEAT_CAPACITY;
 		else if (propertyStr == "DYNAMIC_VISCOSITY")	propertyKey = PROPERTY_DYNAMIC_VISCOSITY;
+		else if (propertyStr == "THERMAL_CONDUCTIVITY")	propertyKey = PROPERTY_THERMAL_CONDUCTIVITY;
 		else if (propertyStr == "YOUNG_MODULUS")		propertyKey = PROPERTY_YOUNG_MODULUS;
 		else if (propertyStr == "NORMAL_STRENGTH")		propertyKey = PROPERTY_NORMAL_STRENGTH;
 		else if (propertyStr == "TANGENTIAL_STRENGTH")	propertyKey = PROPERTY_TANGENTIAL_STRENGTH;
