@@ -115,6 +115,8 @@ void CInsertAgglomTab::AddAgglomerate()
 	for (size_t i = 0; i < pAgglomerate->vParticles.size(); i++)
 	{
 		CSphere* pSphere = (CSphere*)m_pSystemStructure->AddObject(SPHERE);
+		pSphere->SetStartActivityTime(0.0);
+		pSphere->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		pSphere->SetCoordinates(0, QuatRotateVector(rotQuat, (pAgglomerate->vParticles[i].vecCoord * dScalingFactor - vCenterOfMass)) + vPos);
 		CQuaternion partNewQuat = rotQuat * pAgglomerate->vParticles[i].qQuaternion;
 		partNewQuat.Normalize();
@@ -129,6 +131,8 @@ void CInsertAgglomTab::AddAgglomerate()
 	for (size_t i = 0; i < pAgglomerate->vBonds.size(); i++)
 	{
 		CSolidBond* pBond = (CSolidBond*)m_pSystemStructure->AddObject(SOLID_BOND );
+		pBond->SetStartActivityTime(0.0);
+		pBond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
 		pBond->SetDiameter(pAgglomerate->vBonds[i].dRadius * dScalingFactor * 2);
 		pBond->m_nLeftObjectID = (unsigned)vNewParticlesIndexes[pAgglomerate->vBonds[i].nLeftID];
 		pBond->m_nRightObjectID = (unsigned)vNewParticlesIndexes[pAgglomerate->vBonds[i].nRightID];

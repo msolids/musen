@@ -7,7 +7,7 @@
 #include "DisableWarningHelper.h"
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
-#include "GeneratedFiles/GeometriesDatabase.pb.h"
+#include "GeometriesDatabase.pb.h"
 PRAGMA_WARNING_POP
 #include "TriangularMesh.h"
 

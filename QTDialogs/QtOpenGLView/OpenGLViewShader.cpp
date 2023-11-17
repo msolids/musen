@@ -39,7 +39,7 @@ void COpenGLViewShader::Construct()
 	// setup programs
 	m_partProgram.useTexture = true;
 
-	m_partProgram.fileTexture = ":/QT_GUI/Pictures/SphereTexture0.png";
+	m_partProgram.fileTexture = ":/MusenGUI/Pictures/SphereTexture0.png";
 
 	m_bondProgram.useIndex = true;
 	m_discProgram.useIndex = true;
@@ -826,7 +826,7 @@ void COpenGLViewShader::wheelEvent(QWheelEvent* _event)
 
 void COpenGLViewShader::InitShaders(SShaderBlock* _shaderBlock) const
 {
-	const QString fileNameSuffix = ":/QT_GUI/shaders/" + _shaderBlock->fileShader;
+	const QString fileNameSuffix = ":/MusenGUI/shaders/" + _shaderBlock->fileShader;
 
 	// check if an OpenGL version without deprecated functions is used
 	const bool isCore = format().profile() == QSurfaceFormat::CoreProfile;

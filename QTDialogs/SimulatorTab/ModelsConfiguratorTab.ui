@@ -17,8 +17,8 @@
    <string>Model Configurator</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-    <normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</normaloff>:/QT_GUI/Resources/MUSEN_Ico.png</iconset>
+   <iconset resource="../../MusenGUI/musengui.qrc">
+    <normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
    <item>
@@ -87,8 +87,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -201,8 +201,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -228,8 +228,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -358,8 +358,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
         </property>
         <property name="autoDefault">
          <bool>false</bool>
@@ -390,8 +390,8 @@
         <string>OK</string>
        </property>
        <property name="icon">
-        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-         <normaloff>:/QT_GUI/Pictures/apply.png</normaloff>:/QT_GUI/Pictures/apply.png</iconset>
+        <iconset resource="../../MusenGUI/musengui.qrc">
+         <normaloff>:/MusenGUI/Pictures/apply.png</normaloff>:/MusenGUI/Pictures/apply.png</iconset>
        </property>
       </widget>
      </item>
@@ -404,7 +404,7 @@
   <tabstop>buttonOK</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

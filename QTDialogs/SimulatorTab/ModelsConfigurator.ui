@@ -61,8 +61,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/question.png</normaloff>:/QT_GUI/Pictures/question.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/question.png</normaloff>:/MusenGUI/Pictures/question.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -107,8 +107,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/question.png</normaloff>:/QT_GUI/Pictures/question.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/question.png</normaloff>:/MusenGUI/Pictures/question.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -153,8 +153,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/question.png</normaloff>:/QT_GUI/Pictures/question.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/question.png</normaloff>:/MusenGUI/Pictures/question.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -199,8 +199,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/question.png</normaloff>:/QT_GUI/Pictures/question.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/question.png</normaloff>:/MusenGUI/Pictures/question.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -242,8 +242,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-          <normaloff>:/QT_GUI/Pictures/question.png</normaloff>:/QT_GUI/Pictures/question.png</iconset>
+         <iconset resource="../../MusenGUI/musengui.qrc">
+          <normaloff>:/MusenGUI/Pictures/question.png</normaloff>:/MusenGUI/Pictures/question.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -277,8 +277,8 @@
         <string>OK</string>
        </property>
        <property name="icon">
-        <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-         <normaloff>:/QT_GUI/Pictures/apply.png</normaloff>:/QT_GUI/Pictures/apply.png</iconset>
+        <iconset resource="../../MusenGUI/musengui.qrc">
+         <normaloff>:/MusenGUI/Pictures/apply.png</normaloff>:/MusenGUI/Pictures/apply.png</iconset>
        </property>
       </widget>
      </item>
@@ -288,7 +288,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

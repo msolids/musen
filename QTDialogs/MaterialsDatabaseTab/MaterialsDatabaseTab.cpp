@@ -21,8 +21,6 @@ CMaterialsDatabaseTab::CMaterialsDatabaseTab(CMaterialsDatabase* _pMaterialsDB, 
 
 	m_pMaterialsDB = _pMaterialsDB;
 
-	m_pSignalMapperFracs = new QSignalMapper(this);
-
 	ui.tableProperties->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 	ui.tableProperties->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 	ui.tableProperties->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
@@ -107,7 +105,6 @@ void CMaterialsDatabaseTab::InitializeConnections()
 
 	// signals from fractions
 	connect(ui.tableFractions,		&CQtTable::cellChanged,		this, &CMaterialsDatabaseTab::FractionChanged);
-	connect(m_pSignalMapperFracs,	&QSignalMapper::mappedInt,	this, &CMaterialsDatabaseTab::FractionCompoundChanged);
 }
 
 void CMaterialsDatabaseTab::SetPointers(CSystemStructure* _pSystemStructure, CUnitConvertor* _pUnitConvertor, CMaterialsDatabase* _pMaterialsDB, CGeometriesDatabase* _pGeometriesDB, CAgglomeratesDatabase* _pAgglomDB)
@@ -784,7 +781,7 @@ void CMaterialsDatabaseTab::NormalizeFractions()
 void CMaterialsDatabaseTab::FractionChanged(int _iRow, int _iCol)
 {
 	if (m_bAvoidSignal) return;
-	if (_iRow < 0) return;
+	if (_iRow < 0 || _iRow >= ui.tableFractions->rowCount()) return;
 	CMixture* pMixture = m_pMaterialsDB->GetMixture(GetElementKey(ui.listMixtures));
 	if (!pMixture) return;
 
@@ -818,7 +815,7 @@ void CMaterialsDatabaseTab::FractionChanged(int _iRow, int _iCol)
 void CMaterialsDatabaseTab::FractionCompoundChanged(int _iRow)
 {
 	if (m_bAvoidSignal) return;
-	if (_iRow < 0) return;
+	if (_iRow < 0 || _iRow >= ui.tableFractions->rowCount()) return;
 	CMixture* pMixture = m_pMaterialsDB->GetMixture(GetElementKey(ui.listMixtures));
 	if (!pMixture) return;
 	int index = static_cast<QComboBox*>(ui.tableFractions->cellWidget(_iRow, EFractionsColumns::COMPOUND))->currentIndex();
@@ -917,8 +914,7 @@ void CMaterialsDatabaseTab::AddCombobBoxOnFractionsTable(int _iRow, int _iCol, c
 
 	ui.tableFractions->setCellWidget(_iRow, _iCol, pComboBox);
 
-	connect(pComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), m_pSignalMapperFracs, static_cast<void (QSignalMapper::*)()>(&QSignalMapper::map));
-	m_pSignalMapperFracs->setMapping(pComboBox, _iRow);
+	connect(pComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [=] { FractionCompoundChanged(_iRow); });
 }
 
 int CMaterialsDatabaseTab::GetPropertyType(QTableWidget *_pTable, int _nRow) const

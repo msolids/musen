@@ -52,8 +52,8 @@
       <string>See documentation</string>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/question.png</normaloff>:/QT_GUI/Pictures/question.png</iconset>
+      <iconset resource="../../MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/question.png</normaloff>:/MusenGUI/Pictures/question.png</iconset>
      </property>
     </widget>
    </item>
@@ -66,8 +66,8 @@
       <string>Remove model</string>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+      <iconset resource="../../MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/minus.png</normaloff>:/MusenGUI/Pictures/minus.png</iconset>
      </property>
     </widget>
    </item>
@@ -81,7 +81,7 @@
   <tabstop>buttonRemove</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

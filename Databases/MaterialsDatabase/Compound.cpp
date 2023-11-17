@@ -7,7 +7,7 @@
 #include "DisableWarningHelper.h"
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
-#include "GeneratedFiles/MaterialsDatabase.pb.h"
+#include "MaterialsDatabase.pb.h"
 PRAGMA_WARNING_POP
 
 CCompound::CCompound(const std::string& _sKey /*= "" */)

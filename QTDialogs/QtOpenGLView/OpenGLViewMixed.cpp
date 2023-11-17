@@ -4,7 +4,7 @@
 
 #include "OpenGLViewMixed.h"
 
-const QString COpenGLViewMixed::m_csStandardSphereTexture = QString(":/QT_GUI/Pictures/SphereTexture0.png");
+const QString COpenGLViewMixed::m_csStandardSphereTexture = QString(":/MusenGUI/Pictures/SphereTexture0.png");
 
 COpenGLViewMixed::COpenGLViewMixed(CViewSettings* _viewSettings, QWidget *_parent)
 	:COpenGLView(_viewSettings, _parent)
@@ -107,10 +107,10 @@ void COpenGLViewMixed::initializeGL()
 void COpenGLViewMixed::InitializeShader()
 {
 	m_pVShader = new QOpenGLShader(QOpenGLShader::Vertex);
-	m_pVShader->compileSourceFile(":/QT_GUI/shaders/vSphereShader.glsl");
+	m_pVShader->compileSourceFile(":/MusenGUI/shaders/vSphereShader.glsl");
 
 	m_pFShader = new QOpenGLShader(QOpenGLShader::Fragment);
-	m_pFShader->compileSourceFile(":/QT_GUI/shaders/fSphereShader.glsl");
+	m_pFShader->compileSourceFile(":/MusenGUI/shaders/fSphereShader.glsl");
 
 	m_pProgram = new QOpenGLShaderProgram;
 	m_pProgram->addShader(m_pVShader);

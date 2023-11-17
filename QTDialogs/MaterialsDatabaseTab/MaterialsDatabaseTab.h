@@ -19,7 +19,6 @@ protected:
 
 private:
 	bool m_bAvoidUpdate;
-	QSignalMapper *m_pSignalMapperFracs;
 	std::vector<ETPPropertyTypes> m_vMusenActiveProperies;
 	std::vector<EIntPropertyTypes> m_vMusenActiveInteractions;
 

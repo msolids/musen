@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Rule Name="Linux_Build_Settings"
+    DisplayName="Linux Build Settings"
+    PageTemplate="generic"
+    Description="Linux Build Settings"
+    Order="8"
+    xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <Rule.DataSource>
+    <DataSource Persistence="UserFile" Label="LinuxBuildSettings" HasConfigurationCondition="true"/>
+  </Rule.DataSource>
+  <Rule.Categories>
+    <Category Name="LinuxBuildSettings_01_General" DisplayName="General"/>
+  </Rule.Categories>
+  <BoolProperty
+    Name="LinuxBuild_build_CLI"
+    Category="LinuxBuildSettings_01_General"
+    DisplayName="Build command line"
+    Description="Select whether command line version should be built."/>
+  <BoolProperty
+    Name="LinuxBuild_build_GUI"
+    Category="LinuxBuildSettings_01_General"
+    DisplayName="Build GUI"
+    Description="Select whether GUI version should be built."/>
+  <BoolProperty
+    Name="LinuxBuild_install_aux"
+    Category="LinuxBuildSettings_01_General"
+    DisplayName="Install auxiliary"
+    Description="Select whether documentation, examples, databases, etc. should be installed."/>
+</Rule>

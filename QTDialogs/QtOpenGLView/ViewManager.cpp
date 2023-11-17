@@ -325,8 +325,8 @@ std::vector<double> CViewManager::GetColoringValues(const std::vector<CSphere*>&
 		case EColorComponent::X:     return _vec.x;
 		case EColorComponent::Y:     return _vec.y;
 		case EColorComponent::Z:     return _vec.z;
-		default: return 0.0;
 		}
+		return 0.0; // should not be reached
 	};
 
 	std::vector<double> values;
@@ -335,8 +335,6 @@ std::vector<double> CViewManager::GetColoringValues(const std::vector<CSphere*>&
 
 	switch (m_viewSettings->Coloring().type)
 	{
-	case EColoring::NONE: break;
-	case EColoring::MATERIAL: break;
 	case EColoring::AGGL_SIZE:
 	{
 		CAgglomeratesAnalyzer analyzer;
@@ -433,16 +431,22 @@ std::vector<double> CViewManager::GetColoringValues(const std::vector<CSphere*>&
 			 values.push_back(p->GetTemperature());
 		break;
 	case EColoring::DISPLACEMENT:
+	{
+		auto currPartCoords = ReservedVector<CVector3>(_parts.size());
 		for (const auto& p : _parts)
-			values.push_back(Component(p->GetCoordinates()));
+			currPartCoords.push_back(p->GetCoordinates());
+		auto currBondCoords = ReservedVector<CVector3>(_bonds.size());
 		for (const auto& b : _bonds)
-			values.push_back(Component(m_systemStructure->GetBondCoordinate(m_time, b->m_lObjectID)));
+			currBondCoords.push_back(m_systemStructure->GetBondCoordinate(m_time, b->m_lObjectID));
 		m_systemStructure->PrepareTimePointForRead(0.0);
 		for (size_t i = 0; i < _parts.size(); ++i)
-			values[i] -= Component(_parts[i]->GetCoordinates());
+			values.push_back(Component(currPartCoords[i] - _parts[i]->GetCoordinates()));
 		for (size_t i = 0; i < _bonds.size(); ++i)
-			values[i + _parts.size()] -= Component(m_systemStructure->GetBondCoordinate(0.0, _bonds[i]->m_lObjectID));
+			values.push_back(Component(currBondCoords[i] - m_systemStructure->GetBondCoordinate(0.0, _bonds[i]->m_lObjectID)));
 		break;
+	}
+	case EColoring::MATERIAL: [[fallthrough]];
+	case EColoring::NONE:     break;
 	}
 
 	return values;

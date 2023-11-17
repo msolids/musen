@@ -37,13 +37,13 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonQtPath.props" />
-    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonDebug.props" />
+    <Import Project="$(SolutionDir)PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="$(SolutionDir)PropertySheets\MusenCommonDebug.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonQtPath.props" />
-    <Import Project="..\..\MUSEN\PropertySheets\MusenCommonRelease.props" />
+    <Import Project="$(SolutionDir)PropertySheets\MusenCommonQtPath.props" />
+    <Import Project="$(SolutionDir)PropertySheets\MusenCommonRelease.props" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -65,7 +65,7 @@
   </ImportGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;$(SolutionDir)QTDialogs\QtOpenGLView;$(SolutionDir)QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib />
     <Link>
@@ -76,7 +76,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;$(SolutionDir)..\..\QTDialogs\QtOpenGLView;$(SolutionDir)..\..\QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;$(SolutionDir)QTDialogs\QtOpenGLView;$(SolutionDir)QTDialogs\SampleAnalyzerTab;$(SolutionDir)$(Platform)\$(Configuration)\SampleAnalyzerTab\uic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib />
     <Link>
@@ -93,12 +93,8 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="ConfigurationTab.h">
-      <QtMocDir>.\GeneratedFiles\$(Configuration)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
     <QtMoc Include="ModelManagerTab.h">
-      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -107,8 +103,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="UnitConverterTab.h">
-      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -117,8 +111,6 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="TexturePicker.h">
-      <QtMocDir>.\GeneratedFiles\$(ConfigurationName)</QtMocDir>
-      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
     </QtMoc>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

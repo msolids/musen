@@ -2,13 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="GeometriesDatabase.cpp" />
-    <ClCompile Include="GeneratedFiles\GeometriesDatabase.pb.cc">
+    <ClCompile Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\GeometriesDatabase.pb.cc">
       <Filter>GeneratedFiles</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeometriesDatabase.h" />
-    <ClInclude Include="GeneratedFiles\GeometriesDatabase.pb.h">
+    <ClInclude Include="$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles\GeometriesDatabase.pb.h">
       <Filter>GeneratedFiles</Filter>
     </ClInclude>
   </ItemGroup>

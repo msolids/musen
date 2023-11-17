@@ -35,8 +35,8 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/backward.png</normaloff>:/QT_GUI/Pictures/backward.png</iconset>
+      <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/backward.png</normaloff>:/MusenGUI/Pictures/backward.png</iconset>
      </property>
     </widget>
    </item>
@@ -49,8 +49,8 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/stepBackward.png</normaloff>:/QT_GUI/Pictures/stepBackward.png</iconset>
+      <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/stepBackward.png</normaloff>:/MusenGUI/Pictures/stepBackward.png</iconset>
      </property>
     </widget>
    </item>
@@ -73,8 +73,8 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/stepForward.png</normaloff>:/QT_GUI/Pictures/stepForward.png</iconset>
+      <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/stepForward.png</normaloff>:/MusenGUI/Pictures/stepForward.png</iconset>
      </property>
     </widget>
    </item>
@@ -87,8 +87,8 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/forward.png</normaloff>:/QT_GUI/Pictures/forward.png</iconset>
+      <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/forward.png</normaloff>:/MusenGUI/Pictures/forward.png</iconset>
      </property>
     </widget>
    </item>
@@ -124,15 +124,15 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/apply.png</normaloff>:/QT_GUI/Pictures/apply.png</iconset>
+      <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/apply.png</normaloff>:/MusenGUI/Pictures/apply.png</iconset>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

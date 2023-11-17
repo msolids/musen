@@ -14,7 +14,7 @@
    <string>Bonds generator</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
+   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
     <normaloff>:/bondsGeneratorIco/bonds_generator.png</normaloff>:/bondsGeneratorIco/bonds_generator.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,1,0">
@@ -170,8 +170,8 @@
            <string>Add</string>
           </property>
           <property name="icon">
-           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-            <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+           <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
           </property>
           <property name="autoDefault">
            <bool>false</bool>
@@ -193,8 +193,8 @@
            <string>Remove</string>
           </property>
           <property name="icon">
-           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-            <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+           <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <normaloff>:/MusenGUI/Pictures/minus.png</normaloff>:/MusenGUI/Pictures/minus.png</iconset>
           </property>
           <property name="autoDefault">
            <bool>false</bool>
@@ -216,8 +216,8 @@
            <string>Up</string>
           </property>
           <property name="icon">
-           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-            <normaloff>:/QT_GUI/Pictures/up.png</normaloff>:/QT_GUI/Pictures/up.png</iconset>
+           <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <normaloff>:/MusenGUI/Pictures/up.png</normaloff>:/MusenGUI/Pictures/up.png</iconset>
           </property>
           <property name="autoDefault">
            <bool>false</bool>
@@ -239,8 +239,8 @@
            <string>Down</string>
           </property>
           <property name="icon">
-           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-            <normaloff>:/QT_GUI/Pictures/down.png</normaloff>:/QT_GUI/Pictures/down.png</iconset>
+           <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <normaloff>:/MusenGUI/Pictures/down.png</normaloff>:/MusenGUI/Pictures/down.png</iconset>
           </property>
           <property name="autoDefault">
            <bool>false</bool>
@@ -294,8 +294,8 @@
            <string>Generate</string>
           </property>
           <property name="icon">
-           <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-            <normaloff>:/QT_GUI/Pictures/play.png</normaloff>:/QT_GUI/Pictures/play.png</iconset>
+           <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <normaloff>:/MusenGUI/Pictures/play.png</normaloff>:/MusenGUI/Pictures/play.png</iconset>
           </property>
           <property name="autoDefault">
            <bool>false</bool>
@@ -426,7 +426,7 @@
   <tabstop>tableClasses</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

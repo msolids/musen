@@ -131,8 +131,8 @@ void CGeometriesEditorTab::SetupPropertiesList()
 		auto* widget = new QWidget{ ui.treeProperties };
 		auto* button1 = new QPushButton{ widget };
 		auto* button2 = new QPushButton{ widget };
-		button1->setIcon(QIcon{ ":/QT_GUI/Pictures/geo_" + _buttonName1 + ".png" });
-		button2->setIcon(QIcon{ ":/QT_GUI/Pictures/geo_" + _buttonName2 + ".png" });
+		button1->setIcon(QIcon{ ":/MusenGUI/Pictures/geo_" + _buttonName1 + ".png" });
+		button2->setIcon(QIcon{ ":/MusenGUI/Pictures/geo_" + _buttonName2 + ".png" });
 		button1->setAutoDefault(false);
 		button2->setAutoDefault(false);
 		button1->setToolTip("Place geometry on the selected side of all particles");

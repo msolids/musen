@@ -35,8 +35,8 @@
             <string>New</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/newPage.png</normaloff>:/QT_GUI/newPage.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/newPage.png</normaloff>:/MusenGUI/newPage.png</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -58,8 +58,8 @@
             <string>Load</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/folderr.png</normaloff>:/QT_GUI/folderr.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/folderr.png</normaloff>:/MusenGUI/folderr.png</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -81,8 +81,8 @@
             <string>Save</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/save_button.png</normaloff>:/QT_GUI/save_button.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/save_button.png</normaloff>:/MusenGUI/save_button.png</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -104,8 +104,8 @@
             <string>Save as</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/Pictures/save_as.png</normaloff>:/QT_GUI/Pictures/save_as.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/Pictures/save_as.png</normaloff>:/MusenGUI/Pictures/save_as.png</iconset>
            </property>
            <property name="checkable">
             <bool>false</bool>
@@ -140,8 +140,8 @@
             <string>Import</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -163,8 +163,8 @@
             <string>Up</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/Pictures/up.png</normaloff>:/QT_GUI/Pictures/up.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/Pictures/up.png</normaloff>:/MusenGUI/Pictures/up.png</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -186,8 +186,8 @@
             <string>Down</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/Pictures/down.png</normaloff>:/QT_GUI/Pictures/down.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/Pictures/down.png</normaloff>:/MusenGUI/Pictures/down.png</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -250,8 +250,8 @@
             <string>Remove</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-             <normaloff>:/QT_GUI/Pictures/minus.png</normaloff>:/QT_GUI/Pictures/minus.png</iconset>
+            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+             <normaloff>:/MusenGUI/Pictures/minus.png</normaloff>:/MusenGUI/Pictures/minus.png</iconset>
            </property>
            <property name="autoDefault">
             <bool>false</bool>
@@ -370,7 +370,7 @@
   <tabstop>tableGeometryInfo</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

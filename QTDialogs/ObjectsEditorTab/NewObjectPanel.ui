@@ -340,8 +340,8 @@
       <string>Add</string>
      </property>
      <property name="icon">
-      <iconset resource="../../MUSEN/QT_GUI/qt_gui.qrc">
-       <normaloff>:/QT_GUI/Pictures/add.png</normaloff>:/QT_GUI/Pictures/add.png</iconset>
+      <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+       <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
      </property>
     </widget>
    </item>
@@ -363,7 +363,7 @@
   <tabstop>buttonAdd</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MUSEN/QT_GUI/qt_gui.qrc"/>
+  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>
