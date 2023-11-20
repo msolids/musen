@@ -41,11 +41,6 @@ if ($is_git_repo -eq $true) {
 	}
 }
 
-# get name of the current git branch
-$branch = ""
-if ($is_git_repo -eq $true) {
-}
-
 # write build time
 try { 
 	$time_file = "$PSScriptRoot\BuildTime.h"
