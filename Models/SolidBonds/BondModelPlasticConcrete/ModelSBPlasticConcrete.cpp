@@ -15,7 +15,7 @@ CModelSBPlasticConcrete::CModelSBPlasticConcrete()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBPlasticConcrete::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
+void CModelSBPlasticConcrete::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	// the bond in the global coordinate system
 	CVector3 currentBond = GetSolidBond(Particles().Coord(_iRight), Particles().Coord(_iLeft), m_PBC);
@@ -97,4 +97,18 @@ void CModelSBPlasticConcrete::CalculateSBForce(double _time, double _timeStep, s
 
 	_bonds.UnsymMoment(_iBond) = rAC*_bonds.TangentialForce(_iBond);
 	_bonds.PrevBond(_iBond) = currentBond;
+}
+
+void CModelSBPlasticConcrete::ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	if (Bonds().LeftID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) += Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) += Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) - Bonds().UnsymMoment(_iBond);
+	}
+	else if (Bonds().RightID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) -= Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) -= Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) + Bonds().UnsymMoment(_iBond);
+	}
 }

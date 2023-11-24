@@ -31,7 +31,7 @@ public slots:
 private:
 	void InitializeConnections();
 	void UpdateFoldersView();
-	void UpdateModelsListView();
+	void UpdateModelsListView() const;
 
 private slots:
 	void AddDir();

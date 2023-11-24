@@ -19,7 +19,7 @@ CModelSBElasticPerfectlyPlastic::CModelSBElasticPerfectlyPlastic()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBElasticPerfectlyPlastic::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
+void CModelSBElasticPerfectlyPlastic::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	// relative angle velocity of contact partners
 	CVector3 relAngleVel = Particles().AnglVel(_iLeft) - Particles().AnglVel(_iRight);
@@ -52,7 +52,7 @@ void CModelSBElasticPerfectlyPlastic::CalculateSBForce(double _time, double _tim
 	// calculate the force
 	double dStrainTotal = (dDistanceBetweenCenters-_bonds.InitialLength(_iBond)) / _bonds.InitialLength(_iBond);
 	double dNormalStress = (dStrainTotal - _bonds.NormalPlasticStrain(_iBond))*_bonds.NormalStiffness(_iBond);
-	
+
 	double dYieldStrength = _bonds.YieldStrength(_iBond);
 	if (dNormalStress < 0) // compression
 		dYieldStrength *= m_parameters[3].value;
@@ -68,10 +68,10 @@ void CModelSBElasticPerfectlyPlastic::CalculateSBForce(double _time, double _tim
 	}
 
 	CVector3 vNormalForce = currentContact*dNormalStress*(-1*Bonds().CrossCut(_iBond));
-	
+
 	_bonds.TangentialOverlap(_iBond) = M * Bonds().TangentialOverlap(_iBond) - tangentialVelocity * _timeStep;
 	double dTangentialStress = Length (Bonds().TangentialOverlap(_iBond))*Bonds().TangentialStiffness(_iBond) / Bonds().InitialLength(_iBond);
-	
+
 	if (m_parameters[2].value) // tangential yield
 		if (dTangentialStress > _bonds.YieldStrength(_iBond))
 		{
@@ -86,11 +86,25 @@ void CModelSBElasticPerfectlyPlastic::CalculateSBForce(double _time, double _tim
 	_bonds.UnsymMoment(_iBond) = rAC * Bonds().TangentialForce(_iBond);
 	_bonds.PrevBond(_iBond) = currentBond;
 
-	if ((dStrainTotal > m_parameters[0].value) || 
+	if ((dStrainTotal > m_parameters[0].value) ||
 		(m_parameters[1].value && (dStrainTotal < -m_parameters[1].value))) // strain greater than breakage strain
 	{
 		_bonds.Active(_iBond) = false;
 		_bonds.EndActivity(_iBond) = _time;
 		*_pBrokenBondsNum += 1;
+	}
+}
+
+void CModelSBElasticPerfectlyPlastic::ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	if (Bonds().LeftID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) += Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) += Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) - Bonds().UnsymMoment(_iBond);
+	}
+	else if (Bonds().RightID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) -= Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) -= Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) + Bonds().UnsymMoment(_iBond);
 	}
 }

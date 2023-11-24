@@ -34,12 +34,28 @@ CModelPW::CModelPW()
 //////////////////////////////////////////////////////////////////////////
 
 /// TODO: This function can be removed if not used.
-void CModelPW::PrecalculatePWModel(double _time, double _timeStep, SParticleStruct* _particles, SWallStruct* _walls)
+void CModelPW::PrecalculatePW(double _time, double _timeStep, SParticleStruct* _particles, SWallStruct* _walls)
 {
 	// TODO: Write your pre-calculation step here.
 }
 
-void CModelPW::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPW::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// TODO: Write your model here.
 }
+
+void CModelPW::ConsolidatePart(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	// TODO: Write your consolidation step here.
+	// This example is for calculation of forces and moments.
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPW::ConsolidateWall(double _time, double _timeStep, size_t _iWall, SWallStruct& _walls, const SCollision* _collision) const
+{
+	// TODO: Write your consolidation step here.
+	// This example is for calculation of forces and moments.
+	_walls.Force(_iWall) -= _collision->vTotalForce;
+}
+

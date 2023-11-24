@@ -17,9 +17,9 @@ public:
 	/// CPU implementation.
 
 	/// Is called each time step before real calculations. Can be removed if not used.
-	void PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles) override;
+	void PrecalculateEF(double _time, double _timeStep, SParticleStruct* _particles) override;
 	/// The model itself.
-	void CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const override;
+	void CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const override;
 	//////////////////////////////////////////////////////////////////////////
 
 
@@ -29,7 +29,7 @@ public:
 	/// Set model parameters to GPU. Should not be changed.
 	void SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc) override;
 	/// Invokes the GPU-version of the model. Can be adjusted.
-	void CalculateEFForceGPU(double _time, double _timeStep, SGPUParticles& _particles) override;
+	void CalculateEFGPU(double _time, double _timeStep, SGPUParticles& _particles) override;
 	//////////////////////////////////////////////////////////////////////////
 };
 

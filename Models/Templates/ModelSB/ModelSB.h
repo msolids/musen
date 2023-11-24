@@ -17,9 +17,11 @@ public:
 	/// CPU implementation.
 
 	/// Is called each time step before real calculations. Can be removed if not used.
-	void PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds) override;
+	void PrecalculateSB(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds) override;
 	/// The model itself.
-	void CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const override;
+	void CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const override;
+	/// Apply calculated bond to a particle.
+	void ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const override;
 	//////////////////////////////////////////////////////////////////////////
 
 
@@ -29,7 +31,7 @@ public:
 	/// Set model parameters to GPU. Should not be changed.
 	void SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc) override;
 	/// Invokes the GPU-version of the model. Can be adjusted.
-	void CalculateSBForceGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds) override;
+	void CalculateSBGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds) override;
 	//////////////////////////////////////////////////////////////////////////
 };
 

@@ -18,7 +18,7 @@ void CModelSB::SetParametersGPU(const std::vector<double>& _parameters, const SP
 }
 
 /// Invokes the GPU-version of the model.
-void CModelSB::CalculateSBForceGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
+void CModelSB::CalculateSBGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
 {
 	/// The function is invoked with the maximum possible set of parameters.
 	/// All unused parameters may be removed (here and and in ModelSB.cuh) for speed-up.

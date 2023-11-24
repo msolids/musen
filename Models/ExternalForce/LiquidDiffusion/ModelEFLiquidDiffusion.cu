@@ -213,7 +213,7 @@ void __global__ GenerateNewCurandStates_LiquidDiffusion_kernel(size_t _nStates, 
 
 // Wrapper to check for changes in system setting (number of particles) and saving switch
 // Passes pointer to Curand states to Kernel execution
-void CModelEFLiquidDiffusion::CalculateEFForceGPU(double _time, double _timeStep, SGPUParticles& _particles)
+void CModelEFLiquidDiffusion::CalculateEFGPU(double _time, double _timeStep, SGPUParticles& _particles)
 {
 	// initialize model if necessary
 	if (m_nStatesGPU != _particles.nElements) // check if the current number of states in storage is not equal to the particle number (desired number of states)

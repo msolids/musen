@@ -9,7 +9,7 @@ CModelSBCreep::CModelSBCreep()
 {
 	m_name = "Creep bond";
 	m_uniqueKey = "CA3CE500F3FE4E37914EC7D544333847";
-	
+
 	AddParameter("FRACTURE_STRAIN_TENSION", "Fracture strain tension", 0.1);
 	AddParameter("FRACTURE_STRAIN_COMPRESSION", "Fracture strain compr. (0 - disabled)", 0);
 	AddParameter("TANGENTIAL_YIELD", "Tangential yield (0-no/1-yes)", 1);
@@ -21,7 +21,7 @@ CModelSBCreep::CModelSBCreep()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBCreep::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
+void CModelSBCreep::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	double dCreep_A = m_parameters[4].value;
 	double dCreep_m = m_parameters[5].value;
@@ -58,7 +58,7 @@ void CModelSBCreep::CalculateSBForce(double _time, double _timeStep, size_t _iLe
 	// calculate the force
 	double dStrainTotal = (dDistanceBetweenCenters-_bonds.InitialLength(_iBond)) / _bonds.InitialLength(_iBond);
 	double dNormalStress = (dStrainTotal - _bonds.NormalPlasticStrain(_iBond))*_bonds.NormalStiffness(_iBond);
-	
+
 	double dYieldStrength = _bonds.YieldStrength(_iBond);
 	if (dNormalStress < 0) // compression
 		dYieldStrength *= m_parameters[3].value;
@@ -80,7 +80,7 @@ void CModelSBCreep::CalculateSBForce(double _time, double _timeStep, size_t _iLe
 	else
 		_bonds.NormalPlasticStrain(_iBond) -= _timeStep *  dCreep_A * pow(fabs(dNormalStress), dCreep_m);
 
-	
+
 	_bonds.TangentialOverlap(_iBond) = M * Bonds().TangentialOverlap(_iBond) - tangentialVelocity * _timeStep; // rotate an old one
 	double dTangentialStress = Length (Bonds().TangentialOverlap(_iBond))*Bonds().TangentialStiffness(_iBond) / Bonds().InitialLength(_iBond);
 	if (m_parameters[2].value) // tangential yield
@@ -89,7 +89,7 @@ void CModelSBCreep::CalculateSBForce(double _time, double _timeStep, size_t _iLe
 			_bonds.TangentialOverlap(_iBond) *= dYieldStrength*Bonds().InitialLength(_iBond) / (Bonds().TangentialStiffness(_iBond)*Length(Bonds().TangentialOverlap(_iBond)));
 			dTangentialStress = dYieldStrength;
 		}
-     // tangential creep
+	 // tangential creep
 	if (_bonds.TangentialOverlap(_iBond).SquaredLength()>0)
 		_bonds.TangentialOverlap(_iBond) *= (1 - _timeStep * dCreep_A * pow(fabs(dTangentialStress), dCreep_m) * Bonds().InitialLength(_iBond)/ _bonds.TangentialOverlap(_iBond).Length());
 
@@ -104,7 +104,7 @@ void CModelSBCreep::CalculateSBForce(double _time, double _timeStep, size_t _iLe
 	bool bondBreaks = false;
 
 	// check fracture condition caused by strain
-	if ((dStrainTotal > m_parameters[0].value) || 
+	if ((dStrainTotal > m_parameters[0].value) ||
 		(m_parameters[1].value && (dStrainTotal < -m_parameters[1].value))) // strain greater than breakage strain
 		bondBreaks = true;
 
@@ -127,4 +127,18 @@ void CModelSBCreep::CalculateSBForce(double _time, double _timeStep, size_t _iLe
 		*_pBrokenBondsNum += 1;
 	}
 
+}
+
+void CModelSBCreep::ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	if (Bonds().LeftID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) += Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) += Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) - Bonds().UnsymMoment(_iBond);
+	}
+	else if (Bonds().RightID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) -= Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) -= Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) + Bonds().UnsymMoment(_iBond);
+	}
 }

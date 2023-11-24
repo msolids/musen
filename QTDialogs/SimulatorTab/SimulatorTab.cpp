@@ -1,9 +1,10 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
 #include "SimulatorTab.h"
 #include "SelectiveSavingTab.h"
+#include "qtOperations.h"
 #include <QStandardItemModel>
 #include <QMessageBox>
 #include <QThread>
@@ -55,8 +56,6 @@ CSimulatorTab::CSimulatorTab(CSimulatorManager* _pSimManager, QSettings* _pSetti
 	m_sHelpFileName = "Users Guide/Simulator.pdf";
 
 	ui.checkBoxCollisions->setVisible(false);
-	ui.labelLBText->setVisible(false);
-	ui.labelLB->setVisible(false);
 }
 
 void CSimulatorTab::InitializeConnections() const
@@ -110,21 +109,28 @@ void CSimulatorTab::UpdateWholeView()
 	m_bAvoidSignal = false;
 }
 
-void CSimulatorTab::UpdateModelsView()
+void CSimulatorTab::UpdateModelsView() const
 {
-	const CModelManager* pManager = m_pSimulatorManager->GetSimulatorPtr()->GetModelManager();
-	const CAbstractDEMModel *pPP = pManager->GetModel(EMusenModelType::PP);
-	const CAbstractDEMModel *pPW = pManager->GetModel(EMusenModelType::PW);
-	const CAbstractDEMModel *pSB = pManager->GetModel(EMusenModelType::SB);
-	const CAbstractDEMModel *pLB = pManager->GetModel(EMusenModelType::LB);
-	const CAbstractDEMModel *pEF = pManager->GetModel(EMusenModelType::EF);
-	const CAbstractDEMModel *pHTPP = pManager->GetModel(EMusenModelType::PPHT);
-	ui.labelPP->setText(pPP ? ss2qs(pPP->GetName()) : "-");
-	ui.labelPW->setText(pPW ? ss2qs(pPW->GetName()) : "-");
-	ui.labelSB->setText(pSB ? ss2qs(pSB->GetName()) : "-");
-	ui.labelLB->setText(pLB ? ss2qs(pLB->GetName()) : "-");
-	ui.labelEF->setText(pEF ? ss2qs(pEF->GetName()) : "-");
-	ui.labelHT_PP->setText(pHTPP ? ss2qs(pHTPP->GetName()) : "-");
+	const CModelManager* manager = m_pSimulatorManager->GetSimulatorPtr()->GetModelManager();
+
+	const auto SetNameToLabel = [&](QLabel* _label, EMusenModelType _type)
+	{
+		const auto descriptors = manager->GetActiveModelsDescriptors(_type);
+		if (descriptors.empty())
+			_label->setText("-");
+		else
+		{
+			std::string names = descriptors.front()->GetPath();
+			for (size_t i = 1; i < descriptors.size(); ++i)
+				names += "\n" + descriptors[i]->GetPath();
+			_label->setText(QString::fromStdString(names));
+		}
+	};
+
+	SetNameToLabel(ui.labelPP, EMusenModelType::PP);
+	SetNameToLabel(ui.labelPW, EMusenModelType::PW);
+	SetNameToLabel(ui.labelSB, EMusenModelType::SB);
+	SetNameToLabel(ui.labelEF, EMusenModelType::EF);
 }
 
 void CSimulatorTab::UpdateCollisionsFlag() const
@@ -265,37 +271,31 @@ void CSimulatorTab::StartSimulation()
 				return;
 
 	// check contact models
-	sErrorMessage = pModelManager->GetModelError(EMusenModelType::PP);
+	sErrorMessage = pModelManager->IsModelActive(EMusenModelType::PP) ? pModelManager->GetActiveModelsDescriptors(EMusenModelType::PP).front()->GetError() : "";
 	if (!sErrorMessage.empty())
 	{
 		ui.statusMessage->setText(ss2qs(sErrorMessage));
 		return;
 	}
-	sErrorMessage = pModelManager->GetModelError(EMusenModelType::PW);
+	sErrorMessage = pModelManager->IsModelActive(EMusenModelType::PW) ? pModelManager->GetActiveModelsDescriptors(EMusenModelType::PW).front()->GetError() : "";
 	if (!sErrorMessage.empty())
 	{
 		ui.statusMessage->setText(ss2qs(sErrorMessage));
 		return;
 	}
-	sErrorMessage = pModelManager->GetModelError(EMusenModelType::SB);
+	sErrorMessage = pModelManager->IsModelActive(EMusenModelType::SB) ? pModelManager->GetActiveModelsDescriptors(EMusenModelType::SB).front()->GetError() : "";
 	if (!sErrorMessage.empty())
 	{
 		ui.statusMessage->setText(ss2qs(sErrorMessage));
 		return;
 	}
-	sErrorMessage = pModelManager->GetModelError(EMusenModelType::LB);
+	sErrorMessage = pModelManager->IsModelActive(EMusenModelType::LB) ? pModelManager->GetActiveModelsDescriptors(EMusenModelType::LB).front()->GetError() : "";
 	if (!sErrorMessage.empty())
 	{
 		ui.statusMessage->setText(ss2qs(sErrorMessage));
 		return;
 	}
-	sErrorMessage = pModelManager->GetModelError(EMusenModelType::EF);
-	if (!sErrorMessage.empty())
-	{
-		ui.statusMessage->setText(ss2qs(sErrorMessage));
-		return;
-	}
-	sErrorMessage = pModelManager->GetModelError(EMusenModelType::PPHT);
+	sErrorMessage = pModelManager->IsModelActive(EMusenModelType::EF) ? pModelManager->GetActiveModelsDescriptors(EMusenModelType::EF).front()->GetError() : "";
 	if (!sErrorMessage.empty())
 	{
 		ui.statusMessage->setText(ss2qs(sErrorMessage));
@@ -307,12 +307,12 @@ void CSimulatorTab::StartSimulation()
 	// check that all necessary models are defined
 	if (m_pSystemStructure->GetNumberOfSpecificObjects(SPHERE) != 0 || (pGenerationManager->GetActiveGeneratorsNumber() != 0))
 	{
-		if (!pModelManager->IsModelDefined(EMusenModelType::PP))
+		if (!pModelManager->IsModelActive(EMusenModelType::PP))
 		{
 			if (QMessageBox::question(this, "Confirmation", "Particle-particle contact model is not specified. Particle-particle contacts will not be considered during the simulation. Continue?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
 				return;
 		}
-		else if (simType == ESimulatorType::GPU && !pModelManager->IsModelGPUCompatible(EMusenModelType::PP))
+		else if (simType == ESimulatorType::GPU && !pModelManager->GetActiveModelsDescriptors(EMusenModelType::PP).front()->GetModel()->HasGPUSupport())
 		{
 			ui.statusMessage->setText(ss2qs("Selected particle-particle model has no GPU support"));
 			return;
@@ -320,12 +320,12 @@ void CSimulatorTab::StartSimulation()
 	}
 	if (m_pSystemStructure->GeometriesNumber() != 0)
 	{
-		if (!pModelManager->IsModelDefined(EMusenModelType::PW))
+		if (!pModelManager->IsModelActive(EMusenModelType::PW))
 		{
 			if (QMessageBox::question(this, "Confirmation", "Particle-wall contact model is not specified. Particle-wall contacts will not be considered during the simulation. Continue?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
 				return;
 		}
-		else if ((simType == ESimulatorType::GPU) && !pModelManager->IsModelGPUCompatible(EMusenModelType::PW))
+		else if ((simType == ESimulatorType::GPU) && !pModelManager->GetActiveModelsDescriptors(EMusenModelType::PW).front()->GetModel()->HasGPUSupport())
 		{
 			ui.statusMessage->setText(ss2qs("Selected particle-wall model has no GPU support"));
 			return;
@@ -333,12 +333,12 @@ void CSimulatorTab::StartSimulation()
 	}
 	if (m_pSystemStructure->GetNumberOfSpecificObjects(SOLID_BOND) != 0 || pGenerationManager->GetActiveGeneratorsNumber() != 0)
 	{
-		if (!pModelManager->IsModelDefined(EMusenModelType::SB))
+		if (!pModelManager->IsModelActive(EMusenModelType::SB))
 		{
 			if (QMessageBox::question(this, "Confirmation", "Solid bond model is not specified. Solid bonds will not be considered during the simulation. Continue?", QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
 				return;
 		}
-		else if (simType == ESimulatorType::GPU && !pModelManager->IsModelGPUCompatible(EMusenModelType::SB))
+		else if (simType == ESimulatorType::GPU && !pModelManager->GetActiveModelsDescriptors(EMusenModelType::SB).front()->GetModel()->HasGPUSupport())
 		{
 			ui.statusMessage->setText(ss2qs("Selected solid bond model has no GPU support"));
 			return;

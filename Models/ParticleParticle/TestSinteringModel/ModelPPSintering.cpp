@@ -15,7 +15,7 @@ CModelPPSintering::CModelPPSintering()
 	/* 1*/ AddParameter("VISCOUS_PARAMETER", "Viscous parameter for tangential force (eta) [-]", 0.01);
 }
 
-void CModelPPSintering::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPSintering::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double diffusionParam = m_parameters[0].value;
@@ -39,4 +39,14 @@ void CModelPPSintering::CalculatePPForce(double _time, double _timeStep, size_t 
 
 	// store results in collision
 	_collision->vTotalForce = totalForce;
+}
+
+void CModelPPSintering::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+}
+
+void CModelPPSintering::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
 }

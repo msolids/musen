@@ -16,7 +16,7 @@ CModelEFViscousField::CModelEFViscousField()
 	m_hasGPUSupport = true;
 }
 
-void CModelEFViscousField::CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
+void CModelEFViscousField::CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
 	double dKinViscosity = m_parameters[ 0 ].value;
 	double dMediumDensity = m_parameters[ 1 ].value;

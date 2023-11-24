@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -8,13 +8,7 @@
 #include "MUSENfilesystem.h"
 #include <sys/stat.h>
 #ifdef _WIN32
-#ifdef NOMINMAX
-#include <Windows.h>
-#else
-#define NOMINMAX
-#include <Windows.h>
-#undef NOMINMAX
-#endif
+#include "SafeWindowsHeader.h"
 #else
 #include <dirent.h>
 #include <cstring>

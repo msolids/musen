@@ -15,7 +15,7 @@ CModelSBKelvin::CModelSBKelvin()
 	m_hasGPUSupport = true;
 }
 
-void CModelSBKelvin::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
+void CModelSBKelvin::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum)   const
 {
 	// relative angle velocity of contact partners
 	CVector3 relAngleVel = Particles().AnglVel(_iLeft) - Particles().AnglVel(_iRight);
@@ -89,3 +89,16 @@ void CModelSBKelvin::CalculateSBForce(double _time, double _timeStep, size_t _iL
 	}
 }
 
+void CModelSBKelvin::ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	if (Bonds().LeftID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) += Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) += Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) - Bonds().UnsymMoment(_iBond);
+	}
+	else if (Bonds().RightID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) -= Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) -= Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) + Bonds().UnsymMoment(_iBond);
+	}
+}

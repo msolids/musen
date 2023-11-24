@@ -25,13 +25,29 @@ bool CScriptAnalyzer::AnalyzeFile(const std::string& _fileName)
 
 void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /* = std::cout*/)
 {
+	// needed for compatibility with older versions
+	const auto ReadModelOld = [](std::stringstream& _ss, SJob& _job, EMusenModelType _type)
+	{
+		const std::string name = GetRestOfLine(&_ss);
+		if (!VectorContains(_job.models, [&](const SJob::SModel& _model) { return _model.name == name; }))
+			_job.models.push_back(SJob::SModel{ name, "", _type });
+	};
+	// needed for compatibility with older versions
+	const auto ReadModelParamsOld = [](std::stringstream& _ss, SJob& _job, EMusenModelType _type)
+	{
+		const std::string params = GetRestOfLine(&_ss);
+		const size_t i = VectorFind(_job.models, [&](const SJob::SModel& _model) { return _model.type == _type; });
+		if (i < _job.models.size())
+			_job.models[i].parameters = params;
+	};
+
 	if (_line.empty()) return;
 	std::stringstream ss{ _line };
 	const std::string key = ToUpperCase(GetValueFromStream<std::string>(&ss));
 	if (m_jobs.empty() && key != "NEW_JOB" && key != "JOB") // force adding the first job if the first line is not JOB
 		m_jobs.push_back({});
 
-	if      (key == "NEW_JOB" || key == "JOB")				m_jobs.push_back({});
+	if (key == "NEW_JOB" || key == "JOB")				m_jobs.push_back({});
 	else if (key == "SOURCE_FILE")							m_jobs.back().sourceFileName = GetRestOfLine(&ss);
 	else if (key == "LOG_FILE")								m_jobs.back().logFileName = GetRestOfLine(&ss);
 	else if (key == "RESULT_FILE" || key == "RESULTS_FILE")	m_jobs.back().resultFileName = GetRestOfLine(&ss);
@@ -42,7 +58,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 			m_jobs.back().component = static_cast<SJob::EComponent>(std::stoi(value));
 		else
 		{
-			if      (value == "PACKAGE_GENERATOR")	m_jobs.back().component = SJob::EComponent::PACKAGE_GENERATOR;
+			if (value == "PACKAGE_GENERATOR")	m_jobs.back().component = SJob::EComponent::PACKAGE_GENERATOR;
 			else if (value == "RESULTS_ANALYZER")	m_jobs.back().component = SJob::EComponent::RESULTS_ANALYZER;
 			else if (value == "BONDS_GENERATOR")	m_jobs.back().component = SJob::EComponent::BONDS_GENERATOR;
 			else if (value == "SIMULATOR")			m_jobs.back().component = SJob::EComponent::SIMULATOR;
@@ -58,18 +74,33 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		if (type == "CPU")																	m_jobs.back().simulatorType = ESimulatorType::CPU;
 		if (type == "GPU" || type == "GPU_FAST" || type == "GPU FAST" || type == "GPUFAST") m_jobs.back().simulatorType = ESimulatorType::GPU;
 	}
-	else if (key == "MODEL_PP")								m_jobs.back().models[EMusenModelType::PP].name = GetRestOfLine(&ss);
-	else if (key == "MODEL_PW")								m_jobs.back().models[EMusenModelType::PW].name = GetRestOfLine(&ss);
-	else if (key == "MODEL_SB")								m_jobs.back().models[EMusenModelType::SB].name = GetRestOfLine(&ss);
-	else if (key == "MODEL_LB")								m_jobs.back().models[EMusenModelType::LB].name = GetRestOfLine(&ss);
-	else if (key == "MODEL_EF" || key == "MODEL_EXT_FORCE")	m_jobs.back().models[EMusenModelType::EF].name = GetRestOfLine(&ss);
-	else if (key == "MODEL_PPHT")							m_jobs.back().models[EMusenModelType::PPHT].name = GetRestOfLine(&ss);
-	else if (key == "MODEL_PP_PARAMS")										m_jobs.back().models[EMusenModelType::PP].parameters = GetRestOfLine(&ss);
-	else if (key == "MODEL_PW_PARAMS")										m_jobs.back().models[EMusenModelType::PW].parameters = GetRestOfLine(&ss);
-	else if (key == "MODEL_SB_PARAMS")										m_jobs.back().models[EMusenModelType::SB].parameters = GetRestOfLine(&ss);
-	else if (key == "MODEL_LB_PARAMS")										m_jobs.back().models[EMusenModelType::LB].parameters = GetRestOfLine(&ss);
-	else if (key == "MODEL_EF_PARAMS" || key == "MODEL_EXT_FORCE_PARAMS")	m_jobs.back().models[EMusenModelType::EF].parameters = GetRestOfLine(&ss);
-	else if (key == "MODEL_PPHT_PARAMS")									m_jobs.back().models[EMusenModelType::PPHT].parameters = GetRestOfLine(&ss);
+	else if (key == "MODEL_PP")								ReadModelOld(ss, m_jobs.back(), EMusenModelType::PP);
+	else if (key == "MODEL_PW")								ReadModelOld(ss, m_jobs.back(), EMusenModelType::PW);
+	else if (key == "MODEL_SB")								ReadModelOld(ss, m_jobs.back(), EMusenModelType::SB);
+	else if (key == "MODEL_LB")								ReadModelOld(ss, m_jobs.back(), EMusenModelType::LB);
+	else if (key == "MODEL_EF" || key == "MODEL_EXT_FORCE")	ReadModelOld(ss, m_jobs.back(), EMusenModelType::EF);
+	else if (key == "MODEL_PPHT")							ReadModelOld(ss, m_jobs.back(), EMusenModelType::PP);
+	// TODO: adjust documentation and scripts
+	else if (key == "MODEL")
+	{
+		const std::string name = GetRestOfLine(&ss);
+		if (!VectorContains(m_jobs.back().models, [&](const SJob::SModel& _model) { return _model.name == name; }))
+			m_jobs.back().models.push_back(SJob::SModel{ name, "", EMusenModelType::UNSPECIFIED });
+	}
+	else if (key == "MODEL_PP_PARAMS")										ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::PP);
+	else if (key == "MODEL_PW_PARAMS")										ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::PW);
+	else if (key == "MODEL_SB_PARAMS")										ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::SB);
+	else if (key == "MODEL_LB_PARAMS")										ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::LB);
+	else if (key == "MODEL_EF_PARAMS" || key == "MODEL_EXT_FORCE_PARAMS")	ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::EF);
+	else if (key == "MODEL_PPHT_PARAMS")									ReadModelParamsOld(ss, m_jobs.back(), EMusenModelType::PP);
+	else if (key == "MODEL_PARAMS")
+	{
+		const auto model = GetValueFromStream<std::string>(&ss);
+		const auto params = GetRestOfLine(&ss);
+		const size_t i = VectorFind(m_jobs.back().models, [&](const SJob::SModel& _model) { return _model.name == model; });
+		if (i != static_cast<size_t>(-1) && i < m_jobs.back().models.size())
+			m_jobs.back().models[i].parameters = params;
+	}
 	else if (key == "SNAPSHOT_TIME")								ss >> m_jobs.back().dSnapshotTP;
 	else if (key == "SIMULATION_STEP" || key == "SIMULATION_TSTEP")	ss >> m_jobs.back().dSimulationTimeStep;
 	else if (key == "SAVING_STEP" || key == "SAVING_TSTEP")			ss >> m_jobs.back().dSavingTimeStep;
@@ -136,7 +167,9 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		const auto value = GetValueFromStream<double>(&ss);
 		ETPPropertyTypes propertyKey{ PROPERTY_NO_PROPERTY };
 		if		(propertyStr == "DENSITY")				propertyKey = PROPERTY_DENSITY;
+		else if (propertyStr == "HEAT_CAPACITY")		propertyKey = PROPERTY_HEAT_CAPACITY;
 		else if (propertyStr == "DYNAMIC_VISCOSITY")	propertyKey = PROPERTY_DYNAMIC_VISCOSITY;
+		else if (propertyStr == "THERMAL_CONDUCTIVITY")	propertyKey = PROPERTY_THERMAL_CONDUCTIVITY;
 		else if (propertyStr == "YOUNG_MODULUS")		propertyKey = PROPERTY_YOUNG_MODULUS;
 		else if (propertyStr == "NORMAL_STRENGTH")		propertyKey = PROPERTY_NORMAL_STRENGTH;
 		else if (propertyStr == "TANGENTIAL_STRENGTH")	propertyKey = PROPERTY_TANGENTIAL_STRENGTH;

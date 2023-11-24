@@ -15,7 +15,7 @@ CModelPPLinearElastic::CModelPPLinearElastic()
 	/* 1*/ AddParameter("Kt", "Tangential stiffness [N/m]", 1e+3);
 }
 
-void CModelPPLinearElastic::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPLinearElastic::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double Kn = m_parameters[0].value;
@@ -79,4 +79,16 @@ void CModelPPLinearElastic::CalculatePPForce(double _time, double _timeStep, siz
 	_collision->vTotalForce    = totalForce;
 	_collision->vResultMoment1 = moment1;
 	_collision->vResultMoment2 = moment2;
+}
+
+void CModelPPLinearElastic::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPPLinearElastic::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment2;
 }

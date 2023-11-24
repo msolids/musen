@@ -186,9 +186,6 @@
     <ProjectReference Include="$(SolutionDir)Models\ExternalForce\ViscousField\ViscousField.vcxproj">
       <Project>{df0d11c1-a321-4a44-a00e-4913fb4469c4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Models\HeatTransfer\PPHeatConduction\PPHeatConduction.vcxproj">
-      <Project>{35f3df74-ac00-4849-9360-4c17860acaa6}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Models\LiquidBonds\CapilaryViscous\LiquidBondModelCV.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba82000000}</Project>
     </ProjectReference>
@@ -294,11 +291,20 @@
     <ProjectReference Include="$(SolutionDir)Modules\SystemStructure\SystemStructure.vcxproj">
       <Project>{739e5585-3715-40aa-99fb-ab1adb2e2dc3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Models\ExternalForce\LiquidDiffusion\ModelEFLiquidDiffusion.vcxproj">
+    <ProjectReference Include="$(SolutionDir)Models\ExternalForce\LiquidDiffusion\ModelEFLiquidDiffusion.vcxproj">
       <Project>{e5c6b68e-0ce5-467c-84be-18f2f617475e}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Models\ParticleParticle\HertzMindlinVdW\HertzMindlinVdW.vcxproj">
+    <ProjectReference Include="$(SolutionDir)Models\ParticleParticle\HertzMindlinVdW\HertzMindlinVdW.vcxproj">
       <Project>{289c56bb-4ec6-4097-b52d-caba821df423}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleParticle\HeatConduction\HeatConduction.vcxproj">
+      <Project>{35f3df74-ac00-4849-9360-4c17860acaa6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\ParticleWall\PWHeatTransfer\ModelPWHeatTransfer.vcxproj">
+      <Project>{318c46e8-e68a-4a86-b9b8-e77e458f44e8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\SolidBonds\BondModelHeatConduction\BondModelHeatConduction.vcxproj">
+      <Project>{24901618-ead9-41d2-9e4f-98e1be647c4f}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

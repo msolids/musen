@@ -97,8 +97,6 @@ public:
 
 	void SortByDst(unsigned _nPart, const d_vec_u& _vVerListSrc, const d_vec_u& _vVerListDst, d_vec_u& _vVerCollInd_DstSorted, d_vec_u& _vVerPartInd_DstSorted) const;
 
-	void GatherForcesFromPWCollisions(SGPUParticles& _particles, SGPUWalls& _walls) const;
-
 	void CheckParticlesInDomain(double _currTime, const SGPUParticles& _particles, unsigned* _bufActivePartsNum) const;
 
 	// Set inactivity of bonds due to possible inactivity of particles.

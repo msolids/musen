@@ -16,7 +16,7 @@ CModelPPHertzMindlinLiquid::CModelPPHertzMindlinLiquid()
 	/* 3*/ AddParameter("DYNAMIC_VISCOSITY", "Dynamic viscosity [Pa*s]"    , 0.1 );
 }
 
-void CModelPPHertzMindlinLiquid::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPHertzMindlinLiquid::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	// model parameters
 	const double minThickness   = m_parameters[0].value;
@@ -110,4 +110,16 @@ void CModelPPHertzMindlinLiquid::CalculatePPForce(double _time, double _timeStep
 	_collision->vTotalForce    = totalForce;
 	_collision->vResultMoment1 = moment1;
 	_collision->vResultMoment2 = moment2;
+}
+
+void CModelPPHertzMindlinLiquid::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPPHertzMindlinLiquid::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment2;
 }

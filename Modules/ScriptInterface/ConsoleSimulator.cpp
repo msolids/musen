@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -134,13 +134,6 @@ void CConsoleSimulator::SetupGenerationManager()
 
 void CConsoleSimulator::SetupModelManager()
 {
-	// function to set models and their parameters if they were defined in job
-	const auto SetupModel = [&](EMusenModelType _type)
-	{
-		if (!m_job.models[_type].name.empty())			m_modelManager.SetModelPath(_type, m_job.models[_type].name);
-		if (!m_job.models[_type].parameters.empty())	m_modelManager.SetModelParameters(_type, m_job.models[_type].parameters);
-	};
-
 	// create and setup model manager
 	m_modelManager.SetSystemStructure(&m_systemStructure);
 #ifndef STATIC_MODULES
@@ -149,12 +142,11 @@ void CConsoleSimulator::SetupModelManager()
 	m_modelManager.LoadConfiguration();
 
 	// set models and their parameters if they were defined in job
-	SetupModel(EMusenModelType::PP);
-	SetupModel(EMusenModelType::PW);
-	SetupModel(EMusenModelType::SB);
-	SetupModel(EMusenModelType::LB);
-	SetupModel(EMusenModelType::EF);
-	SetupModel(EMusenModelType::PPHT);
+	for (const auto& model : m_job.models)
+	{
+		m_modelManager.AddActiveModel(model.name);
+		m_modelManager.SetModelParameters(model.name, model.parameters);
+	}
 
 	if (m_job.connectedPPContactFlag.IsDefined()) m_modelManager.SetConnectedPPContact(m_job.connectedPPContactFlag.ToBool());
 }
@@ -236,20 +228,16 @@ bool CConsoleSimulator::SimulationPrecheck() const
 	AddErrorMessage(m_systemStructure.m_MaterialDatabase.IsDataCorrect());
 
 	// check models
-	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::PP));
-	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::PW));
-	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::SB));
-	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::LB));
-	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::EF));
-	AddErrorMessage(m_modelManager.GetModelError(EMusenModelType::PPHT));
+	for (const auto& model : m_modelManager.GetActiveModelsDescriptors())
+		AddErrorMessage(model->GetError());
 
-	if (!m_modelManager.IsModelDefined(EMusenModelType::PP))
+	if (!m_modelManager.IsModelActive(EMusenModelType::PP))
 		warningMessage += "Warning: Particle-particle contact model is not specified\n";
 	if (m_systemStructure.GetNumberOfSpecificObjects(TRIANGULAR_WALL))
-		if (!m_modelManager.IsModelDefined(EMusenModelType::PW))
+		if (!m_modelManager.IsModelActive(EMusenModelType::PW))
 			AddErrorMessage("Particle-wall contact model is not specified");
 	if (m_systemStructure.GetNumberOfSpecificObjects(SOLID_BOND))
-		if (!m_modelManager.IsModelDefined(EMusenModelType::SB))
+		if (!m_modelManager.IsModelActive(EMusenModelType::SB))
 			AddErrorMessage("Solid bond model is not specified");
 
 	// check simulator
@@ -346,21 +334,29 @@ void CConsoleSimulator::PrintSimulationInfo()
 	m_out << std::endl;
 }
 
-void CConsoleSimulator::PrintModelsInfo()
+void CConsoleSimulator::PrintModelsInfo() const
 {
-	const auto PrintModel = [&](const CAbstractDEMModel* _model, const std::string& _message)
+	const auto TypeToName = [](EMusenModelType _type)
 	{
-		if (!_model) return;
-		PrintFormatted(_message, _model->GetName());
-		if (!_model->GetParametersStr().empty())
-			m_out << "\t" << _model->GetParametersStr() << std::endl;
+		switch(_type)
+		{
+		case EMusenModelType::UNSPECIFIED:	return "Unknown";
+		case EMusenModelType::PP:			return "Particle-particle";
+		case EMusenModelType::SB:			return "Particle-wall";
+		case EMusenModelType::LB:			return "Solid bond";
+		case EMusenModelType::PW:			return "Liquid bond";
+		case EMusenModelType::EF:			return "External force";
+		}
+		return "";
 	};
-	PrintModel(m_modelManager.GetModel(EMusenModelType::PP)  , "Particle-particle contacts");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::PW)  , "Particle-wall contacts");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::SB)  , "Solid bonds");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::LB)  , "Liquid bonds");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::EF)  , "External force");
-	PrintModel(m_modelManager.GetModel(EMusenModelType::PPHT), "Particle-particle heat transfer");
+
+	for (const auto& model : m_modelManager.GetAllActiveModels())
+	{
+		if (!model) return;
+		PrintFormatted(TypeToName(model->GetType()), model->GetName());
+		if (!model->GetParametersStr().empty())
+			m_out << "\t" << model->GetParametersStr() << std::endl;
+	}
 }
 
 void CConsoleSimulator::PrintGPUInfo() const

@@ -66,13 +66,13 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	/// CPU Implementation.
 
-	void PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles) override;
+	void PrecalculateEF(double _time, double _timeStep, SParticleStruct* _particles) override;
 	void InitializeDiffusionModelCPU(double _timeStep);
 	void UpdateTemperatureCPU(double newTemperature);
 	void CreateIndexMapCPU();
 	void CalculateDiffusionModelCoefficientsCPU(double _timeStep);
 	void InitializeSeedsAndRandomGeneratorsCPU(size_t _desNumStates);
-	void CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const override;
+	void CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const override;
 	void CreateUniqueSeeds64(uint64_t* _pSeeds64, unsigned _desNumStates);
 
 	//////////////////////////////////////////////////////////////////////////
@@ -83,7 +83,7 @@ public:
 	void UpdateTemperatureGPU(double newTemperature);
 	void CalculateDiffusionModelCoefficientsGPU(double _timeStep, SGPUParticles& _particles);
 	void InitializeSeedsAndRandomGeneratorsGPU(size_t _desNumStates);
-	void CalculateEFForceGPU(double _time, double _timeStep, SGPUParticles& _particles) override;
+	void CalculateEFGPU(double _time, double _timeStep, SGPUParticles& _particles) override;
 	void GenerateNewCurandStates(size_t _nStates, const unsigned* _seeds, curandState* _states);
 	void CreateUniqueSeeds32(uint32_t* pSeeds32, unsigned _desNumStates);
 };

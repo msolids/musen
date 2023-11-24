@@ -15,6 +15,7 @@ public:
 	double m_dTangentialStrength;
 	double m_dTimeThermExpCoeff;
 	double m_dYieldStrength;
+	double m_thermalConductivity{};
 
 	double m_dAxialMoment;		//!!! Should be calculated   //[I]
 	double m_dCrossCutSurface;	// The cross cut surface of the bond [m2]
@@ -51,6 +52,7 @@ public:
 	inline double GetYieldStrength() const { return m_dYieldStrength; };
 	inline double GetShearModulus() const { return m_dShearModulus; };
 	inline double GetTimeThermExpCoeff() const { return m_dTimeThermExpCoeff; }
+	double GetThermalConductivity() const { return m_thermalConductivity; }
 
 	void UpdateCompoundProperties(const CCompound* _pCompound) override;
 

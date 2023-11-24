@@ -15,7 +15,7 @@ void CModelPWHertzMindlinLiquid::SetParametersGPU(const std::vector<double>& _pa
 	CUDA_MEMCOPY_TO_SYMBOL(PBC, _pbc, sizeof(SPBC));
 }
 
-void CModelPWHertzMindlinLiquid::CalculatePWForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, const SGPUWalls& _walls, SGPUCollisions& _collisions)
+void CModelPWHertzMindlinLiquid::CalculatePWGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, const SGPUWalls& _walls, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPWForce_HML_kernel,
 		_timeStep,
@@ -26,12 +26,14 @@ void CModelPWHertzMindlinLiquid::CalculatePWForceGPU(double _time, double _timeS
 		_particles.Masses,
 		_particles.Radii,
 		_particles.Vels,
+		_particles.Forces,
 		_particles.Moments,
 
 		_walls.Vels,
 		_walls.RotCenters,
 		_walls.RotVels,
 		_walls.NormalVectors,
+		_walls.Forces,
 
 		_collisions.ActiveCollisionsNum,
 		_collisions.ActivityIndices,
@@ -55,12 +57,14 @@ void __global__ CUDA_CalcPWForce_HML_kernel(
 	const double	_partMasses[],
 	const double	_partRadii[],
 	const CVector3	_partVels[],
+	CVector3		_partForces[],
 	CVector3		_partMoments[],
 
 	const CVector3	_wallVels[],
 	const CVector3	_wallRotCenters[],
 	const CVector3	_wallRotVels[],
 	const CVector3	_wallNormalVecs[],
+	CVector3        _wallForces[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],
@@ -167,7 +171,9 @@ void __global__ CUDA_CalcPWForce_HML_kernel(
 		_collTangOverlaps[iColl] = tangOverlap;
 		_collTotalForces[iColl]  = totalForce;
 
-		// calculate and apply moment
+		// apply forces and moments
 		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[iPart], moment1);
+		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart], totalForce);
+		CUDA_VECTOR3_ATOMIC_SUB(_wallForces[iWall], totalForce);
 	}
 }

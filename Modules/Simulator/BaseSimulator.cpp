@@ -526,8 +526,9 @@ void CBaseSimulator::Initialize()
 	m_pSystemStructure->ClearAllStatesFrom(m_currentTime);
 
 	// scene
+	m_optionalSceneVars = GetModelManager()->GetUtilizedVariables();
 	m_scene.SetSystemStructure(m_pSystemStructure);
-	m_scene.InitializeScene(m_currentTime, GetModelManager()->GetUtilizedVariables());
+	m_scene.InitializeScene(m_currentTime, m_optionalSceneVars);
 
 	// generation manager
 	m_generationManager->Initialize();
@@ -543,20 +544,22 @@ void CBaseSimulator::Initialize()
 
 void CBaseSimulator::InitializeModels()
 {
-	m_pPPModel   = dynamic_cast<CParticleParticleModel*>(m_modelManager->GetModel(EMusenModelType::PP));
-	m_pPWModel   = dynamic_cast<CParticleWallModel*>(m_modelManager->GetModel(EMusenModelType::PW));
-	m_pSBModel   = dynamic_cast<CSolidBondModel*>(m_modelManager->GetModel(EMusenModelType::SB));
-	m_pLBModel   = dynamic_cast<CLiquidBondModel*>(m_modelManager->GetModel(EMusenModelType::LB));
-	m_pEFModel   = dynamic_cast<CExternalForceModel*>(m_modelManager->GetModel(EMusenModelType::EF));
-	m_pPPHTModel = dynamic_cast<CPPHeatTransferModel*>(m_modelManager->GetModel(EMusenModelType::PPHT));
+	m_PPModels.clear();
+	m_PWModels.clear();
+	m_SBModels.clear();
+	m_LBModels.clear();
+	m_EFModels.clear();
 
-	m_models.clear();
-	if (m_pPPModel)   m_models.push_back(m_pPPModel);
-	if (m_pPWModel)   m_models.push_back(m_pPWModel);
-	if (m_pSBModel)   m_models.push_back(m_pSBModel);
-	if (m_pLBModel)   m_models.push_back(m_pLBModel);
-	if (m_pEFModel)   m_models.push_back(m_pEFModel);
-	if (m_pPPHTModel) m_models.push_back(m_pPPHTModel);
+	m_models = m_modelManager->GetAllActiveModels();
+
+	for (auto* model : m_models)
+	{
+		if      (dynamic_cast<CParticleParticleModel*>(model)) m_PPModels.push_back(dynamic_cast<CParticleParticleModel*>(model));
+		else if (dynamic_cast<CParticleWallModel    *>(model)) m_PWModels.push_back(dynamic_cast<CParticleWallModel    *>(model));
+		else if (dynamic_cast<CSolidBondModel       *>(model)) m_SBModels.push_back(dynamic_cast<CSolidBondModel       *>(model));
+		else if (dynamic_cast<CLiquidBondModel      *>(model)) m_LBModels.push_back(dynamic_cast<CLiquidBondModel      *>(model));
+		else if (dynamic_cast<CExternalForceModel   *>(model)) m_EFModels.push_back(dynamic_cast<CExternalForceModel   *>(model));
+	}
 
 	m_verletList.SetConnectedPPContact(m_modelManager->GetConnectedPPContact());
 
@@ -616,8 +619,8 @@ void CBaseSimulator::StartSimulation()
 		UpdateCollisionsStep(m_currSimulationStep);
 		CalculateForcesStep(m_currSimulationStep);
 		MoveObjectsStep(m_currSimulationStep, m_isPredictionStep);
-		if (m_scene.GetRefToParticles().ThermalsExist())
-			UpdateTemperatures(m_currSimulationStep, m_isPredictionStep);
+		if (m_optionalSceneVars.bThermals)
+			UpdateTemperatures(m_isPredictionStep);
 
 		if (m_isPredictionStep) // makes prediction step
 			m_isPredictionStep = false;
@@ -703,12 +706,11 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 	SetModelManager(_other.m_modelManager);
 	SetGenerationManager(_other.m_generationManager);
 
-	m_pPPModel   = _other.m_pPPModel;
-	m_pPWModel   = _other.m_pPWModel;
-	m_pSBModel   = _other.m_pSBModel;
-	m_pLBModel   = _other.m_pLBModel;
-	m_pEFModel   = _other.m_pEFModel;
-	m_pPPHTModel = _other.m_pPPHTModel;
+	m_PPModels   = _other.m_PPModels;
+	m_PWModels   = _other.m_PWModels;
+	m_SBModels   = _other.m_SBModels;
+	m_LBModels   = _other.m_LBModels;
+	m_EFModels   = _other.m_EFModels;
 
 	m_stopCriteria = _other.m_stopCriteria;
 	m_stopValues = _other.m_stopValues;

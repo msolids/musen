@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
@@ -43,28 +43,28 @@ void PrintModelsInfo()
 #ifndef STATIC_MODULES
 	modelManager.AddDir(".");	// add current directory
 #endif
-	std::vector<CModelManager::SModelInfo> models = modelManager.GetAllAvailableModels();
+	const auto& models = modelManager.GetAvailableModelsDescriptors();
 	std::cout << " ===== Available models ===== " << std::endl;
 	std::cout << "Particle-particle contacts: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::PP)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::PP)
+			std::cout << "  " << model->GetPath() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "Particle-wall contacts: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::PW)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::PW)
+			std::cout << "  " << model->GetPath() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "Solid bonds: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::SB)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::SB)
+			std::cout << "  " << model->GetPath() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "Liquid bonds: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::LB)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::LB)
+			std::cout << "  " << model->GetPath() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 	std::cout << "External force: " << std::endl;
 	for (const auto& model : models)
-		if (model.pModel->GetType() == EMusenModelType::EF)
-			std::cout << "  " << model.sPath << " (" << model.pModel->GetName() << ") " << model.pModel->GetParametersStr() << std::endl;
+		if (model->GetModel()->GetType() == EMusenModelType::EF)
+			std::cout << "  " << model->GetPath() << " (" << model->GetModel()->GetName() << ") " << model->GetModel()->GetParametersStr() << std::endl;
 }
 
 void PrintVersionInfo()

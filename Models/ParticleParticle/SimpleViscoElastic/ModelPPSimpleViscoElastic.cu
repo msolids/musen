@@ -14,7 +14,7 @@ void CModelPPSimpleViscoElastic::SetParametersGPU(const std::vector<double>& _pa
 	CUDA_MEMCOPY_TO_SYMBOL(m_vConstantModelParameters, *_parameters.data(), sizeof(double) * _parameters.size());
 }
 
-void CModelPPSimpleViscoElastic::CalculatePPForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
+void CModelPPSimpleViscoElastic::CalculatePPGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPPForce_VE_kernel,
 		_particles.Vels,

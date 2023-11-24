@@ -88,7 +88,7 @@ void CModelEFLiquidDiffusion::DetectAnnealing()
 /// CPU Implementation
 //////////////////////////////////////////////////////////////////////////
 
-void CModelEFLiquidDiffusion::PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles)
+void CModelEFLiquidDiffusion::PrecalculateEF(double _time, double _timeStep, SParticleStruct* _particles)
 {
 	if (m_nStatesCPU != _particles->Size()) // check if the current number of states in storage is not equal to the particle number (desired number of states)
 	{
@@ -166,7 +166,7 @@ void CModelEFLiquidDiffusion::PrecalculateEFModel(double _time, double _timeStep
 	}
 }
 
-void CModelEFLiquidDiffusion::CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
+void CModelEFLiquidDiffusion::CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
 	// Diffusion model. See Depta et al. J. Chem. Inf. Model, 59 (2019) 1, 386-398, DOI: 10.1021/acs.jcim.8b00613
 	const unsigned partIndex = m_pParticleIndexMapCPU[Particles().InitIndex(_iPart)];

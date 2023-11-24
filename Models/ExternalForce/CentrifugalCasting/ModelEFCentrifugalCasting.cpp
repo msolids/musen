@@ -18,7 +18,7 @@ CModelEFCentrifugalCasting::CModelEFCentrifugalCasting()
 	m_hasGPUSupport = true;
 }
 
-void CModelEFCentrifugalCasting::CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
+void CModelEFCentrifugalCasting::CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
 	// read model parameters
 	const double dRotVelocity     = m_parameters[0].value;

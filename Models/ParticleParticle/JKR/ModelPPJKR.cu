@@ -10,7 +10,7 @@ void CModelPPJKR::SetParametersGPU(const std::vector<double>& _parameters, const
 {
 }
 
-void CModelPPJKR::CalculatePPForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
+void CModelPPJKR::CalculatePPGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPPForce_JKR_kernel,
 		_timeStep,

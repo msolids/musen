@@ -331,12 +331,16 @@ message ProtoPackageGenerator
 
 message ProtoModuleModelManager
 {
+	uint32 version                  = 8;
+	repeated ProtoMusenModel models = 9;
+	bool connected_pp_contact       = 6;
+
+	// outdated, kept for compatibility
 	ProtoMusenModel pp_model = 1;
 	ProtoMusenModel pw_model = 2;
 	ProtoMusenModel sb_model = 3;
 	ProtoMusenModel lb_model = 4;
 	ProtoMusenModel ef_model = 5;
-	bool connected_pp_contact = 6;
 	ProtoMusenModel ht_pp_model = 7;
 }
 

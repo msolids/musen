@@ -13,7 +13,7 @@ void CModelPPLinearElastic::SetParametersGPU(const std::vector<double>& _paramet
 	CUDA_MEMCOPY_TO_SYMBOL(m_vConstantModelParameters, *_parameters.data(), sizeof(double) * _parameters.size());
 }
 
-void CModelPPLinearElastic::CalculatePPForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
+void CModelPPLinearElastic::CalculatePPGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPPForce_LE_kernel,
 		_timeStep,

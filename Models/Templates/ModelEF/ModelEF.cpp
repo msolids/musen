@@ -34,12 +34,12 @@ CModelEF::CModelEF()
 //////////////////////////////////////////////////////////////////////////
 
 /// TODO: This function can be removed if not used.
-void CModelEF::PrecalculateEFModel(double _time, double _timeStep, SParticleStruct* _particles)
+void CModelEF::PrecalculateEF(double _time, double _timeStep, SParticleStruct* _particles)
 {
 	// TODO: Write your pre-calculation step here.
 }
 
-void CModelEF::CalculateEFForce(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
+void CModelEF::CalculateEF(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles) const
 {
 	// TODO: Write your model here.
 }

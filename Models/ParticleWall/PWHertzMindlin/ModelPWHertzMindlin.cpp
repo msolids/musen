@@ -12,7 +12,7 @@ CModelPWHertzMindlin::CModelPWHertzMindlin()
 	m_hasGPUSupport = true;
 }
 
-void CModelPWHertzMindlin::CalculatePWForce(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPWHertzMindlin::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const double   partRadius  = Particles().Radius(_iPart);
 	const CVector3 partAnglVel = Particles().AnglVel(_iPart);
@@ -78,4 +78,15 @@ void CModelPWHertzMindlin::CalculatePWForce(double _time, double _timeStep, size
 	_collision->vTangForce     = tangForce;
 	_collision->vTotalForce    = totalForce;
 	_collision->vResultMoment1 = moment;
+}
+
+void CModelPWHertzMindlin::ConsolidatePart(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPWHertzMindlin::ConsolidateWall(double _time, double _timeStep, size_t _iWall, SWallStruct& _walls, const SCollision* _collision) const
+{
+	_walls.Force(_iWall) -= _collision->vTotalForce;
 }

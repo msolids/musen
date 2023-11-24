@@ -64,6 +64,7 @@ struct SInteractProps
 	double dEquivShearModulus;
 	double dEquivSurfaceTension;
 	double dEquivSurfaceEnergy;
+	double dEquivThermalConductivity;
 };
 
 namespace

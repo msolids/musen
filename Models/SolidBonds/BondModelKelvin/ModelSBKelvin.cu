@@ -15,7 +15,7 @@ void CModelSBKelvin::SetParametersGPU(const std::vector<double>& _parameters, co
 	CUDA_MEMCOPY_TO_SYMBOL(PBC, _pbc, sizeof(SPBC));
 }
 
-void CModelSBKelvin::CalculateSBForceGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
+void CModelSBKelvin::CalculateSBGPU(double _time, double _timeStep, const SGPUParticles& _particles, SGPUSolidBonds& _bonds)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcSBForce_Kelvin_kernel,
 		_time,

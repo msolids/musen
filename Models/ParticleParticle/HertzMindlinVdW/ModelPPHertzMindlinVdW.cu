@@ -10,7 +10,7 @@ void CModelPPHertzMindlinVdW::SetParametersGPU(const std::vector<double>& _param
 {
 }
 
-void CModelPPHertzMindlinVdW::CalculatePPForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
+void CModelPPHertzMindlinVdW::CalculatePPGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, SGPUCollisions& _collisions)
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPPForce_HMVDW_kernel,
 		_timeStep,

@@ -331,13 +331,6 @@ void CGPU::UpdateActiveCollisionsPW(const SGPUParticles& _particles, const SGPUW
 	Flags2IndicesList(nCollisions, m_CollisionsPW.collisions.ActivityFlags, sequence2, tempStorage2, m_CollisionsPW.collisions.ActiveCollisionsNum, m_CollisionsPW.collisions.ActivityIndices);
 }
 
-void CGPU::GatherForcesFromPWCollisions(SGPUParticles& _particles, SGPUWalls& _walls) const
-{
-	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GatherForcesFromPWCollisions_kernel, _particles.Forces, _walls.Forces,
-		m_CollisionsPW.collisions.ActiveCollisionsNum, m_CollisionsPW.collisions.ActivityIndices,
-		m_CollisionsPW.collisions.SrcIDs, m_CollisionsPW.collisions.DstIDs, m_CollisionsPW.collisions.TotalForces);
-}
-
 void CGPU::CheckParticlesInDomain(const double _currTime, const SGPUParticles& _particles, unsigned* _bufActivePartsNum) const
 {
 	if (!_particles.nElements)

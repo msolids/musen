@@ -83,6 +83,7 @@
   <ItemGroup>
     <ClCompile Include="ModelParameterTab.cpp" />
     <ClCompile Include="ModelsConfiguratorTab.cpp" />
+    <ClCompile Include="ModelWidget.cpp" />
     <ClCompile Include="SelectiveSavingTab.cpp" />
     <ClCompile Include="SimulatorSettingsTab.cpp" />
     <ClCompile Include="SimulatorTab.cpp" />
@@ -92,6 +93,7 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
+    <QtUic Include="ModelWidget.ui" />
     <QtUic Include="SimulatorTab.ui">
     </QtUic>
   </ItemGroup>
@@ -121,6 +123,9 @@
   <ItemGroup>
     <QtUic Include="SelectiveSavingTab.ui">
     </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="ModelWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

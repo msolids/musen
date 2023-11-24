@@ -18,7 +18,7 @@ void CModelPW::SetParametersGPU(const std::vector<double>& _parameters, const SP
 }
 
 /// Invokes the GPU-version of the model.
-void CModelPW::CalculatePWForceGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, const SGPUWalls& _walls, SGPUCollisions& _collisions)
+void CModelPW::CalculatePWGPU(double _time, double _timeStep, const SInteractProps _interactProps[], const SGPUParticles& _particles, const SGPUWalls& _walls, SGPUCollisions& _collisions)
 {
 	/// The function is invoked with the maximum possible set of parameters.
 	/// All unused parameters may be removed (here and and in ModelPW.cuh) for speed-up.

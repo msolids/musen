@@ -16,6 +16,9 @@
     <ClCompile Include="SelectiveSavingTab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ModelWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="SimulatorTab.ui">
@@ -48,6 +51,9 @@
     <QtUic Include="ModelParameterTab.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="ModelWidget.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Form Files">
@@ -65,5 +71,10 @@
       <Extensions>cpp;cxx;c;def</Extensions>
       <ParseFiles>true</ParseFiles>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="ModelWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
 </Project>

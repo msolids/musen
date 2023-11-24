@@ -28,16 +28,12 @@ void CSimplifiedSceneGPU::InitializeScene(CSimplifiedScene& _pScene, CSystemStru
 	CUDAWallsCPU2GPU(_pScene);
 }
 
-void CSimplifiedSceneGPU::ClearAllForcesAndMoments()
+void CSimplifiedSceneGPU::ClearStates() const
 {
 	CUDA_MEMSET_ASYNC(m_Particles.Forces, 0, sizeof(CVector3)*m_Particles.nElements);
 	CUDA_MEMSET_ASYNC(m_Particles.Moments, 0, sizeof(CVector3)*m_Particles.nElements);
+	CUDA_MEMSET_ASYNC(m_Particles.HeatFluxes, 0, sizeof(double) * m_Particles.nElements);
 	CUDA_MEMSET_ASYNC(m_Walls.Forces, 0, sizeof(CVector3)*m_Walls.nElements);
-}
-
-void CSimplifiedSceneGPU::ClearHeatFluxes() const
-{
-	CUDA_MEMSET_ASYNC(m_Particles.HeatFluxes, 0, sizeof(double)*m_Particles.nElements);
 }
 
 void CSimplifiedSceneGPU::GetMaxSquaredPartDist(double* _bufMaxVelocity)
@@ -99,6 +95,10 @@ void CSimplifiedSceneGPU::CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU)
 		bondsHost.TangentialOverlaps[i] = bondsCPU.TangentialOverlap(i);
 		bondsHost.TangentialPlasticStrains[i] = bondsCPU.TangentialPlasticStrain(i);
 		bondsHost.EndActivities[i] = bondsCPU.EndActivity(i);
+		if (bondsCPU.ThermalsExist())
+		{
+			bondsHost.ThermalConductivities[i] = bondsCPU.ThermalConductivity(i);
+		}
 	});
 
 	m_SolidBonds.CopyFrom(bondsHost);

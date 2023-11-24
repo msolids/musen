@@ -15,12 +15,14 @@ void __global__ CUDA_CalcPWForce_JKR_kernel(
 	const double	_partMasses[],
 	const double	_partRadii[],
 	const CVector3	_partVels[],
+	CVector3		_partForces[],
 	CVector3		_partMoments[],
 
 	const CVector3	_wallVels[],
 	const CVector3	_wallRotCenters[],
 	const CVector3	_wallRotVels[],
 	const CVector3  _wallNormalVecs[],
+	CVector3		_wallForces[],
 
 	const unsigned*	_collActiveCollisionsNum,
 	const unsigned	_collActivityIndices[],

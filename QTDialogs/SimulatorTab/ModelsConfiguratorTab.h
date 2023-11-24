@@ -1,41 +1,48 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
-#include "ModelManager.h"
-#include "ModelParameterTab.h"
+
 #include "ui_ModelsConfiguratorTab.h"
+#include "ModelManager.h"
+
+class CModelWidget;
 
 class CModelsConfiguratorTab : public QDialog
 {
 	Q_OBJECT
-private:
-	Ui::CModelsConfiguratorTab ui;
 
-	CModelManager* m_pModelManager;
-	bool m_bBlockModelsChange;
+	Ui::CModelsConfiguratorTab ui{};
 
-	std::map<EMusenModelType, QComboBox*> m_vCombos;	// List of comboboxes for all selected models.
+	CModelManager* m_modelManager; // Pointer to a models manager.
+	bool m_blockModelsChange;      // If set, modification of the models will be blocked.
 
-	bool m_bAvoidSignal;
+	std::map<EMusenModelType, QBoxLayout*> m_layouts; // List of layouts where model widgets of different types are shown.
 
 public:
-	CModelsConfiguratorTab(CModelManager* _pModelManager, bool _bBlockModelsChange, QWidget *parent = 0);
-	~CModelsConfiguratorTab();
+	CModelsConfiguratorTab(CModelManager* _modelManager, bool _blockModelsChange, QWidget* _parent = nullptr);
 
-public slots:
-	void setVisible(bool _bVisible);
+	// Changes visibility of the widget.
+	void setVisible(bool _visible) override;
+	// Updates all child widgets.
 	void UpdateWholeView();
-	int exec();
+
+	// Shows the dialog as a modal dialog.
+	int exec() override;
 
 private:
+	// Connects signals and slots.
 	void InitializeConnections();
-	void UpdateSelectedModelsView();
-	void UpdateConfigButtons();
 
-private slots:
-	void SelectedModelsChanged();
-	void SpecModelParameters(const EMusenModelType& _modelType);
-	void OpenModelDocumentation(const EMusenModelType& _modelType);
+	// Updates the view of currently selected models.
+	void UpdateSelectedModels();
+
+	// Called when a new model added.
+	void AddModelClicked(EMusenModelType _type);
+	// Called when a model removal requested.
+	void RemoveModelClicked(EMusenModelType _type, CModelWidget* _widget);
+
+	// Adds a new model widget of the given type. _modelDescriptor can be nullptr, if no model selected yet.
+	void AddModelWedget(EMusenModelType _type, CModelDescriptor* _modelDescriptor);
 };

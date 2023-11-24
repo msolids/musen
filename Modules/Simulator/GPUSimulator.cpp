@@ -71,31 +71,27 @@ void CGPUSimulator::InitializeModelParameters()
 
 void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 {
-	// clear all forces and moment on GPU
-	m_sceneGPU.ClearAllForcesAndMoments();
+	// clear current states of particles and walls on GPU
+	m_sceneGPU.ClearStates();
 
 	// check that all particles are remains in simulation domain
 	m_gpu.CheckParticlesInDomain(m_currentTime, m_sceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
 
 	// if there is no contact model, then there is no necessity to calculate contacts
-	if (m_pPPModel || m_pPWModel)
+	if (!m_PPModels.empty() || !m_PWModels.empty())
 	{
 		UpdateVerletLists(_dTimeStep); // between PP and PW
 		CUDAUpdateActiveCollisions();
 	}
-
-	if (m_pPPHTModel)
-		m_sceneGPU.ClearHeatFluxes();
 }
 
 void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 {
-	if (m_pPPModel)   CalculateForcesPP(_dTimeStep);
-	if (m_pPWModel)   CalculateForcesPW(_dTimeStep);
-	if (m_pSBModel)   CalculateForcesSB(_dTimeStep);
-	if (m_pLBModel)   CalculateForcesLB(_dTimeStep);
-	if (m_pEFModel)   CalculateForcesEF(_dTimeStep);
-	if (m_pPPHTModel) CalculateHeatTransferPP(_dTimeStep);
+	if (!m_PPModels.empty()) CalculateForcesPP(_dTimeStep);
+	if (!m_PWModels.empty()) CalculateForcesPW(_dTimeStep);
+	if (!m_SBModels.empty()) CalculateForcesSB(_dTimeStep);
+	if (!m_LBModels.empty()) CalculateForcesLB(_dTimeStep);
+	if (!m_EFModels.empty()) CalculateForcesEF(_dTimeStep);
 
 	cudaStreamQuery(0);
 }
@@ -103,31 +99,28 @@ void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 void CGPUSimulator::CalculateForcesPP(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPP.collisions.nElements) return;
-	m_pPPModel->CalculatePPForceGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
+	for (auto* model : m_PPModels)
+		model->CalculatePPGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
 }
 
 void CGPUSimulator::CalculateForcesPW(double _dTimeStep)
 {
 	if (!m_gpu.m_CollisionsPW.collisions.nElements) return;
-	m_pPWModel->CalculatePWForceGPU(m_currentTime, _dTimeStep, m_pInteractProps,
-		m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
-	m_gpu.GatherForcesFromPWCollisions(m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls());
+	for (auto* model : m_PWModels)
+		model->CalculatePWGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), m_gpu.m_CollisionsPW.collisions);
 }
 
 void CGPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
 	if (m_scene.GetBondsNumber() == 0) return;
-	m_pSBModel->CalculateSBForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
+	for (auto* model : m_SBModels)
+		model->CalculateSBGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
 }
 
 void CGPUSimulator::CalculateForcesEF(double _dTimeStep)
 {
-	m_pEFModel->CalculateEFForceGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
-}
-
-void CGPUSimulator::CalculateHeatTransferPP(double _dTimeStep)
-{
-	m_pPPHTModel->CalculatePPHeatTransferGPU(m_currentTime, _dTimeStep, m_pInteractProps, m_sceneGPU.GetPointerToParticles(), m_gpu.m_CollisionsPP.collisions);
+	for (auto* model : m_EFModels)
+		model->CalculateEFGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles());
 }
 
 void CGPUSimulator::MoveParticles(bool _bPredictionStep)
@@ -184,9 +177,10 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 	}
 }
 
-void CGPUSimulator::UpdateTemperatures(double _timeStep, bool _predictionStep)
+void CGPUSimulator::UpdateTemperatures(bool _predictionStep)
 {
-	m_gpu.UpdateTemperatures(_timeStep, m_sceneGPU.GetPointerToParticles());
+	const double timeStep = !_predictionStep ? m_currSimulationStep : m_currSimulationStep / 2.;
+	m_gpu.UpdateTemperatures(timeStep, m_sceneGPU.GetPointerToParticles());
 }
 
 size_t CGPUSimulator::GenerateNewObjects()

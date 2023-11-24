@@ -73,7 +73,7 @@ private slots:
 	void UpdateRayleighTime();
 	void UpdateSimulationStatistics() const;
 	void UpdateWholeView() override;
-	void UpdateModelsView();
+	void UpdateModelsView() const;
 	void UpdateCollisionsFlag() const;
 	void ConfigureModels();
 	void SetSelectiveSaving();

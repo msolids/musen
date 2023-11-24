@@ -110,9 +110,8 @@ namespace CUDAKernels
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
 		{
-			const double tempCelcius = _partTemperatures[i] - 273.15;
-			const double heatCapacity = 1117 + 0.14*tempCelcius - 411 * exp(-0.006*tempCelcius);
-			_partTemperatures[i] += _partHeatFluxes[i] / (heatCapacity * _partMasses[i]) * _dTimeStep;
+			_partTemperatures[i] += _partHeatFluxes[i] / (_partHeatCapacities[i] * _partMasses[i]) * _dTimeStep;
+			_partTemperatures[i] = _partTemperatures[i] < 0.0 ? 0.0 : _partTemperatures[i];
 		}
 	}
 
@@ -474,22 +473,6 @@ namespace CUDAKernels
 							found = true;
 							break;
 						}
-		}
-	}
-
-	__global__ void GatherForcesFromPWCollisions_kernel(CVector3* _partForces, CVector3* _wallForces,
-		const unsigned* _nActiveCollisions, const unsigned* _collActiveIndices,
-		const unsigned* _collSrcID, const unsigned* _collDstID, const CVector3* _collTotalForce)
-	{
-		for (unsigned iActiveColl = blockIdx.x * blockDim.x + threadIdx.x; iActiveColl < *_nActiveCollisions; iActiveColl += blockDim.x * gridDim.x)
-		{
-			const unsigned iColl = _collActiveIndices[iActiveColl];
-			const unsigned iWall = _collSrcID[iColl];
-			const unsigned iPart = _collDstID[iColl];
-
-			const CVector3 vTotalForce = _collTotalForce[iColl];
-			CUDA_VECTOR3_ATOMIC_SUB(_wallForces[iWall], vTotalForce);
-			CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart], vTotalForce);
 		}
 	}
 

@@ -12,7 +12,7 @@ CModelPPJKR::CModelPPJKR()
 	m_hasGPUSupport = true;
 }
 
-void CModelPPJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPJKR::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const CVector3 anglVel1 = Particles().AnglVel(_iSrc);
 	const CVector3 anglVel2 = Particles().AnglVel(_iDst);
@@ -78,4 +78,16 @@ void CModelPPJKR::CalculatePPForce(double _time, double _timeStep, size_t _iSrc,
 	_collision->vTotalForce    = totalForce;
 	_collision->vResultMoment1 = moment1;
 	_collision->vResultMoment2 = moment2;
+}
+
+void CModelPPJKR::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPPJKR::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment2;
 }

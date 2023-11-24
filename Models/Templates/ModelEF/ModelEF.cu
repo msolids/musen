@@ -18,7 +18,7 @@ void CModelEF::SetParametersGPU(const std::vector<double>& _parameters, const SP
 }
 
 /// Invokes the GPU-version of the model.
-void CModelEF::CalculateEFForceGPU(double _time, double _timeStep, SGPUParticles& _particles)
+void CModelEF::CalculateEFGPU(double _time, double _timeStep, SGPUParticles& _particles)
 {
 	/// The function is invoked with the maximum possible set of parameters.
 	/// All unused parameters may be removed (here and and in ModelEF.cuh) for speed-up.

@@ -34,12 +34,28 @@ CModelSB::CModelSB()
 //////////////////////////////////////////////////////////////////////////
 
 /// TODO: This function can be removed if not used.
-void CModelSB::PrecalculateSBModel(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds)
+void CModelSB::PrecalculateSB(double _time, double _timeStep, SParticleStruct* _particles, SSolidBondStruct* _bonds)
 {
 	// TODO: Write your pre-calculation step here.
 }
 
-void CModelSB::CalculateSBForce(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
+void CModelSB::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _pBrokenBondsNum) const
 {
 	// TODO: Write your model here.
+}
+
+void CModelSB::ConsolidatePart(double _time, double _timeStep, size_t _iBond, size_t _iPart, SParticleStruct& _particles) const
+{
+	// TODO: Write your consolidation step here.
+	// This example is for calculation of forces and moments.
+	if (Bonds().LeftID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) += Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) += Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) - Bonds().UnsymMoment(_iBond);
+	}
+	else if (Bonds().RightID(_iBond) == _iPart)
+	{
+		_particles.Force(_iPart) -= Bonds().TotalForce(_iBond);
+		_particles.Moment(_iPart) -= Bonds().NormalMoment(_iBond) + Bonds().TangentialMoment(_iBond) + Bonds().UnsymMoment(_iBond);
+	}
 }

@@ -524,16 +524,13 @@
           <property name="text">
            <string>Interparticle contact:</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
          </widget>
         </item>
         <item row="0" column="1">
          <widget class="QLabel" name="labelPP">
-          <property name="maximumSize">
-           <size>
-            <width>120</width>
-            <height>16777215</height>
-           </size>
-          </property>
           <property name="text">
            <string>None</string>
           </property>
@@ -543,6 +540,9 @@
          <widget class="QLabel" name="labelPWText">
           <property name="text">
            <string>Particle wall contact:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
           </property>
          </widget>
         </item>
@@ -558,6 +558,9 @@
           <property name="text">
            <string>Solid bonds:</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
          </widget>
         </item>
         <item row="2" column="1">
@@ -568,41 +571,16 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="labelLBText">
-          <property name="text">
-           <string>Liquid bonds:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLabel" name="labelLB">
-          <property name="text">
-           <string>None</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QPushButton" name="pushButtonModels">
-          <property name="text">
-           <string>Configure models</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>PP heat transfer:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
          <widget class="QLabel" name="labelEFText">
           <property name="text">
            <string>External force:</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="3" column="1">
          <widget class="QLabel" name="labelEF">
           <property name="text">
            <string>None</string>
@@ -610,9 +588,9 @@
          </widget>
         </item>
         <item row="5" column="1">
-         <widget class="QLabel" name="labelHT_PP">
+         <widget class="QPushButton" name="pushButtonModels">
           <property name="text">
-           <string>None</string>
+           <string>Configure models</string>
           </property>
          </widget>
         </item>

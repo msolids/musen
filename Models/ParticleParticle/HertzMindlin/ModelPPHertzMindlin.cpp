@@ -12,7 +12,7 @@ CModelPPHertzMindlin::CModelPPHertzMindlin()
 	m_hasGPUSupport = true;
 }
 
-void CModelPPHertzMindlin::CalculatePPForce(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
+void CModelPPHertzMindlin::CalculatePP(double _time, double _timeStep, size_t _iSrc, size_t _iDst, const SInteractProps& _interactProp, SCollision* _collision) const
 {
 	const CVector3 anglVel1 = Particles().AnglVel(_iSrc);
 	const CVector3 anglVel2 = Particles().AnglVel(_iDst);
@@ -77,4 +77,16 @@ void CModelPPHertzMindlin::CalculatePPForce(double _time, double _timeStep, size
 	_collision->vTotalForce    = totalForce;
 	_collision->vResultMoment1 = moment1;
 	_collision->vResultMoment2 = moment2;
+}
+
+void CModelPPHertzMindlin::ConsolidateSrc(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) += _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment1;
+}
+
+void CModelPPHertzMindlin::ConsolidateDst(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
+{
+	_particles.Force(_iPart) -= _collision->vTotalForce;
+	_particles.Moment(_iPart) += _collision->vResultMoment2;
 }

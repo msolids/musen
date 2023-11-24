@@ -177,6 +177,8 @@ void CSimplifiedScene::AddSolidBond(size_t _index, double _dTime)
 	m_Objects.vSolidBonds->AddYieldStrength(pBond->GetYieldStrength());
 	m_Objects.vSolidBonds->AddViscosity(pBond->GetViscosity());
 	m_Objects.vSolidBonds->AddTimeThermExpCoeff(pBond->GetTimeThermExpCoeff());
+	if (m_ActiveVariables.bThermals)
+		m_Objects.vSolidBonds->AddThermals(pBond->GetThermalConductivity());
 
 	CPhysicalObject* pLSphere = m_pSystemStructure->GetObjectByIndex(pBond->m_nLeftObjectID);
 	CPhysicalObject* pRSphere = m_pSystemStructure->GetObjectByIndex(pBond->m_nRightObjectID);
@@ -355,25 +357,21 @@ void CSimplifiedScene::InitializeMaterials()
 	m_vCompoundsNumber = vTempInteractProps.size();
 }
 
-void CSimplifiedScene::ClearAllForcesAndMoments()
+void CSimplifiedScene::ClearState() const
 {
 	ParallelFor(m_Objects.vParticles->Size(), [&](size_t i)
 	{
 		m_Objects.vParticles->Force(i).Init(0);
 		m_Objects.vParticles->Moment(i).Init(0);
+		if (m_Objects.vParticles->ThermalsExist())
+		{
+			m_Objects.vParticles->HeatFlux(i) = 0.0;
+		}
 	});
 
 	ParallelFor(m_Objects.vWalls->Size(), [&](size_t i)
 	{
 		m_Objects.vWalls->Force(i).Init(0);
-	});
-}
-
-void CSimplifiedScene::ClearHeatFluxes() const
-{
-	ParallelFor(m_Objects.vParticles->Size(), [&](size_t i)
-	{
-		m_Objects.vParticles->HeatFlux(i) = 0.0;
 	});
 }
 
@@ -640,12 +638,15 @@ SInteractProps CSimplifiedScene::CalculateInteractionProperty(const std::string&
 	const double dSurfaceTension2 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound2, PROPERTY_SURFACE_TENSION);
 	const double dSurfaceEnergy1 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound1, PROPERTY_SURFACE_ENERGY);
 	const double dSurfaceEnergy2 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound2, PROPERTY_SURFACE_ENERGY);
+	const double thermalConductivity1 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound1, PROPERTY_THERMAL_CONDUCTIVITY);
+	const double thermalConductivity2 = m_pSystemStructure->m_MaterialDatabase.GetPropertyValue(_sCompound2, PROPERTY_THERMAL_CONDUCTIVITY);
 	const double dShearModulusPart1 = dYoungModulus1 / (2 * (1 + dPoisson1));
 	const double dShearModulusPart2 = dYoungModulus2 / (2 * (1 + dPoisson2));
 	InterProp.dEquivYoungModulus = 1.0 / ((1 - pow(dPoisson1, 2)) / dYoungModulus1 + (1 - pow(dPoisson2, 2)) / dYoungModulus2);
 	InterProp.dEquivShearModulus = 1.0 / ((2 - dPoisson1) / dShearModulusPart1 + (2 - dPoisson2) / dShearModulusPart2);
 	InterProp.dEquivSurfaceTension = sqrt(dSurfaceTension1 * dSurfaceTension2);
 	InterProp.dEquivSurfaceEnergy = sqrt(dSurfaceEnergy1 * dSurfaceEnergy2);
+	InterProp.dEquivThermalConductivity = 1. / (1. / thermalConductivity1 + 1. / thermalConductivity2);
 	return InterProp;
 }
 

@@ -1,10 +1,17 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
+/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelManager.h"
 #include "MUSENFileFunctions.h"
+#ifdef _WIN32
+#include "SafeWindowsHeader.h"
+#else
+#include <dlfcn.h>
+#endif
 
+
+#include "../Models/ParticleParticle/HeatConduction/ModelPPHeatConduction.h"
 #include "../Models/ParticleParticle/Hertz/ModelPPHertz.h"
 #include "../Models/ParticleParticle/HertzMindlin/ModelPPHertzMindlin.h"
 #include "../Models/ParticleParticle/ChealNess/ModelPPChealNess.h"
@@ -17,6 +24,7 @@
 #include "../Models/ParticleParticle/SinteringTemperature/ModelPPSinteringTemperature.h"
 #include "../Models/ParticleParticle/HertzMindlinVdW/ModelPPHertzMindlinVdW.h"
 
+#include "../Models/ParticleWall/PWHeatTransfer/ModelPWHeatTransfer.h"
 #include "../Models/ParticleWall/PWHertzMindlin/ModelPWHertzMindlin.h"
 #include "../Models/ParticleWall/PWHertzMindlinLiquid/ModelPWHertzMindlinLiquid.h"
 #include "../Models/ParticleWall/PWJKR/ModelPWJKR.h"
@@ -27,6 +35,7 @@
 #include "../Models/SolidBonds/BondModelElastic/ModelSBElastic.h"
 #include "../Models/SolidBonds/BondModelElasticPerfectlyPlastic/ModelSBElasticPerfectlyPlastic.h"
 #include "../Models/SolidBonds/BondModelCreep/ModelSBCreep.h"
+#include "../Models/SolidBonds/BondModelHeatConduction/ModelSBHeatConduction.h"
 #include "../Models/SolidBonds/BondModelKelvin/ModelSBKelvin.h"
 #include "../Models/SolidBonds/BondModelLinearPlastic/ModelSBLinearPlastic.h"
 #include "../Models/SolidBonds/BondModelThermal/ModelSBThermal.h"
@@ -40,15 +49,17 @@
 #include "../Models/ExternalForce/HeatTransfer/ModelEFHeatTransfer.h"
 #include "../Models/ExternalForce/LiquidDiffusion/ModelEFLiquidDiffusion.h"
 
-#include "../Models/HeatTransfer/PPHeatConduction/ModelPPHeatConduction.h"
 
-
+/*
+ * Holds all statically loaded libraries and functions to load them.
+ */
 namespace StaticLibs
 {
+	// Descriptor of the static model library.
 	struct SModule
 	{
-		std::string name;
-		CreateModelFunction function;
+		std::string name;               // Name of the class of the model.
+		CreateModelFunction allocate{}; // Function to allocate the model.
 	};
 
 	template<class T>
@@ -62,17 +73,17 @@ namespace StaticLibs
 	public:
 		static SModule get()
 		{
-			SModule m;
-			m.function = alloc;
-			m.name = typeid(T).name();
+			SModule m{ typeid(T).name(), alloc };
 			while (m.name.compare(0, 5, "Model"))
 				m.name = m.name.substr(1, m.name.size() - 1);
 			return m;
 		}
 	};
 
-	SModule all_modules[] =
+	// Pointers to all available statically loaded models.
+	std::vector<SModule> allStaticModels
 	{
+		Constructor<CModelPPHeatConduction>::get(),
 		Constructor<CModelPPHertz>::get(),
 		Constructor<CModelPPHertzMindlin>::get(),
 		Constructor<CModelPPHertzMindlinLiquid>::get(),
@@ -85,6 +96,7 @@ namespace StaticLibs
 		Constructor<CModelPPSinteringTemperature>::get(),
 		Constructor<CModelPPHertzMindlinVdW>::get(),
 
+		Constructor<CModelPWHeatTransfer>::get(),
 		Constructor<CModelPWHertzMindlin>::get(),
 		Constructor<CModelPWHertzMindlinLiquid>::get(),
 		Constructor<CModelPWJKR>::get(),
@@ -95,6 +107,7 @@ namespace StaticLibs
 		Constructor<CModelSBElastic>::get(),
 		Constructor<CModelSBElasticPerfectlyPlastic>::get(),
 		Constructor<CModelSBCreep>::get(),
+		Constructor<CModelSBHeatConduction>::get(),
 		Constructor<CModelSBKelvin>::get(),
 		Constructor<CModelSBLinearPlastic>::get(),
 		Constructor<CModelSBThermal>::get(),
@@ -107,430 +120,443 @@ namespace StaticLibs
 		Constructor<CModelEFViscousField>::get(),
 		Constructor<CModelEFHeatTransfer>::get(),
 		Constructor<CModelEFLiquidDiffusion>::get(),
-
-		Constructor<CModelPPHeatConduction>::get(),
 	};
 
-	SModule* LoadLibrary_static(const std::string& _sName)
+	// Provides a descriptor of the given static model.
+	SModule* LoadLibraryStatic(const std::string& _name)
 	{
-		for (size_t i = 0; i < sizeof(all_modules) / sizeof(SModule); ++i)
-			if(_sName == all_modules[i].name)
-				return &all_modules[i];
-		return nullptr;
+		const auto it = std::find_if(allStaticModels.begin(), allStaticModels.end(), [&](const SModule& _m) { return _m.name == _name; });
+		if (it == allStaticModels.end()) return nullptr;
+		return &*it;
 	}
 }
 
 
-CModelManager::CModelManager()
+void CModelDescriptor::lib_deleter_t::operator()(void* _handle) const
 {
-	m_vCurrentModels[EMusenModelType::PP]   = SModelInfo();
-	m_vCurrentModels[EMusenModelType::PW]   = SModelInfo();
-	m_vCurrentModels[EMusenModelType::SB]   = SModelInfo();
-	m_vCurrentModels[EMusenModelType::LB]   = SModelInfo();
-	m_vCurrentModels[EMusenModelType::EF]   = SModelInfo();
-	m_vCurrentModels[EMusenModelType::PPHT] = SModelInfo();
-	UpdateAvailableModels();
+#ifdef _WIN32
+	FreeLibrary(static_cast<HMODULE>(_handle));
+#else
+	dlclose(_handle);
+#endif
 }
 
-CModelManager::~CModelManager()
-{
-	ClearAllModels();
+CModelDescriptor::CModelDescriptor(std::string _error, ELibType _libType)
+	: errorMessage{ std::move(_error) }
+	, libType{ _libType }
+{}
 
-	for (size_t i = 0; i < m_vAvailableModels.size(); ++i)
-		delete m_vAvailableModels[i].pModel;
+CModelDescriptor::CModelDescriptor(std::unique_ptr<CAbstractDEMModel> _model, std::string _path, ELibType _libType)
+	: model{ std::move(_model) }
+	, path{ std::move(_path) }
+	, libType{ _libType }
+{}
+
+CModelDescriptor::CModelDescriptor(std::unique_ptr<CAbstractDEMModel> _model, std::string _path, lib_ptr_t _library)
+	: library{ std::move(_library) }
+	, model{ std::move(_model) }
+	, path{ std::move(_path) }
+	, libType{ ELibType::DYNAMIC }
+{}
+
+const CAbstractDEMModel* CModelDescriptor::GetModel() const
+{
+	return model.get();
+}
+
+CAbstractDEMModel* CModelDescriptor::GetModel()
+{
+	return model.get();
+}
+
+std::string CModelDescriptor::GetPath() const
+{
+	return path;
+}
+
+std::string CModelDescriptor::GetError() const
+{
+	return errorMessage;
+}
+
+ELibType CModelDescriptor::GetLibType() const
+{
+	return libType;
+}
+
+
+#ifdef _WIN32
+const std::string CModelManager::c_libraryFileExtension{ "dll" };
+#else
+const std::string CModelManager::c_libraryFileExtension{ "so" };
+#endif
+
+CModelManager::CModelManager()
+{
+	UpdateAvailableModels();
 }
 
 std::vector<std::string> CModelManager::GetDirs() const
 {
-	return m_vDirList;
+	return m_dirs;
 }
 
-void CModelManager::SetDirs(const std::vector<std::string>& _vDirs)
+void CModelManager::SetDirs(const std::vector<std::string>& _dirs)
 {
-	m_vDirList.clear();
-
-	for (size_t i = 0; i < _vDirs.size(); ++i)
-		m_vDirList.push_back(unifyPath(_vDirs[i]));
+	m_dirs.clear();
+	for (const auto& dir : _dirs)
+		m_dirs.push_back(unifyPath(dir));
 	UpdateAvailableModels();
 }
 
-void CModelManager::AddDir(const std::string& _sDir)
+void CModelManager::AddDir(const std::string& _dir)
 {
-	if (_sDir.empty()) return;
-	bool bNewDir = true;
-	for (size_t i = 0; i < m_vDirList.size(); ++i)
-		if (std::find(m_vDirList.begin(), m_vDirList.end(), _sDir) != m_vDirList.end()) // already in the list
-		{
-			bNewDir = false;
-			break;
-		}
-	if(bNewDir)
-	{
-		m_vDirList.push_back(unifyPath(_sDir));
-		UpdateAvailableModels();
-	}
+	if (_dir.empty()) return;
+	const auto dir = unifyPath(_dir);
+	if (std::find(m_dirs.begin(), m_dirs.end(), dir) != m_dirs.end()) return; // already in the list
+	m_dirs.push_back(dir);
+	UpdateAvailableModels();
 }
 
 void CModelManager::RemoveDir(size_t _index)
 {
-	if (_index >= m_vDirList.size()) return;
-	m_vDirList.erase(m_vDirList.begin() + _index);
+	if (_index >= m_dirs.size()) return;
+	m_dirs.erase(m_dirs.begin() + _index);
 	UpdateAvailableModels();
 }
 
 void CModelManager::UpDir(size_t _index)
 {
-	if ((_index < m_vDirList.size()) && (_index != 0))
-		std::iter_swap(m_vDirList.begin() + _index, m_vDirList.begin() + _index - 1);
+	if (_index < m_dirs.size() && _index != 0)
+		std::iter_swap(m_dirs.begin() + _index, m_dirs.begin() + _index - 1);
 }
 
 void CModelManager::DownDir(size_t _index)
 {
-	if ((_index < m_vDirList.size()) && (_index != m_vDirList.size() - 1))
-		std::iter_swap(m_vDirList.begin() + _index, m_vDirList.begin() + _index + 1);
+	if (_index < m_dirs.size() && _index != m_dirs.size() - 1)
+		std::iter_swap(m_dirs.begin() + _index, m_dirs.begin() + _index + 1);
 }
 
-std::vector<CModelManager::SModelInfo> CModelManager::GetAllAvailableModels() const
+std::vector<const CModelDescriptor*> CModelManager::GetAvailableModelsDescriptors() const
 {
-	return m_vAvailableModels;
+	auto res = ReservedVector<const CModelDescriptor*>(m_availableModels.size());
+	for (const auto& descriptor : m_availableModels)
+		res.push_back(descriptor.get());
+	return res;
 }
 
-bool CModelManager::IsModelDefined(const EMusenModelType& _modelType) const
+std::vector<const CModelDescriptor*> CModelManager::GetAvailableModelsDescriptors(const EMusenModelType& _type) const
 {
-	return m_vCurrentModels.at(_modelType).pModel != nullptr;
+	std::vector<const CModelDescriptor*> res;
+	for (const auto& descriptor : m_availableModels)
+		if (descriptor->GetModel() && descriptor->GetModel()->GetType() == _type)
+			res.push_back(descriptor.get());
+	return res;
 }
 
-bool CModelManager::IsModelGPUCompatible(const EMusenModelType& _modelType) const
+std::vector<CModelDescriptor*> CModelManager::GetAvailableModelsDescriptors(const EMusenModelType& _type)
 {
-	if (m_vCurrentModels.at(_modelType).pModel)
-		return m_vCurrentModels.at(_modelType).pModel->HasGPUSupport();
-	else
-		return false;
+	std::vector<CModelDescriptor*> res;
+	for (auto& descriptor : m_availableModels)
+		if (descriptor->GetModel() && descriptor->GetModel()->GetType() == _type)
+			res.push_back(descriptor.get());
+	return res;
 }
 
-CAbstractDEMModel* CModelManager::GetModel(const EMusenModelType& _modelType)
+std::vector<const CModelDescriptor*> CModelManager::GetActiveModelsDescriptors() const
 {
-	return m_vCurrentModels.at(_modelType).pModel;
+	auto res = ReservedVector<const CModelDescriptor*>(m_activeModels.size());
+	for (const auto& descriptor : m_activeModels)
+		res.push_back(descriptor.get());
+	return res;
 }
 
-const CAbstractDEMModel* CModelManager::GetModel(const EMusenModelType& _modelType) const
+std::vector<const CModelDescriptor*> CModelManager::GetActiveModelsDescriptors(const EMusenModelType& _type) const
 {
-	return m_vCurrentModels.at(_modelType).pModel;
+	std::vector<const CModelDescriptor*> res;
+	for (const auto& descriptor : m_activeModels)
+		if (descriptor->GetModel() && descriptor->GetModel()->GetType() == _type)
+			res.push_back(descriptor.get());
+	return res;
 }
 
-std::string CModelManager::GetModelPath(const EMusenModelType& _modelType) const
+std::vector<CModelDescriptor*> CModelManager::GetActiveModelsDescriptors(const EMusenModelType& _type)
 {
-	if (m_vCurrentModels.at(_modelType).pModel)
-		return m_vCurrentModels.at(_modelType).sPath;
-	else
-		return "";
+	std::vector<CModelDescriptor*> res;
+	for (auto& descriptor : m_activeModels)
+		if (descriptor->GetModel() && descriptor->GetModel()->GetType() == _type)
+			res.push_back(descriptor.get());
+	return res;
 }
 
-void CModelManager::SetModelPath(const EMusenModelType& _modelType, const std::string& _sPath)
+std::vector<CAbstractDEMModel*> CModelManager::GetAllActiveModels() const
 {
-	std::string sNewPath = unifyPath(_sPath);
-	if (m_vCurrentModels[_modelType].sPath == sNewPath)	// this model is already loaded
-		return;
-
-	ClearModel(_modelType);	// delete old model
-
-	m_vCurrentModels[_modelType] = LoadModelByPath(sNewPath, _modelType);
+	auto res = ReservedVector<CAbstractDEMModel*>(m_activeModels.size());
+	for (const auto& descriptor : m_activeModels)
+		res.push_back(descriptor->model.get());
+	return res;
 }
-const SOptionalVariables CModelManager::GetUtilizedVariables()
+
+bool CModelManager::IsModelActive(const EMusenModelType& _modelType) const
 {
-	SOptionalVariables sActiveVariables; // result variable
-	for (auto element : m_vCurrentModels)
+	return std::any_of(m_activeModels.begin(), m_activeModels.end(), [&](const auto& _info) { return _info->model->GetType() == _modelType; });
+}
+
+bool CModelManager::IsModelActive(const std::string& _name) const
+{
+	return std::any_of(m_activeModels.begin(), m_activeModels.end(), [&](const auto& _info) { return _info->path == _name; });
+}
+
+CModelDescriptor* CModelManager::AddActiveModel(const std::string& _name)
+{
+	const std::string name = unifyPath(_name);
+	if (IsModelActive(name)) // this model is already loaded
+		return {};
+
+	std::unique_ptr<CModelDescriptor> descriptor{ LoadModelByName(name) };
+	if (!descriptor->model) return {};
+
+	m_activeModels.push_back(std::move(descriptor));
+	return m_activeModels.back().get();
+}
+
+void CModelManager::RemoveActiveModel(const std::string& _name)
+{
+	const std::string name = unifyPath(_name);
+	m_activeModels.erase(std::remove_if(m_activeModels.begin(), m_activeModels.end(),
+		[&](const auto& _descriptor) { return _descriptor->path == name; }), m_activeModels.end());
+}
+
+CModelDescriptor* CModelManager::ReplaceActiveModel(const std::string& _oldName, const std::string& _newName)
+{
+	const std::string oldName = unifyPath(_oldName);
+	const auto it = std::find_if(m_activeModels.begin(), m_activeModels.end(), [&](const auto& _descriptor) { return _descriptor->path == oldName; });
+	const auto pos = std::distance(m_activeModels.begin(), it);
+	if (it != m_activeModels.end())
+		m_activeModels.erase(it);
+
+	const std::string newName = unifyPath(_newName);
+	if (IsModelActive(newName)) return {};
+	std::unique_ptr<CModelDescriptor> descriptor{ LoadModelByName(newName) };
+	if (!descriptor->model) return {};
+
+	return m_activeModels.insert(std::next(m_activeModels.begin(), pos), std::move(descriptor))->get();
+}
+
+void CModelManager::SetModelParameters(const std::string& _name, const std::string& _params) const
+{
+	const auto it = std::find_if(m_activeModels.begin(), m_activeModels.end(),
+		[&](const auto& _descriptor) { return _descriptor->path == _name; });
+	if (it == m_activeModels.end() || !it->get()->GetModel()) return;
+	it->get()->model->SetParametersStr(_params);
+}
+
+SOptionalVariables CModelManager::GetUtilizedVariables() const
+{
+	SOptionalVariables activeVariables; // result variable
+	for (const auto& info : m_activeModels)
 	{
-		if (element.second.pModel)
-			sActiveVariables |= element.second.pModel->GetUtilizedVariables();
+		if (info->model)
+			activeVariables |= info->model->GetUtilizedVariables();
 	}
-	return std::move(sActiveVariables);
-}
-
-std::string CModelManager::GetModelParameters(const EMusenModelType& _modelType) const
-{
-	if (m_vCurrentModels.at(_modelType).pModel)
-		return m_vCurrentModels.at(_modelType).pModel->GetParametersStr();
-	else
-		return "";
-}
-
-void CModelManager::SetModelParameters(const EMusenModelType& _modelType, const std::string& _sParams)
-{
-	if (m_vCurrentModels[_modelType].pModel)
-		m_vCurrentModels[_modelType].pModel->SetParametersStr(_sParams);
-}
-
-void CModelManager::SetModelDefaultParameters(const EMusenModelType& _modelType)
-{
-	if (m_vCurrentModels[_modelType].pModel)
-		m_vCurrentModels[_modelType].pModel->SetDefaultValues();
-}
-
-std::string CModelManager::GetModelError(const EMusenModelType& _modelType) const
-{
-	return m_vCurrentModels.at(_modelType).sError;
+	return activeVariables;
 }
 
 void CModelManager::LoadConfiguration()
 {
-	ClearAllModels();
+	const auto LoadModel = [&](const ProtoMusenModel& _protoModel, const EMusenModelType& _modelType)
+	{
+		if (_protoModel.key().empty()) return; // no model was previously saved
 
-	ProtoModulesData& _pProtoMessage = *m_pSystemStructure->GetProtoModulesData();
-	if (!_pProtoMessage.has_model_manager()) return; // for old versions of file
+		auto res = LoadModelByName(_protoModel.path(), _modelType); // try to load by path
+		if (!res->model)
+			res = LoadModelByKey(_protoModel.key(), _modelType); // try to load by key
 
-	const ProtoModuleModelManager& MM = _pProtoMessage.model_manager();
+		if (res->model) // model loaded
+		{
+			res->model->SetParametersStr(_protoModel.params());
+			m_activeModels.push_back(std::move(res));
+		}
+	};
 
-	LoadModelConfiguration(MM.pp_model(),    EMusenModelType::PP,   &m_vCurrentModels[EMusenModelType::PP]);
-	LoadModelConfiguration(MM.pw_model(),    EMusenModelType::PW,   &m_vCurrentModels[EMusenModelType::PW]);
-	LoadModelConfiguration(MM.sb_model(),    EMusenModelType::SB,   &m_vCurrentModels[EMusenModelType::SB]);
-	LoadModelConfiguration(MM.lb_model(),    EMusenModelType::LB,   &m_vCurrentModels[EMusenModelType::LB]);
-	LoadModelConfiguration(MM.ef_model(),    EMusenModelType::EF,   &m_vCurrentModels[EMusenModelType::EF]);
-	LoadModelConfiguration(MM.ht_pp_model(), EMusenModelType::PPHT, &m_vCurrentModels[EMusenModelType::PPHT]);
-	m_bConnectedPPContact = MM.connected_pp_contact();
+	m_activeModels.clear();
+
+	const ProtoModulesData& protoMessage = *m_pSystemStructure->GetProtoModulesData();
+	if (!protoMessage.has_model_manager()) return; // for old versions of file
+	const ProtoModuleModelManager& protoManager = protoMessage.model_manager();
+	const uint32_t version = protoManager.version();
+
+	if (version == 0) // compatibility with older versions
+	{
+		LoadModel(protoManager.pp_model()   , EMusenModelType::PP);
+		LoadModel(protoManager.pw_model()   , EMusenModelType::PW);
+		LoadModel(protoManager.sb_model()   , EMusenModelType::SB);
+		LoadModel(protoManager.lb_model()   , EMusenModelType::LB);
+		LoadModel(protoManager.ef_model()   , EMusenModelType::EF);
+		LoadModel(protoManager.ht_pp_model(), EMusenModelType::PP);
+	}
+	else // actual version saving
+	{
+		for (const ProtoMusenModel& protoModel : protoManager.models())
+		{
+			LoadModel(protoModel, EMusenModelType::UNSPECIFIED);
+		}
+	}
+	m_connectedPPContact = protoManager.connected_pp_contact();
 }
 
 void CModelManager::SaveConfiguration()
 {
-	ProtoModulesData& _pProtoMessage = *m_pSystemStructure->GetProtoModulesData();
-	ProtoModuleModelManager* pMM = _pProtoMessage.mutable_model_manager();
-
-	SaveModelConfiguration(pMM->mutable_pp_model(),    m_vCurrentModels[EMusenModelType::PP]);
-	SaveModelConfiguration(pMM->mutable_pw_model(),    m_vCurrentModels[EMusenModelType::PW]);
-	SaveModelConfiguration(pMM->mutable_sb_model(),    m_vCurrentModels[EMusenModelType::SB]);
-	SaveModelConfiguration(pMM->mutable_lb_model(),    m_vCurrentModels[EMusenModelType::LB]);
-	SaveModelConfiguration(pMM->mutable_ef_model(),    m_vCurrentModels[EMusenModelType::EF]);
-	SaveModelConfiguration(pMM->mutable_ht_pp_model(), m_vCurrentModels[EMusenModelType::PPHT]);
-	pMM->set_connected_pp_contact( m_bConnectedPPContact );
-}
-
-void CModelManager::LoadModelConfiguration(const ProtoMusenModel& _protoModel, const EMusenModelType& _modelType, SModelInfo* _pModelInfo)
-{
-	if (_protoModel.key().empty()) // no model was previously saved
-		return;
-
-	*_pModelInfo = LoadModelByPath(_protoModel.path(), _modelType); // try to load by path
-	if (!_pModelInfo->pModel)
-		*_pModelInfo = LoadModelByKey(_protoModel.key(), _modelType); // try to load by key
-
-	if (_pModelInfo->pModel) // model loaded
-		_pModelInfo->pModel->SetParametersStr(_protoModel.params());
-}
-
-void CModelManager::SaveModelConfiguration(ProtoMusenModel* _pProtoModel, SModelInfo& _model)
-{
-	if (_model.pModel)
+	ProtoModuleModelManager* protoManager = m_pSystemStructure->GetProtoModulesData()->mutable_model_manager();
+	protoManager->set_version(1);
+	protoManager->clear_models();
+	for (const auto& model : m_activeModels)
 	{
-		_pProtoModel->set_key(_model.pModel->GetUniqueKey());
-		_pProtoModel->set_path(_model.sPath);
-		_pProtoModel->set_params(_model.pModel->GetParametersStr());
+		auto* protoModel = protoManager->add_models();
+		protoModel->set_key(model->model ? model->model->GetUniqueKey() : "");
+		protoModel->set_path(model->model ? model->path : "");
+		protoModel->set_params(model->model ? model->model->GetParametersStr() : "");
 	}
-	else
-	{
-		_pProtoModel->set_key("");
-		_pProtoModel->set_path("");
-		_pProtoModel->set_params("");
-	}
+	protoManager->set_connected_pp_contact(m_connectedPPContact);
 }
 
 void CModelManager::UpdateAvailableModels()
 {
 	// clear old models
-	for (size_t i = 0; i < m_vAvailableModels.size(); ++i)
-		delete m_vAvailableModels[i].pModel;
-	m_vAvailableModels.clear();
+	m_availableModels.clear();
 
 	// static models
-	for (size_t i = 0; i < sizeof(StaticLibs::all_modules) / sizeof(StaticLibs::SModule); ++i)
-		m_vAvailableModels.push_back(LoadStaticModel(StaticLibs::all_modules[i].name));
+	for (const auto& descriptor : StaticLibs::allStaticModels)
+		m_availableModels.push_back(LoadStaticModel(descriptor.name));
 
 	// dynamic models
-	for (size_t i = 0; i < m_vDirList.size(); ++i)
+	for (const auto& dir : m_dirs)
 	{
-		std::vector<std::string> vDLLs = MUSENFileFunctions::filesList(m_vDirList[i], "*.dll");
-		for (size_t j = 0; j < vDLLs.size(); ++j)
+		for (const auto& dll : MUSENFileFunctions::filesList(dir, "*." + c_libraryFileExtension))
 		{
-			CModelManager::SModelInfo model = LoadDynamicModel(vDLLs[j]);
-			if (model.pModel)
-				m_vAvailableModels.push_back(model);
+			auto descriptor = LoadDynamicModel(dll);
+			if (descriptor->model)
+				m_availableModels.push_back(std::move(descriptor));
 		}
 	}
 }
 
-CModelManager::SModelInfo CModelManager::LoadDynamicModel(const std::string& _sModelPath, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/)
+std::unique_ptr<CModelDescriptor> CModelManager::LoadModelByName(const std::string& _modelName, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/)
 {
-#ifdef _WIN32
+	// try to load static model
+	auto descriptor = LoadStaticModel(_modelName, _modelType);
+	if (descriptor->model) return descriptor; // found static
+	// try to load dynamic model
+	descriptor = LoadDynamicModel(_modelName, _modelType);
+	if (descriptor->model) return descriptor; // found dynamic
+	return {};
+}
 
-	std::string sPath = unifyPath(_sModelPath);
+std::unique_ptr<CModelDescriptor> CModelManager::LoadModelByKey(const std::string& _modelKey, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/) const
+{
+	for (const auto& descriptor : m_availableModels)
+		if (descriptor->model->GetUniqueKey() == _modelKey)
+		{
+			auto model = LoadModelByName(descriptor->path, _modelType);
+			if (model->model) return model;
+		}
+	return {};
+}
 
-	if (sPath.empty())	// just an empty model (will not be used during the simulation)
-		return SModelInfo();
+std::unique_ptr<CModelDescriptor> CModelManager::LoadDynamicModel(const std::string& _modelPath, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/)
+{
+	const std::string path = unifyPath(_modelPath);
+
+	if (path.empty()) return {};
 
 	// try to load library
-	HINSTANCE hInstLibrary = LoadLibraryA(windowsPath(sPath).c_str());
-	if (!hInstLibrary)
-		return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::WRONG_PATH), ELibType::DYNAMIC);
+	CModelDescriptor::lib_ptr_t instLibrary(LoadLibraryFromFile(path));
+	if (!instLibrary)
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(path, EErrorType::WRONG_PATH), ELibType::DYNAMIC);
 
 	// try to get constructor
-	CreateModelFunction createModelFunc = (CreateModelFunction)GetProcAddress(hInstLibrary, MUSEN_CREATE_MODEL_FUN_NAME);
+	const auto createModelFunc = reinterpret_cast<CreateModelFunction>(LoadModelConstructor(instLibrary.get()));
 	if (!createModelFunc)
-	{
-		FreeLibrary(hInstLibrary);
-		return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::WRONG_DLL_INTERFACE), ELibType::DYNAMIC);
-	}
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(path, EErrorType::WRONG_DLL_INTERFACE), ELibType::DYNAMIC);
 
 	// try to create model
-	CAbstractDEMModel* pLoadedModel;
+	std::unique_ptr<CAbstractDEMModel> loadedModel;
 	try
 	{
-		pLoadedModel = createModelFunc();
+		loadedModel.reset(createModelFunc());
 	}
 	catch (...)
 	{
-		FreeLibrary(hInstLibrary);
-		return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::WRONG_DLL_VERSION), ELibType::DYNAMIC);
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(path, EErrorType::WRONG_DLL_VERSION), ELibType::DYNAMIC);
 	}
+
+	// check model is of defined type
+	if (loadedModel->GetType() == EMusenModelType::UNSPECIFIED)
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(path, EErrorType::UNSPEC_MODEL_TYPE), ELibType::DYNAMIC);
 
 	// check model type
-	if(pLoadedModel->GetType() == EMusenModelType::UNSPECIFIED)
-	{
-		delete pLoadedModel;
-		FreeLibrary(hInstLibrary);
-		return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::UNSPEC_MODEL_TYPE), ELibType::DYNAMIC);
-	}
-	if (_modelType != EMusenModelType::UNSPECIFIED)
-		if (pLoadedModel->GetType() != _modelType)
-		{
-			delete pLoadedModel;
-			FreeLibrary(hInstLibrary);
-			return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::WRONG_MODEL_TYPE), ELibType::DYNAMIC);
-		}
+	if (_modelType != EMusenModelType::UNSPECIFIED && loadedModel->GetType() != _modelType)
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(path, EErrorType::WRONG_MODEL_TYPE), ELibType::DYNAMIC);
 
-	return SModelInfo(pLoadedModel, sPath, "", ELibType::DYNAMIC);
+	return std::make_unique<CModelDescriptor>(std::move(loadedModel), path, std::move(instLibrary));
+}
 
+std::unique_ptr<CModelDescriptor> CModelManager::LoadStaticModel(const std::string& _modelName, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/)
+{
+	if (_modelName.empty()) return {};
+
+	// try to load library
+	const StaticLibs::SModule* instLibrary = StaticLibs::LoadLibraryStatic(_modelName);
+	if (!instLibrary)
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(_modelName, EErrorType::WRONG_PATH), ELibType::STATIC);
+
+	// instantiate model
+	std::unique_ptr<CAbstractDEMModel> loadedModel{ instLibrary->allocate() };
+	if (!loadedModel)
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(_modelName, EErrorType::CANNOT_ALLOCATE), ELibType::STATIC);
+
+	// check model is of defined type
+	if (loadedModel->GetType() == EMusenModelType::UNSPECIFIED)
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(_modelName, EErrorType::UNSPEC_MODEL_TYPE), ELibType::STATIC);
+
+	// check model type
+	if (_modelType != EMusenModelType::UNSPECIFIED && loadedModel->GetType() != _modelType)
+		return std::make_unique<CModelDescriptor>(BuildErrorDescription(_modelName, EErrorType::WRONG_MODEL_TYPE), ELibType::STATIC);
+
+	return std::make_unique<CModelDescriptor>(std::move(loadedModel), _modelName, ELibType::STATIC);
+}
+
+void* CModelManager::LoadLibraryFromFile(const std::string& _libPath)
+{
+#ifdef _WIN32
+	return LoadLibrary(UnicodePath(windowsPath(_libPath)).c_str());
 #else
-	return SModelInfo(nullptr, "", "_WIN32", ELibType::DYNAMIC);
+	return dlopen(_libPath.c_str(), RTLD_LAZY);
 #endif
 }
 
-CModelManager::SModelInfo CModelManager::LoadStaticModel(const std::string& _sModelName, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/)
+void* CModelManager::LoadModelConstructor(void* _lib)
 {
-	if (_sModelName.empty())	// just an empty model (will not be used during the simulation)
-		return SModelInfo();
+#ifdef _WIN32
+	return static_cast<void*>(GetProcAddress(static_cast<HMODULE>(_lib), MUSEN_CREATE_MODEL_FUN_NAME));
+#else
+	return dlsym(_lib, MUSEN_CREATE_MODEL_FUN_NAME);
+#endif
+}
 
-	// try to load library
-	StaticLibs::SModule* hInstLibrary = StaticLibs::LoadLibrary_static(_sModelName);
-	if (!hInstLibrary)
-		return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::WRONG_PATH), ELibType::STATIC);
+std::string CModelManager::BuildErrorDescription(const std::string& _modelName, const EErrorType& _errorType)
+{
+	std::string message;
 
-	// create model
-	CAbstractDEMModel* pLoadedModel = hInstLibrary->function();
-
-	// check model type
-	if (pLoadedModel->GetType() == EMusenModelType::UNSPECIFIED)
+	switch (_errorType)
 	{
-		delete pLoadedModel;
-		return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::UNSPEC_MODEL_TYPE), ELibType::STATIC);
-	}
-	if (_modelType != EMusenModelType::UNSPECIFIED)
-		if (pLoadedModel->GetType() != _modelType)
-		{
-			delete pLoadedModel;
-			return SModelInfo(nullptr, "", BuildErrorDescription(_modelType, EErrorType::WRONG_MODEL_TYPE), ELibType::STATIC);
-		}
-
-	return SModelInfo(pLoadedModel, _sModelName, "", ELibType::STATIC);
-}
-
-CModelManager::SModelInfo CModelManager::LoadModelByPath(const std::string& _sModelPath, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/)
-{
-	CModelManager::SModelInfo model;
-	// try to load static model
-	model = LoadStaticModel(_sModelPath, _modelType);
-	if (model.pModel) return model; // found static
-	// try to load dynamic model
-	model = LoadDynamicModel(_sModelPath, _modelType);
-	if (model.pModel) return model; // found dynamic
-
-	return SModelInfo(); // not found
-}
-
-CModelManager::SModelInfo CModelManager::LoadModelByKey(const std::string& _sModelKey, const EMusenModelType& _modelType /*= EMusenModelType::UNSPECIFIED*/)
-{
-	for (size_t i = 0; i < m_vAvailableModels.size(); ++i)
-		if (m_vAvailableModels[i].pModel->GetUniqueKey() == _sModelKey)
-		{
-			CModelManager::SModelInfo model = LoadModelByPath(m_vAvailableModels[i].sPath, _modelType);
-			if (model.pModel) return model;
-		}
-	return SModelInfo();
-}
-
-std::string CModelManager::BuildErrorDescription(const EMusenModelType& _modelType, const EErrorType& _type) const
-{
-	std::string sError;
-
-	std::string sModelTypeDescr;
-	switch (_modelType)
-	{
-	case EMusenModelType::PP:
-		sModelTypeDescr = "particle-particle contact "; break;
-	case EMusenModelType::PW:
-		sModelTypeDescr = "particle-wall contact "; break;
-	case EMusenModelType::SB:
-		sModelTypeDescr = "solid bond "; break;
-	case EMusenModelType::LB:
-		sModelTypeDescr = "liquid bond "; break;
-	case EMusenModelType::EF:
-		sModelTypeDescr = "external force "; break;
-	case EMusenModelType::PPHT:
-		sModelTypeDescr = "heat transfer PP "; break;
-	default: break;
+	case EErrorType::WRONG_PATH:			message = "Cannot find '" + _modelName + "' model";				break;
+	case EErrorType::WRONG_DLL_INTERFACE:	message = "Wrong format of '" + _modelName + "' model";			break;
+	case EErrorType::WRONG_DLL_VERSION:		message = "Unsupported version of '" + _modelName + "' model";	break;
+	case EErrorType::UNSPEC_MODEL_TYPE:		message = "Unknown type of '" + _modelName + "' model";			break;
+	case EErrorType::WRONG_MODEL_TYPE:		message = "Wrong type of '" + _modelName + "' model";			break;
+	case EErrorType::CANNOT_ALLOCATE:		message = "Can not allocate '" + _modelName + "' model";		break;
 	}
 
-	switch (_type)
-	{
-	case EErrorType::WRONG_PATH:
-		sError = "Cannot find " + sModelTypeDescr + "model";
-		break;
-	case EErrorType::WRONG_DLL_INTERFACE:
-		sError = "Wrong format of " + sModelTypeDescr + "model";
-		break;
-	case EErrorType::WRONG_DLL_VERSION:
-		sError = "Unsupported version of " + sModelTypeDescr + "model";
-		break;
-	case EErrorType::UNSPEC_MODEL_TYPE:
-		sError = "Unspecified model type of " + sModelTypeDescr + "model";
-		break;
-	case EErrorType::WRONG_MODEL_TYPE:
-		sError = "Wrong model type of " + sModelTypeDescr + "model";
-		break;
-	default:
-		break;
-	}
-
-	return sError;
+	return message;
 }
-
-void CModelManager::ClearModel(const EMusenModelType& _modelType)
-{
-	if (m_vCurrentModels[_modelType].pModel)
-	{
-		delete m_vCurrentModels[_modelType].pModel;
-		m_vCurrentModels[_modelType].pModel = nullptr;
-		m_vCurrentModels[_modelType].sPath.clear();
-	}
-}
-
-void CModelManager::ClearAllModels()
-{
-	for (auto it = m_vCurrentModels.begin(); it != m_vCurrentModels.end(); ++it)
-		if (it->second.pModel)
-		{
-			delete it->second.pModel;
-			it->second.pModel = nullptr;
-			it->second.sPath.clear();
-			it->second.sError.clear();
-		}
-}
-
