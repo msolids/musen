@@ -57,11 +57,12 @@ private:
 
 	struct SEntry
 	{
-		unsigned ID;
-		double dVal;
-		friend bool operator<(const SEntry& _Inp1, const SEntry& _Inp2)
+		unsigned id;
+		double val;
+		SEntry(unsigned _id, double _val) : id{ _id }, val{ _val }{}
+		friend bool operator<(const SEntry& _e1, const SEntry& _e2)
 		{
-			return _Inp1.dVal < _Inp2.dVal;
+			return _e1.val < _e2.val;
 		}
 	};
 	enum class ESortCoord : unsigned { X , Y , Z, XY, YZ, XZ };
@@ -125,5 +126,5 @@ private:
 	void RemoveSBContacts();
 
 	// for improved contact detection
-	void InsertParticlesToMultiSet(std::multiset<SEntry>& _set, const std::vector<unsigned>& _partIDs, ESortCoord _dim, ESortDir _dir) const;
+	void InsertParticlesToVector(std::vector<SEntry>& _vec, const std::vector<unsigned>& _partIDs, ESortCoord _dim, ESortDir _dir) const;
 };
