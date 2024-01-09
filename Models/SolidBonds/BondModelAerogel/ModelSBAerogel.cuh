@@ -25,7 +25,7 @@ void __global__ CUDA_CalcSBForce_C1_kernel(
 	const double	_bondNormalStiffnesses[],
 	const double	_bondTangentialStiffnesses[],
 
-	bool		_bondActivities[],
+	uint8_t		_bondActivities[],
 	double		_bondEndActivities[],
 	double		_bondNormalPlasticStrains[],
 	CVector3	_bondTangentialPlasticStrains[],
