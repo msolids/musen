@@ -244,6 +244,7 @@ bool CConsoleSimulator::SimulationPrecheck() const
 	if (m_simulatorManager.GetSimulatorPtr()->GetType() == ESimulatorType::BASE)
 		AddErrorMessage("Wrong simulator type");
 
+	m_systemStructure.ClearAllStatesFrom(0.0);
 	AddErrorMessage(m_simulatorManager.GetSimulatorPtr()->IsDataCorrect());
 
 	// check geometries
