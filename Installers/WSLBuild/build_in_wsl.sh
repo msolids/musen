@@ -15,9 +15,11 @@ wsl_src_path="${HOME}/musen_wsl"
 wsl_build_path="${wsl_src_path}/build"
 wsl_install_path="${wsl_src_path}/install"
 
+echo "OS:" $(grep PRETTY_NAME /etc/os-release | cut -f2 -d"=")
 echo "Source: ${solution_dir}"
 echo "Destination: ${results_path}"
-echo "${targets_params}"
+echo "Parameters: ${targets_params}"
+echo "Working directory: ${wsl_src_path}"
 
 rm -rf ${wsl_build_path}
 rm -rf ${wsl_install_path}

@@ -1,0 +1,1 @@
+cd .. && rm -rf build/ && rm -rf install/ && mkdir build && mkdir install && cd build && /mnt/d/Codes/msolids/scripts/copy_to_home.sh && cmake .. -DCMAKE_INSTALL_PREFIX=../install -DBUILD_CLI=YES -DBUILD_GUI=NO -DINSTALL_AUX_DATA=NO && cmake --build . --parallel $(nproc) && make install
