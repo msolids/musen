@@ -276,9 +276,7 @@ void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 		{
 			const CMatrix3 rotMatrix = particles.Quaternion(i).ToRotmat();
 			CVector3 vTemp = (rotMatrix.Transpose()*particles.Moment(i));
-			vTemp.x = vTemp.x / particles.InertiaMoment(i);
-			vTemp.y = vTemp.y / particles.InertiaMoment(i);
-			vTemp.z = vTemp.z / particles.InertiaMoment(i);
+			vTemp /= particles.InertiaMoment(i);
 			particles.AnglVel(i) += rotMatrix * vTemp * dTimeStep;
 			if (!_bPredictionStep)
 			{

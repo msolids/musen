@@ -36,8 +36,6 @@ public:
 	void GetMaxWallVelocity(double* _bufMaxVelocity);
 	size_t GetBrokenBondsNumber() const;
 
-
-	// Functions which should be removed in future. WHY?
 	void CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU);				// update info about bonds on GPU
 	void CUDABondsGPU2CPU(CSimplifiedScene& _pSceneCPU);				// update info about bonds on CPU
 	void CUDAParticlesCPU2GPU(CSimplifiedScene& _pSceneCPU);			// update info about particles on CPU
@@ -47,7 +45,7 @@ public:
 	void CUDAWallsCPU2GPU(CSimplifiedScene& _pSceneCPU);				// update info about walls on GPU
 	void CUDAWallsGPU2CPUVerletData(CSimplifiedScene& _pSceneCPU);		// update info about walls on CPU, needed for verlet lists
 	void CUDAWallsGPU2CPUAllData(CSimplifiedScene& _pSceneCPU);			// update info about walls on CPU
-	void CUDASaveVerletCoords();
+	void CUDASaveVerletCoords() const;
 };
 
 

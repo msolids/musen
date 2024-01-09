@@ -10,7 +10,7 @@ CModelSBElastic::CModelSBElastic()
 	m_uniqueKey = "4CE31CB89C784476AC1971DFC5C39C10";
 	m_helpFileName = "/Solid Bond/Elastic.pdf";
 
-	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Crit_2/Crit_1=1/No=0", 1);
+	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Crit_2=2/Crit_1=1/No=0", 1);
 
 	m_hasGPUSupport = true;
 }
