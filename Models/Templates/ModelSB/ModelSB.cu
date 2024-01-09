@@ -107,7 +107,7 @@ void __global__ CUDA_CalcSBForce_kernel(
 	const double		_bondViscosities[],
 	const double		_bondYieldStrengths[],
 
-	bool		_bondActivities[],
+	uint8_t		_bondActivities[],
 	double		_bondEndActivities[],
 	CVector3	_bondNormalMoments[],
 	double		_bondNormalPlasticStrains[],

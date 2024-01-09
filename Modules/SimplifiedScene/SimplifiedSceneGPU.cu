@@ -84,6 +84,6 @@ void CGPUScene::GetMaxWallVelocity(SGPUWalls& _walls, double* _bufMaxVel) const
 
 size_t CGPUScene::GetBrokenBondsNumber(const SGPUSolidBonds& _bonds) const
 {
-	const thrust::device_ptr<bool> activity = thrust::device_pointer_cast(_bonds.Activities);
+	const thrust::device_ptr<uint8_t> activity = thrust::device_pointer_cast(_bonds.Activities);
 	return thrust::count(activity, activity + _bonds.nElements, false);
 }

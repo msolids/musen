@@ -143,7 +143,7 @@ void CSimplifiedSceneGPU::CUDABondsActivityGPU2CPU(CSimplifiedScene& _pSceneCPU)
 	SSolidBondStruct& bondsCPU = _pSceneCPU.GetRefToSolidBonds();
 	bool* pActivityHost;
 	CUDA_MALLOC_H(&pActivityHost, sizeof(bool)*bondsCPU.Size());
-	CUDA_MEMCPY_D2H(pActivityHost, m_SolidBonds.Activities, sizeof(bool)*bondsCPU.Size());
+	CUDA_MEMCPY_D2H(pActivityHost, m_SolidBonds.Activities, sizeof(uint8_t)*bondsCPU.Size());
 	ParallelFor(bondsCPU.Size(), [&](size_t i)
 	{
 		bondsCPU.Active(i) = pActivityHost[i];

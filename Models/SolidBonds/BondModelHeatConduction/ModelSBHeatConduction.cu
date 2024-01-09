@@ -38,7 +38,7 @@ __global__ void CUDA_CalcSBHeatConduction_kernel(
 	double         _partHeatFlux[],
 
 	unsigned       _bondsNum,
-	bool           _bondActivities[],
+	uint8_t        _bondActivities[],
 	const double   _bondCrossCuts[],
 	const unsigned _bondLeftIDs[],
 	const unsigned _bondRightIDs[],

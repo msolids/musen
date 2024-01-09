@@ -40,7 +40,7 @@ void CModelSBCreep::CalculateSBGPU(double _time, double _timeStep, const SGPUPar
 		_bonds.TangentialStiffnesses,
 		_bonds.TangentialStrengths,
 		_bonds.YieldStrengths,
-		
+
 		_bonds.Activities,
 		_bonds.EndActivities,
 		_bonds.NormalMoments,
@@ -78,7 +78,7 @@ __global__ void CUDA_CalcSBForce_CRP_kernel(
 	const double	_bondTangentialStrengths[],
 	const double	_bondYieldStrengths[],
 
-	bool		_bondActivities[],
+	uint8_t		_bondActivities[],
 	double		_bondEndActivities[],
 	CVector3	_bondNormalMoments[],
 	double		_bondNormalPlasticStrains[],
@@ -93,7 +93,7 @@ __global__ void CUDA_CalcSBForce_CRP_kernel(
 	{
 		if (!_bondActivities[i]) continue;
 
-		
+
 		double dCreep_A = m_vConstantModelParameters[4];
 		double dCreep_m = m_vConstantModelParameters[5];
 		double dFractureByStress = m_vConstantModelParameters[6];
@@ -185,7 +185,7 @@ __global__ void CUDA_CalcSBForce_CRP_kernel(
 		if ((dStrainTotal > m_vConstantModelParameters[0])
 			|| (m_vConstantModelParameters[1] && (dStrainTotal < -m_vConstantModelParameters[1]))) // strain greater than breakage strain
 			bondBreaks = true;
-		
+
 		if (dFractureByStress) // check fracture condition caused by stress
 		{
 			// check the bond destruction
