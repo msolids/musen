@@ -450,43 +450,45 @@ void CVerletList::ReassignVirtualContacts()
 	m_PWVirtShift.resize(realPartNum);
 }
 
-void CVerletList::InsertParticlesToMultiSet(std::multiset<SEntry>& _set, const std::vector<unsigned>& _partIDs, ESortCoord _dim, ESortDir _dir) const
+void CVerletList::InsertParticlesToVector(std::vector<SEntry>& _vec, const std::vector<unsigned>& _partIDs, ESortCoord _dim, ESortDir _dir) const
 {
-	for (unsigned int id : _partIDs)
+	_vec.reserve(_partIDs.size());
+	for (const unsigned id : _partIDs)
 	{
 		const double radius = _dir == ESortDir::Right ? m_vParticles.ContactRadius(id) : -m_vParticles.ContactRadius(id);
 		switch (_dim)
 		{
-		case ESortCoord::X:	_set.insert({ id, m_vParticles.Coord(id).x + radius }); break;
-		case ESortCoord::Y:	_set.insert({ id, m_vParticles.Coord(id).y + radius }); break;
-		case ESortCoord::Z:	_set.insert({ id, m_vParticles.Coord(id).z + radius }); break;
-		case ESortCoord::XY: _set.insert({ id, (m_vParticles.Coord(id).x + m_vParticles.Coord(id).y)*0.5 + radius }); break;
-		case ESortCoord::XZ: _set.insert({ id, (m_vParticles.Coord(id).x + m_vParticles.Coord(id).z)*0.5 + radius }); break;
-		case ESortCoord::YZ: _set.insert({ id, (m_vParticles.Coord(id).y + m_vParticles.Coord(id).z)*0.5 + radius }); break;
+		case ESortCoord::X : _vec.emplace_back(id, m_vParticles.Coord(id).x + radius); break;
+		case ESortCoord::Y : _vec.emplace_back(id, m_vParticles.Coord(id).y + radius); break;
+		case ESortCoord::Z : _vec.emplace_back(id, m_vParticles.Coord(id).z + radius); break;
+		case ESortCoord::XY: _vec.emplace_back(id, (m_vParticles.Coord(id).x + m_vParticles.Coord(id).y) * 0.5 + radius); break;
+		case ESortCoord::XZ: _vec.emplace_back(id, (m_vParticles.Coord(id).x + m_vParticles.Coord(id).z) * 0.5 + radius); break;
+		case ESortCoord::YZ: _vec.emplace_back(id, (m_vParticles.Coord(id).y + m_vParticles.Coord(id).z) * 0.5 + radius); break;
 		}
 	}
+	std::sort(_vec.begin(), _vec.end());
 }
 
 void CVerletList::CheckCollisionPPSorted(const SGridLevel& _gridLevel, unsigned _nX1, unsigned _nY1, unsigned _nZ1, unsigned _nX2, unsigned _nY2, unsigned _nZ2, ESortCoord _dim)
 {
 	if (_nX2 >= _gridLevel.nCellsX || _nY2 >= _gridLevel.nCellsY || _nZ2 >= _gridLevel.nCellsZ) return;
 
-	std::multiset<SEntry> setMainRSorted, setMainLSorted;
-	InsertParticlesToMultiSet(setMainRSorted, _gridLevel.grid[_nX1][_nY1][_nZ1].vMainPartIDs, _dim, ESortDir::Right);
-	InsertParticlesToMultiSet(setMainLSorted, _gridLevel.grid[_nX2][_nY2][_nZ2].vMainPartIDs, _dim, ESortDir::Left);
-	for (auto iter1 = setMainRSorted.rbegin(); iter1 != setMainRSorted.rend(); ++iter1) //main-main
+	std::vector<SEntry> setMainRSorted, setMainLSorted;
+	InsertParticlesToVector(setMainRSorted, _gridLevel.grid[_nX1][_nY1][_nZ1].vMainPartIDs, _dim, ESortDir::Right);
+	InsertParticlesToVector(setMainLSorted, _gridLevel.grid[_nX2][_nY2][_nZ2].vMainPartIDs, _dim, ESortDir::Left);
+	for (auto it1 = setMainRSorted.crbegin(); it1 != setMainRSorted.crend(); ++it1) //main-main
 	{
-		const double dTemp1 = m_dVerletDistance + m_vParticles.ContactRadius(iter1->ID);
-		auto iter2 = setMainLSorted.begin();
-		for (; iter2 != setMainLSorted.end(); ++iter2)
-			if (iter2->dVal - iter1->dVal <= m_dVerletDistance)
+		const double temp1 = m_dVerletDistance + m_vParticles.ContactRadius(it1->id);
+		auto iter2 = setMainLSorted.cbegin();
+		for (; iter2 != setMainLSorted.cend(); ++iter2)
+			if (iter2->val - it1->val <= m_dVerletDistance)
 			{
-				if (SquaredLength(m_vParticles.Coord(iter1->ID) - m_vParticles.Coord(iter2->ID)) <= std::pow(dTemp1 + m_vParticles.ContactRadius(iter2->ID), 2))
-					AddPossibleContactPP(iter1->ID, iter2->ID);
+				if (SquaredLength(m_vParticles.Coord(it1->id) - m_vParticles.Coord(iter2->id)) <= std::pow(temp1 + m_vParticles.ContactRadius(iter2->id), 2))
+					AddPossibleContactPP(it1->id, iter2->id);
 			}
 			else
 				break;
-		if (iter2 == setMainLSorted.begin()) break;
+		if (iter2 == setMainLSorted.cbegin()) break;
 	}
 
 	// THIS ALGORITHM IS NOT WELL TESTED FOR MULTIGRID APPROACH
@@ -674,9 +676,10 @@ void CVerletList::RecalcParticlesPositions()
 			if (m_vParticles.Active(i))
 			{
 				const CVector3 relCoord = (m_vParticles.Coord(i) - m_workDomain.coordBeg) / gridLevel.dCellSize;
-				vIDx[i] = static_cast<unsigned>(floor(relCoord.x));
-				vIDy[i] = static_cast<unsigned>(floor(relCoord.y));
-				vIDz[i] = static_cast<unsigned>(floor(relCoord.z));
+				// limit from above for the case if the particle lays outside the domain (like newly generated)
+				vIDx[i] = std::min(static_cast<unsigned>(floor(relCoord.x)), gridLevel.nCellsX - 1);
+				vIDy[i] = std::min(static_cast<unsigned>(floor(relCoord.y)), gridLevel.nCellsY - 1);
+				vIDz[i] = std::min(static_cast<unsigned>(floor(relCoord.z)), gridLevel.nCellsZ - 1);
 				vTotalIndex[i] = vIDx[i] * gridLevel.nCellsY*gridLevel.nCellsZ + vIDy[i] * gridLevel.nCellsZ + vIDz[i];
 			}
 			else
