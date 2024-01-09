@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' OR '$(Configuration)|$(Platform)'=='Release|x64'">
     <CustomBuildStep>
-      <Command>$(SolutionDir)Installers\WSLBuild\build_in_wsl.bat $(SolutionDir) $(LinuxBuild_build_CLI) $(LinuxBuild_build_GUI) $(LinuxBuild_install_aux)</Command>
+      <Command>$(SolutionDir)Installers\WSLBuild\build_in_wsl.bat $(SolutionDir) $(LinuxBuild_build_CLI) $(LinuxBuild_build_GUI) $(LinuxBuild_install_aux) $(LinuxBuild_WSL_distro)</Command>
       <Message>Building via WSL...</Message>
       <Outputs>Fake</Outputs>
     </CustomBuildStep>

@@ -4,5 +4,6 @@
     <LinuxBuild_build_CLI>true</LinuxBuild_build_CLI>
     <LinuxBuild_build_GUI>false</LinuxBuild_build_GUI>
     <LinuxBuild_install_aux>false</LinuxBuild_install_aux>
+    <LinuxBuild_WSL_distro>default</LinuxBuild_WSL_distro>
   </PropertyGroup>
 </Project>

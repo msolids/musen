@@ -5,6 +5,7 @@ $solution_dir = $args[0]
 $compile_cli  = $args[1]
 $compile_gui  = $args[2]
 $install_aux  = $args[3]
+$wsl_distro   = $args[4]
 
 # variables
 $result_path      = "$($solution_dir)Installers\Installers\WSL"
@@ -49,4 +50,8 @@ if ($install_aux -eq "false") {
 # run compilation in WSL
 $solution_dir_wsl = $solution_dir -replace '\\','\\\\'
 $bin_path_wsl = $bin_path -replace '\\','\\\\'
-wsl -e bash -lic "./build_in_wsl.sh $solution_dir_wsl $bin_path_wsl '$targets_params'"
+if ($wsl_distro -eq "default") {
+	wsl                            -e bash -lic "./build_in_wsl.sh $solution_dir_wsl $bin_path_wsl '$targets_params'"
+} else {
+	wsl --distribution $wsl_distro -e bash -lic "./build_in_wsl.sh $solution_dir_wsl $bin_path_wsl '$targets_params'"
+}
