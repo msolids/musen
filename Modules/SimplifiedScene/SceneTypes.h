@@ -22,12 +22,14 @@ protected:
 	std::vector<uint8_t>	active;
 	std::vector<unsigned>	initIndex;
 	std::vector<unsigned>	compoundIndex;
+	std::vector<double>		startActivity;	// time point when particle appears
 	std::vector<double>		endActivity; // time point when particle is not more active
 
 public:
 	ADD_GET_SET(Active,			active)
 	ADD_GET_SET(InitIndex,		initIndex) // corresponds to the indexes in the initial array (in the systemStructure) for real objects. for virtual objects it corresponds to index of object in simplified scene
 	ADD_GET_SET(CompoundIndex,	compoundIndex)
+	ADD_GET_SET(StartActivity,  startActivity)
 	ADD_GET_SET(EndActivity,	endActivity)
 
 	bool Empty() const { return active.empty(); }

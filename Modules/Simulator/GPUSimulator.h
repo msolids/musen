@@ -67,7 +67,7 @@ public:
 	void GetOverlapsInfo(double& _dMaxOverlap, double& _dAverageOverlap, size_t _nMaxParticleID) override;
 
 private:
-	size_t GenerateNewObjects() override;	// Generates new objects if necessary.
+	void GenerateNewObjects() override;	// Generates new objects if necessary.
 	void UpdatePBC() override;				// Updates moving PBC.
 
 	void PrepareAdditionalSavingData() override;

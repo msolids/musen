@@ -57,8 +57,8 @@ public:
 
 	void Initialize();
 
-	// Returns number of objects which have been created.
-	size_t Generate(double _dCurrentTime, CSystemStructure* _pSystemStructure, CSimplifiedScene& _Scene);
+	// Adds objects to simplified scene and fills _newObjects for later adding them to system structure. Returns number of objects which have been created.
+	size_t Generate(double _dCurrentTime, CSystemStructure* _pSystemStructure, CSimplifiedScene& _Scene, std::vector<SGeneratedObject>& _newObjects);
 	// Returns true if some particles must be generated at the specified time point.
 	bool IsNeedToBeGenerated(double _dCurrentTime) const;
 

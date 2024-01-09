@@ -37,7 +37,8 @@ public:
 	// check that everything defined correctly
 	std::string IsDataCorrect() const;
 
-	size_t GenerateObjects(double _dTime, CSimplifiedScene& _pScene); // Returns number of generated objects.
+	// Adds objects to simplified scene and fills _newObjects for later adding them to system structure. Returns number of generated objects.
+	size_t GenerateObjects(double _dTime, CSimplifiedScene& _pScene, std::vector<SGeneratedObject>& _newObjects);
 	// Returns true if some particles must be generated at the specified time point in any generator.
 	bool IsNeedToBeGenerated(double _dTime) const;
 };

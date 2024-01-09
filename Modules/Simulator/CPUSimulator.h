@@ -64,5 +64,6 @@ private:
 	// Check that all particles have correct coordinates and update coordinates of virtual particles.
 	// If some real particles crossed the PBC boundaries, returns true (meaning the need to update verlet lists).
 	void MoveParticlesOverPBC();
+	void GenerateNewObjects() override;	// Generates new objects if necessary.
 };
 

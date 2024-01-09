@@ -38,8 +38,10 @@ public:
 
 	void CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU);				// update info about bonds on GPU
 	void CUDABondsGPU2CPU(CSimplifiedScene& _pSceneCPU);				// update info about bonds on CPU
+	void CUDABondsGPU2CPUDynamicData(CSimplifiedScene& _sceneCPU) const; // update info about bonds on CPU, which change with time
 	void CUDAParticlesCPU2GPU(CSimplifiedScene& _pSceneCPU);			// update info about particles on CPU
 	void CUDAParticlesGPU2CPUVerletData(CSimplifiedScene& _pSceneCPU);	// update info about particles on CPU, needed for verlet lists
+	void CUDAParticlesGPU2CPUDynamicData(CSimplifiedScene& _sceneCPU) const; // update info about particles on CPU, which change with time
 	void CUDAParticlesGPU2CPUAllData(CSimplifiedScene& _pSceneCPU);		// update info about particles on CPU
 	void CUDABondsActivityGPU2CPU(CSimplifiedScene& _pSceneCPU);		// update info about bonds activity on CPU
 	void CUDAWallsCPU2GPU(CSimplifiedScene& _pSceneCPU);				// update info about walls on GPU

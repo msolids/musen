@@ -44,8 +44,16 @@ public:
 
 	void SetSystemStructure(CSystemStructure* _pSystemStructure);
 	void InitializeScene(double _dStartTime,const SOptionalVariables& _activeOptionalVariables);	// Initialize scene by system structure at specific time point
-	void AddParticle(size_t _index, double _dTime);				// Add new particle from the system structure
-	void AddSolidBond(size_t _index, double _dTime);			// Add new solid bond from the system structure
+	// Add new particle from the system structure.
+	void AddParticle(size_t _index, double _dTime);
+	// Add new active particle with given properties.
+	void AddParticle(size_t _index, size_t _compoundIndex, double _activityStart, double _radius, double _contactRadius, double _mass, double _inertiaMoment, CVector3 _coord, CVector3 _velocity, CVector3 _velocityAng, CQuaternion _orientation, double _temperature, double _heatCapacity);
+	// Add new active particle with the properties of the existing particle.
+	void AddParticle(size_t _index, size_t _srcID);
+	// Add new solid bond from the system structure
+	void AddSolidBond(size_t _index, double _dTime);
+	// Add new active solid bond with given properties.
+	void AddSolidBond(size_t _index, size_t _compoundIndex, double _activityStart, size_t _idLeft, size_t _idRight, double _diameter);
 	void AddLiquidBond(size_t _index, double _dTime);			// Add new liquid bond from the system structure
 	void AddWall(size_t _index, double _dTime);					// Add new wall from the system structure
 	void AddMultisphere(const std::vector<size_t>& _vIndexes);	// Add new multisphere from the system structure

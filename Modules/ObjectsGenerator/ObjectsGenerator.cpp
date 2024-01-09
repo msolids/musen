@@ -77,7 +77,7 @@ void CObjectsGenerator::Initialize()
 	}
 }
 
-size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSystemStructure, CSimplifiedScene& _Scene)
+size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSystemStructure, CSimplifiedScene& _Scene, std::vector<SGeneratedObject>& _newObjects)
 {
 	if (!m_bActive) return 0;
 	if ( (_dCurrentTime < m_dStartGenerationTime) || (_dCurrentTime > m_dEndGenerationTime )  ) return 0;
@@ -122,6 +122,16 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 			}
 			vInRealVolumeCheckers.emplace_back(new CInsideVolumeChecker{ vTriangles });
 		}
+
+	// calculate number of single particles and bonds that can be generated
+	size_t maxObjectsNumber{ 0 };
+	for (size_t iObj = 0; iObj < nNewObjects; ++iObj)
+		maxObjectsNumber += m_bGenerateMixture ? 1 : (m_PreLoadedAgglomerate.vParticles.size() + m_PreLoadedAgglomerate.vBonds.size());
+
+	// get free indices: already reserved + new
+	const auto indices = _pSystemStructure->GetFreeIDs(_newObjects.size() + maxObjectsNumber);
+	// index of the first not yet reserved
+	size_t iFree = _newObjects.size();
 
 	for ( unsigned iObj = 0; iObj <nNewObjects; iObj++ )
 	{
@@ -171,26 +181,23 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 				initVelocity = initVelocity / dLen * m_dVelMagnitude;
 			}
 
-			const std::vector<size_t> vFreeIDs = _pSystemStructure->GetFreeIDs(vCoordNewPart.size());
 			for ( size_t i = 0; i < vCoordNewPart.size(); i++ )  // add particles
 			{
-				auto* pNewSphere = dynamic_cast<CSphere*>(_pSystemStructure->AddObject(SPHERE, vFreeIDs[i]));
-				vTempNewIndexes.push_back( pNewSphere->m_lObjectID );
-				pNewSphere->SetStartActivityTime( _dCurrentTime );
-				pNewSphere->SetEndActivityTime(DEFAULT_ACTIVITY_END);
-				pNewSphere->SetRadius(vRadiiNewPart[i]);
-				pNewSphere->SetContactRadius(vContRadiiNewPart[i]);
-				if (m_bGenerateMixture) // this is sphere
-					pNewSphere->SetCompound(m_pMaterialsDB->GetCompound(vMaterialsKey[i]));
-				else // this is agglomerate
-					pNewSphere->SetCompound(m_pMaterialsDB->GetCompound(m_partMaterials[m_PreLoadedAgglomerate.vParticles[i].sCompoundAlias]));
-				pNewSphere->SetCoordinates( _dCurrentTime, vCoordNewPart[ i ] );
-				pNewSphere->SetOrientation(_dCurrentTime, vQuatNewPart[i]);
-				if (m_bRandomVelocity)
-					pNewSphere->SetVelocity(_dCurrentTime, initVelocity);
-				else
-					pNewSphere->SetVelocity( _dCurrentTime, m_vObjInitVel );
-				_Scene.AddParticle( pNewSphere->m_lObjectID, _dCurrentTime );
+				vTempNewIndexes.push_back(indices[iFree]);
+				const auto* compound = m_bGenerateMixture
+					? m_pMaterialsDB->GetCompound(vMaterialsKey[i])
+					: m_pMaterialsDB->GetCompound(m_partMaterials[m_PreLoadedAgglomerate.vParticles[i].sCompoundAlias]);
+				const size_t compoundIndex = m_pMaterialsDB->GetCompoundIndex(compound->GetKey());
+				const double density = compound->GetPropertyValue(ETPPropertyTypes::PROPERTY_DENSITY);
+
+				// add new particle
+				const double mass = 4. / 3. * PI * pow(vRadiiNewPart[i], 3) * density;
+				const double inertiaMoment = 2.0 / 5 * mass * vRadiiNewPart[i] * vRadiiNewPart[i];
+				_Scene.AddParticle(indices[iFree], compoundIndex, _dCurrentTime, vRadiiNewPart[i], vContRadiiNewPart[i], mass, inertiaMoment,
+					vCoordNewPart[i], m_bRandomVelocity ? initVelocity : m_vObjInitVel, CVector3{ 0.0 }, vQuatNewPart[i], {}, {});
+				// update values for later addition to system structure
+				_newObjects.push_back(SGeneratedObject{ SPHERE, indices[iFree], _Scene.GetTotalParticlesNumber() - 1 });
+				iFree++;
 				vPartInVolume.push_back( (unsigned)_Scene.GetTotalParticlesNumber()-1 );
 			}
 			if (!m_bGenerateMixture) // this is agglomerate or multisphere
@@ -203,20 +210,17 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 				else
 				{
 					nCreatedParticles += m_PreLoadedAgglomerate.vBonds.size();
-					const std::vector<size_t> vFreeIDsBonds = _pSystemStructure->GetFreeIDs(m_PreLoadedAgglomerate.vBonds.size());
 					for (size_t j = 0; j < m_PreLoadedAgglomerate.vBonds.size(); ++j)
 					{
-						auto* pNewBond = dynamic_cast<CSolidBond*>(_pSystemStructure->AddObject(SOLID_BOND, vFreeIDsBonds[j]));
 						const SAggloBond& bond = m_PreLoadedAgglomerate.vBonds[j];
-						pNewBond->SetStartActivityTime(_dCurrentTime);
-						pNewBond->SetEndActivityTime(DEFAULT_ACTIVITY_END);
-						pNewBond->SetDiameter(2 * bond.dRadius);
-						pNewBond->SetCompound(m_pMaterialsDB->GetCompound(m_bondMaterials[bond.sCompoundAlias]));
-						pNewBond->m_nLeftObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nLeftID]);
-						pNewBond->m_nRightObjectID = static_cast<unsigned>(vTempNewIndexes[bond.nRightID]);
-						pNewBond->SetInitialLength(_pSystemStructure->GetBond(_dCurrentTime, pNewBond->m_lObjectID).Length());
-						pNewBond->SetTangentialOverlap(_dCurrentTime, CVector3{ 0.0 });
-						_Scene.AddSolidBond(pNewBond->m_lObjectID, _dCurrentTime);
+						const auto* compound = m_pMaterialsDB->GetCompound(m_bondMaterials[bond.sCompoundAlias]);
+						const size_t compoundIndex = m_pMaterialsDB->GetCompoundIndex(compound->GetKey());
+
+						// add new bond
+						_Scene.AddSolidBond(indices[iFree], compoundIndex, _dCurrentTime, vTempNewIndexes[bond.nLeftID], vTempNewIndexes[bond.nRightID], 2 * bond.dRadius);
+						// update values for later addition to system structure
+						_newObjects.push_back(SGeneratedObject{ SOLID_BOND, indices[iFree], _Scene.GetBondsNumber() - 1 });
+						iFree++;
 					}
 				}
 			}

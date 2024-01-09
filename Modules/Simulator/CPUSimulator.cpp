@@ -665,6 +665,18 @@ void CCPUSimulator::MoveParticlesOverPBC()
 	});
 }
 
+void CCPUSimulator::GenerateNewObjects()
+{
+	const size_t nNewParticles = m_generationManager->GenerateObjects(m_currentTime, m_scene, m_generatedObjectsDiff);
+	if (nNewParticles > 0)
+	{
+		m_verletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_scene.GetMinParticleContactRadius(), m_scene.GetMaxParticleContactRadius(), m_cellsMax, m_verletDistanceCoeff, m_autoAdjustVerletDistance);
+		m_verletList.ResetCurrentData();
+		m_nGeneratedObjects += nNewParticles;
+		m_scene.UpdateParticlesToBonds();
+	}
+}
+
 void CCPUSimulator::UpdatePBC()
 {
 	m_scene.m_PBC.UpdatePBC(m_currentTime);

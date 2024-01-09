@@ -357,23 +357,10 @@ std::string CBaseSimulator::IsDataCorrect() const
 	return m_generationManager->IsDataCorrect();
 }
 
-size_t CBaseSimulator::GenerateNewObjects()
-{
-	const size_t nNewParticles = m_generationManager->GenerateObjects(m_currentTime, m_scene);
-	if (nNewParticles > 0)
-	{
-		m_verletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_scene.GetMinParticleContactRadius(), m_scene.GetMaxParticleContactRadius(),
-			m_cellsMax, m_verletDistanceCoeff, m_autoAdjustVerletDistance);
-		m_verletList.ResetCurrentData();
-		m_scene.InitializeMaterials();
-		m_nGeneratedObjects += nNewParticles;
-		m_scene.UpdateParticlesToBonds();
-	}
-	return nNewParticles;
-}
-
 void CBaseSimulator::p_SaveData()
 {
+	AddGeneratedObjectsToSystemStructure();
+
 	if (m_selectiveSaving)
 		m_pSystemStructure->GetSimulationInfo()->set_selective_saving(true);
 	else
@@ -524,6 +511,7 @@ void CBaseSimulator::Initialize()
 
 	// delete old data
 	m_pSystemStructure->ClearAllStatesFrom(m_currentTime);
+	m_generatedObjectsDiff.clear();
 
 	// scene
 	m_optionalSceneVars = GetModelManager()->GetUtilizedVariables();
@@ -645,9 +633,9 @@ void CBaseSimulator::FinalizeSimulation()
 
 void CBaseSimulator::PreCalculationStep()
 {
-	const size_t newObjects = GenerateNewObjects();
+	GenerateNewObjects();
 
-	if (std::fabs(m_currentTime - m_lastSavingTime) + 0.1 * m_currSimulationStep > m_savingStep || newObjects)
+	if (std::fabs(m_currentTime - m_lastSavingTime) + 0.1 * m_currSimulationStep > m_savingStep)
 	{
 		SaveData();
 		m_lastSavingTime = m_currentTime;
@@ -714,6 +702,57 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 
 	m_stopCriteria = _other.m_stopCriteria;
 	m_stopValues = _other.m_stopValues;
+}
+
+void CBaseSimulator::AddGeneratedObjectsToSystemStructure()
+{
+	if (m_generatedObjectsDiff.empty()) return;
+
+	SParticleStruct& particles = m_scene.GetRefToParticles();
+	SSolidBondStruct& bonds = m_scene.GetRefToSolidBonds();
+
+	// gathered IDs of new objects in system structure
+	auto newIDs = ReservedVector<size_t>(m_generatedObjectsDiff.size());
+
+	for (const auto& o : m_generatedObjectsDiff)
+	{
+		auto* object = m_pSystemStructure->AddObject(o.type, o.indexStruct);
+		switch (o.type)
+		{
+		case SPHERE:
+		{
+			object->SetCompoundKey(m_pSystemStructure->m_MaterialDatabase.GetCompoundKey(particles.CompoundIndex(o.indexScene)));
+			object->SetStartActivityTime(particles.StartActivity(o.indexScene));
+
+			auto* part = dynamic_cast<CSphere*>(object);
+			part->SetRadius(particles.Radius(o.indexScene));
+			part->SetContactRadius(particles.ContactRadius(o.indexScene));
+
+			break;
+		}
+		case SOLID_BOND:
+		{
+			object->SetCompoundKey(m_pSystemStructure->m_MaterialDatabase.GetCompoundKey(bonds.CompoundIndex(o.indexScene)));
+			object->SetStartActivityTime(bonds.StartActivity(o.indexScene));
+
+			auto* bond = dynamic_cast<CSolidBond*>(object);
+			bond->m_nLeftObjectID = particles.InitIndex(bonds.LeftID(o.indexScene));
+			bond->m_nRightObjectID = particles.InitIndex(bonds.RightID(o.indexScene));
+			bond->SetDiameter(bonds.Diameter(o.indexScene));
+			bond->SetInitialLength(bonds.InitialLength(o.indexScene));
+			break;
+		}
+		default: break;
+		}
+		object->SetEndActivityTime(DEFAULT_ACTIVITY_END);
+
+		newIDs.push_back(o.indexStruct);
+	}
+
+	// calculate material properties
+	m_pSystemStructure->UpdateObjectsCompoundProperties(newIDs);
+
+	m_generatedObjectsDiff.clear();
 }
 
 void CBaseSimulator::SAdditionalSavingData::AddStress(const CVector3& _contVector, const CVector3& _force, double _volume)

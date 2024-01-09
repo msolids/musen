@@ -139,6 +139,34 @@ void CSimplifiedSceneGPU::CUDABondsGPU2CPU(CSimplifiedScene& _pSceneCPU)
 	});
 }
 
+void CSimplifiedSceneGPU::CUDABondsGPU2CPUDynamicData(CSimplifiedScene& _sceneCPU) const
+{
+	SSolidBondStruct& bondsCPU = _sceneCPU.GetRefToSolidBonds();
+	const size_t& N = m_SolidBonds.nElements;
+
+	std::vector<uint8_t> Activities(N);               CUDA_MEMCPY_D2H(Activities.data()             , m_SolidBonds.Activities, sizeof(uint8_t) * N);
+	std::vector<CVector3> NormalMoment(N);            CUDA_MEMCPY_D2H(NormalMoment.data()           , m_SolidBonds.NormalMoments, sizeof(CVector3) * N);
+	std::vector<CVector3> TangentialMoment(N);        CUDA_MEMCPY_D2H(TangentialMoment.data()       , m_SolidBonds.TangentialMoments, sizeof(CVector3) * N);
+	std::vector<double> EndActivities(N);             CUDA_MEMCPY_D2H(EndActivities.data()          , m_SolidBonds.EndActivities, sizeof(double) * N);
+	std::vector<double> NormalPlasticStrain(N);       CUDA_MEMCPY_D2H(NormalPlasticStrain.data()    , m_SolidBonds.NormalPlasticStrains, sizeof(double) * N);
+	std::vector<CVector3> PrevBonds(N);               CUDA_MEMCPY_D2H(PrevBonds.data()              , m_SolidBonds.PrevBonds, sizeof(CVector3) * N);
+	std::vector<CVector3> TangentialOverlap(N);       CUDA_MEMCPY_D2H(TangentialOverlap.data()      , m_SolidBonds.TangentialOverlaps, sizeof(CVector3) * N);
+	std::vector<CVector3> TangentialPlasticStrain(N); CUDA_MEMCPY_D2H(TangentialPlasticStrain.data(), m_SolidBonds.TangentialPlasticStrains, sizeof(CVector3) * N);
+
+	ParallelFor(bondsCPU.Size(), [&](size_t i)
+	{
+		bondsCPU.Active(i)                  = Activities[i] != 0;
+		bondsCPU.NormalMoment(i)            = NormalMoment[i];
+		bondsCPU.TangentialMoment(i)        = TangentialMoment[i];
+		bondsCPU.EndActivity(i)             = EndActivities[i];
+		bondsCPU.NormalPlasticStrain(i)     = NormalPlasticStrain[i];
+		bondsCPU.PrevBond(i)                = PrevBonds[i];
+		bondsCPU.TangentialOverlap(i)       = TangentialOverlap[i];
+		bondsCPU.TangentialPlasticStrain(i) = TangentialPlasticStrain[i];
+	});
+
+}
+
 void CSimplifiedSceneGPU::CUDABondsActivityGPU2CPU(CSimplifiedScene& _pSceneCPU)
 {
 	SSolidBondStruct& bondsCPU = _pSceneCPU.GetRefToSolidBonds();
@@ -172,6 +200,7 @@ void CSimplifiedSceneGPU::CUDAParticlesCPU2GPU(CSimplifiedScene& _pSceneCPU)
 		particlesHost.Forces[i] = particlesCPU.Force(i);
 		particlesHost.Moments[i] = particlesCPU.Moment(i);
 		particlesHost.Activities[i] = particlesCPU.Active(i);
+		particlesHost.StartActivities[i] = particlesCPU.StartActivity(i);
 		particlesHost.EndActivities[i] = particlesCPU.EndActivity(i);
 		if (particlesCPU.ThermalsExist())
 		{
@@ -197,6 +226,43 @@ void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUVerletData(CSimplifiedScene& _pSce
 	});
 }
 
+void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUDynamicData(CSimplifiedScene& _sceneCPU) const
+{
+	SParticleStruct& particlesCPU = _sceneCPU.GetRefToParticles();
+	const size_t& N = m_Particles.nElements;
+
+	std::vector<CVector3> coords(N);      CUDA_MEMCPY_D2H(coords.data()       , m_Particles.Coords       , sizeof(CVector3) * N);
+	std::vector<CVector3> vels(N);        CUDA_MEMCPY_D2H(vels.data()         , m_Particles.Vels         , sizeof(CVector3) * N);
+	std::vector<CVector3> anglVels(N);    CUDA_MEMCPY_D2H(anglVels.data()     , m_Particles.AnglVels     , sizeof(CVector3) * N);
+	std::vector<unsigned> activities(N);  CUDA_MEMCPY_D2H(activities.data()   , m_Particles.Activities   , sizeof(unsigned) * N);
+	std::vector<double> endActivities(N); CUDA_MEMCPY_D2H(endActivities.data(), m_Particles.EndActivities, sizeof(double) * N);
+
+	std::vector<CQuaternion> quarternions(N);
+	if (particlesCPU.QuaternionExist())
+	{
+		quarternions.resize(N); CUDA_MEMCPY_D2H(quarternions.data(), m_Particles.Quaternions, sizeof(CQuaternion) * N);
+	}
+
+	std::vector<double> temperature(N);
+	if (particlesCPU.ThermalsExist())
+	{
+		temperature.resize(N); CUDA_MEMCPY_D2H(temperature.data(), m_Particles.Temperatures, sizeof(double) * N);
+	}
+
+	ParallelFor(particlesCPU.Size(), [&](size_t i)
+	{
+		particlesCPU.Coord(i) = coords[i];
+		particlesCPU.Vel(i) = vels[i];
+		particlesCPU.AnglVel(i) = anglVels[i];
+		particlesCPU.Active(i) = activities[i] != 0;
+		particlesCPU.EndActivity(i) = endActivities[i];
+		if (particlesCPU.QuaternionExist())
+			particlesCPU.Quaternion(i) = quarternions[i];
+		if (particlesCPU.ThermalsExist())
+			particlesCPU.Temperature(i) = temperature[i];
+	});
+}
+
 void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUAllData(CSimplifiedScene& _pSceneCPU)
 {
 	SParticleStruct& particlesCPU = _pSceneCPU.GetRefToParticles();
@@ -213,6 +279,7 @@ void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUAllData(CSimplifiedScene& _pSceneC
 		particlesCPU.Force(i) = particlesHost.Forces[i];
 		particlesCPU.Moment(i) = particlesHost.Moments[i];
 		particlesCPU.Active(i) = particlesHost.Activities[i] != 0;
+		particlesCPU.StartActivity(i) = particlesHost.StartActivities[i];
 		particlesCPU.EndActivity(i) = particlesHost.EndActivities[i];
 		if (particlesCPU.ThermalsExist())
 			particlesCPU.Temperature(i) = particlesHost.Temperatures[i];

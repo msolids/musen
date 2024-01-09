@@ -112,6 +112,7 @@ struct SGPUParticles : SBasicGPUStruct
 	unsigned* InitIndexes;  // corresponds to the indexes in the initial array (in the systemStructure) for real particles. for virtual it corresponds to index of particle in simplified scene
 	unsigned* CompoundIndices;
 	unsigned* Activities;		// List of flags for particles activity.
+	double* StartActivities;	// Time point when particles appear.
 	double* EndActivities;		// End time of activity for particles.
 	double* Temperatures;
 	double* HeatFluxes;
@@ -137,6 +138,7 @@ private:
 		ADD_FIELD(InertiaMoments);
 		ADD_FIELD(CompoundIndices);
 		ADD_FIELD(Activities);
+		ADD_FIELD(StartActivities);
 		ADD_FIELD(EndActivities);
 		ADD_FIELD(Temperatures);
 		ADD_FIELD(HeatFluxes);
