@@ -514,7 +514,8 @@ double CSimplifiedScene::GetMaxParticleRadius() const
 		return 0.;
 	double dMaxRadius = m_Objects.vParticles->Radius(0);
 	for (size_t i = 1; i < m_Objects.vParticles->Size(); ++i)
-		dMaxRadius = std::max(dMaxRadius, m_Objects.vParticles->Radius(i));
+		if (m_Objects.vParticles->Active(i))
+			dMaxRadius = std::max(dMaxRadius, m_Objects.vParticles->Radius(i));
 	return dMaxRadius;
 }
 
@@ -524,7 +525,8 @@ double CSimplifiedScene::GetMinParticleRadius() const
 		return 0;
 	double dMinRadius = m_Objects.vParticles->Radius(0);
 	for (size_t i = 1; i < m_Objects.vParticles->Size(); ++i)
-		dMinRadius = std::min(m_Objects.vParticles->Radius(i), dMinRadius);
+		if (m_Objects.vParticles->Active(i))
+			dMinRadius = std::min(m_Objects.vParticles->Radius(i), dMinRadius);
 	return dMinRadius;
 }
 
@@ -534,7 +536,8 @@ double CSimplifiedScene::GetMaxParticleContactRadius() const
 		return 0.;
 	double dMaxContactRadius = m_Objects.vParticles->ContactRadius(0);
 	for (size_t i = 1; i < m_Objects.vParticles->Size(); ++i)
-		dMaxContactRadius = std::max(dMaxContactRadius, m_Objects.vParticles->ContactRadius(i));
+		if (m_Objects.vParticles->Active(i))
+			dMaxContactRadius = std::max(dMaxContactRadius, m_Objects.vParticles->ContactRadius(i));
 	return dMaxContactRadius;
 }
 
@@ -544,7 +547,8 @@ double CSimplifiedScene::GetMinParticleContactRadius() const
 		return 0;
 	double dMinContactRadius = m_Objects.vParticles->ContactRadius(0);
 	for (size_t i = 1; i < m_Objects.vParticles->Size(); ++i)
-		dMinContactRadius = std::min(m_Objects.vParticles->ContactRadius(i), dMinContactRadius);
+		if (m_Objects.vParticles->Active(i))
+			dMinContactRadius = std::min(m_Objects.vParticles->ContactRadius(i), dMinContactRadius);
 	return dMinContactRadius;
 }
 

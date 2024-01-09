@@ -10,6 +10,7 @@ PRAGMA_WARNING_DISABLE
 #include <thrust/count.h>
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
+#include <thrust/host_vector.h>
 PRAGMA_WARNING_POP
 
 void CGPUScene::SetCudaDefines(const CCUDADefines* _cudaDefines)
@@ -36,15 +37,24 @@ double CGPUScene::GetMaxPartVelocity(SGPUParticles& _particles) const
 	if (!_particles.nElements)
 		return 0.0;
 
-	static thrust::device_vector<double> maxSqrVelocity;
-	if (maxSqrVelocity.empty())
-		maxSqrVelocity.resize(1);
-	static thrust::device_vector<double> temp;
-	if (temp.size() != _particles.nElements)
-		temp.resize(_particles.nElements);
-
-	CUDA_REDUCE_CALLER(CUDAKernels::ReduceMax_kernel, _particles.nElements, _particles.Vels, temp.data().get(), maxSqrVelocity.data().get());
-
+	// velocities of active particles
+	thrust::device_vector<CVector3> activeVels(_particles.nElements);
+	// temporary storage
+	thrust::device_vector<int8_t> tempStorage;
+	size_t szTempStorage{ 0 };
+	// determine temporary device storage requirements
+	thrust::device_vector<unsigned> outLength(1);
+	CUDA_CUB_FLAGGED(nullptr, szTempStorage, _particles.Vels, _particles.Activities, activeVels.data().get(), outLength.data().get(), _particles.nElements);
+	// allocate temporary storage
+	tempStorage.resize(szTempStorage);
+	// run selection
+	CUDA_CUB_FLAGGED(tempStorage.data().get(), szTempStorage, _particles.Vels, _particles.Activities, activeVels.data().get(), outLength.data().get(), _particles.nElements);
+	thrust::host_vector<unsigned> outLengthCPU = outLength;
+	activeVels.resize(outLengthCPU.front());
+	// find max
+	thrust::device_vector<double> maxSqrVelocity(1);
+	CUDA_REDUCE_CALLER(CUDAKernels::ReduceMax_kernel, activeVels.size(), activeVels.data().get(), _particles.TempDouble1, maxSqrVelocity.data().get());
+	// copy to CPU
 	double maxVelocity;
 	CUDA_MEMCPY_D2H(&maxVelocity, maxSqrVelocity.data().get(), sizeof(double));
 	return std::sqrt(maxVelocity);
