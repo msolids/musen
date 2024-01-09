@@ -131,6 +131,8 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 		{
 			// generate single object
 			GenerateNewObject(&vCoordNewPart, &vQuatNewPart, &vRadiiNewPart, &vContRadiiNewPart, &vMaterialsKey, boundingBox, m_PBC, _dCurrentTime);
+			if (!_pSystemStructure->IsContactRadiusEnabled())
+				vContRadiiNewPart = vRadiiNewPart;
 			bSuccess = true;
 
 			std::vector<size_t> vID = insideChecker.GetSpheresTotallyInside(vCoordNewPart, vRadiiNewPart);

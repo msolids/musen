@@ -161,7 +161,8 @@ void CSimplifiedSceneGPU::CUDAParticlesCPU2GPU(CSimplifiedScene& _pSceneCPU)
 		particlesHost.Coords[i] = particlesCPU.Coord(i);
 		particlesHost.Vels[i] = particlesCPU.Vel(i);
 		particlesHost.AnglVels[i] = particlesCPU.AnglVel(i);
-		particlesHost.Quaternions[i] = particlesCPU.Quaternion(i);
+		if (particlesCPU.QuaternionExist())
+			particlesHost.Quaternions[i] = particlesCPU.Quaternion(i);
 		particlesHost.Masses[i] = particlesCPU.Mass(i);
 		particlesHost.Radii[i] = particlesCPU.Radius(i);
 		particlesHost.ContactRadii[i] = particlesCPU.ContactRadius(i);
@@ -205,7 +206,8 @@ void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUAllData(CSimplifiedScene& _pSceneC
 	{
 		particlesCPU.Coord(i) = particlesHost.Coords[i];
 		particlesCPU.Vel(i) = particlesHost.Vels[i];
-		particlesCPU.Quaternion(i) = particlesHost.Quaternions[i];
+		if (particlesCPU.QuaternionExist())
+			particlesCPU.Quaternion(i) = particlesHost.Quaternions[i];
 		particlesCPU.AnglVel(i) = particlesHost.AnglVels[i];
 		particlesCPU.Force(i) = particlesHost.Forces[i];
 		particlesCPU.Moment(i) = particlesHost.Moments[i];
