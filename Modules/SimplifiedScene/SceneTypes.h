@@ -219,7 +219,7 @@ private:
 		CVector3	prevBond{ 0 };
 
 		SBaseInfo() = default;
-		SBaseInfo(double _diameter, double _crossCut, double _initialLength, double _axialMoment, double _normalStiffness, double _tangentialStiffness, CVector3 _vTangOverlap)
+		SBaseInfo(double _diameter, double _crossCut, double _initialLength, double _axialMoment, double _normalStiffness, double _tangentialStiffness, const CVector3& _vTangOverlap)
 			: diameter{ _diameter }, crossCut{ _crossCut }, initialLength{ _initialLength }, axialMoment{ _axialMoment },
 			normalStiffness{ _normalStiffness }, tangentialStiffness{ _tangentialStiffness }, tangentialOverlap{ _vTangOverlap }{}
 	};
@@ -295,7 +295,7 @@ public:
 	bool ThermalsExist() const { return thermalInfo.size() == Size() && !Empty(); }
 
 	void AddSolidBond(bool _active, unsigned _initIndex, size_t _leftID, size_t _rightID, double _diameter, double _crossCut, double _initialLength,
-		CVector3 _vTangOverlap, double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength);
+		const CVector3& _vTangOverlap, double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength);
 	void AddViscosity(double _viscosity);
 	void AddTimeThermExpCoeff(double _timeThermExpCoeff);
 	void AddYieldStrength(double _yieldStrength);
@@ -315,6 +315,9 @@ private:
 		double volume;
 		double viscosity;
 		double surfaceTension;
+		SBaseInfo() = default;
+		SBaseInfo(double _volume, double _viscosity, double _surfaceTension)
+			: volume{ _volume }, viscosity{ _viscosity }, surfaceTension{ _surfaceTension } {}
 	};
 
 	struct SKinematics
@@ -322,6 +325,9 @@ private:
 		CVector3 normalForce{ 0 };
 		CVector3 unsymMoment{ 0 };		// unsymmetrical moment
 		CVector3 tangentialForce{ 0 };
+		SKinematics() = default;
+		SKinematics(const CVector3 & _normalForce, const CVector3 & _unsymMoment, const CVector3 & _tangentialForce)
+			: normalForce{ _normalForce }, unsymMoment{ _unsymMoment }, tangentialForce{ _tangentialForce } {}
 	};
 
 	std::vector<SBaseInfo>		baseInfo;
@@ -348,10 +354,13 @@ private:
 
 	struct SMatrices
 	{
-		CMatrix3 LMatrix;
+		CMatrix3 lMatrix;
 		CMatrix3 inertTensor;		// inertial tensor
 		CMatrix3 invLMatrix;		// inverse inertial tensor
 		CMatrix3 invInertTensor;	// inverse lambda matrix
+		SMatrices() = default;
+		SMatrices(const CMatrix3 & _lMatrix, const CMatrix3 & _inertTensor, const CMatrix3 & _invLMatrix, const CMatrix3 & _invInertTensor)
+			: lMatrix{ _lMatrix }, inertTensor{ _inertTensor }, invLMatrix{ _invLMatrix }, invInertTensor{ _invInertTensor } {}
 	};
 
 	struct SProperties
@@ -360,6 +369,9 @@ private:
 		CVector3 velocity;		// velocity of center of mass
 		CVector3 rotVelocity;
 		double mass{};
+		SProperties() = default;
+		SProperties(const CVector3 & _center, const CVector3 & _velocity, const CVector3 & _rotVelocity, double _mass)
+			: center{ _center }, velocity{ _velocity }, rotVelocity{ _rotVelocity }, mass{ _mass } {}
 	};
 
 	std::vector<SMatrices> matrices;
@@ -367,7 +379,7 @@ private:
 
 public:
 	std::vector<size_t>& Indices(const size_t i) { return indices[i]; };
-	CMatrix3& LMatrix(const size_t i) { return matrices[i].LMatrix; };
+	CMatrix3& LMatrix(const size_t i) { return matrices[i].lMatrix; };
 	CMatrix3& InertTensor(const size_t i) { return matrices[i].inertTensor; };
 	CMatrix3& InvLMatrix(const size_t i) { return matrices[i].invLMatrix; };
 	CMatrix3& InvInertTensor(const size_t i) { return matrices[i].invInertTensor; };
@@ -376,7 +388,7 @@ public:
 	CVector3& RotVelocity(const size_t i) { return props[i].rotVelocity; };
 	double& Mass(const size_t i) { return props[i].mass; };
 
-	void AddMultisphere(const std::vector<size_t>& _indexes, const CMatrix3& _LMatrix, const CMatrix3& _inertTensor, const CMatrix3& _invLMatrix,
+	void AddMultisphere(const std::vector<size_t>& _indexes, const CMatrix3& _lMatrix, const CMatrix3& _inertTensor, const CMatrix3& _invLMatrix,
 		const CMatrix3& _invInertTensor, const CVector3& _center, const CVector3& _velocity, const CVector3& _rotVelocity, double _mass);
 
 	size_t Size() const { return indices.size(); }
