@@ -94,7 +94,7 @@ cd musen
 ```
 2. Install required tools and libraries.
 ```sh
-sudo apt install build-essential cmake libprotobuf-dev protobuf-compiler libqt5opengl5-dev
+sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
 ```
 3. Install CUDA
 ```sh
