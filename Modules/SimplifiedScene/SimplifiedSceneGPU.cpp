@@ -61,10 +61,11 @@ size_t CSimplifiedSceneGPU::GetBrokenBondsNumber() const
 	return m_gpuScene.GetBrokenBondsNumber(m_SolidBonds);
 }
 
-void CSimplifiedSceneGPU::CUDASaveVerletCoords()
+void CSimplifiedSceneGPU::CUDASaveVerletCoords() const
 {
 	CUDA_MEMCPY_H2D(m_Particles.CoordsVerlet, m_Particles.Coords, m_Particles.nElements * sizeof(CVector3));
 }
+
 void CSimplifiedSceneGPU::CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU)
 {
 	SSolidBondStruct& bondsCPU = _pSceneCPU.GetRefToSolidBonds();

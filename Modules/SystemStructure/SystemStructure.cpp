@@ -44,8 +44,10 @@ void CSystemStructure::DeleteObjects(const std::vector<size_t>& _vIndexes)
 		if (objects[i] != NULL)
 			if ((objects[i]->GetObjectType() == SOLID_BOND) || (objects[i]->GetObjectType() == LIQUID_BOND))
 			{
-				vConnectedBonds[((CBond*)objects[i])->m_nLeftObjectID].push_back(i);
-				vConnectedBonds[((CBond*)objects[i])->m_nRightObjectID].push_back(i);
+				const auto* bond = dynamic_cast<CBond*>(objects[i]);
+				if (bond->m_nLeftObjectID >= vConnectedBonds.size() || bond->m_nRightObjectID >= vConnectedBonds.size()) return;
+				vConnectedBonds[bond->m_nLeftObjectID].push_back(i);
+				vConnectedBonds[bond->m_nRightObjectID].push_back(i);
 			}
 
 	for (size_t i = 0; i < _vIndexes.size(); i++)
@@ -429,6 +431,7 @@ double CSystemStructure::GetRecommendedTimeStep(double _dTime /*= 0*/) const
 		else if (auto* bond = dynamic_cast<CBond*>(objects[i]))	// for bonds
 		{
 			// find the smallest mass of contact partner
+			if (bond->m_nLeftObjectID >= objects.size() || bond->m_nRightObjectID >= objects.size()) return;
 			const auto* part1 = objects[bond->m_nLeftObjectID];
 			const auto* part2 = objects[bond->m_nRightObjectID];
 			const auto mass1 = part1 ? part1->GetMass() : std::numeric_limits<double>::max();
