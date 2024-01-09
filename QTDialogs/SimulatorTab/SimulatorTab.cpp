@@ -202,6 +202,7 @@ void CSimulatorTab::StartSimulation()
 	}
 
 	//check general data
+	m_pSystemStructure->ClearAllStatesFrom(0.0);
 	std::string sErrorMessage = m_pSimulatorManager->GetSimulatorPtr()->IsDataCorrect();
 	if (!sErrorMessage.empty())
 	{
