@@ -75,6 +75,7 @@ protected:
 
 	std::vector<SAdditionalSavingData> m_additionalSavingData;
 	SOptionalVariables m_optionalSceneVars;
+	std::vector<SGeneratedObject> m_generatedObjectsDiff;		// Objects generated since last save in simplified scene, but not yet added to system structure.
 
 	// For performance analysis in console
 	std::chrono::system_clock::time_point m_chronoSimStart;
@@ -202,7 +203,7 @@ public:
 protected:
 	virtual void SaveData() {}
 
-	virtual size_t GenerateNewObjects();	// Generates new objects if necessary, returns number of generated objects.
+	virtual void GenerateNewObjects() {}	// Generates new objects if necessary, returns number of generated objects.
 	virtual void UpdatePBC() {}				// Updates moving PBC.
 	void p_SaveData();						// Saves current state of simplified scene into system structure.
 	void PrintStatus() const;				// Prints the current simulation status into console.
@@ -211,4 +212,6 @@ protected:
 
 private:
 	void CopySimulatorData(const CBaseSimulator& _other); // Copies content of the given simulator.
+
+	void AddGeneratedObjectsToSystemStructure();
 };

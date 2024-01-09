@@ -12,6 +12,7 @@ inline void SGeneralObject::AddObject(bool _active, unsigned _initIndex)
 	active.emplace_back(_active);
 	initIndex.emplace_back(_initIndex);
 	compoundIndex.emplace_back(0);
+	startActivity.emplace_back(0.);
 	endActivity.emplace_back(0.);
 }
 
@@ -20,6 +21,7 @@ void SGeneralObject::Resize(size_t n)
 	active.resize(n);
 	initIndex.resize(n);
 	compoundIndex.resize(n);
+	startActivity.resize(n);
 	endActivity.resize(n);
 }
 

@@ -131,6 +131,16 @@ struct SPBC
 	}
 };
 
+/*
+* Is used to temporary store info about generated objects before adding them to the system structure at the next saving step.
+*/
+struct SGeneratedObject
+{
+	unsigned type{};      // Object type.
+	size_t indexStruct{}; // Index in system structure.
+	size_t indexScene{};  // Index in simplified scene.
+};
+
 // TODO: remove "VOLUME_"
 enum class EVolumeShape : unsigned
 {

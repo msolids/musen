@@ -158,12 +158,12 @@ std::string CGenerationManager::IsDataCorrect() const
 	return "";
 }
 
-size_t CGenerationManager::GenerateObjects(double _dTime, CSimplifiedScene& _Scene)
+size_t CGenerationManager::GenerateObjects(double _dTime, CSimplifiedScene& _Scene, std::vector<SGeneratedObject>& _newObjects)
 {
 	size_t objectsCounter = 0;
 	for (auto& generator : m_vGenerators)
 		if (generator->m_bActive)
-			objectsCounter += generator->Generate(_dTime, m_pSystemStructure, _Scene);
+			objectsCounter += generator->Generate(_dTime, m_pSystemStructure, _Scene, _newObjects);
 	return objectsCounter;
 }
 

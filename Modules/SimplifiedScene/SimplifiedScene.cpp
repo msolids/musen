@@ -152,11 +152,49 @@ void CSimplifiedScene::AddParticle(size_t _index, double _dTime)
 	m_vNewIndexes[_index] = m_Objects.vParticles->Size() - 1;
 }
 
+void CSimplifiedScene::AddParticle(size_t _index, size_t _compoundIndex, double _activityStart, double _radius, double _contactRadius, double _mass, double _inertiaMoment, CVector3 _coord, CVector3 _velocity, CVector3 _velocityAng, CQuaternion _orientation, double _temperature, double _heatCapacity)
+{
+	m_Objects.vParticles->AddParticle(true, _coord, _radius, (unsigned)_index, _mass, _inertiaMoment, _velocity, _velocityAng);
+	const size_t id = m_Objects.vParticles->Size() - 1;
+	m_Objects.vParticles->StartActivity(id) = _activityStart;
+	m_Objects.vParticles->EndActivity(id) = 1e+300;
+	m_Objects.vParticles->CompoundIndex(id) = static_cast<unsigned>(_compoundIndex);
+	m_Objects.vParticles->AddContactRadius(_contactRadius);
+	if (m_Objects.vParticles->QuaternionExist())
+		m_Objects.vParticles->AddQuaternion(_orientation);
+	if (m_Objects.vParticles->ThermalsExist())
+		m_Objects.vParticles->AddThermals(_temperature, _heatCapacity);
+	m_Objects.vParticles->CoordVerlet(id) = _coord; // needed for proper work of dynamic generator
+	while (m_vNewIndexes.size() <= _index)
+		m_vNewIndexes.emplace_back(0);
+	m_vNewIndexes[_index] = id;
+}
+
+void CSimplifiedScene::AddParticle(size_t _index, size_t _srcID)
+{
+	const auto& p = m_Objects.vParticles;
+	if (_srcID >= p->Size()) return;
+	AddParticle(
+		_index,
+		p->CompoundIndex(_srcID),
+		p->StartActivity(_srcID),
+		p->Radius(_srcID),
+		p->ContactRadius(_srcID),
+		p->Mass(_srcID),
+		p->InertiaMoment(_srcID),
+		p->Coord(_srcID),
+		p->Vel(_srcID),
+		p->AnglVel(_srcID),
+		p->QuaternionExist() ? p->Quaternion(_srcID) : CQuaternion{},
+		p->ThermalsExist() ? p->Temperature(_srcID) : 0.0,
+		p->ThermalsExist() ? p->HeatCapacity(_srcID) : 0.0
+	);
+}
+
 void CSimplifiedScene::AddSolidBond(size_t _index, double _dTime)
 {
 	CSolidBond* pBond = dynamic_cast<CSolidBond*>(m_pSystemStructure->GetObjectByIndex(_index));
 	if (!pBond) return;
-
 
 	m_Objects.vSolidBonds->AddSolidBond(
 		pBond->IsActive(_dTime),
@@ -196,6 +234,46 @@ void CSimplifiedScene::AddSolidBond(size_t _index, double _dTime)
 	while (m_vNewIndexes.size() <= _index)
 		m_vNewIndexes.push_back(0);
 	m_vNewIndexes[_index] = m_Objects.vSolidBonds->Size() - 1;
+}
+
+void CSimplifiedScene::AddSolidBond(size_t _index, size_t _compoundIndex, double _activityStart, size_t _idLeft, size_t _idRight, double _diameter)
+{
+	const auto compound = m_pSystemStructure->m_MaterialDatabase.GetCompound(_compoundIndex);
+	const double poissonRatio = compound->GetPropertyValue(PROPERTY_POISSON_RATIO);
+	const double youngsModulus = compound->GetPropertyValue(PROPERTY_YOUNG_MODULUS);
+	const double normalStrength = compound->GetPropertyValue(PROPERTY_NORMAL_STRENGTH);
+	const double tangentialStrength = compound->GetPropertyValue(PROPERTY_TANGENTIAL_STRENGTH);
+	const double yieldStrength = compound->GetPropertyValue(PROPERTY_YIELD_STRENGTH);
+	const double viscosity = compound->GetPropertyValue(PROPERTY_DYNAMIC_VISCOSITY);
+	const double timeThermExpCoeff = compound->GetPropertyValue(PROPERTY_TIME_THERM_EXP_COEFF);
+	const double shearModulus = youngsModulus / (2 * (1 + poissonRatio));
+	const double crossCutSurface = PI * _diameter * _diameter / 4;
+	const double axialMoment = PI * _diameter * _diameter * _diameter * _diameter / 64;
+
+	// both contact partners exist
+	const bool partsExist = m_vNewIndexes[_idLeft] < m_Objects.vParticles->Size() && m_vNewIndexes[_idRight] < m_Objects.vParticles->Size();
+	// real bond's vector after application of PBC
+	const CVector3 realBond = partsExist
+		? GetSolidBond(m_Objects.vParticles->Coord(m_vNewIndexes[_idLeft]), m_Objects.vParticles->Coord(m_vNewIndexes[_idRight]), m_PBC)
+		: CVector3{ 0.0 };
+
+	m_Objects.vSolidBonds->AddSolidBond(true, static_cast<unsigned>(_index), m_vNewIndexes[_idLeft], m_vNewIndexes[_idRight], _diameter, crossCutSurface,
+										realBond.Length(), CVector3{ 0.0 }, axialMoment, youngsModulus, shearModulus, normalStrength, tangentialStrength);
+	m_Objects.vSolidBonds->AddYieldStrength(yieldStrength);
+	m_Objects.vSolidBonds->AddViscosity(viscosity);
+	m_Objects.vSolidBonds->AddTimeThermExpCoeff(timeThermExpCoeff);
+	m_Objects.vSolidBonds->AddNormalPlasticStrain(0);
+	m_Objects.vSolidBonds->AddTangentialPlasticStrain(CVector3{ 0 });
+
+	const size_t id = m_Objects.vSolidBonds->Size() - 1;
+	m_Objects.vSolidBonds->StartActivity(id) = _activityStart;
+	m_Objects.vSolidBonds->EndActivity(id) = 1e+300;
+	m_Objects.vSolidBonds->CompoundIndex(id) = static_cast<unsigned>(_compoundIndex);
+	m_Objects.vSolidBonds->PrevBond(id) = realBond;
+
+	while (m_vNewIndexes.size() <= _index)
+		m_vNewIndexes.push_back(0);
+	m_vNewIndexes[_index] = id;
 }
 
 void CSimplifiedScene::AddLiquidBond(size_t _index, double _dTime)
@@ -312,49 +390,36 @@ void CSimplifiedScene::AddMultisphere(const std::vector<size_t>& _vIndexes)
 void CSimplifiedScene::InitializeMaterials()
 {
 	m_pSystemStructure->UpdateAllObjectsCompoundsProperties();
-	std::vector<std::vector<SInteractProps>> vTempInteractProps;
-	std::vector<std::string> vCompoundKeys; // keys of all current available compounds
-
-	for (size_t i = 0; i < m_Objects.vParticles->Size() + m_Objects.vWalls->Size(); ++i)
+	// keys of all compounds
+	auto keys = m_pSystemStructure->m_MaterialDatabase.GetCompoundsKeys();
+	// interactions between all compounds
+	std::vector interactProps(keys.size(), std::vector<SInteractProps>(keys.size()));
+	// calculate interaction properties for each pair of compounds
+	for (size_t i = 0; i < keys.size() - 1; ++i)
+		for (size_t j = i + 1; j < keys.size(); ++j)
+			interactProps[i][j] = interactProps[j][i] = CalculateInteractionProperty(keys[i], keys[j]);
+	// calculate interaction of compounds with themselves
+	for (size_t i = 0; i < keys.size(); ++i)
+		interactProps[i][i] = CalculateInteractionProperty(keys[i], keys[i]);
+	// function to calculate compound index
+	const auto CalcCompoundIndex = [&](const SGeneralObject* _objects, size_t _index)
 	{
-		// define compound properties
-		size_t iInitID;
-		if (i < m_Objects.vParticles->Size())
-			iInitID = m_Objects.vParticles->InitIndex(i);
-		else
-			iInitID = m_Objects.vWalls->InitIndex(i - m_Objects.vParticles->Size());
-		const std::string sCompoundKey = m_pSystemStructure->GetObjectByIndex(iInitID)->GetCompoundKey();
-
-		const auto iter = std::find(vCompoundKeys.begin(), vCompoundKeys.end(), sCompoundKey);
-		size_t nIndex = iter - vCompoundKeys.begin();
-		if (iter == vCompoundKeys.end()) // such compound has not been defined yet
-		{
-			nIndex = vCompoundKeys.size();
-			vCompoundKeys.push_back(sCompoundKey);
-			// add  column to the interaction properties
-			vTempInteractProps.push_back(std::vector<SInteractProps>());
-			// add interaction property to all existing - last entry into each column
-			for (size_t k = 0; k < vTempInteractProps.size() - 1; ++k)
-			{
-				const SInteractProps InterProp = CalculateInteractionProperty(sCompoundKey, vCompoundKeys[k]);
-				vTempInteractProps.back().push_back(InterProp);
-				vTempInteractProps[k].push_back(InterProp);
-			}
-			// add last element
-			vTempInteractProps.back().push_back(CalculateInteractionProperty(sCompoundKey, sCompoundKey));
-		}
-
-		if (i < m_Objects.vParticles->Size())
-			m_Objects.vParticles->CompoundIndex(i) = static_cast<unsigned>(nIndex);
-		else
-			m_Objects.vWalls->CompoundIndex(i - m_Objects.vParticles->Size()) = static_cast<unsigned>(nIndex);
-	}
-	// transfer from 2D into 1D array
+		const std::string key = m_pSystemStructure->GetObjectByIndex(_objects->InitIndex(_index))->GetCompoundKey();
+		const auto it = std::find(keys.begin(), keys.end(), key);
+		return (unsigned)std::distance(keys.begin(), it);
+	};
+	// set compound indices for particles
+	for (size_t i = 0; i < m_Objects.vParticles->Size(); ++i)
+		m_Objects.vParticles->CompoundIndex(i) = CalcCompoundIndex(m_Objects.vParticles.get(), i);
+	// set compound indices for walls
+	for (size_t i = 0; i < m_Objects.vWalls->Size(); ++i)
+		m_Objects.vWalls->CompoundIndex(i) = CalcCompoundIndex(m_Objects.vWalls.get(), i);
+	// transform 2D array into 1D array
 	m_vInteractProps->clear();
-	for (size_t i = 0; i < vTempInteractProps.size(); ++i)
-		for (size_t j = 0; j < vTempInteractProps[i].size(); ++j)
-			m_vInteractProps->push_back(std::move(vTempInteractProps[i][j]));
-	m_vCompoundsNumber = vTempInteractProps.size();
+	for (auto& vecProp : interactProps)
+		for (const auto& prop : vecProp)
+			m_vInteractProps->push_back(prop);
+	m_vCompoundsNumber = interactProps.size();
 }
 
 void CSimplifiedScene::ClearState() const

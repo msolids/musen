@@ -181,26 +181,43 @@ void CGPUSimulator::UpdateTemperatures(bool _predictionStep)
 	m_gpu.UpdateTemperatures(timeStep, m_sceneGPU.GetPointerToParticles());
 }
 
-size_t CGPUSimulator::GenerateNewObjects()
+void CGPUSimulator::GenerateNewObjects()
 {
-	// TODO: find why contacts are not being detected. Check generation of agglomerates.
-	//if (!m_generationManager->IsNeedToBeGenerated(m_currentTime)) return; // no need to generate new objects
+	if (!m_generationManager->IsNeedToBeGenerated(m_currentTime)) return;
 
-	//// get actual data from device
-	//m_sceneGPU.CUDAParticlesGPU2CPU(&m_scene);
-	//m_sceneGPU.CUDABondsGPU2CPU(&m_scene);
-	//m_sceneGPU.CUDAWallsGPU2CPU(&m_scene);
-	//
-	//const size_t newObjects = CBaseSimulator::GenerateNewObjects();
-	//if (newObjects) // new objects have been generated
-	//{
-	//	// update data on device
-	//	m_sceneGPU.CUDAParticlesCPU2GPU(&m_scene);
-	//	m_sceneGPU.CUDABondsCPU2GPU(&m_scene);
+	/* TODO: Current approach to update data on GPU is very slow. Now it takes:
+	 * 1. Copy all time-dependent data from GPU to CPU simplified scene.
+	 * 2. Generate objects on CPU - add new objects to the CPU simplified scene.
+	 * 3. Update Verlet lists on GPU.
+	 * 4. Copy all data from GPU to CPU to reflect the new state of the CPU simplified scene - all GPU data structures are reallocated here.
+	 * 5. Set Verlet lists to GPU.
+	 */
 
-	//	CUDAInitializeMaterials();
-	//}
-	return 0;
+	// copy actual trackable time-dependent data from GPU to CPU
+	m_sceneGPU.CUDAParticlesGPU2CPUDynamicData(m_scene);
+	m_sceneGPU.CUDABondsGPU2CPUDynamicData(m_scene);
+	// copy actual wall coordinates data from GPU to CPU
+	m_sceneGPU.CUDAWallsGPU2CPUVerletData(m_scene);
+
+	// generate
+	const size_t newObjects = m_generationManager->GenerateObjects(m_currentTime, m_scene, m_generatedObjectsDiff);
+
+	// update CPU scene
+	m_verletList.SetSceneInfo(m_pSystemStructure->GetSimulationDomain(), m_scene.GetMinParticleContactRadius(), m_scene.GetMaxParticleContactRadius(), m_cellsMax, m_verletDistanceCoeff, m_autoAdjustVerletDistance);
+	m_verletList.ResetCurrentData();
+	m_nGeneratedObjects += newObjects;
+	m_scene.UpdateParticlesToBonds();
+
+	// update data on device
+	m_sceneGPU.CUDAParticlesCPU2GPU(m_scene);
+	m_sceneGPU.CUDABondsCPU2GPU(m_scene);
+
+	// update verlet lists
+	m_verletList.UpdateList(m_currentTime);
+	static STempStorage store; // to reuse memory
+	CUDAUpdateVerletLists(m_verletList.m_PPList, m_verletList.m_PPVirtShift, m_gpu.m_CollisionsPP, store, true);
+	CUDAUpdateVerletLists(m_verletList.m_PWList, m_verletList.m_PWVirtShift, m_gpu.m_CollisionsPW, store, false);
+	m_sceneGPU.CUDASaveVerletCoords();
 }
 
 void CGPUSimulator::UpdatePBC()
