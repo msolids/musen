@@ -115,9 +115,9 @@ public:
 	ADD_GET_SET(HeatCapacity,	thermalInfo, heatCapacity)
 	ADD_GET_SET(HeatFlux,       thermalInfo, heatFlux)
 
-	bool ThermalsExist() const { return thermalInfo.size() == Size() && !Empty(); }
-	bool QuaternionExist() const { return quaternion.size() == Size() && !Empty(); }
-	bool MultiSphIndexExist() const { return multiSphIndex.size() == Size() && !Empty(); }
+	bool ThermalsExist() const { return !thermalInfo.empty() && !Empty(); }
+	bool QuaternionExist() const { return !quaternion.empty() && !Empty(); }
+	bool MultiSphIndexExist() const { return !multiSphIndex.empty() && !Empty(); }
 
 	void AddParticle(bool _active, const CVector3& _coord, double _radius, unsigned _initIndex, double _mass, double _inertiaMoment, const CVector3& _vel, const CVector3& _anglVel);
 	void AddContactRadius(double _contactRadius);

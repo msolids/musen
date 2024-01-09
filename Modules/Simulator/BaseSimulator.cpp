@@ -397,7 +397,7 @@ void CBaseSimulator::p_SaveData()
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bVelocity)    pPart->SetVelocity(m_scene.GetObjectVel(i));
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bAngVelocity) pPart->SetAngleVelocity(m_scene.GetObjectAnglVel(i));
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bForce)       pPart->SetForce(particles.Force(i));
-		if (!m_selectiveSaving || m_selectiveSavingFlags.bQuaternion)  pPart->SetOrientation(particles.Quaternion(i));
+		if ((!m_selectiveSaving || m_selectiveSavingFlags.bQuaternion) && particles.QuaternionExist()) pPart->SetOrientation(particles.Quaternion(i));
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bTensor)      pPart->SetStressTensor(m_additionalSavingData[i].stressTensor);
 		if ((!m_selectiveSaving || m_selectiveSavingFlags.bTemperature) && particles.ThermalsExist()) pPart->SetTemperature(particles.Temperature(i));
 
