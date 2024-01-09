@@ -30,10 +30,10 @@ void CSimplifiedSceneGPU::InitializeScene(CSimplifiedScene& _pScene, CSystemStru
 
 void CSimplifiedSceneGPU::ClearStates() const
 {
-	CUDA_MEMSET_ASYNC(m_Particles.Forces, 0, sizeof(CVector3)*m_Particles.nElements);
-	CUDA_MEMSET_ASYNC(m_Particles.Moments, 0, sizeof(CVector3)*m_Particles.nElements);
-	CUDA_MEMSET_ASYNC(m_Particles.HeatFluxes, 0, sizeof(double) * m_Particles.nElements);
-	CUDA_MEMSET_ASYNC(m_Walls.Forces, 0, sizeof(CVector3)*m_Walls.nElements);
+	CUDA_MEMSET(m_Particles.Forces    , 0, sizeof(CVector3) * m_Particles.nElements);
+	CUDA_MEMSET(m_Particles.Moments   , 0, sizeof(CVector3) * m_Particles.nElements);
+	CUDA_MEMSET(m_Particles.HeatFluxes, 0, sizeof(double)   * m_Particles.nElements);
+	CUDA_MEMSET(m_Walls.Forces        , 0, sizeof(CVector3) * m_Walls.nElements);
 }
 
 void CSimplifiedSceneGPU::GetMaxSquaredPartDist(double* _bufMaxVelocity)
