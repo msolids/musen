@@ -9,7 +9,7 @@ CModelSBPlasticConcrete::CModelSBPlasticConcrete()
 	m_name = "Plastic concrete bond";
 	m_uniqueKey = "CA3CE500F3FE4E37914SS7D544553847";
 
-//	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
+	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
 	//AddParameter("COMPRESSIVE_BREAK", "Consider compressive breakage Yes=1/No=0", 0);
 
 	m_hasGPUSupport = true;
@@ -20,8 +20,7 @@ void CModelSBPlasticConcrete::CalculateSB(double _time, double _timeStep, size_t
 	// the bond in the global coordinate system
 	CVector3 currentBond = GetSolidBond(Particles().Coord(_iRight), Particles().Coord(_iLeft), m_PBC);
 	double dDistanceBetweenCenters = currentBond.Length();
-	CVector3	rAC = currentBond * 0.5;
-
+	CVector3 rAC = currentBond * 0.5;
 
 	double dDruckYieldStrength = -_bonds.YieldStrength(_iBond);
 	double dZugYieldStrength = 0.7*_bonds.YieldStrength(_iBond);
@@ -65,7 +64,7 @@ void CModelSBPlasticConcrete::CalculateSB(double _time, double _timeStep, size_t
 			dElasticStrain = dStrainTotal - _bonds.NormalPlasticStrain(_iBond);
 			dCurrentNormalStress = dElasticStrain * _bonds.NormalStiffness(_iBond);
 		}
-		if (dCurrentNormalStress < 0) // bond breakage
+		if (m_parameters[0].value != 0.0 && dCurrentNormalStress < 0) // bond breakage
 		{
 			_bonds.Active(_iBond) = false;
 			_bonds.EndActivity(_iBond) = _time;
@@ -88,7 +87,7 @@ void CModelSBPlasticConcrete::CalculateSB(double _time, double _timeStep, size_t
 	_bonds.TangentialOverlap(_iBond) = M*_bonds.TangentialOverlap(_iBond) - tangentialVelocity*_timeStep;
 	_bonds.TangentialPlasticStrain(_iBond) = M*_bonds.TangentialPlasticStrain(_iBond);
 	CVector3 vTangStrain = _bonds.TangentialOverlap(_iBond) / _bonds.InitialLength(_iBond);
-	CVector3 vTangStress = (_bonds.TangentialOverlap(_iBond) )*_bonds.TangentialStiffness(_iBond);
+	CVector3 vTangStress = (_bonds.TangentialOverlap(_iBond) - _bonds.TangentialPlasticStrain(_iBond))*_bonds.TangentialStiffness(_iBond);
 
 	_bonds.TangentialForce(_iBond) = vTangStress*_bonds.CrossCut(_iBond);
 	_bonds.NormalMoment(_iBond) = M*_bonds.NormalMoment(_iBond) - normalAngleVel*(_timeStep* 2 * _bonds.AxialMoment(_iBond)*_bonds.TangentialStiffness(_iBond)) / _bonds.InitialLength(_iBond);
