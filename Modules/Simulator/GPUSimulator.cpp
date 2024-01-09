@@ -92,8 +92,6 @@ void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 	if (!m_SBModels.empty()) CalculateForcesSB(_dTimeStep);
 	if (!m_LBModels.empty()) CalculateForcesLB(_dTimeStep);
 	if (!m_EFModels.empty()) CalculateForcesEF(_dTimeStep);
-
-	cudaStreamQuery(0);
 }
 
 void CGPUSimulator::CalculateForcesPP(double _dTimeStep)
