@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////// SGeneralObject
 
-inline void SGeneralObject::AddObject(const bool _active, const unsigned _initIndex)
+inline void SGeneralObject::AddObject(bool _active, unsigned _initIndex)
 {
 	active.emplace_back(_active);
 	initIndex.emplace_back(_initIndex);
@@ -15,7 +15,7 @@ inline void SGeneralObject::AddObject(const bool _active, const unsigned _initIn
 	endActivity.emplace_back(0.);
 }
 
-void SGeneralObject::Resize(const size_t n)
+void SGeneralObject::Resize(size_t n)
 {
 	active.resize(n);
 	initIndex.resize(n);
@@ -26,25 +26,25 @@ void SGeneralObject::Resize(const size_t n)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////// SBasicParticleStruct
 
-void SBasicParticleStruct::AddBasicParticle(const bool _active, const CVector3 _coord, const double _contactRadius, const unsigned _initIndex)
+void SBasicParticleStruct::AddBasicParticle(bool _active, CVector3 _coord, double _contactRadius, unsigned _initIndex)
 {
 	AddObject(_active, _initIndex);
 
-	contactInfo.emplace_back(SContactInformation{ _coord, _contactRadius, CVector3{0} });
+	contactInfo.emplace_back(_coord, _contactRadius, CVector3{ 0 });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////// SParticleStruct
 
-void SParticleStruct::AddParticle(const bool _active, const CVector3& _coord, double _radius, unsigned _initIndex, double _mass, double _inertiaMoment,
+void SParticleStruct::AddParticle(bool _active, const CVector3& _coord, double _radius, unsigned _initIndex, double _mass, double _inertiaMoment,
 	const CVector3& _vel, const CVector3& _anglVel)
 {
 	AddBasicParticle(_active, _coord, _radius, _initIndex);
 
-	kinematicsInfo.emplace_back(SKinematics{ _radius, _mass, _inertiaMoment, _vel, _anglVel, CVector3{0}, CVector3{0} });
+	kinematicsInfo.emplace_back(_radius, _mass, _inertiaMoment, _vel, _anglVel, CVector3{ 0 }, CVector3{ 0 });
 }
 
-void SParticleStruct::AddContactRadius(const double _contactRadius)
+void SParticleStruct::AddContactRadius(double _contactRadius)
 {
 	contactInfo.back().contactRadius = _contactRadius;
 }
@@ -54,17 +54,17 @@ void SParticleStruct::AddQuaternion(const CQuaternion& _quaternion)
 	quaternion.emplace_back(_quaternion);
 }
 
-void SParticleStruct::AddMultiSphIndex(const int _multiSphIndex)
+void SParticleStruct::AddMultiSphIndex(int _multiSphIndex)
 {
 	multiSphIndex.emplace_back(_multiSphIndex);
 }
 
-void SParticleStruct::AddThermals(const double _temperature, const double _heatCapacity)
+void SParticleStruct::AddThermals(double _temperature, double _heatCapacity)
 {
-	thermalInfo.emplace_back(SThermals{ _temperature, _heatCapacity });
+	thermalInfo.emplace_back(_temperature, _heatCapacity);
 }
 
-void SParticleStruct::Resize(const size_t n)
+void SParticleStruct::Resize(size_t n)
 {
 	SGeneralObject::Resize(n);
 
@@ -78,18 +78,18 @@ void SParticleStruct::Resize(const size_t n)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////  SWallStruct
 
-void SWallStruct::AddWall(const bool _active, const unsigned _initIndex, const CVector3& _vert1, const CVector3& _vert2, const CVector3& _vert3,
+void SWallStruct::AddWall(bool _active, unsigned _initIndex, const CVector3& _vert1, const CVector3& _vert2, const CVector3& _vert3,
 	const CVector3& _normalVector, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter)
 {
 	AddObject(_active, _initIndex);
 
-	coordInfo.emplace_back(SCoordinates{ _vert1, _vert2, _vert3 });
+	coordInfo.emplace_back(_vert1, _vert2, _vert3);
 	normalVector.emplace_back(_normalVector);
-	movementInfo.emplace_back(SMovement{ _vel, _rotVel, _rotCenter });
-	force.emplace_back(CVector3{ 0 });
+	movementInfo.emplace_back(_vel, _rotVel, _rotCenter);
+	force.emplace_back(0);
 }
 
-void SWallStruct::Resize(const size_t n)
+void SWallStruct::Resize(size_t n)
 {
 	SGeneralObject::Resize(n);
 
@@ -106,10 +106,10 @@ void SBondStruct::AddBond(bool _active, unsigned _initIndex, size_t _leftID, siz
 {
 	AddObject(_active, _initIndex);
 
-	connectionInfo.emplace_back(SConnection{ _leftID, _rightID });
+	connectionInfo.emplace_back(_leftID, _rightID);
 }
 
-void SBondStruct::Resize(const size_t n)
+void SBondStruct::Resize(size_t n)
 {
 	SGeneralObject::Resize(n);
 
@@ -120,12 +120,12 @@ void SBondStruct::Resize(const size_t n)
 ////////// SSolidBondStruct
 
 void SSolidBondStruct::AddSolidBond(bool _active, unsigned _initIndex, size_t _leftID, size_t _rightID, double _diameter, double _crossCut, double _initialLength,
-	CVector3 _vTangOverlap, double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength)
+	const CVector3& _vTangOverlap, double _axialMoment, double _normalStiffness, double _tangentialStiffness, double _normalStrength, double _tangentialStrength)
 {
 	AddBond(_active, _initIndex, _leftID, _rightID);
 
-	baseInfo.emplace_back(SBaseInfo{ _diameter, _crossCut, _initialLength, _axialMoment, _normalStiffness, _tangentialStiffness, _vTangOverlap });
-	strengthInfo.emplace_back(SStrength{ _normalStrength, _tangentialStrength });
+	baseInfo.emplace_back(_diameter, _crossCut, _initialLength, _axialMoment, _normalStiffness, _tangentialStiffness, _vTangOverlap);
+	strengthInfo.emplace_back(_normalStrength, _tangentialStrength);
 	kinematicsInfo.emplace_back();
 }
 
@@ -159,7 +159,7 @@ void SSolidBondStruct::AddThermals(double _thermalConductivity)
 	thermalInfo.emplace_back(0.0, _thermalConductivity);
 }
 
-void SSolidBondStruct::Resize(const size_t n)
+void SSolidBondStruct::Resize(size_t n)
 {
 	SBondStruct::Resize(n);
 
@@ -182,11 +182,11 @@ void SLiquidBondStruct::AddLiquidBond(bool _active, unsigned _initIndex, size_t 
 {
 	AddBond(_active, _initIndex, _leftID, _rightID);
 
-	baseInfo.emplace_back(SBaseInfo{ _volume, _viscosity, _surfaceTension });
+	baseInfo.emplace_back(_volume, _viscosity, _surfaceTension);
 	kinematicsInfo.emplace_back();
 }
 
-void SLiquidBondStruct::Resize(const size_t n)
+void SLiquidBondStruct::Resize(size_t n)
 {
 	SBondStruct::Resize(n);
 
@@ -197,15 +197,15 @@ void SLiquidBondStruct::Resize(const size_t n)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////// SMultiSphere
 
-void SMultiSphere::AddMultisphere(const std::vector<size_t>& _indexes, const CMatrix3& _LMatrix, const CMatrix3& _inertTensor, const CMatrix3& _invLMatrix,
+void SMultiSphere::AddMultisphere(const std::vector<size_t>& _indexes, const CMatrix3& _lMatrix, const CMatrix3& _inertTensor, const CMatrix3& _invLMatrix,
 	const CMatrix3& _invInertTensor, const CVector3& _center, const CVector3& _velocity, const CVector3& _rotVelocity, double _mass)
 {
 	indices.emplace_back(_indexes);
-	matrices.emplace_back(SMatrices{ _LMatrix, _inertTensor, _invLMatrix, _invInertTensor });
-	props.emplace_back(SProperties{ _center, _velocity, _rotVelocity, _mass });
+	matrices.emplace_back(_lMatrix, _inertTensor, _invLMatrix, _invInertTensor);
+	props.emplace_back(_center, _velocity, _rotVelocity, _mass);
 }
 
-void SMultiSphere::Resize(const size_t n)
+void SMultiSphere::Resize(size_t n)
 {
 	indices.resize(n);
 	matrices.resize(n);
