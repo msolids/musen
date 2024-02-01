@@ -175,18 +175,25 @@ CVector3 CGPU::CalculateTotalForceOnWall(size_t _iGeom, SGPUWalls & _walls)
 void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix,
 	const CVector3& _freeMotion, bool _bForceDependentMotion, bool _bRotateAroundCenter, double _dMass, SGPUWalls& _walls, const CVector3& _vExternalAccel)
 {
+	const unsigned wallsInGeom = static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size());
+
 	static d_vec_v3 vTotalForce(1);
-	static d_vec_v3 vRotCenter(1); // used in case when rotation around center is defined
+	static d_vec_v3 rotCenter(1); // used in case when rotation around center is defined
 
 	if (_bRotateAroundCenter || _bForceDependentMotion || !_freeMotion.IsZero())
 		CalculateTotalForceOnWall(_iGeom, _walls, vTotalForce);
 	if (_bRotateAroundCenter) // precalculate rotation center
-		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateGeometryCenter_kernel, static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size()), m_vvWallsInGeom[_iGeom].data().get(),
-			_walls.Vertices1, _walls.Vertices2, _walls.Vertices3, vRotCenter.data().get());
+	{
+		d_vec_v3 temp(wallsInGeom);
+		d_vec_v3 tempRotCenters(wallsInGeom);
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::PrecalculateGeometryCenter_kernel, wallsInGeom, m_vvWallsInGeom[_iGeom].data().get(),
+			_walls.Vertices1, _walls.Vertices2, _walls.Vertices3, tempRotCenters.data().get());
+		CUDA_REDUCE_CALLER(CUDAKernels::ReduceSum_kernel, wallsInGeom, tempRotCenters.data().get(), temp.data().get(), rotCenter.data().get());
+	}
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::MoveWalls_kernel, _timeStep,
 		static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size()), _vel, _rotVel, _rotCenter, _rotMatrix,
 		_freeMotion, vTotalForce.data().get(), _dMass, _bRotateAroundCenter, _vExternalAccel,
-		vRotCenter.data().get(), m_vvWallsInGeom[_iGeom].data().get(),
+		rotCenter.data().get(), m_vvWallsInGeom[_iGeom].data().get(),
 		_walls.Vertices1, _walls.Vertices2, _walls.Vertices3, _walls.MinCoords,
 		_walls.MaxCoords, _walls.NormalVectors, _walls.Vels, _walls.RotCenters, _walls.RotVels);
 }

@@ -115,16 +115,13 @@ namespace CUDAKernels
 		}
 	}
 
-	__global__ void CalculateGeometryCenter_kernel(unsigned _nWallsInGeom, const unsigned* _wallsInGeom,
-		CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3, CVector3* _vCenter)
+	__global__ void PrecalculateGeometryCenter_kernel(unsigned _nWallsInGeom, const unsigned* _wallsInGeom,
+		const CVector3* _vertex1, const CVector3* _vertex2, const CVector3* _vertex3, CVector3* _centers)
 	{
-		unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
-		if (i != 0) return;
-		_vCenter->Init(0);
-		for (size_t j = 0; j < _nWallsInGeom; j++)
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nWallsInGeom; i += blockDim.x * gridDim.x)
 		{
-			const unsigned iWall = _wallsInGeom[j];
-			_vCenter[0] += (_vertex1[iWall] + _vertex2[iWall] + _vertex3[iWall]) / (3.0*_nWallsInGeom);
+			const unsigned iWall = _wallsInGeom[i];
+			_centers[i] = (_vertex1[iWall] + _vertex2[iWall] + _vertex3[iWall]) / (3.0 * _nWallsInGeom);
 		}
 	}
 
