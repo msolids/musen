@@ -49,8 +49,9 @@ namespace CUDAKernels
 	__global__ void UpdateTemperatures_kernel(double _dTimeStep, unsigned _nParticles, const double* _partHeatCapacities,
 		const double* _partMasses, const double* _partHeatFluxes, double* _partTemperatures);
 
-	__global__ void CalculateGeometryCenter_kernel( unsigned _nWallsInGeom, const unsigned* _wallsInGeom,
-		CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3, CVector3* _vCenter);
+	// Calculates a vector of _centers for each triangle. To get the actual center, all _centers must be summed up.
+	__global__ void PrecalculateGeometryCenter_kernel( unsigned _nWallsInGeom, const unsigned* _wallsInGeom,
+		const CVector3* _vertex1, const CVector3* _vertex2, const CVector3* _vertex3, CVector3* _centers);
 
 	__global__ void MoveWalls_kernel(double _timeStep, unsigned _nWallsInGeom, const CVector3 _vel, const CVector3 _rotVel, const CVector3 _definedRotCenter, const CMatrix3 _rotMatrix,
 		const CVector3 _freeMotion, const CVector3* _totalForce, double _dMass, bool _bRotateAroundCenter, const CVector3 _vExternalAccel,
