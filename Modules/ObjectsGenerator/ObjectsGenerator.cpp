@@ -41,7 +41,13 @@ void CObjectsGenerator::Initialize()
 	}
 	srand( seed );
 
-	if (!m_bGenerateMixture)
+	if (m_bGenerateMixture)
+	{
+		const CMixture* mixture = m_pMaterialsDB->GetMixture(m_sMixtureKey);
+		if (!mixture) return;
+		m_generatedMixtureParticles.assign(mixture->FractionsNumber(), 0);
+	}
+	else
 	{
 		// check that the selected agglomerate exists
 		if (!m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey))
@@ -79,10 +85,8 @@ void CObjectsGenerator::Initialize()
 
 size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSystemStructure, CSimplifiedScene& _Scene, std::vector<SGeneratedObject>& _newObjects)
 {
-	if (!m_bActive) return 0;
-	if ( (_dCurrentTime < m_dStartGenerationTime) || (_dCurrentTime > m_dEndGenerationTime )  ) return 0;
-	if (_dCurrentTime < m_dLastGenerationTime + m_dUpdateStep) return 0;
-	unsigned nNewObjects = (unsigned)floor((_dCurrentTime - (m_dLastGenerationTime - m_dStartGenerationTime)) * m_dGenerationRate);
+	if (!IsNeedToBeGenerated(_dCurrentTime)) return 0;
+	size_t nNewObjects = NumberToBeGenerated(_dCurrentTime);
 	if ( nNewObjects < 1 ) return 0;
 
 	SPBC m_PBC = _Scene.GetPBC();
@@ -200,7 +204,12 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 				iFree++;
 				vPartInVolume.push_back( (unsigned)_Scene.GetTotalParticlesNumber()-1 );
 			}
-			if (!m_bGenerateMixture) // this is agglomerate or multisphere
+			if (m_bGenerateMixture)
+			{
+				// update the history of generated fractions
+				m_generatedMixtureParticles[m_lastFractionIndex]++;
+			}
+			else	// this is agglomerate or multisphere
 			{
 				if ( m_PreLoadedAgglomerate.nType == MULTISPHERE )
 				{
@@ -233,15 +242,45 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 bool CObjectsGenerator::IsNeedToBeGenerated(double _dCurrentTime) const
 {
 	if (!m_bActive) return false;
-	if ((_dCurrentTime < m_dStartGenerationTime) || (_dCurrentTime > m_dEndGenerationTime)) return false;
+	// without 0.1*m_dUpdateStep, generation at m_dEndGenerationTime may fail because of the precision problems
+	if ((_dCurrentTime < m_dStartGenerationTime) || (_dCurrentTime > m_dEndGenerationTime + 0.1 * m_dUpdateStep)) return false;
 	if (_dCurrentTime < m_dLastGenerationTime + m_dUpdateStep) return false;
-	const unsigned nNewObjects = (unsigned)floor((_dCurrentTime - m_dLastGenerationTime)*m_dGenerationRate);
+	const size_t nNewObjects = NumberToBeGenerated(_dCurrentTime);
 	if (nNewObjects < 1) return false;
 	return true;
 }
 
+size_t CObjectsGenerator::NumberToBeGenerated(double _currTime) const
+{
+	return static_cast<size_t>(floor((_currTime - (m_dLastGenerationTime - m_dStartGenerationTime)) * m_dGenerationRate));
+}
+
+size_t CObjectsGenerator::MixtureFractionIndexToGenerate() const
+{
+	const size_t totParticles = VectorSum(m_generatedMixtureParticles); // total number of already generated particles
+
+	// if no particles have been generated yet, start with the 0th fraction
+	if (totParticles == 0)
+		return 0;
+
+	const CMixture* mixture = m_pMaterialsDB->GetMixture(m_sMixtureKey);
+	if (!mixture) return 0;
+
+	// find the next underrepresented fraction
+	for (size_t i = 0; i < mixture->FractionsNumber(); ++i)
+	{
+		const double targetFraction = mixture->GetFractionValue(i);
+		const double currFraction = static_cast<double>(m_generatedMixtureParticles[i]) / static_cast<double>(totParticles);
+		if (currFraction < targetFraction)
+			return i;
+	}
+
+	// if all the current fractions are equal to the target values, generate the 0th fraction
+	return 0;
+}
+
 void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart, std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad,
-	std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox, SPBC& _PBC, const double _dCurrentTime)
+										std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox, SPBC& _PBC, const double _dCurrentTime)
 {
 	CVector3 newCoord;
 	CQuaternion rotQuat;
@@ -268,22 +307,15 @@ void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, st
 	{
 		const CMixture* pMixture = m_pMaterialsDB->GetMixture(m_sMixtureKey);
 		if (!pMixture) return;
-		const double dRand = ((double)rand()) / RAND_MAX; // generate random value
-		double dTempSum = 0;
-		size_t nIndex = 0;
-		while (nIndex < pMixture->FractionsNumber())
-		{
-			dTempSum += pMixture->GetFractionValue(nIndex);
-			if (dTempSum >= dRand) break;
-			nIndex++;
-		}
+
+		m_lastFractionIndex = MixtureFractionIndexToGenerate();
 
 		_pCoordPart->push_back(newCoord);
 		rotQuat.RandomGenerator();
 		_pQuatPart->push_back(rotQuat);
-		_pPartRad->push_back(pMixture->GetFractionDiameter(nIndex) / 2.0);
-		_pPartContRad->push_back(pMixture->GetFractionContactDiameter(nIndex) / 2.0);
-		_sMaterialsKey->push_back(pMixture->GetFractionCompound(nIndex));
+		_pPartRad->push_back(pMixture->GetFractionDiameter(m_lastFractionIndex) / 2.0);
+		_pPartContRad->push_back(pMixture->GetFractionContactDiameter(m_lastFractionIndex) / 2.0);
+		_sMaterialsKey->push_back(pMixture->GetFractionCompound(m_lastFractionIndex));
 	}
 	else
 	{

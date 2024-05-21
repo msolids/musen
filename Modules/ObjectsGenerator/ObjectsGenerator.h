@@ -45,6 +45,8 @@ public:
 	bool m_bActive;	// activity of this generator
 
 	double m_dLastGenerationTime; // last time point when generation has been done
+	std::vector<size_t> m_generatedMixtureParticles; // Number of currently generated particles for every fraction of the selected mixture.
+	size_t m_lastFractionIndex{}; // Index of the fraction of the last generated particle.
 
 private:
 	CAgglomeratesDatabase* m_pAgglomDB;
@@ -61,6 +63,10 @@ public:
 	size_t Generate(double _dCurrentTime, CSystemStructure* _pSystemStructure, CSimplifiedScene& _Scene, std::vector<SGeneratedObject>& _newObjects);
 	// Returns true if some particles must be generated at the specified time point.
 	bool IsNeedToBeGenerated(double _dCurrentTime) const;
+	// Returns number of objects that must be generated at the specific time point.
+	[[nodiscard]] size_t NumberToBeGenerated(double _currTime) const;
+	// Returns index of a mixture's fraction that has to be generated now.
+	[[nodiscard]] size_t MixtureFractionIndexToGenerate() const;
 
 private:
 	// return true if creation was successfully
