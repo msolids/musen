@@ -68,6 +68,11 @@ public:
 	// Returns index of a mixture's fraction that has to be generated now.
 	[[nodiscard]] size_t MixtureFractionIndexToGenerate() const;
 
+	// Checks whether the generator will produce particles. 
+	[[nodiscard]] bool IsGeneratingParticles() const;
+	// Checks whether the generator will produce bonds. 
+	[[nodiscard]] bool IsGeneratingBonds() const;
+
 private:
 	// return true if creation was successfully
 	void GenerateNewObject( std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart,

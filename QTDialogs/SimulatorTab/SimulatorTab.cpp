@@ -304,9 +304,15 @@ void CSimulatorTab::StartSimulation()
 	}
 
 	const auto simType = static_cast<ESimulatorType>(ui.comboSimulatorType->currentIndex() + 1);
+	bool generatePart = false;
+	for (const auto& gen : pGenerationManager->GetGenerators())
+		generatePart |= gen->IsGeneratingParticles();
+	bool generateBond = false;
+	for (const auto& gen : pGenerationManager->GetGenerators())
+		generateBond |= gen->IsGeneratingBonds();
 
 	// check that all necessary models are defined
-	if (m_pSystemStructure->GetNumberOfSpecificObjects(SPHERE) != 0 || (pGenerationManager->GetActiveGeneratorsNumber() != 0))
+	if (m_pSystemStructure->GetNumberOfSpecificObjects(SPHERE) != 0 || generatePart)
 	{
 		if (!pModelManager->IsModelActive(EMusenModelType::PP))
 		{
@@ -332,7 +338,7 @@ void CSimulatorTab::StartSimulation()
 			return;
 		}
 	}
-	if (m_pSystemStructure->GetNumberOfSpecificObjects(SOLID_BOND) != 0 || pGenerationManager->GetActiveGeneratorsNumber() != 0)
+	if (m_pSystemStructure->GetNumberOfSpecificObjects(SOLID_BOND) != 0 || generateBond)
 	{
 		if (!pModelManager->IsModelActive(EMusenModelType::SB))
 		{

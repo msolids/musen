@@ -279,6 +279,24 @@ size_t CObjectsGenerator::MixtureFractionIndexToGenerate() const
 	return 0;
 }
 
+bool CObjectsGenerator::IsGeneratingParticles() const
+{
+	if (!m_bActive) return false;
+	if (!m_sMixtureKey.empty() && m_pMaterialsDB->GetMixture(m_sMixtureKey))
+		return true;
+	if (!m_sAgglomerateKey.empty() && m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey) && !m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey)->vParticles.empty())
+		return true;
+	return false;
+}
+
+bool CObjectsGenerator::IsGeneratingBonds() const
+{
+	if (!m_bActive) return false;
+	if (!m_sAgglomerateKey.empty() && m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey) && !m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey)->vBonds.empty())
+		return true;
+	return false;
+}
+
 void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart, std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad,
 										std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox, SPBC& _PBC, const double _dCurrentTime)
 {

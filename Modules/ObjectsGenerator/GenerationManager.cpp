@@ -29,6 +29,14 @@ const CObjectsGenerator* CGenerationManager::GetGenerator(size_t _nIndex) const
 	return m_vGenerators[_nIndex];
 }
 
+std::vector<const CObjectsGenerator*> CGenerationManager::GetGenerators() const
+{
+	auto res = ReservedVector<const CObjectsGenerator*>(m_vGenerators.size());
+	for (const auto* gen : m_vGenerators)
+		res.push_back(gen);
+	return res;
+}
+
 void CGenerationManager::CreateNewGenerator()
 {
 	m_vGenerators.push_back(new CObjectsGenerator(m_pAgglomDB, &m_pSystemStructure->m_MaterialDatabase));

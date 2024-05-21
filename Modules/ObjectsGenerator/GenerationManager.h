@@ -24,6 +24,8 @@ public:
 	size_t GetActiveGeneratorsNumber() const;
 	CObjectsGenerator* GetGenerator(size_t _nIndex);
 	const CObjectsGenerator* GetGenerator(size_t _nIndex) const;
+	// Returns const pointers to all defined generators
+	std::vector<const CObjectsGenerator*> GetGenerators() const;
 
 	void CreateNewGenerator();
 	void DeleteGenerator( size_t _nIndex );
