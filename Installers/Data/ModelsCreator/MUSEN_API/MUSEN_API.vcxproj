@@ -81,6 +81,7 @@
     <ClInclude Include="DisableWarningHelper.h" />
     <ClInclude Include="Matrix3.h" />
     <ClInclude Include="MUSENDefinitions.h" />
+    <ClInclude Include="MUSENHelperDefines.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="SceneOptionalVariables.h" />
     <ClInclude Include="SceneTypes.h" />

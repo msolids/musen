@@ -21,7 +21,7 @@
 #define ModelExampleDirs[2] "SolidBonds\BondModelElastic"
 #define ModelExampleDirs[3] "ExternalForce\ViscousField"
 
-#dim APIFiles[13]
+#dim APIFiles[14]
 #define APIFiles[00] "Modules\GeneralSources\AbstractDEMModel.h"; 	
 #define APIFiles[01] "Modules\GeneralSources\AbstractDEMModel.cpp";	
 #define APIFiles[02] "Modules\GeneralSources\BasicGPUFunctions.cuh";	
@@ -30,11 +30,12 @@
 #define APIFiles[05] "Modules\GeneralSources\Quaternion.h";			
 #define APIFiles[06] "Modules\GeneralSources\Matrix3.h";					
 #define APIFiles[07] "Modules\GeneralSources\MUSENDefinitions.h";					
-#define APIFiles[08] "Modules\GeneralSources\Vector3.h";					
-#define APIFiles[09] "Modules\SimplifiedScene\SceneOptionalVariables.h";					
-#define APIFiles[10] "Modules\SimplifiedScene\SceneTypes.h";					
-#define APIFiles[11] "Modules\SimplifiedScene\SceneTypes.cpp";				
-#define APIFiles[12] "Modules\SimplifiedScene\SceneTypesGPU.h";				
+#define APIFiles[08] "Modules\GeneralSources\MUSENHelperDefines.h";					
+#define APIFiles[09] "Modules\GeneralSources\Vector3.h";					
+#define APIFiles[10] "Modules\SimplifiedScene\SceneOptionalVariables.h";					
+#define APIFiles[11] "Modules\SimplifiedScene\SceneTypes.h";					
+#define APIFiles[12] "Modules\SimplifiedScene\SceneTypes.cpp";				
+#define APIFiles[13] "Modules\SimplifiedScene\SceneTypesGPU.h";				
 
 [Files]
 ; Solution file
