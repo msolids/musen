@@ -17,5 +17,5 @@ public:
 	void ProcessLine(const std::string& _line, std::ostream& _out = std::cout);
 
 	size_t JobsCount() const;
-	std::vector<SJob> Jobs() const;
+	[[nodiscard]] std::vector<SJob> Jobs() const;
 };

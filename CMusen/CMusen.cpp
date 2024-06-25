@@ -111,9 +111,9 @@ void RunMusen(const std::string& _arg)
 	InitializeThreadPool();
 
 	std::cout << "Script name:    " << _arg << std::endl;
-	const CScriptAnalyzer ScriptAnalyzer(_arg);
-	std::cout << "Number of jobs: " << ScriptAnalyzer.JobsCount() << std::endl;
-	if (!ScriptAnalyzer.JobsCount())
+	const CScriptAnalyzer scriptAnalyzer(_arg);
+	std::cout << "Number of jobs: " << scriptAnalyzer.JobsCount() << std::endl;
+	if (!scriptAnalyzer.JobsCount())
 	{
 		std::cout << "Error: The script file cannot be opened, contains errors, or has no jobs." << std::endl;
 		return;
@@ -121,7 +121,7 @@ void RunMusen(const std::string& _arg)
 
 	size_t counter = 0;
 	CScriptRunner ScriptRunner;
-	for (const auto& job : ScriptAnalyzer.Jobs())
+	for (const auto& job : scriptAnalyzer.Jobs())
 	{
 		std::cout << std::endl << "//////////////////// Start processing job: " << 1 + counter++ << " ////////////////////" << std::endl;
 		ScriptRunner.RunScriptJob(job);

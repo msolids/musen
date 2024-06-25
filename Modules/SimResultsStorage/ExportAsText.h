@@ -33,18 +33,18 @@ public:
 	std::vector<bool*> flags;
 	SBaseFlags(const SBaseFlags&) = delete;
 	SBaseFlags(SBaseFlags&&) = delete;
-	SBaseFlags& operator=(const SBaseFlags&) { return *this; }
+	SBaseFlags& operator=(const SBaseFlags& _rhs) { Copy(_rhs); return *this; }
 	SBaseFlags& operator=(SBaseFlags&&) = delete;
 	[[nodiscard]] bool AllOn() const { return std::all_of(flags.begin(), flags.end(), [](const bool* _f) { return *_f; }); }
 	[[nodiscard]] bool AllOff() const { return std::all_of(flags.begin(), flags.end(), [](const bool* _f) { return !*_f; }); }
-	void SetAll(bool _value) { for (auto* f : flags) *f = _value; }
-	void SetFlags(const std::vector<bool>& _flags)
+	void SetAll(bool _value) const { for (auto* f : flags) *f = _value; }
+	void SetFlags(const std::vector<bool>& _flags) const
 	{
 		assert(flags.size() == _flags.size());
 		for (size_t i = 0; i < flags.size(); ++i)
 			*flags[i] = _flags[i];
 	}
-	void Copy(const SBaseFlags& _other)
+	void Copy(const SBaseFlags& _other) const
 	{
 		assert(flags.size() == _other.flags.size());
 		for (size_t i = 0; i < flags.size(); ++i)
@@ -109,13 +109,29 @@ public:
 		std::vector<SBaseFlags*> allFlags; // Vector of pointers to all flags.
 	public:
 		SExportSelector() : allFlags{ &objectTypes, &sceneInfo, &constProps, &tdPropsPart, &tdPropsBond, &tdPropsWall, &geometries, &materials, &generators } {}
-		SExportSelector(const SExportSelector& _rhs) : SExportSelector() { for (size_t i = 0; i < allFlags.size(); ++i) *allFlags[i] = *_rhs.allFlags[i]; }
-		SExportSelector& operator=(const SExportSelector& _rhs) { for (size_t i = 0; i < allFlags.size(); ++i) allFlags[i]->Copy(*_rhs.allFlags[i]); return *this; }
+		SExportSelector(const SExportSelector& _rhs) : SExportSelector()
+		{
+			for (size_t i = 0; i < allFlags.size(); ++i)
+				*allFlags[i] = *_rhs.allFlags[i];
+		}
+		SExportSelector& operator=(const SExportSelector& _rhs)
+		{
+			for (size_t i = 0; i < allFlags.size(); ++i)
+				allFlags[i]->Copy(*_rhs.allFlags[i]);
+			return *this;
+		}
 		SExportSelector(SExportSelector&&) = delete;
 		SExportSelector& operator=(SExportSelector&&) = delete;
 		~SExportSelector() = default;
-		void SetAll(bool _value) { for (auto* f : allFlags) f->SetAll(_value); }
-		[[nodiscard]] bool AllOn() const { return std::all_of(allFlags.begin(), allFlags.end(), [](const auto& _flags) { return _flags->AllOn(); }); }
+		void SetAll(bool _value) const
+		{
+			for (auto* f : allFlags)
+				f->SetAll(_value);
+		}
+		[[nodiscard]] bool AllOn() const
+		{
+			return std::all_of(allFlags.begin(), allFlags.end(), [](const auto& _flags)	{ return _flags->AllOn(); });
+		}
 	};
 	/*
 	 * Layout descriptor of the temporary file with time-dependent data.
