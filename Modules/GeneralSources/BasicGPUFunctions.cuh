@@ -166,4 +166,4 @@ namespace CUDALegacy
 	} \
 	else \
 		CUDA_KERNEL_ARGS3(function, nBlocksNum, m_cudaDefines->CUDA_THREADS_PER_BLOCK, sizeof((dst)[0])*m_cudaDefines->CUDA_THREADS_PER_BLOCK, static_cast<unsigned>(size), src,  dst); \
-} while (0);
+} while (0)

@@ -328,12 +328,19 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 		CVector3 vRotCenter;
 		if (pGeom->RotateAroundCenter())
 		{
+			double totalArea{ 0.0 };
+			CVector3 totalWeightedCentroid{ 0.0 };
 			vRotCenter.Init(0);
 			for (const auto& plane : planes)
 			{
-				size_t nIndex = m_scene.m_vNewIndexes[plane];
-				vRotCenter += (pWalls.Vert1(nIndex) + pWalls.Vert2(nIndex) + pWalls.Vert3(nIndex)) / (3.0*planes.size());
+				const size_t iWall = m_scene.m_vNewIndexes[plane];
+				const double area = 0.5 * Length((pWalls.Vert2(iWall) - pWalls.Vert1(iWall)) * (pWalls.Vert3(iWall) - pWalls.Vert1(iWall)));
+				const CVector3 centroid = (pWalls.Vert1(iWall) + pWalls.Vert2(iWall) + pWalls.Vert3(iWall)) / 3.;
+				totalArea += area;
+				totalWeightedCentroid += area * centroid;
 			}
+			if (totalArea != 0.0)
+				vRotCenter = totalWeightedCentroid / totalArea;
 		}
 		else
 			vRotCenter = pGeom->GetCurrentRotCenter();
@@ -380,6 +387,13 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 			pWalls.Vel(nIndex) = vVel;
 			pWalls.RotVel(nIndex) = vRotVel;
 			pWalls.RotCenter(nIndex) = vRotCenter;
+			// If the rotation is done around the calculated center, it is important to first rotate the geometry and only then move it.
+			if (!vRotVel.IsZero())
+			{
+				pWalls.Vert1(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert1(nIndex) - vRotCenter);
+				pWalls.Vert2(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert2(nIndex) - vRotCenter);
+				pWalls.Vert3(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert3(nIndex) - vRotCenter);
+			}
 			if (!vVel.IsZero())
 			{
 				pWalls.Vert1(nIndex) += vVel * _dTimeStep;
@@ -387,12 +401,6 @@ void CCPUSimulator::MoveWalls(double _dTimeStep)
 				pWalls.Vert3(nIndex) += vVel * _dTimeStep;
 			}
 
-			if (!vRotVel.IsZero())
-			{
-				pWalls.Vert1(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert1(nIndex) - vRotCenter);
-				pWalls.Vert2(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert2(nIndex) - vRotCenter);
-				pWalls.Vert3(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert3(nIndex) - vRotCenter);
-			}
 			// update wall properties
 			pWalls.MinCoord(nIndex) = Min(pWalls.Vert1(nIndex), pWalls.Vert2(nIndex), pWalls.Vert3(nIndex));
 			pWalls.MaxCoord(nIndex) = Max(pWalls.Vert1(nIndex), pWalls.Vert2(nIndex), pWalls.Vert3(nIndex));

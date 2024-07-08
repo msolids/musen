@@ -116,13 +116,22 @@ namespace CUDAKernels
 	}
 
 	__global__ void PrecalculateGeometryCenter_kernel(unsigned _nWallsInGeom, const unsigned* _wallsInGeom,
-		const CVector3* _vertex1, const CVector3* _vertex2, const CVector3* _vertex3, CVector3* _centers)
+		const CVector3* _vertex1, const CVector3* _vertex2, const CVector3* _vertex3, double* _areas, CVector3* _weightedCentroids)
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nWallsInGeom; i += blockDim.x * gridDim.x)
 		{
 			const unsigned iWall = _wallsInGeom[i];
-			_centers[i] = (_vertex1[iWall] + _vertex2[iWall] + _vertex3[iWall]) / (3.0 * _nWallsInGeom);
+			const double area = 0.5 * Length((_vertex2[iWall] - _vertex1[iWall]) * (_vertex3[iWall] - _vertex1[iWall]));
+			const CVector3 centroid = (_vertex1[iWall] + _vertex2[iWall] + _vertex3[iWall]) / 3.;
+			_areas[iWall] = area;
+			_weightedCentroids[iWall] = area * centroid;
 		}
+	}
+
+	__global__ void CalculateGeometryCenter_kernel(const double* _area, const CVector3* _weightedCentroid, CVector3* _geometryCenter)
+	{
+		if (blockIdx.x * blockDim.x + threadIdx.x == 0)
+			_geometryCenter[0] = _weightedCentroid[0] / _area[0];
 	}
 
 	__global__ void MoveWalls_kernel(const double _timeStep, const unsigned _nWallsInGeom, const CVector3 _vel, const CVector3 _rotVel, const CVector3 _definedRotCenter, const CMatrix3 _rotMatrix,
@@ -146,13 +155,7 @@ namespace CUDAKernels
 			_wallVel[iWall] = vel;
 			_wallRotVel[iWall] = _rotVel;
 			_wallRotCenter[iWall] = vRotCenter;
-			if (vel.x != 0.0 || vel.y != 0.0 || vel.z != 0.0)
-			{
-				_vertex1[iWall] += vel * _timeStep;
-				_vertex2[iWall] += vel * _timeStep;
-				_vertex3[iWall] += vel * _timeStep;
-			}
-
+			// If the rotation is done around the calculated center, it is important to first rotate the geometry and only then move it.
 			if (_rotVel.x != 0.0 || _rotVel.y != 0.0 || _rotVel.z != 0.0)
 			{
 				_vertex1[iWall] = vRotCenter + _rotMatrix * (_vertex1[iWall] - vRotCenter);
@@ -161,6 +164,13 @@ namespace CUDAKernels
 
 				_wallNormalVector[iWall] = Normalized((_vertex2[iWall] - _vertex1[iWall])*(_vertex3[iWall] - _vertex1[iWall]));
 			}
+			if (vel.x != 0.0 || vel.y != 0.0 || vel.z != 0.0)
+			{
+				_vertex1[iWall] += vel * _timeStep;
+				_vertex2[iWall] += vel * _timeStep;
+				_vertex3[iWall] += vel * _timeStep;
+			}
+
 
 			// update wall properties
 			_wallMinCoord[iWall] = Min(_vertex1[iWall], _vertex2[iWall], _vertex3[iWall]);
