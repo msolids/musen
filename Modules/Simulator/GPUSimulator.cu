@@ -184,11 +184,17 @@ void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, cons
 		CalculateTotalForceOnWall(_iGeom, _walls, vTotalForce);
 	if (_bRotateAroundCenter) // precalculate rotation center
 	{
-		d_vec_v3 temp(wallsInGeom);
-		d_vec_v3 tempRotCenters(wallsInGeom);
+		d_vec_d tempAreas(wallsInGeom);
+		d_vec_v3 tempWeightedCentroids(wallsInGeom);
+		d_vec_d temp_d(wallsInGeom);
+		d_vec_v3 temp_v3(wallsInGeom);
+		d_vec_d totalArea(1);
+		d_vec_v3 totalWeightedCentroid(1);
 		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::PrecalculateGeometryCenter_kernel, wallsInGeom, m_vvWallsInGeom[_iGeom].data().get(),
-			_walls.Vertices1, _walls.Vertices2, _walls.Vertices3, tempRotCenters.data().get());
-		CUDA_REDUCE_CALLER(CUDAKernels::ReduceSum_kernel, wallsInGeom, tempRotCenters.data().get(), temp.data().get(), rotCenter.data().get());
+			_walls.Vertices1, _walls.Vertices2, _walls.Vertices3, tempAreas.data().get(), tempWeightedCentroids.data().get());
+		CUDA_REDUCE_CALLER(CUDAKernels::ReduceSum_kernel, wallsInGeom, tempAreas.data().get(), temp_d.data().get(), totalArea.data().get());
+		CUDA_REDUCE_CALLER(CUDAKernels::ReduceSum_kernel, wallsInGeom, tempWeightedCentroids.data().get(), temp_v3.data().get(), totalWeightedCentroid.data().get());
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateGeometryCenter_kernel, totalArea.data().get(), totalWeightedCentroid.data().get(), rotCenter.data().get());
 	}
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::MoveWalls_kernel, _timeStep,
 		static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size()), _vel, _rotVel, _rotCenter, _rotMatrix,
