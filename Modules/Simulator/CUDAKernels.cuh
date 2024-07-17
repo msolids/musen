@@ -56,8 +56,8 @@ namespace CUDAKernels
 	__global__ void CalculateGeometryCenter_kernel(const double* _area, const CVector3* _weightedCentroid, CVector3* _geometryCenter);
 
 	__global__ void MoveWalls_kernel(double _timeStep, unsigned _nWallsInGeom, const CVector3 _vel, const CVector3 _rotVel, const CVector3 _definedRotCenter, const CMatrix3 _rotMatrix,
-		const CVector3 _freeMotion, const CVector3* _totalForce, double _dMass, bool _bRotateAroundCenter, const CVector3 _vExternalAccel,
-		CVector3* _vCalculatedCenter, const unsigned* _wallsInGeom, CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3,
+		const CVector3 _freeMotion, const CVector3* _totalForce, double _mass, bool _isRotateAroundCenter, const CVector3 _externalAccel,
+		const CVector3* _calculatedCenter, const unsigned* _wallsInGeom, CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3,
 		CVector3* _wallMinCoord, CVector3* _wallMaxCoord, CVector3* _wallNormalVector, CVector3* _wallVel, CVector3* _wallRotCenter, CVector3* _wallRotVel);
 
 	__global__ void GatherForcesFromWalls_kernel(unsigned _nWallsInGeom, const unsigned* _wallsInGeom, const CVector3* _wallForce, CVector3* _outForces);

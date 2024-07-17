@@ -42,7 +42,7 @@ public:
 	void CalculateForcesEF(double _timeStep) override;
 
 	void MoveParticles(bool _bPredictionStep = false) override;
-	void MoveWalls(double _dTimeStep) override;
+	void MoveWalls(double _timeStep) override;
 	void UpdateTemperatures(bool _predictionStep = false) override;
 
 	// Returns all current maximal and average overlap between particles with particle indexes smaller than _nMaxParticleID.

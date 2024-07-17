@@ -173,16 +173,16 @@ CVector3 CGPU::CalculateTotalForceOnWall(size_t _iGeom, SGPUWalls & _walls)
 }
 
 void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix,
-	const CVector3& _freeMotion, bool _bForceDependentMotion, bool _bRotateAroundCenter, double _dMass, SGPUWalls& _walls, const CVector3& _vExternalAccel)
+	const CVector3& _freeMotion, bool _isForceDependentMotion, bool _isRotateAroundCenter, double _mass, SGPUWalls& _walls, const CVector3& _externalAccel)
 {
 	const unsigned wallsInGeom = static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size());
 
-	static d_vec_v3 vTotalForce(1);
+	static d_vec_v3 totalForce(1);
 	static d_vec_v3 rotCenter(1); // used in case when rotation around center is defined
 
-	if (_bRotateAroundCenter || _bForceDependentMotion || !_freeMotion.IsZero())
-		CalculateTotalForceOnWall(_iGeom, _walls, vTotalForce);
-	if (_bRotateAroundCenter) // precalculate rotation center
+	if (_isRotateAroundCenter || _isForceDependentMotion || !_freeMotion.IsZero())
+		CalculateTotalForceOnWall(_iGeom, _walls, totalForce);
+	if (_isRotateAroundCenter) // precalculate rotation center
 	{
 		d_vec_d tempAreas(wallsInGeom);
 		d_vec_v3 tempWeightedCentroids(wallsInGeom);
@@ -198,7 +198,7 @@ void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, cons
 	}
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::MoveWalls_kernel, _timeStep,
 		static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size()), _vel, _rotVel, _rotCenter, _rotMatrix,
-		_freeMotion, vTotalForce.data().get(), _dMass, _bRotateAroundCenter, _vExternalAccel,
+		_freeMotion, totalForce.data().get(), _mass, _isRotateAroundCenter, _externalAccel,
 		rotCenter.data().get(), m_vvWallsInGeom[_iGeom].data().get(),
 		_walls.Vertices1, _walls.Vertices2, _walls.Vertices3, _walls.MinCoords,
 		_walls.MaxCoords, _walls.NormalVectors, _walls.Vels, _walls.RotCenters, _walls.RotVels);

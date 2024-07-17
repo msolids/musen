@@ -300,113 +300,114 @@ void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 	MoveParticlesOverPBC(); // move virtual particles and check boundaries
 }
 
-void CCPUSimulator::MoveWalls(double _dTimeStep)
+void CCPUSimulator::MoveWalls(double _timeStep)
 {
-	SWallStruct& pWalls = m_scene.GetRefToWalls();
+	SWallStruct& walls = m_scene.GetRefToWalls();
 	m_wallsVelocityChanged = false;
-	for (size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); i++)
+	for (size_t i = 0; i < m_pSystemStructure->GeometriesNumber(); ++i)
 	{
-		CRealGeometry* pGeom = m_pSystemStructure->Geometry(i);
-		const auto& planes = pGeom->Planes();
+		CRealGeometry* geom = m_pSystemStructure->Geometry(i);
+		const auto& planes = geom->Planes();
 		if (planes.empty()) continue;
 
-		if ((pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT) ||  // force
-			(pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::CONSTANT_FORCE))
+		if (geom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT ||  // force
+			geom->Motion()->MotionType() == CGeometryMotion::EMotionType::CONSTANT_FORCE)
 		{
-			double dTotalForceZ = 0;
-			for (const auto& plane : planes)
-			{
-				size_t nIndex = m_scene.m_vNewIndexes[plane];
-				dTotalForceZ += (pWalls.Force(nIndex).z);
-			}
-			pGeom->UpdateMotionInfo(dTotalForceZ);
-		}
-		else
-			pGeom->UpdateMotionInfo(m_currentTime); // time
-		CVector3 vVel = pGeom->GetCurrentVelocity();
-		CVector3 vRotVel = pGeom->GetCurrentRotVelocity();
-		CVector3 vRotCenter;
-		if (pGeom->RotateAroundCenter())
-		{
-			double totalArea{ 0.0 };
-			CVector3 totalWeightedCentroid{ 0.0 };
-			vRotCenter.Init(0);
+			double totalForceZ = 0;
 			for (const auto& plane : planes)
 			{
 				const size_t iWall = m_scene.m_vNewIndexes[plane];
-				const double area = 0.5 * Length((pWalls.Vert2(iWall) - pWalls.Vert1(iWall)) * (pWalls.Vert3(iWall) - pWalls.Vert1(iWall)));
-				const CVector3 centroid = (pWalls.Vert1(iWall) + pWalls.Vert2(iWall) + pWalls.Vert3(iWall)) / 3.;
+				totalForceZ += walls.Force(iWall).z;
+			}
+			geom->UpdateMotionInfo(totalForceZ);
+		}
+		else
+			geom->UpdateMotionInfo(m_currentTime); // time
+		CVector3 vel = geom->GetCurrentVelocity();
+		CVector3 rotVel = geom->GetCurrentRotVelocity();
+		CVector3 rotCenter;
+		if (geom->RotateAroundCenter())
+		{
+			double totalArea{ 0.0 };
+			CVector3 totalWeightedCentroid{ 0.0 };
+			rotCenter.Init(0);
+			for (const auto& plane : planes)
+			{
+				const size_t iWall = m_scene.m_vNewIndexes[plane];
+				const double area = 0.5 * Length((walls.Vert2(iWall) - walls.Vert1(iWall)) * (walls.Vert3(iWall) - walls.Vert1(iWall)));
+				const CVector3 centroid = (walls.Vert1(iWall) + walls.Vert2(iWall) + walls.Vert3(iWall)) / 3.;
 				totalArea += area;
 				totalWeightedCentroid += area * centroid;
 			}
 			if (totalArea != 0.0)
-				vRotCenter = totalWeightedCentroid / totalArea;
+				rotCenter = totalWeightedCentroid / totalArea;
 		}
 		else
-			vRotCenter = pGeom->GetCurrentRotCenter();
+			rotCenter = geom->GetCurrentRotCenter();
 
-		if (m_currentTime == 0)
+		if (m_currentTime == 0.0)
 			m_wallsVelocityChanged = true;
 		else
 		{
-			if (!(pGeom->GetCurrentVelocity() - pGeom->GetCurrentVelocity()).IsZero())
+			if (!(geom->GetCurrentVelocity() - geom->GetCurrentVelocity()).IsZero())
 				m_wallsVelocityChanged = true;
-			else if (!(pGeom->GetCurrentRotVelocity() - pGeom->GetCurrentRotVelocity()).IsZero())
+			else if (!(geom->GetCurrentRotVelocity() - geom->GetCurrentRotVelocity()).IsZero())
 				m_wallsVelocityChanged = true;
-			else if (!(pGeom->GetCurrentRotCenter() - pGeom->GetCurrentRotCenter()).IsZero())
+			else if (!(geom->GetCurrentRotCenter() - geom->GetCurrentRotCenter()).IsZero())
 				m_wallsVelocityChanged = true;
 		}
 
-		if (!pGeom->FreeMotion().IsZero() && pGeom->Mass())// solve newtons motion for wall
+		if (!geom->FreeMotion().IsZero() && geom->Mass() != 0.0)// solve newtons motion for wall
 		{
-			CVector3 vTotalForce = m_externalAcceleration * pGeom->Mass();
-			CVector3 vTotalAverVel(0);
+			CVector3 totalForce = m_externalAcceleration * geom->Mass();
+			CVector3 totalAverVel(0);
 			// calculate total force acting on wall
 			for (const auto& plane : planes)
 			{
-				vTotalForce += pWalls.Force(m_scene.m_vNewIndexes[plane]);
-				vTotalAverVel += pWalls.Vel(m_scene.m_vNewIndexes[plane]) / static_cast<double>(planes.size());
+				const size_t iWall = m_scene.m_vNewIndexes[plane];
+				totalForce += walls.Force(iWall);
+				totalAverVel += walls.Vel(iWall) / static_cast<double>(planes.size());
 			}
-			if (pGeom->FreeMotion().x)
-				vVel.x = vTotalAverVel.x + _dTimeStep * vTotalForce.x / pGeom->Mass();
-			if (pGeom->FreeMotion().y)
-				vVel.y = vTotalAverVel.y + _dTimeStep * vTotalForce.y / pGeom->Mass();
-			if (pGeom->FreeMotion().z)
-				vVel.z = vTotalAverVel.z + _dTimeStep * vTotalForce.z / pGeom->Mass();
+			if (geom->FreeMotion().x)
+				vel.x = totalAverVel.x + _timeStep * totalForce.x / geom->Mass();
+			if (geom->FreeMotion().y)
+				vel.y = totalAverVel.y + _timeStep * totalForce.y / geom->Mass();
+			if (geom->FreeMotion().z)
+				vel.z = totalAverVel.z + _timeStep * totalForce.z / geom->Mass();
 			m_wallsVelocityChanged = true;
 		}
 
-		if (vVel.IsZero() && vRotVel.IsZero()) continue;
-		CMatrix3 RotMatrix;
-		if (!vRotVel.IsZero())
-			RotMatrix = CQuaternion(vRotVel*_dTimeStep).ToRotmat();
+		if (vel.IsZero() && rotVel.IsZero()) continue;
+		CMatrix3 rotMatrix;
+		if (!rotVel.IsZero())
+			rotMatrix = CQuaternion(rotVel*_timeStep).ToRotmat();
 
 		ParallelFor(planes.size(), [&](size_t j)
 		{
-			size_t nIndex = m_scene.m_vNewIndexes[planes[j]];
-			pWalls.Vel(nIndex) = vVel;
-			pWalls.RotVel(nIndex) = vRotVel;
-			pWalls.RotCenter(nIndex) = vRotCenter;
+			const size_t iWall = m_scene.m_vNewIndexes[planes[j]];
+			walls.Vel(iWall) = vel;
+			walls.RotVel(iWall) = rotVel;
+			walls.RotCenter(iWall) = rotCenter;
 			// If the rotation is done around the calculated center, it is important to first rotate the geometry and only then move it.
-			if (!vRotVel.IsZero())
+			if (!rotVel.IsZero())
 			{
-				pWalls.Vert1(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert1(nIndex) - vRotCenter);
-				pWalls.Vert2(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert2(nIndex) - vRotCenter);
-				pWalls.Vert3(nIndex) = vRotCenter + RotMatrix * (pWalls.Vert3(nIndex) - vRotCenter);
+				walls.Vert1(iWall) = rotCenter + rotMatrix * (walls.Vert1(iWall) - rotCenter);
+				walls.Vert2(iWall) = rotCenter + rotMatrix * (walls.Vert2(iWall) - rotCenter);
+				walls.Vert3(iWall) = rotCenter + rotMatrix * (walls.Vert3(iWall) - rotCenter);
 			}
-			if (!vVel.IsZero())
+			if (!vel.IsZero())
 			{
-				pWalls.Vert1(nIndex) += vVel * _dTimeStep;
-				pWalls.Vert2(nIndex) += vVel * _dTimeStep;
-				pWalls.Vert3(nIndex) += vVel * _dTimeStep;
+				walls.Vert1(iWall) += vel * _timeStep;
+				walls.Vert2(iWall) += vel * _timeStep;
+				walls.Vert3(iWall) += vel * _timeStep;
 			}
 
 			// update wall properties
-			pWalls.MinCoord(nIndex) = Min(pWalls.Vert1(nIndex), pWalls.Vert2(nIndex), pWalls.Vert3(nIndex));
-			pWalls.MaxCoord(nIndex) = Max(pWalls.Vert1(nIndex), pWalls.Vert2(nIndex), pWalls.Vert3(nIndex));
+			walls.MinCoord(iWall) = Min(walls.Vert1(iWall), walls.Vert2(iWall), walls.Vert3(iWall));
+			walls.MaxCoord(iWall) = Max(walls.Vert1(iWall), walls.Vert2(iWall), walls.Vert3(iWall));
 
-			if (!vRotVel.IsZero())
-				pWalls.NormalVector(nIndex) = Normalized((pWalls.Vert2(nIndex) - pWalls.Vert1(nIndex))*(pWalls.Vert3(nIndex) - pWalls.Vert1(nIndex)));
+			if (!rotVel.IsZero())
+				walls.NormalVector(iWall) = Normalized((walls.Vert2(iWall) - walls.Vert1(iWall))*(walls.Vert3(iWall) - walls.Vert1(iWall)));
 		});
 	}
 }

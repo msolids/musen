@@ -135,32 +135,32 @@ namespace CUDAKernels
 	}
 
 	__global__ void MoveWalls_kernel(const double _timeStep, const unsigned _nWallsInGeom, const CVector3 _vel, const CVector3 _rotVel, const CVector3 _definedRotCenter, const CMatrix3 _rotMatrix,
-		const CVector3 _freeMotion, const CVector3* _totalForce, double _dMass, bool _bRotateAroundCenter,
-		const CVector3 _vExternalAccel, CVector3* _vCalculatedCenter, const unsigned* _wallsInGeom, CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3,
+		const CVector3 _freeMotion, const CVector3* _totalForce, double _mass, bool _isRotateAroundCenter,
+		const CVector3 _externalAccel, const CVector3* _calculatedCenter, const unsigned* _wallsInGeom, CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3,
 		CVector3* _wallMinCoord, CVector3* _wallMaxCoord, CVector3* _wallNormalVector, CVector3* _wallVel, CVector3* _wallRotCenter, CVector3* _wallRotVel)
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nWallsInGeom; i += blockDim.x * gridDim.x)
 		{
 			const unsigned iWall = _wallsInGeom[i];
 
-			CVector3 vRotCenter = _bRotateAroundCenter ? _vCalculatedCenter[0] : _definedRotCenter;
+			CVector3 rotCenter = _isRotateAroundCenter ? _calculatedCenter[0] : _definedRotCenter;
 			CVector3 vel = _vel;
 			if (!_freeMotion.IsZero())
 			{
-				if (_freeMotion.x != 0.0) vel.x = (_wallVel[iWall].x + _totalForce->x*_timeStep / _dMass + _vExternalAccel.x*_timeStep);
-				if (_freeMotion.y != 0.0) vel.y = (_wallVel[iWall].y + _totalForce->y*_timeStep / _dMass + _vExternalAccel.y*_timeStep);
-				if (_freeMotion.z != 0.0) vel.z = (_wallVel[iWall].z + _totalForce->z*_timeStep / _dMass + _vExternalAccel.z*_timeStep);
+				if (_freeMotion.x != 0.0) vel.x = (_wallVel[iWall].x + _totalForce->x*_timeStep / _mass + _externalAccel.x*_timeStep);
+				if (_freeMotion.y != 0.0) vel.y = (_wallVel[iWall].y + _totalForce->y*_timeStep / _mass + _externalAccel.y*_timeStep);
+				if (_freeMotion.z != 0.0) vel.z = (_wallVel[iWall].z + _totalForce->z*_timeStep / _mass + _externalAccel.z*_timeStep);
 			}
 
 			_wallVel[iWall] = vel;
 			_wallRotVel[iWall] = _rotVel;
-			_wallRotCenter[iWall] = vRotCenter;
+			_wallRotCenter[iWall] = rotCenter;
 			// If the rotation is done around the calculated center, it is important to first rotate the geometry and only then move it.
 			if (_rotVel.x != 0.0 || _rotVel.y != 0.0 || _rotVel.z != 0.0)
 			{
-				_vertex1[iWall] = vRotCenter + _rotMatrix * (_vertex1[iWall] - vRotCenter);
-				_vertex2[iWall] = vRotCenter + _rotMatrix * (_vertex2[iWall] - vRotCenter);
-				_vertex3[iWall] = vRotCenter + _rotMatrix * (_vertex3[iWall] - vRotCenter);
+				_vertex1[iWall] = rotCenter + _rotMatrix * (_vertex1[iWall] - rotCenter);
+				_vertex2[iWall] = rotCenter + _rotMatrix * (_vertex2[iWall] - rotCenter);
+				_vertex3[iWall] = rotCenter + _rotMatrix * (_vertex3[iWall] - rotCenter);
 
 				_wallNormalVector[iWall] = Normalized((_vertex2[iWall] - _vertex1[iWall])*(_vertex3[iWall] - _vertex1[iWall]));
 			}
