@@ -84,7 +84,7 @@ public:
 	void MoveParticlesPrediction(double _timeStep, SGPUParticles& _particles);
 
 	void MoveWalls(double _timeStep, size_t _iWallsInGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix,
-		const CVector3& _freeMotion, bool _bForceDependentMotion, bool _bRotateAroundCenter, double _dMass, SGPUWalls& _walls, const CVector3& _vExternalAccel);
+		const CVector3& _freeMotion, bool _isForceDependentMotion, bool _isRotateAroundCenter, double _mass, SGPUWalls& _walls, const CVector3& _externalAccel);
 
 	void UpdateTemperatures(double _currTimeStep, SGPUParticles& _particles);
 
