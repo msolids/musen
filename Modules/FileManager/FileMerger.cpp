@@ -1,231 +1,223 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2024, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework http://msolids.net/musen.
+ * See LICENSE file for license and warranty information. */
 
 #include "FileMerger.h"
 #include "MUSENFileFunctions.h"
 
-CFileMerger::CFileMerger(CSystemStructure* _pSystemStructure)
+CFileMerger::CFileMerger(CSystemStructure* _systemStructure)
+	: m_systemStructure{ _systemStructure }
 {
-	m_dProgressPercent = 0;
-	m_sProgressMessage = "";
-	m_sErrorMessage = "";
-	m_nCurrentStatus = ERunningStatus::IDLE;
-	m_vListOfFiles.clear();
-	m_sResultFile = "";
-	m_dLastTimePoint = 0;
-	m_pSystemStructure = _pSystemStructure;
-	m_bLoadMergedFile = false;
 }
 
-CSystemStructure* CFileMerger::GetSystemStrcuture() const
+CSystemStructure* CFileMerger::GetSystemStructure() const
 {
-	return m_pSystemStructure;
+	return m_systemStructure;
 }
 
-double CFileMerger::GetProgressPercent()
+double CFileMerger::GetProgress() const
 {
-	return m_dProgressPercent;
+	return m_progress;
 }
 
-std::string& CFileMerger::GetProgressMessage()
+std::string CFileMerger::GetProgressMessage() const
 {
-	return m_sProgressMessage;
+	return m_progressMessage;
 }
 
-std::string& CFileMerger::GetErrorMessage()
+std::string CFileMerger::GetErrorMessage() const
 {
-	return m_sErrorMessage;
+	return m_errorMessage;
 }
 
 ERunningStatus CFileMerger::GetCurrentStatus() const
 {
-	return m_nCurrentStatus;
+	return m_status;
 }
 
-void CFileMerger::SetCurrentStatus(const ERunningStatus& _nNewStatus)
+void CFileMerger::SetCurrentStatus(const ERunningStatus& _status)
 {
-	m_nCurrentStatus = _nNewStatus;
+	m_status = _status;
 }
 
-void CFileMerger::SetListOfFiles(std::vector<std::string> &_vListOfFiles)
+void CFileMerger::SetListOfFiles(const std::vector<std::string>& _listOfFiles)
 {
-	m_vListOfFiles = _vListOfFiles;
+	m_listOfFiles = _listOfFiles;
 }
 
-void CFileMerger::SetResultFile(std::string _sResultFile)
+void CFileMerger::SetResultFile(const std::string& _resultFile)
 {
-	m_sResultFile = _sResultFile;
+	m_resultFile = _resultFile;
 }
 
-void CFileMerger::SetFlagOfLoadingMergedFile(bool _bIsLoadingMergedFile)
+void CFileMerger::SetFlagOfLoadingMergedFile(bool _flag)
 {
-	m_bLoadMergedFile = _bIsLoadingMergedFile;
+	m_loadMergedFile = _flag;
 }
 
 void CFileMerger::Merge()
 {
-	m_sProgressMessage = "Merging started. Please wait...";
-	m_sErrorMessage = "";
+	if (m_listOfFiles.empty())
+		return;
 
-	for (const auto& file : m_vListOfFiles)
+	m_progressMessage = "Merging started. Please wait...";
+	m_errorMessage.clear();
+
+	for (const auto& file : m_listOfFiles)
 		if (CSystemStructure::IsOldFileVersion(file))
 		{
-			m_sErrorMessage = "File '" + file + "' is in old format. Convert it to a new format before merging.";
+			m_errorMessage = "File '" + file + "' is in old format. Convert it to a new format before merging.";
 			return;
 		}
 
-	CSystemStructure* pSystemStructure = new CSystemStructure();		 // system structure for result
-	CSystemStructure::ELoadFileResult status = pSystemStructure->LoadFromFile(m_vListOfFiles[0]);					 // load first file to the result system structure
+	auto* resultSS = new CSystemStructure{};		// system structure for result
+	resultSS->LoadFromFile(m_listOfFiles.front());	// load first file to the result system structure
 
-	pSystemStructure->SaveToFile(m_sResultFile);						 // save result system structure to result file
-	pSystemStructure->LoadFromFile(m_sResultFile);						 // load result file to the result system structure
+	resultSS->SaveToFile(m_resultFile);				// save result system structure to result file
+	resultSS->LoadFromFile(m_resultFile);			// load result file to the result system structure
 
-	m_dLastTimePoint = pSystemStructure->GetAllTimePoints()[pSystemStructure->GetAllTimePoints().size() - 1]; // last time point in the first file
+	double lastTimePoint = resultSS->GetAllTimePoints().back(); // last time point in the last processed file
 
-	size_t nNumberOfObjects = pSystemStructure->GetTotalObjectsCount();		   // total number of objects in the first file
-	int nNumberOfRemovedObjects = GetNumberOfRemovedObjects(pSystemStructure); // number of objects which will be removed after data snapshot
-	nNumberOfObjects = nNumberOfObjects - nNumberOfRemovedObjects;
+	size_t numberOfObjects = resultSS->GetTotalObjectsCount();					// total number of objects in the file
+	const size_t numberOfRemovedObjects = GetNumberOfRemovedObjects(resultSS);	// number of objects which will be removed after data snapshot
+	numberOfObjects = numberOfObjects - numberOfRemovedObjects;
 
-	m_dProgressPercent = double((1 * 100) / (m_vListOfFiles.size()));
-	for (auto i = 1; i < m_vListOfFiles.size(); i++)
+	m_progress = 100. / static_cast<double>(m_listOfFiles.size());
+	for (size_t iFile = 1; iFile < m_listOfFiles.size(); ++iFile)
 	{
-		if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
+		if (m_status == ERunningStatus::TO_BE_STOPPED) break;
 
-		CSystemStructure* pTempSS = new CSystemStructure();			// temporary system structure for getting data from current file
-		status = pTempSS->LoadFromFile(m_vListOfFiles[i]);			// load current file to temporary system structure
+		auto currentSS = std::make_unique<CSystemStructure>();	// temporary system structure for getting data from current file
+		currentSS->LoadFromFile(m_listOfFiles[iFile]);			// load current file to temporary system structure
 
-		if (pTempSS->GetTotalObjectsCount() == nNumberOfObjects && m_vListOfFiles[i]!= pSystemStructure->GetFileName())
+		if (currentSS->GetTotalObjectsCount() == numberOfObjects && m_listOfFiles[iFile] != resultSS->GetFileName())
 		{
-			std::vector<double> vTimePoints = pTempSS->GetAllTimePoints(); // get all time points from current file
-			if (vTimePoints.size() < 2)
+			const std::vector<double> timePoints = currentSS->GetAllTimePoints(); // get all the time points from current file
+			if (timePoints.size() < 2)
 				continue;
 
-			double dCurrTime = m_dLastTimePoint;
-			for (auto j = 1; j < vTimePoints.size(); j++)
+			double currentTime = lastTimePoint;
+			for (size_t iTime = 1; iTime < timePoints.size(); ++iTime)
 			{
-				if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
-				m_sProgressMessage = "In progress... Current file #" + std::to_string(i) + ", time point in result file " + std::to_string(dCurrTime) + "[s]";
-				const double dCurrentSavingTimeStep = vTimePoints[j] - vTimePoints[j - 1];  // calculate saving time step for current file
-				dCurrTime = dCurrTime + dCurrentSavingTimeStep;
-				if (dCurrTime > m_dLastTimePoint + vTimePoints[vTimePoints.size() - 1])
-					dCurrTime = m_dLastTimePoint + vTimePoints[vTimePoints.size() - 1];
-				pSystemStructure->PrepareTimePointForWrite(dCurrTime);
+				if (m_status == ERunningStatus::TO_BE_STOPPED)
+					break;
 
-				for (auto k = 0; k < nNumberOfObjects; k++)
+				m_progressMessage = "Current file #" + std::to_string(iFile) + ", time point " + std::to_string(currentTime) + "s";
+				const double timeStep = timePoints[iTime] - timePoints[iTime - 1];  // current saving time step for current file
+				currentTime += timeStep;
+				if (currentTime > lastTimePoint + timePoints.back())
+					currentTime = lastTimePoint + timePoints.back();
+				resultSS->PrepareTimePointForWrite(currentTime);
+				currentSS->PrepareTimePointForRead(timePoints[iTime]);
+
+				for (size_t k = 0; k < numberOfObjects; ++k)
 				{
-					CPhysicalObject* pObjectNew = pTempSS->GetObjectByIndex(k);
-					CPhysicalObject* pObject = pSystemStructure->GetObjectByIndex(k);
-					if (pObjectNew)
-					{
-						if (pObjectNew->IsActive(vTimePoints[j]))
-						{
-							switch (pObjectNew->GetObjectType())
-							{
-							case SPHERE:
-							{
-								pObject->SetCoordinates(dCurrTime, pObjectNew->GetCoordinates(vTimePoints[j]));
-								pObject->SetVelocity(dCurrTime, pObjectNew->GetVelocity(vTimePoints[j]));
-								pObject->SetAngleVelocity(dCurrTime, pObjectNew->GetAngleVelocity(vTimePoints[j]));
-								pObject->SetForce(dCurrTime, pObjectNew->GetForce(vTimePoints[j]));
-								pObject->SetOrientation(dCurrTime, pObjectNew->GetOrientation(vTimePoints[j]));
-								break;
-							}
-							case SOLID_BOND:
-							{
-								CSolidBond* pSBond = static_cast<CSolidBond*>(pSystemStructure->GetObjectByIndex(k));
-								CSolidBond* pSBondNew = static_cast<CSolidBond*>(pTempSS->GetObjectByIndex(k));
-								pSBond->SetForce(dCurrTime, pSBondNew->GetForce(vTimePoints[j]));
-								pSBond->SetTangentialOverlap(dCurrTime, pSBondNew->GetTangentialOverlap(vTimePoints[j]));
-								pSBond->SetTotalTorque(dCurrTime, pSBondNew->GetTotalTorque(vTimePoints[j]));
-								break;
-							}
-							case LIQUID_BOND:
-							{
-								CLiquidBond* pLBond = static_cast<CLiquidBond*>(pSystemStructure->GetObjectByIndex(k));
-								CLiquidBond* pLBondNew = static_cast<CLiquidBond*>(pTempSS->GetObjectByIndex(k));
-								pLBond->SetForce(dCurrTime, pLBondNew->GetForce(vTimePoints[j]));
-								break;
-							}
-							case TRIANGULAR_WALL:
-							{
-								CTriangularWall* pWall = static_cast<CTriangularWall*>(pSystemStructure->GetObjectByIndex(k));
-								CTriangularWall* pWallNew = static_cast<CTriangularWall*>(pTempSS->GetObjectByIndex(k));
-								pWall->SetPlaneCoord(dCurrTime, pWallNew->GetCoordVertex1(vTimePoints[j]), pWallNew->GetCoordVertex2(vTimePoints[j]), pWallNew->GetCoordVertex3(vTimePoints[j]));
-								pWall->SetForce(dCurrTime, pWallNew->GetForce(vTimePoints[j]));
-								pWall->SetVelocity(dCurrTime, pWallNew->GetVelocity(vTimePoints[j]));
-								break;
-							}
-							default: break;
-							}
-						}
-						else
-						{
-							double dActivityStartOld, dActivityEndOld;
-							pObject->GetActivityTimeInterval(&dActivityStartOld, &dActivityEndOld);
-							double dActivityStartNew, dActivityEndNew;
-							pObjectNew->GetActivityTimeInterval(&dActivityStartNew, &dActivityEndNew);
+					const CPhysicalObject* objectNew = currentSS->GetObjectByIndex(k);
+					if (!objectNew) continue;
+					CPhysicalObject* object = resultSS->GetObjectByIndex(k);
 
-							if (dActivityEndOld == DEFAULT_ACTIVITY_END && dActivityEndNew != DEFAULT_ACTIVITY_END)
-								pObject->SetEndActivityTime(m_dLastTimePoint + dActivityEndNew);
+					if (objectNew->IsActive(timePoints[iTime]))
+					{
+						switch (objectNew->GetObjectType())
+						{
+						case SPHERE:
+						{
+							object->SetCoordinates(objectNew->GetCoordinates());
+							object->SetVelocity(objectNew->GetVelocity());
+							object->SetAngleVelocity(objectNew->GetAngleVelocity());
+							object->SetForce(objectNew->GetForce());
+							object->SetOrientation(objectNew->GetOrientation());
+							break;
 						}
+						case SOLID_BOND:
+						{
+							const auto* bond = dynamic_cast<CSolidBond*>(resultSS->GetObjectByIndex(k));
+							const auto* bondNew = dynamic_cast<CSolidBond*>(currentSS->GetObjectByIndex(k));
+							bond->SetForce(bondNew->GetForce());
+							bond->SetTangentialOverlap(bondNew->GetTangentialOverlap());
+							bond->SetTotalTorque(bondNew->GetTotalTorque());
+							break;
+						}
+						case LIQUID_BOND:
+						{
+							const auto* bond = dynamic_cast<CLiquidBond*>(resultSS->GetObjectByIndex(k));
+							const auto* bondNew = dynamic_cast<CLiquidBond*>(currentSS->GetObjectByIndex(k));
+							bond->SetForce(bondNew->GetForce());
+							break;
+						}
+						case TRIANGULAR_WALL:
+						{
+							const auto* wall = dynamic_cast<CTriangularWall*>(resultSS->GetObjectByIndex(k));
+							const auto* wallNew = dynamic_cast<CTriangularWall*>(currentSS->GetObjectByIndex(k));
+							wall->SetPlaneCoord(wallNew->GetCoordVertex1(), wallNew->GetCoordVertex2(), wallNew->GetCoordVertex3());
+							wall->SetForce(wallNew->GetForce());
+							wall->SetVelocity(wallNew->GetVelocity());
+							break;
+						}
+						default: break;
+						}
+					}
+					else
+					{
+						auto [activityStartOld, activityEndOld] = object->GetActivityTimeInterval();
+						auto [activityStartNew, activityEndNew] = objectNew->GetActivityTimeInterval();
+
+						if (activityEndOld == DEFAULT_ACTIVITY_END && activityEndNew != DEFAULT_ACTIVITY_END)
+							object->SetEndActivityTime(lastTimePoint + activityEndNew);
 					}
 				}
 			}
-			if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
-			m_dLastTimePoint = dCurrTime;
+
+			if (m_status == ERunningStatus::TO_BE_STOPPED)
+				break;
+
+			lastTimePoint = currentTime;
 		}
 		else
 		{
-			if (m_vListOfFiles[i] != pSystemStructure->GetFileName())
-				m_sErrorMessage = "File " + m_vListOfFiles[i] + " is already in use. Close file and repeat the merging.";
+			if (m_listOfFiles[iFile] != resultSS->GetFileName())
+				m_errorMessage = "File " + m_listOfFiles[iFile] + " is already in use. Close file and repeat the merging.";
 			else
-				m_sErrorMessage = "Different number of objects in the file " + m_vListOfFiles[i] + " and in the previous file.";
-			m_dProgressPercent = 0;
-			delete pTempSS;
+				m_errorMessage = "Different number of objects in the file " + m_listOfFiles[iFile] + " and in the previous file.";
+			m_progress = 0;
 			break;
 		}
-		nNumberOfRemovedObjects = GetNumberOfRemovedObjects(pTempSS);
-		delete pTempSS;
-		nNumberOfObjects = nNumberOfObjects - static_cast<size_t>(nNumberOfRemovedObjects);
-		m_dProgressPercent = double(((i + 1) * 100) / (m_vListOfFiles.size()));
+		numberOfObjects -= GetNumberOfRemovedObjects(currentSS.get());
+		m_progress = static_cast<double>(iFile + 1) * 100. / static_cast<double>(m_listOfFiles.size());
 	}
-	pSystemStructure->SaveToFile(m_sResultFile);
-	delete pSystemStructure;
+	resultSS->SaveToFile(m_resultFile);
+	delete resultSS;
 
-	if (m_sErrorMessage == "")
+	if (m_errorMessage.empty())
 	{
-		if (m_bLoadMergedFile)
+		if (m_loadMergedFile)
 		{
-			if (!m_pSystemStructure)
-			{
-				m_pSystemStructure = new CSystemStructure();
-			}
-			m_pSystemStructure->LoadFromFile(m_sResultFile);
+			if (!m_systemStructure)
+				m_systemStructure = new CSystemStructure{};
+			m_systemStructure->LoadFromFile(m_resultFile);
 		}
 	}
 	else
-		MUSENFileFunctions::removeFile(m_sResultFile);
+		MUSENFileFunctions::removeFile(m_resultFile);
 
-	if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED)
-	{
-		m_nCurrentStatus = ERunningStatus::IDLE;
-	}
-	m_sProgressMessage = "Merging finished";
+	if (m_status == ERunningStatus::TO_BE_STOPPED)
+		m_status = ERunningStatus::IDLE;
+	m_progressMessage = "Merging finished";
 }
 
-int CFileMerger::GetNumberOfRemovedObjects(CSystemStructure* _pSystemStrcuture)
+size_t CFileMerger::GetNumberOfRemovedObjects(const CSystemStructure* _systemStructure)
 {
-	std::vector<double> vAllTimePoints = _pSystemStrcuture->GetAllTimePoints();
-	uint32_t nNumberOfRemovedObjects = 0;
-	for (auto i = _pSystemStrcuture->GetTotalObjectsCount() - 1; i > 0; i--)
+	const std::vector<double> timePoints = _systemStructure->GetAllTimePoints();
+	size_t numberOfRemovedObjects = 0;
+	for (auto i = _systemStructure->GetTotalObjectsCount() - 1; i > 0; --i)
 	{
-		CPhysicalObject* pObject = _pSystemStrcuture->GetObjectByIndex(i);
-		if ((pObject) && (pObject->IsActive(vAllTimePoints[vAllTimePoints.size() - 1])))
+		const CPhysicalObject* object = _systemStructure->GetObjectByIndex(i);
+		if (object && object->IsActive(timePoints.back()))
 		{
 			break;
 		}
-		nNumberOfRemovedObjects++;
+		numberOfRemovedObjects++;
 	}
-	return nNumberOfRemovedObjects;
+	return numberOfRemovedObjects;
 }
