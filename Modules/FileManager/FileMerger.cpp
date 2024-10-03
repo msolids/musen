@@ -98,10 +98,7 @@ void CFileMerger::Merge()
 		if (pTempSS->GetTotalObjectsCount() == nNumberOfObjects && m_vListOfFiles[i]!= pSystemStructure->GetFileName())
 		{
 			std::vector<double> vTimePoints = pTempSS->GetAllTimePoints(); // get all time points from current file
-			double dCurrentSavingTimeStep = 0;
-			if (vTimePoints.size() >= 2)
-				dCurrentSavingTimeStep = vTimePoints[1] - vTimePoints[0];  // calculate saving time step for current file
-			else
+			if (vTimePoints.size() < 2)
 				continue;
 
 			double dCurrTime = m_dLastTimePoint;
@@ -109,9 +106,11 @@ void CFileMerger::Merge()
 			{
 				if (m_nCurrentStatus == ERunningStatus::TO_BE_STOPPED) break;
 				m_sProgressMessage = "In progress... Current file #" + std::to_string(i) + ", time point in result file " + std::to_string(dCurrTime) + "[s]";
+				const double dCurrentSavingTimeStep = vTimePoints[j] - vTimePoints[j - 1];  // calculate saving time step for current file
 				dCurrTime = dCurrTime + dCurrentSavingTimeStep;
 				if (dCurrTime > m_dLastTimePoint + vTimePoints[vTimePoints.size() - 1])
 					dCurrTime = m_dLastTimePoint + vTimePoints[vTimePoints.size() - 1];
+				pSystemStructure->PrepareTimePointForWrite(dCurrTime);
 
 				for (auto k = 0; k < nNumberOfObjects; k++)
 				{
@@ -162,10 +161,13 @@ void CFileMerger::Merge()
 						}
 						else
 						{
-							double dActivityStart, dActivityEnd;
-							pObject->GetActivityTimeInterval(&dActivityStart, &dActivityEnd);
-							if (dActivityEnd > dCurrTime)
-								pObject->SetEndActivityTime(dCurrTime);
+							double dActivityStartOld, dActivityEndOld;
+							pObject->GetActivityTimeInterval(&dActivityStartOld, &dActivityEndOld);
+							double dActivityStartNew, dActivityEndNew;
+							pObjectNew->GetActivityTimeInterval(&dActivityStartNew, &dActivityEndNew);
+
+							if (dActivityEndOld == DEFAULT_ACTIVITY_END && dActivityEndNew != DEFAULT_ACTIVITY_END)
+								pObject->SetEndActivityTime(m_dLastTimePoint + dActivityEndNew);
 						}
 					}
 				}
