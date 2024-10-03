@@ -190,7 +190,7 @@ void CFileMergerTab::EditOutputFileName()
 
 void CFileMergerTab::UpdateProgressInfo()
 {
-	ui.progressBar->setValue(m_pFileMerger->GetProgressPercent());
+	ui.progressBar->setValue(m_pFileMerger->GetProgress());
 	ui.labelStatus->setText(ss2qs(m_pFileMerger->GetProgressMessage()));
 }
 
@@ -247,7 +247,7 @@ void CFileMergerTab::MergeFilesPressed()
 			m_pQTThread->wait(100);
 		m_UpdateTimer.stop();
 		ui.progressBar->setValue(0);
-		QMessageBox::information(this, "Information", tr("Around %1% of data has been merged.").arg((unsigned)m_pFileMerger->GetProgressPercent()));
+		QMessageBox::information(this, "Information", tr("Around %1% of data has been merged.").arg((unsigned)m_pFileMerger->GetProgress()));
 		MergingFinished();
 	}
 }
