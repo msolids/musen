@@ -1,0 +1,13 @@
+Core:
+- Calculation of geometry centres via surface area and centroids.
+
+CLI:
+- Proper treatment of EXPORT_AS_TEXT flags in the script.
+
+File merger: 
+- Fix calculation of activity interval.
+- Keep time points without active objects.
+- Account for variable time step.
+
+Fixes:
+- Change the order of calculation of geometry movement: first rotate then move.
