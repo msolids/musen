@@ -41,7 +41,7 @@ tar -xf $ZIP_NAME
 # Build x64
 New-Item $BUILD_PATH -ItemType directory
 Set-Location $BUILD_PATH
-cmake -G "Visual Studio 16 2019" $CMAKE_PATH `
+cmake -G "Visual Studio 17 2022" $CMAKE_PATH `
 	-DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH `
 	-Dprotobuf_BUILD_EXAMPLES=OFF `
 	-Dprotobuf_BUILD_TESTS=OFF `

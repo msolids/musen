@@ -82,6 +82,7 @@ FakesAssemblies/
 
 *.asv
 *.lst
+*.tlog
 GeneratedFiles*/
 /MUSEN/MUSEN/.vs/
 /MUSEN_Linux/cmusen
@@ -95,7 +96,9 @@ GeneratedFiles*/
 /MUSEN_Linux/compiled/
 /MUSEN_Linux/src
 /ExternalLibraries/_backup/
+/.vs/musen/
 /.vs/musen/v16/
+/.vs/musen/v17/
 /ExternalLibraries/protobuf/
 /ExternalLibraries/zlib/
 /Installers/Installers/
