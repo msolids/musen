@@ -98,10 +98,10 @@
     <ClInclude Include="MUSENfilesystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\SafeWindowsHeader.h">
+    <ClInclude Include="MUSENHelperDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MUSENHelperDefines.h">
+    <ClInclude Include="SafeWindowsHeader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

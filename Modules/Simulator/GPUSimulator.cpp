@@ -350,8 +350,8 @@ void CGPUSimulator::CUDAUpdateVerletLists(const std_matr_u& _verletListCPU, cons
 
 	if (!_store.hvVerletPartInd.empty())	_store.hvVerletPartInd.front() = 0;			// for easier access
 	for (size_t i = 1; i < nParticles; ++i)
-		_store.hvVerletPartInd[i] = _store.hvVerletPartInd[i - 1] + _verletListCPU[i-1].size();
-	if (!_store.hvVerletPartInd.empty())	_store.hvVerletPartInd.back() = nCollsions;	// for easier access
+		_store.hvVerletPartInd[i] = _store.hvVerletPartInd[i - 1] + (unsigned)_verletListCPU[i-1].size();
+	if (!_store.hvVerletPartInd.empty())	_store.hvVerletPartInd.back() = (unsigned)nCollsions;	// for easier access
 	ParallelFor(nParticles, [&](size_t i)
 	{
 		std::copy(_verletListCPU[i].begin(), _verletListCPU[i].end(), _store.hvVerletDst.begin() + _store.hvVerletPartInd[i]);
@@ -363,7 +363,7 @@ void CGPUSimulator::CUDAUpdateVerletLists(const std_matr_u& _verletListCPU, cons
 	// update verlet lists on device
 	m_gpu.UpdateVerletLists(_bPPVerlet, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToWalls(), _store.hvVerletSrc, _store.hvVerletDst, _store.hvVerletPartInd,
 		_store.hvVirtShifts, _collisions.vVerletSrc, _collisions.vVerletDst, _collisions.vVerletPartInd, _collisions.collisions);
-	m_gpu.SortByDst(_bPPVerlet ? m_scene.GetTotalParticlesNumber() : m_scene.GetWallsNumber(),
+	m_gpu.SortByDst(_bPPVerlet ? (unsigned)m_scene.GetTotalParticlesNumber() : (unsigned)m_scene.GetWallsNumber(),
 		_collisions.vVerletSrc, _collisions.vVerletDst, _collisions.vVerletCollInd_DstSorted, _collisions.vVerletPartInd_DstSorted);
 }
 

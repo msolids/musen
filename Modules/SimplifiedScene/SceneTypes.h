@@ -400,56 +400,39 @@ public:
 struct SCollision;
 struct SSavedCollision
 {
-	unsigned nCnt;			// number of simultaneously existing contacts of a particle and geometry
-	int nGeomID;			// identifier of geometry for PW-contact
-	double dTimeStart;		// begin of the contact
-	double dTimeEnd;		// end of the contact, -1 indicates not finished collision at the simulation end
-	CVector3 vMaxTotalForce;// maximum total force during the collision; for simultaneous contact with several walls, sum of forces is analyzed
-	CVector3 vMaxNormForce;	// maximum normal force during the collision; for simultaneous contact with several walls, sum of forces is analyzed
-	CVector3 vMaxTangForce;	// maximum tangential force during the collision; for simultaneous contact with several walls, sum of forces is analyzed
-	CVector3 vNormVelocity;	// relative normal velocity of objects at the first moment of contact; or max value for simultaneous contact with several walls
-	CVector3 vTangVelocity;	// relative tangential velocity of objects at the first moment of contact; or max value for simultaneous contact with several walls
-	CVector3 vContactPoint;	// point of contact at the dTimeStart; one of them for simultaneous contact with several walls
+	unsigned nCnt{};				// number of simultaneously existing contacts of a particle and geometry
+	int nGeomID{};					// identifier of geometry for PW-contact
+	double dTimeStart{};			// begin of the contact
+	double dTimeEnd{};				// end of the contact, -1 indicates not finished collision at the simulation end
+	CVector3 vMaxTotalForce{ 0.0 };	// maximum total force during the collision; for simultaneous contact with several walls, sum of forces is analyzed
+	CVector3 vMaxNormForce{ 0.0 };	// maximum normal force during the collision; for simultaneous contact with several walls, sum of forces is analyzed
+	CVector3 vMaxTangForce{ 0.0 };	// maximum tangential force during the collision; for simultaneous contact with several walls, sum of forces is analyzed
+	CVector3 vNormVelocity{ 0.0 };	// relative normal velocity of objects at the first moment of contact; or max value for simultaneous contact with several walls
+	CVector3 vTangVelocity{ 0.0 };	// relative tangential velocity of objects at the first moment of contact; or max value for simultaneous contact with several walls
+	CVector3 vContactPoint{ 0.0 };	// point of contact at the dTimeStart; one of them for simultaneous contact with several walls
 	std::vector<SCollision*> vPtr;	// list of collisions with length nCnt, contains pointers to simultaneously existing contacts of a particle and geometry
-	SSavedCollision()
-	{
-		vMaxTotalForce.Init(0);
-		vMaxNormForce.Init(0);
-		vMaxTangForce.Init(0);
-	}
 };
 
 // Used to describe particle-particle and particle-wall collision.
 struct SCollision
 {
-	bool bContactStillExist;   // this flag is used to determine if the contact still exist in compare to previous step
-	uint8_t nVirtShift;        // shifts to calculate parameters of virtual particles in case of PBC. For BOX: shift {x, y, z}, for CYLINDER: rotation angle {cos(a), sin (a), 0}.
-	uint16_t nInteractProp;    // index of interaction property
-	unsigned nSrcID;		   // identifier of first contact partner or wall (nWallID)
-	unsigned nDstID;		   // identifier of second contact partner
-	double dNormalOverlap;	   //
-	double dEquivMass;		   // equivalent mass
-	double dEquivRadius;	   // equivalent radius
-	double dInitNormalOverlap; // used for modeling of sintering process
-	double dHeatFlux;		   // heat flux to this particle caused
-	CVector3 vTangOverlap;	   // old tangential overlap
-	CVector3 vTangForce;	   // total tangential force
-	CVector3 vTotalForce;
-	CVector3 vResultMoment1;   // moment which acts on first particle
-	CVector3 vResultMoment2;   // moment which acts on first particle
-	CVector3 vContactVector;   // For PP contact: dstCoord - srcCoord. For PW contact: contact point.
-	SSavedCollision *pSave;
-	SCollision()
-	{
-		vTangOverlap.Init(0);
-		vTangForce.Init(0);
-		vTotalForce.Init(0);
-		vResultMoment1.Init(0);
-		vResultMoment2.Init(0);
-		vContactVector.Init(0);
-		dInitNormalOverlap = 0;
-		dHeatFlux = 0;
-	}
+	bool bContactStillExist{};      // this flag is used to determine if the contact still exist in compare to previous step
+	uint8_t nVirtShift{};           // shifts to calculate parameters of virtual particles in case of PBC. For BOX: shift {x, y, z}, for CYLINDER: rotation angle {cos(a), sin (a), 0}.
+	uint16_t nInteractProp{};       // index of interaction property
+	unsigned nSrcID{};			    // identifier of first contact partner or wall (nWallID)
+	unsigned nDstID{};			    // identifier of second contact partner
+	double dNormalOverlap{};	    //
+	double dEquivMass{};		    // equivalent mass
+	double dEquivRadius{};	        // equivalent radius
+	double dInitNormalOverlap{};    // used for modeling of sintering process
+	double dHeatFlux{};		        // heat flux to this particle caused
+	CVector3 vTangOverlap{ 0.0 };   // old tangential overlap
+	CVector3 vTangForce{ 0.0 };	    // total tangential force
+	CVector3 vTotalForce{ 0.0 };
+	CVector3 vResultMoment1{ 0.0 }; // moment which acts on first particle
+	CVector3 vResultMoment2{ 0.0 }; // moment which acts on first particle
+	CVector3 vContactVector{ 0.0 }; // For PP contact: dstCoord - srcCoord. For PW contact: contact point.
+	SSavedCollision *pSave{};
 };
 
 #undef ADD_GET_SET

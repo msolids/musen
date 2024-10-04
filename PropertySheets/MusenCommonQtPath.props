@@ -16,12 +16,5 @@
       <PreprocessorDefinitions>_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/DNOMINMAX %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <CustomBuild>
-      <Command />
-    </CustomBuild>
-    <CustomBuild>
-      <Outputs />
-    </CustomBuild>
   </ItemDefinitionGroup>
-  <ItemGroup />
 </Project>

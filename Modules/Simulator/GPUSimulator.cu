@@ -65,8 +65,8 @@ void CGPU::InitializeWalls(const std::vector<std::vector<unsigned>>& _vvWallsInG
 
 	if (!hostStartIndices.empty()) hostStartIndices.front() = 0;			// for easier access
 	for (size_t i = 1; i < _adjacentWalls.size(); ++i)
-		hostStartIndices[i] = hostStartIndices[i - 1] + _adjacentWalls[i - 1].size();
-	if (!hostStartIndices.empty()) hostStartIndices.back() = number - 1;	// for easier access
+		hostStartIndices[i] = hostStartIndices[i - 1] + (unsigned)_adjacentWalls[i - 1].size();
+	if (!hostStartIndices.empty()) hostStartIndices.back() = (unsigned)number - 1;	// for easier access
 
 	ParallelFor(_adjacentWalls.size(), [&](size_t i)
 	{
@@ -423,7 +423,7 @@ void CGPU::GetOverlapsInfo(const SGPUParticles& _particles, size_t _maxParticleI
 	{
 		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GetPPOverlaps_kernel,
 			m_CollisionsPP.collisions.ActiveCollisionsNum, m_CollisionsPP.collisions.ActivityIndices, m_CollisionsPP.collisions.SrcIDs, m_CollisionsPP.collisions.DstIDs,
-			m_CollisionsPP.collisions.NormalOverlaps, _maxParticleID,
+			m_CollisionsPP.collisions.NormalOverlaps, (unsigned)_maxParticleID,
 			overlapsPP.data().get(), flagsPP.data().get());
 		CUDA_REDUCE_CALLER(CUDAKernels::ReduceMax_kernel, collNumberPP, overlapsPP.data().get(), tempPP.data().get(), thrust::device_pointer_cast(&res[0]).get());
 		CUDA_REDUCE_CALLER(CUDAKernels::ReduceSum_kernel, collNumberPP, overlapsPP.data().get(), tempPP.data().get(), thrust::device_pointer_cast(&res[2]).get());
@@ -437,7 +437,7 @@ void CGPU::GetOverlapsInfo(const SGPUParticles& _particles, size_t _maxParticleI
 			m_CollisionsPW.collisions.ActiveCollisionsNum, m_CollisionsPW.collisions.ActivityIndices, m_CollisionsPW.collisions.DstIDs,
 			m_CollisionsPW.collisions.VirtualShifts, m_CollisionsPW.collisions.ContactVectors,
 			_particles.Coords, _particles.ContactRadii,
-			_maxParticleID, overlapsPW.data().get(), flagsPW.data().get());
+			(unsigned)_maxParticleID, overlapsPW.data().get(), flagsPW.data().get());
 
 		CUDA_REDUCE_CALLER(CUDAKernels::ReduceMax_kernel, collNumberPW, overlapsPW.data().get(), tempPW.data().get(), thrust::device_pointer_cast(&res[1]).get());
 		CUDA_REDUCE_CALLER(CUDAKernels::ReduceSum_kernel, collNumberPW, overlapsPW.data().get(), tempPW.data().get(), thrust::device_pointer_cast(&res[3]).get());

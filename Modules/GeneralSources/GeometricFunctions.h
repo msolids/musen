@@ -351,9 +351,7 @@ inline CVector3 SpheresContactPoint(const CVector3& _P1, const CVector3& _P2, do
 
 inline SVolumeType GetBoundingBox(const std::vector<CTriangle>& _vTriangles)
 {
-	SVolumeType bb;
-	bb.coordBeg.Init(0);
-	bb.coordEnd.Init(0);
+	SVolumeType bb{};
 
 	if (_vTriangles.empty()) return bb;
 	bb.coordEnd = bb.coordBeg = _vTriangles.front().p1;

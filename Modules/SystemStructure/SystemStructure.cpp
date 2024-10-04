@@ -67,7 +67,7 @@ void CSystemStructure::DeleteObjects(const std::vector<size_t>& _vIndexes)
 		// delete object itself
 		delete objects[_vIndexes[i]];
 		objects[_vIndexes[i]] = NULL;
-		m_storage->RemoveObject(_vIndexes[i]);
+		m_storage->RemoveObject((uint32_t)_vIndexes[i]);
 	}
 }
 
@@ -154,7 +154,7 @@ size_t CSystemStructure::DeleteAllNonConnectedParticles()
 	{
 		delete objects[vPartToDelete[i]];
 		objects[vPartToDelete[i]] = NULL;
-		m_storage->RemoveObject(vPartToDelete[i]);
+		m_storage->RemoveObject((uint32_t)vPartToDelete[i]);
 	}
 
 	Compress();
@@ -371,10 +371,10 @@ CPhysicalObject* CSystemStructure::AddObject(unsigned _objectType, size_t _nObje
 	// allocate new object
 	switch (_objectType)
 	{
-	case SPHERE:		  newObject = new CSphere(_nObjectID, &*m_storage); break;
-	case SOLID_BOND:	  newObject = new CSolidBond(_nObjectID, &*m_storage); break;
-	case LIQUID_BOND:	  newObject = new CLiquidBond(_nObjectID, &*m_storage); break;
-	case TRIANGULAR_WALL: newObject = new CTriangularWall(_nObjectID, &*m_storage); break;
+	case SPHERE:		  newObject = new CSphere((unsigned)_nObjectID, &*m_storage); break;
+	case SOLID_BOND:	  newObject = new CSolidBond((unsigned)_nObjectID, &*m_storage); break;
+	case LIQUID_BOND:	  newObject = new CLiquidBond((unsigned)_nObjectID, &*m_storage); break;
+	case TRIANGULAR_WALL: newObject = new CTriangularWall((unsigned)_nObjectID, &*m_storage); break;
 	default:
 		throw std::invalid_argument("SystemStructure::AddObject - Unrecognized object type ");
 	}
@@ -1604,13 +1604,13 @@ ProtoSimulationInfo* CSystemStructure::GetSimulationInfo() const
 void CSystemStructure::PrepareTimePointForRead(double _time) const
 {
 	if(m_storage->IsValid())
-		m_storage->PrepareTimePointForRead(_time, objects.size());
+		m_storage->PrepareTimePointForRead(_time, (int)objects.size());
 }
 
 void CSystemStructure::PrepareTimePointForWrite(double _time) const
 {
 	if (m_storage->IsValid())
-		m_storage->PrepareTimePointForWrite(_time, objects.size());
+		m_storage->PrepareTimePointForWrite(_time, (int)objects.size());
 }
 
 std::vector<size_t> CSystemStructure::GetMultisphere(unsigned _nIndex)

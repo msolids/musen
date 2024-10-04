@@ -23,11 +23,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
-    <CustomBuild />
-    <CustomBuild />
     <CudaCompile>
       <GenerateLineInfo>true</GenerateLineInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
-  <ItemGroup />
 </Project>

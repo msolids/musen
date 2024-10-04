@@ -55,7 +55,7 @@
       <AdditionalDependencies>zlibstatic.lib;libprotobufd.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(SolutionDir)ExternalLibraries\protobuf\lib;$(SolutionDir)ExternalLibraries\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
-      <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcrt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CudaCompile>
       <GenerateLineInfo>true</GenerateLineInfo>
@@ -73,6 +73,7 @@
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>zlibstatic.lib;libprotobuf.lib;cudart_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration);$(SolutionDir)ExternalLibraries\protobuf\lib;$(SolutionDir)ExternalLibraries\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CudaCompile />
     <PreBuildEvent>

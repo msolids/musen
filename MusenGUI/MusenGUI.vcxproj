@@ -68,6 +68,7 @@
     <Link>
       <AdditionalDependencies>zlibstatic.lib;libprotobuf.lib;cudart_static.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(SolutionDir)ExternalLibraries\protobuf\lib;$(SolutionDir)ExternalLibraries\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -89,7 +90,7 @@
       <AdditionalDependencies>zlibstatic.lib;libprotobufd.lib;cudart_static.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Platform)\$(Configuration);$(SolutionDir)ExternalLibraries\protobuf\lib;$(SolutionDir)ExternalLibraries\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
-      <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib;msvcrt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <CudaCompile>
       <GenerateLineInfo>true</GenerateLineInfo>
