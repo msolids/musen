@@ -6,6 +6,9 @@
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.2.props" />
+  </ImportGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)ExternalLibraries\zlib\include;$(SolutionDir)ExternalLibraries\protobuf\include;$(SolutionDir)Databases\AgglomerateDatabase;$(SolutionDir)Databases\GeometriesDatabase;$(SolutionDir)Databases\MaterialsDatabase;$(SolutionDir)Databases\MaterialsDatabase\GeneratedFiles;$(SolutionDir)Modules\GeneralSources;$(SolutionDir)Modules\SimResultsStorage;$(SolutionDir)Modules\BondsGenerator;$(SolutionDir)Modules\ContactAnalyzers;$(SolutionDir)Modules\FileManager;$(SolutionDir)Modules\Geometries;$(SolutionDir)Modules\ObjectsGenerator;$(SolutionDir)Modules\PackageGenerator;$(SolutionDir)Modules\ResultsAnalyzer;$(SolutionDir)Modules\ScriptInterface;$(SolutionDir)Modules\SimplifiedScene;$(SolutionDir)Modules\Simulator;$(SolutionDir)Modules\SystemStructure;$(SolutionDir);$(SolutionDir)Version;$(CUDA_PATH)\include;$(SolutionDir)$(Platform)\$(Configuration)\ProtoGeneratedFiles</AdditionalIncludeDirectories>
@@ -32,4 +35,7 @@ $(SolutionDir)ExternalLibraries\protobuf\bin\protoc.exe --proto_path=$(ProjectDi
     <CudaLink />
   </ItemDefinitionGroup>
   <ItemGroup />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.2.targets" />
+  </ImportGroup>
 </Project>
