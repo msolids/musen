@@ -10,13 +10,29 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
 
+    - name: Update packages
+      run: sudo apt update && sudo apt upgrade
+
     - name: Install build dependencies
-      run: sudo apt update && sudo apt upgrade && sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev nvidia-cuda-toolkit
+      run: sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev && g++ --version
+
+    - name: Install CUDA
+      if: ${{ matrix.os != 'ubuntu-22.04' }}
+      run: sudo apt install nvidia-cuda-toolkit && nvcc --version
+
+    - name: Install CUDA versioned
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      run: ${{github.workspace}}/scripts/install_cuda.sh && nvcc --version
 
     - name: Create build environment
       run: cmake -E make_directory ${{github.workspace}}/build
