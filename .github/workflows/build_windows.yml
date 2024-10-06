@@ -1,0 +1,325 @@
+# Copyright (c) 2024, DyssolTEC GmbH.
+# All rights reserved. This file is part of MUSEN framework http://msolids.net/musen.
+# See LICENSE file for license and warranty information.
+
+# A workflow for compilation on Windows
+
+name: Windows
+
+on: [push]
+
+env:
+  # Path to the solution/project files relative to the root of the project.
+  SOLUTION_FILE_PATH:     .
+  SOLUTION_FILE_NAME:     musen.sln
+  INSTALLER_PROJECT_PATH: ./Installers/InstallerProject/
+
+  # Configuration type to build.
+  BUILD_CONFIGURATION: Release
+  BUILD_PLATFORM: x64
+
+  # Versions
+  QT_VERSION: 5.15.2
+  QT_VS_VERSION: msvc2019_64
+  QT_VS_ADDIN_VERSION: 3.2.0
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        # Whether to cache Qt automatically.
+        cache: 'true'
+        # If cached, only install essential build tools and set environmental variables.
+        cache-key-prefix: 'cache-qt'
+        # Version of Qt to install.
+        version: ${{env.QT_VERSION}}
+        # Architecture.
+        arch: win64_msvc2019_64
+        # Directory to install.
+        dir: ${{github.workspace}}/ExternalLibraries/qt
+        # Whether or not to automatically run setup-python to find a valid python version.
+        setup-python: 'false'
+
+    - name: Cache QtMsBuild tools
+      id: cache-qt-ms-build-tools
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/ExternalLibraries/qtvsaddin
+        key: ${{runner.os}}-QtMsBuildCache
+
+    - name: Get QtMsBuild tools
+      if: steps.cache-qt-ms-build-tools.outputs.cache-hit != 'true'
+      working-directory: ${{github.workspace}}
+      # Get additional project files to build Qt solution with MSBuild. This work is usually done in Visual Studio with Qt VS Tools extension.
+      # Also, it installs them to %LOCALAPPDATA%\QtMsBuild, so they can not be used by other Windows users.
+      # Download the extension and extract requited files to the project directory.
+      run: |
+        Invoke-WebRequest -Uri https://ftp.fau.de/qtproject/archive/vsaddin/${{env.QT_VS_ADDIN_VERSION}}/qt-vsaddin-msvc2022-x64-${{env.QT_VS_ADDIN_VERSION}}-rev.47.vsix -MaximumRetryCount 10 -RetryIntervalSec 30 -OutFile vspackage.vsix
+        Expand-Archive vspackage.vsix -DestinationPath ${{github.workspace}}/ExternalLibraries/qtvsaddin
+
+    - name: Cache ZLib
+      id: cache-zlib
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/ExternalLibraries/zlib
+        key: ${{runner.os}}-ZLibCache
+
+    - name: Build ZLib
+      if: steps.cache-zlib.outputs.cache-hit != 'true'
+      working-directory: ${{github.workspace}}/ExternalLibraries
+      shell: pwsh
+      # Run the script to build zlib.
+      run: .\CompileZLib.ps1
+
+    - name: Cache Protobuf
+      id: cache-protobuf
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/ExternalLibraries/protobuf
+        key: ${{runner.os}}-ProtobufCache
+
+    - name: Build Protobuf
+      if: steps.cache-protobuf.outputs.cache-hit != 'true'
+      working-directory: ${{github.workspace}}/ExternalLibraries
+      shell: pwsh
+      # Run the script to build protobuf.
+      run: .\CompileProtobuf.ps1
+
+    - name: Cache CUDA
+      id: cache-cuda
+      uses: actions/cache@v4
+      with:
+        path: C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA
+        key: ${{runner.os}}-CUDACache
+
+    - name: Install CUDA
+      if: steps.cache-cuda.outputs.cache-hit != 'true'
+      uses: Jimver/cuda-toolkit@v0.2.17
+      id: install-cuda
+      with:
+        cuda: '11.8.0'
+        sub-packages: '["cudart", "curand_dev", "nvcc", "thrust"]'
+        method: 'network'
+
+    - name: Install CUDA VS integration
+      uses: Jimver/cuda-toolkit@v0.2.17
+      id: install-cuda-vs
+      with:
+        cuda: '11.8.0'
+        sub-packages: '["visual_studio_integration"]'
+        method: 'network'
+
+    - name: Build
+      working-directory: ${{github.workspace}}
+      env:
+        QtToolsPath: ${{env.QT_ROOT_DIR}}/bin
+        QtMsBuild: ${{github.workspace}}/ExternalLibraries/qtvsaddin/QtMsBuild
+      # Add additional options to the MSBuild command line here: see https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference.
+      run: msbuild -maxCpuCount -verbosity:minimal -property:Configuration=${{env.BUILD_CONFIGURATION}} -property:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}/${{env.SOLUTION_FILE_NAME}}
+
+  installer:
+    runs-on: windows-latest
+    needs: [build]
+    # if: github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Get LocalAppData Directory
+      run: echo ("LOCALAPPDATA_DIR=" + $env:LOCALAPPDATA) >> $env:GITHUB_ENV
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        # Whether to cache Qt automatically.
+        cache: 'true'
+        # If cached, only install essential build tools and set environmental variables.
+        cache-key-prefix: 'cache-qt'
+        # Version of Qt to install.
+        version: ${{env.QT_VERSION}}
+        # Architecture.
+        arch: win64_msvc2019_64
+        # Directory to install.
+        dir: ${{github.workspace}}/ExternalLibraries/qt
+        # Whether or not to automatically run setup-python to find a valid python version.
+        setup-python: 'false'
+
+    - name: Cache QtMsBuild tools
+      id: cache-qt-ms-build-tools
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/ExternalLibraries/qtvsaddin
+        key: ${{runner.os}}-QtMsBuildCache
+
+    - name: Get QtMsBuild tools
+      if: steps.cache-qt-ms-build-tools.outputs.cache-hit != 'true'
+      working-directory: ${{github.workspace}}
+      # Get additional project files to build Qt solution with MSBuild. This work is usually done in Visual Studio with Qt VS Tools extension.
+      # Also, it installs them to %LOCALAPPDATA%\QtMsBuild, so they can not be used by other Windows users.
+      # Download the extension and extract requited files to the project directory.
+      run: |
+        Invoke-WebRequest -Uri https://ftp.fau.de/qtproject/archive/vsaddin/${{env.QT_VS_ADDIN_VERSION}}/qt-vsaddin-msvc2022-x64-${{env.QT_VS_ADDIN_VERSION}}-rev.47.vsix -MaximumRetryCount 10 -RetryIntervalSec 30 -OutFile vspackage.vsix
+        Expand-Archive vspackage.vsix -DestinationPath ${{github.workspace}}/ExternalLibraries/qtvsaddin
+
+    - name: Cache ZLib
+      id: cache-zlib
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/ExternalLibraries/zlib
+        key: ${{runner.os}}-ZLibCache
+
+    - name: Build ZLib
+      if: steps.cache-zlib.outputs.cache-hit != 'true'
+      working-directory: ${{github.workspace}}/ExternalLibraries
+      shell: pwsh
+      # Run the script to build zlib.
+      run: .\CompileZLib.ps1
+
+    - name: Cache Protobuf
+      id: cache-protobuf
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/ExternalLibraries/protobuf
+        key: ${{runner.os}}-ProtobufCache
+
+    - name: Build Protobuf
+      if: steps.cache-protobuf.outputs.cache-hit != 'true'
+      working-directory: ${{github.workspace}}/ExternalLibraries
+      shell: pwsh
+      # Run the script to build protobuf.
+      run: .\CompileProtobuf.ps1
+
+    - name: Cache CUDA
+      id: cache-cuda
+      uses: actions/cache@v4
+      with:
+        path: C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA
+        key: ${{runner.os}}-CUDACache
+
+    - name: Install CUDA
+      if: steps.cache-cuda.outputs.cache-hit != 'true'
+      uses: Jimver/cuda-toolkit@v0.2.17
+      id: install-cuda
+      with:
+        cuda: '11.8.0'
+        sub-packages: '["cudart", "curand_dev", "nvcc", "thrust"]'
+        method: 'network'
+
+    - name: Install CUDA VS integration
+      uses: Jimver/cuda-toolkit@v0.2.17
+      id: install-cuda-vs
+      with:
+        cuda: '11.8.0'
+        sub-packages: '["visual_studio_integration"]'
+        method: 'network'
+
+    - name: Build
+      working-directory: ${{github.workspace}}
+      env:
+        QtToolsPath: ${{env.QT_ROOT_DIR}}/bin
+        QtMsBuild: ${{github.workspace}}/ExternalLibraries/qtvsaddin/QtMsBuild
+      run: |
+        msbuild -maxCpuCount -verbosity:minimal -property:Configuration=Debug   -property:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}/${{env.SOLUTION_FILE_NAME}}
+        msbuild -maxCpuCount -verbosity:minimal -property:Configuration=Release -property:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}/${{env.SOLUTION_FILE_NAME}}
+
+    - name: Build Installer
+      working-directory: ${{github.workspace}}
+      env:
+        QtToolsPath: ${{env.QT_ROOT_DIR}}/bin
+        QtMsBuild: ${{github.workspace}}/ExternalLibraries/qtvsaddin/QtMsBuild
+      run: msbuild -maxCpuCount -verbosity:minimal -property:Configuration=${{env.BUILD_CONFIGURATION}} -property:Platform=${{env.BUILD_PLATFORM}} -property:SolutionDir=${{github.workspace}}/ -property:SolutionPath=${{github.workspace}}/${{env.SOLUTION_FILE_NAME}} -property:QtInstallDir=${{github.workspace}}/ExternalLibraries/qt/Qt/${{env.QT_VERSION}}/${{env.QT_VS_VERSION}}/ ${{env.INSTALLER_PROJECT_PATH}}
+
+    - name: Run Installer
+      shell: pwsh
+      run: |
+        $InstallerFile = Resolve-Path "${{github.workspace}}\Installers\Installers\MUSEN*.exe"
+        Start-Process -FilePath $InstallerFile -ArgumentList "/SP- /SILENT /SUPPRESSMSGBOXES /CURRENTUSER" -Wait
+
+    - name: Upload Installer Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: installer-artifact
+        if-no-files-found: error
+        retention-days: 7
+        compression-level: 0
+        path: ${{github.workspace}}/Installers/Installers/*.exe
+
+    - name: Upload Portable Installer Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: portable-installer-artifact
+        if-no-files-found: error
+        retention-days: 7
+        compression-level: 9
+        path: ${{ env.LOCALAPPDATA_DIR }}/Programs/MUSEN
+
+    - name: Uninstall MUSEN
+      shell: pwsh
+      run: |
+        $UnInstallerFile = Resolve-Path "${{ env.LOCALAPPDATA_DIR }}/Programs/MUSEN/unins000.exe"
+        Start-Process -FilePath $UnInstallerFile -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /skipaskconfig=yes" -Wait
+
+  release:
+    runs-on: windows-latest
+    needs: [installer]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Download Installer Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: installer-artifact
+        path: ${{github.workspace}}/Installers/Installers/
+
+    - name: Download Portable Installer Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: portable-installer-artifact
+        path: C:/Program Files/MUSEN
+
+    - name: Get Version
+      id: get-version
+      shell: pwsh
+      run: |
+        $TAG='${{github.ref_name}}'
+        $VERSION=$TAG.TrimStart('v')
+        echo "VERSION=$VERSION" >> $env:GITHUB_OUTPUT
+
+    - name: Rename Installer
+      working-directory: ${{github.workspace}}/Installers/Installers/
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path "." | Rename-Item -NewName "MUSEN.${{steps.get-version.outputs.VERSION}}.open.setup.exe"
+        Move-Item -Path "MUSEN.${{steps.get-version.outputs.VERSION}}.open.setup.exe" -Destination "${{github.workspace}}/MUSEN.${{steps.get-version.outputs.VERSION}}.open.setup.exe"
+
+    - name: Zip Portable Installer
+      shell: pwsh
+      run: |
+        Compress-Archive -Path 'C:/Program Files/MUSEN' -DestinationPath ${{github.workspace}}/MUSEN.${{steps.get-version.outputs.VERSION}}.open.portable.zip
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: 'MUSEN ${{github.ref_name}}'
+        draft: 'true'
+        body_path: CHANGELOG
+        files: |
+          MUSEN.${{steps.get-version.outputs.VERSION}}.open.setup.exe
+          MUSEN.${{steps.get-version.outputs.VERSION}}.open.portable.zip
