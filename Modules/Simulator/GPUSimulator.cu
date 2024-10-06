@@ -6,6 +6,9 @@
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
 #include <thrust/count.h>
+#include <thrust/execution_policy.h>
+#include <thrust/sequence.h>
+#include <thrust/sort.h>
 PRAGMA_WARNING_POP
 
 CGPU::CGPU(const CCUDADefines* _cudaDefines) :

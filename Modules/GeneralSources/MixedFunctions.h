@@ -9,6 +9,7 @@
 #include <vector>
 #include <climits>
 #include <cmath>
+#include <cstdint>
 
 class CColor
 {

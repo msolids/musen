@@ -37,6 +37,7 @@
 #pragma once
 
 #include <fstream>
+#include <cstdint>
 #include "MUSENStringFunctions.h"
 
 #define COLLISIONS_NUMBER_TO_SAVE	1000000
