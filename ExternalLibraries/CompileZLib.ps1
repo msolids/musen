@@ -7,7 +7,7 @@ $CURRENT_PATH = (Get-Item -Path ".\" -Verbose).FullName
 ################################################################################
 ### Paths
 
-$VERSION = "1.3"
+$VERSION = "1.3.1"
 $NAME = "zlib-$VERSION"
 $ZIP_NAME = "$NAME.tar.gz"
 $DOWNLOAD_ADDRESS = "https://github.com/madler/zlib/releases/download/v$VERSION/$ZIP_NAME"
