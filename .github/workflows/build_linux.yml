@@ -24,15 +24,17 @@ jobs:
       run: sudo apt update && sudo apt upgrade
 
     - name: Install build dependencies
-      run: sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev && g++ --version
+      run: sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
 
     - name: Install CUDA
       if: ${{ matrix.os != 'ubuntu-22.04' }}
-      run: sudo apt install nvidia-cuda-toolkit && nvcc --version
+      run: sudo apt install nvidia-cuda-toolkit
 
     - name: Install CUDA versioned
       if: ${{ matrix.os == 'ubuntu-22.04' }}
-      run: ${{github.workspace}}/scripts/install_cuda.sh && nvcc --version
+      run: |
+        ${{github.workspace}}/scripts/install_cuda.sh
+        echo "/usr/local/cuda-11.7/bin" >> $GITHUB_PATH
 
     - name: Create build environment
       run: cmake -E make_directory ${{github.workspace}}/build
