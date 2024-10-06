@@ -1,0 +1,40 @@
+# Copyright (c) 2024, DyssolTEC GmbH.
+# All rights reserved. This file is part of MUSEN framework http://msolids.net/musen.
+# See LICENSE file for license and warranty information. 
+
+# A workflow for compilation on Linux
+
+name: Ubuntu
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install build dependencies
+      run: sudo apt update && sudo apt upgrade && sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev nvidia-cuda-toolkit
+
+    - name: Create build environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Create install environment
+      run: cmake -E make_directory ${{github.workspace}}/install
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --parallel $(nproc)
+
+    - name: Install
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: make install
