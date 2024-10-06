@@ -1,5 +1,6 @@
 Core:
 - Calculation of geometry centres via surface area and centroids.
+- Default CUDA version upgraded to 11.8.
 
 CLI:
 - Proper treatment of EXPORT_AS_TEXT flags in the script.

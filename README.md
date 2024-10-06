@@ -2,22 +2,22 @@
 - For more information, please check the [documentation](https://msolids.net/documentation). 
 - [Video introduction](https://youtu.be/bH1xydzdrGY)
 - To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618).
-- [New versions and updates](https://msolids.net/musen/download).
+- [New versions and updates](https://github.com/msolids/musen/releases).
 
 
 # Requirements 
 MUSEN should install and work on all latest versions of Windows or Linux (Ubuntu or Red Head).
-Requires [Visual C++ Redistributable for Visual Studio 2019](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) to run on Windows.
+Requires [Visual C++ Redistributable for Visual Studio 2022](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version) to run on Windows.
 
 
 # Compilation on Windows
-A fully functional version can be compiled and built with Microsoft Visual Studio 2019. 
+A fully functional version can be compiled and built with Microsoft Visual Studio 2022. 
 
 ## Requirements on Windows
-- [Microsoft Visual Studio 2019](https://visualstudio.microsoft.com/downloads/)
+- [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)
 - [Qt 5.15.2 msvc2019_64](https://download.qt.io/archive/online_installers/4.0/)
-- [Qt Visual Studio Tools for Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools2019)
-- [CUDA 11.2](https://developer.nvidia.com/cuda-11.2.0-download-archive)
+- [Qt Visual Studio Tools for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools2022)
+- [CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Windows&target_arch=x86_64)
 - [Git](https://git-scm.com/downloads)
 - [CMake](https://cmake.org/download/)
 - (optional) MATLAB R2019a
@@ -34,7 +34,7 @@ A fully functional version can be compiled and built with Microsoft Visual Studi
 	1.4. Use the last available version of CMake and select the option "Add to system path" if available during installation.
 	
 	1.5. Use the last available version of Git.
-2. Setup Qt Visual Studio Tools extension to point to the installed Qt libraries. In Visual Studio 2019, go to Extensions → Qt VS Tools → Qt Options → Add → ... → Navigate in the Qt installation directory to `X:/path/to/Qt/5.15.2/msvc2019_64` → OK.
+2. Setup Qt Visual Studio Tools extension to point to the installed Qt libraries. In Visual Studio, go to Extensions → Qt VS Tools → Qt Options → Add → ... → Navigate in the Qt installation directory to `X:/path/to/Qt/5.15.2/msvc2019_64` → OK.
 3. Prepare third-party statically linked libraries: zlib, protobuf. To do this, navigate to `X:/path/to/msolids/MUSEN/ExternalLibraries/` and execute files `RunZLibCompile.bat` and `RunProtobufCompile.bat`. They will download and build all the required libraries by executing files `CompileZLib.ps1`, `CompileProtobuf.ps1`.
 4. Open `X:/path/to/msolids/MUSEN/MUSEN/musen.sln` file with Visual Studio and build the solution.
 
@@ -66,7 +66,7 @@ sudo apt upgrade
 
 6. Compile MUSEN either with Visual Studio (step 6.a) or directly in Ubuntu (step 6.b)
 	
-	6.a Open `.../musen/musen.sln` file with Visual Studio 2019. In Solution Explorer under `Installers` folder select `LinuxBuildWSL` project, then from the main menu navigate to (Project → Properties → Configuration Properties → Linux Build Settings) and select MUSEN versions that you want to build. Run building project `LinuxBuildWSL` (Build → Build Selection).
+	6.a Open `.../musen/musen.sln` file with Visual Studio. In Solution Explorer under `Installers` folder select `LinuxBuildWSL` project, then from the main menu navigate to (Project → Properties → Configuration Properties → Linux Build Settings) and select MUSEN versions that you want to build. Run building project `LinuxBuildWSL` (Build → Build Selection).
 	
 	6.b Compile MUSEN as described in [Build on Linux](#build-on-linux).  
 	
@@ -146,9 +146,9 @@ cd ../install
 
 
 # Third-party tools and libraries
-- [CUDA 11.2](https://developer.nvidia.com/cuda-zone) – Nvidia Corporation – [NVIDIA License](https://docs.nvidia.com/cuda/pdf/EULA.pdf)
+- [CUDA 11.8](https://developer.nvidia.com/cuda-zone) – Nvidia Corporation – [NVIDIA License](https://docs.nvidia.com/cuda/pdf/EULA.pdf)
 - [Inno Setup 6.1.2](https://jrsoftware.org/isinfo.php) – Jordan Russell – [Modified BSD License](http://www.jrsoftware.org/files/is/license.txt)
-- [Protobuf 3.14.0](https://developers.google.com/protocol-buffers/) – Google Inc. – [BSD License](https://github.com/protocolbuffers/protobuf/blob/master/LICENSE)
+- [Protobuf 3.21.12](https://developers.google.com/protocol-buffers/) – Google Inc. – [BSD License](https://github.com/protocolbuffers/protobuf/blob/master/LICENSE)
 - [Qt 5.15.2](https://www.qt.io/) – The Qt Company – [LGPLv3 License](https://doc.qt.io/qt-5/lgpl.html)
-- [Visual Studio Community 2019](https://visualstudio.microsoft.com/vs/) – Microsoft Corporation – [Microsoft Software License Terms](https://visualstudio.microsoft.com/license-terms/mlt031819/)
-- [zlib v1.2.11](https://www.zlib.net/) – Jean-loup Gailly and Mark Adler – [zlib License](https://www.zlib.net/zlib_license.html)
+- [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/) – Microsoft Corporation – [Microsoft Software License Terms](https://visualstudio.microsoft.com/license-terms/mlt031819/)
+- [zlib v1.3.1](https://www.zlib.net/) – Jean-loup Gailly and Mark Adler – [zlib License](https://www.zlib.net/zlib_license.html)

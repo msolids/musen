@@ -15,19 +15,19 @@ CAboutWindow::CAboutWindow(const QString& _buildVersion, QWidget* _parent)
 
 	m_headerProgramName   = "MUSEN";
 	m_headerTeamName      = "MUSEN Development Team";
-	m_headerContactPerson = "Maksym Dosta";
-	m_headerContactEmail  = "dosta@tuhh.de";
+	m_headerContactPerson = "Vasyl Skorych";
+	m_headerContactEmail  = "vasyl.skorych@dyssoltec.com";
 	m_headerUpdatesLink   = "https://github.com/msolids/musen/releases";
 
 	m_mainDevelopers  = { "Maksym Dosta", "Vasyl Skorych" };
 	m_otherDevelopers = { "Nicolas Depta", "Serhii Dranyshnikov", "Kolja Jarolin", "Ihor Khlopov", "Vadim Yanushkevich" };
 
 	m_libraries = {
-		{ "CUDA 11.2", "https://developer.nvidia.com/cuda-zone", "Copyright 2020, Nvidia Corporation", "NVIDIA license", "https://docs.nvidia.com/cuda/pdf/EULA.pdf" },
+		{ "CUDA 11.8", "https://developer.nvidia.com/cuda-zone", "Copyright 2020, Nvidia Corporation", "NVIDIA license", "https://docs.nvidia.com/cuda/pdf/EULA.pdf" },
 		{ "Inno Setup 6.1.2", "http://www.jrsoftware.org/isinfo.php", "Copyright 2020, Jordan Russell", "Modified BSD license", "http://www.jrsoftware.org/files/is/license.txt" },
-		{ "Protocol Buffers v3.14.0", "https://developers.google.com/protocol-buffers/", "Copyright 2008, Google Inc.", "BSD license", "https://github.com/protocolbuffers/protobuf/blob/master/LICENSE" },
+		{ "Protocol Buffers v3.21.12", "https://developers.google.com/protocol-buffers/", "Copyright 2008, Google Inc.", "BSD license", "https://github.com/protocolbuffers/protobuf/blob/master/LICENSE" },
 		{ "Qt 5.15.2", "http://www.qt.io/", "Copyright 2020, The Qt Company", "LGPLv3 license", "https://doc.qt.io/qt-5/lgpl.html" },
-		{ "zlib 1.2.11", "http://www.zlib.net/", "Copyright 2017, Jean-loup Gailly and Mark Adler", "zlib license", "https://www.zlib.net/zlib_license.html" }
+		{ "zlib 1.3.1", "http://www.zlib.net/", "Copyright 2017, Jean-loup Gailly and Mark Adler", "zlib license", "https://www.zlib.net/zlib_license.html" }
 	};
 
 	SetHeaderText(_buildVersion);
