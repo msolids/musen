@@ -1,5 +1,6 @@
-; Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-; This file is part of MUSEN framework http://msolids.net/musen.
+; Copyright (c) 2013-2020, MUSEN Development Team. 
+; Copyright (c) 2024, DyssolTEC GmbH.
+; All rights reserved. This file is part of MUSEN framework http://msolids.net/musen.
 ; See LICENSE file for license and warranty information. 
 
 #define public SolutionDir 	"..\.."
@@ -33,7 +34,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppPublisherURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={commonpf}\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 AppContact={#MyAppContact}
@@ -43,8 +44,6 @@ LicenseFile={#SolutionDir}\LICENSE
 SetupIconFile={#SolutionDir}\MusenGUI\Resources\MUSEN_Ico.ico
 WizardImageFile={#DataDir}\WizardImageFile.bmp
 WizardSmallImageFile={#DataDir}\WizardSmallImageFile.bmp
-ArchitecturesInstallIn64BitMode=x64
-ArchitecturesAllowed=x64
 DisableStartupPrompt=no
 DisableWelcomePage=no
 SolidCompression=yes
@@ -54,7 +53,10 @@ AllowNoIcons=yes
 ChangesAssociations=yes
 ShowLanguageDialog=auto
 PrivilegesRequired=poweruser
-UsedUserAreasWarning=no
+PrivilegesRequiredOverridesAllowed=dialog
+UsedUserAreasWarning=yes
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -67,13 +69,13 @@ Name: "{group}\{#MyAppName}"; 							Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppName}}"; 		Filename: "{#MyAppURL}"
 Name: "{group}\{cm:UninstallProgram, {#MyAppName}}"; 	Filename: "{uninstallexe}"
 Name: "{group}\{#MyAppName} Uninstall"; 				Filename: "{uninstallexe}"
-Name: "{commondesktop}\{#MyAppName}"; 					Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; 					Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
-Root: "HKLM"; Subkey: "Software\Classes\.mdem"; 								ValueType: string; ValueData: "MUSEN simulation"; Flags: uninsdeletevalue
-Root: "HKLM"; Subkey: "Software\Classes\MUSEN simulation"; 						ValueType: string; ValueData: "MUSEN simulation"; Flags: uninsdeletekey
-Root: "HKLM"; Subkey: "Software\Classes\MUSEN simulation\DefaultIcon"; 			ValueType: string; ValueData: "{app}\{#MyAppExeName},0"
-Root: "HKLM"; Subkey: "Software\Classes\MUSEN simulation\shell\open\command"; 	ValueType: string; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+Root: "HKA"; Subkey: "Software\Classes\.mdem"; 									ValueType: string; ValueData: "MUSEN simulation"; Flags: uninsdeletevalue
+Root: "HKA"; Subkey: "Software\Classes\MUSEN simulation"; 						ValueType: string; ValueData: "MUSEN simulation"; Flags: uninsdeletekey
+Root: "HKA"; Subkey: "Software\Classes\MUSEN simulation\DefaultIcon"; 			ValueType: string; ValueData: "{app}\{#MyAppExeName},0"
+Root: "HKA"; Subkey: "Software\Classes\MUSEN simulation\shell\open\command"; 	ValueType: string; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
