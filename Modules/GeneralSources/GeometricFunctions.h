@@ -9,6 +9,7 @@
 #include "SceneTypes.h"
 #include "Triangle.h"
 #include <algorithm>
+#include <limits>
 
 // calculates the projection of a point onto a plane which is given by a one point and normal vector
 CVector3 inline ProjectionPointToPlane( const CVector3& _SourcePoint, const CVector3& _PointOfPlane, const CVector3& _NormalVector )

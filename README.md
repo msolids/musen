@@ -81,11 +81,11 @@ A fully functional version can be compiled and built with cmake and gcc.
 - cmake 3.0.0
 - protobuf 3.0.0
 - qt 5.9.5
-- cuda 9.1
+- cuda 9.1 - cuda 12.3
 The versions of CUDA and C++ compiler must be compatible. See compatibility list e.g. [here](https://gist.github.com/ax3l/9489132#nvcc).
 
 ## Build on Linux 
-Tested on Ubuntu 18.04, 20.04, 22.04.
+Tested on Ubuntu 18.04/20.04/22.04/24.04, Debian 11/12.
 1. Change the current working directory to the desired location and download the MUSEN code:
 ```sh
 cd /path/to/desired/location/
