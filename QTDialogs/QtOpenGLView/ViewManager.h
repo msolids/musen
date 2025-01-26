@@ -4,10 +4,18 @@
 
 #pragma once
 
-#include "SampleAnalyzerTab.h"
-#include "ViewSettings.h"
 #include "EventMonitor.h"
 #include "OpenGLTypes.h"
+#include "Quaternion.h"
+#include "Vector3.h"
+#include "ViewSettings.h"
+
+class CColor;
+class CSampleAnalyzerTab;
+class CSolidBond;
+class CSphere;
+class CSystemStructure;
+class QLayout;
 
 /* Manages switching between different visualization options.
  * Shows the selected viewer as m_widget, placed in m_layout.

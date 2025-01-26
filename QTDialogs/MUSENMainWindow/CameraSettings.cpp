@@ -3,6 +3,10 @@
    See LICENSE file for license and warranty information. */
 
 #include "CameraSettings.h"
+
+#include "MUSENStringFunctions.h"
+
+#include <fstream>
 #include <QFileDialog>
 
 CCameraSettings::CCameraSettings(CViewManager* _viewManager, QWidget* _parent)

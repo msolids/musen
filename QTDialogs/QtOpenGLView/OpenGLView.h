@@ -9,9 +9,10 @@
 #include <QtOpenGL>
 #include <QImage>
 #include "SystemStructure.h"
-#include "SampleAnalyzerTab.h"
 #include "BaseGLView.h"
 #include "ViewSettings.h"
+
+class CSampleAnalyzerTab;
 
 class COpenGLView : public QGLWidget, public CBaseGLView
 {

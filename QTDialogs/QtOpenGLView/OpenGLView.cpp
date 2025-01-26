@@ -4,6 +4,7 @@
 
 #include "OpenGLView.h"
 #include "AgglomeratesAnalyzer.h"
+#include "SampleAnalyzerTab.h"
 
 COpenGLView::COpenGLView(CViewSettings* _viewSettings, QWidget* _parent) :
 	QGLWidget(QGLFormat(QGL::SampleBuffers), _parent),

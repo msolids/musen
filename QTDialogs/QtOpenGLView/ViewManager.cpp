@@ -2,12 +2,13 @@
    This file is part of MUSEN framework http://msolids.net/musen.
    See LICENSE file for license and warranty information. */
 
-#include "ViewManager.h"
 #include "AgglomeratesAnalyzer.h"
 #include "MeshGenerator.h"
 #include "OpenGLViewGlu.h"
 #include "OpenGLViewMixed.h"
 #include "OpenGLViewShader.h"
+#include "SampleAnalyzerTab.h"
+#include "ViewManager.h"
 
 CViewManager::CViewManager(QWidget* _showWidget, QLayout* _layout, CViewSettings* _viewSettings, QObject* _parent) :
 	QObject(_parent),
