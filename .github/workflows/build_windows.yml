@@ -9,7 +9,7 @@ name: Windows
 on: [push]
 
 env:
-  QT_VS_ADDIN_URL: https://ftp.fau.de/qtproject/archive/vsaddin/3.2.0/qt-vsaddin-msvc2022-x64-3.2.0-rev.47.vsix
+  QT_VS_ADDIN_URL: https://ftp.fau.de/qtproject/archive/vsaddin/3.3.1/qt-vsaddin-msvc2022-x64-3.3.1.vsix
   PATH_TO_CUDA: C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA
   PATH_TO_VS_CUDA_TARGETS: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\BuildCustomizations
 
