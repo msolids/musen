@@ -3,11 +3,13 @@
    See LICENSE file for license and warranty information. */
 
 #pragma once
+
 #include "GenerationManager.h"
 #include "ModelManager.h"
 #include "VerletList.h"
-#include <list>
+#include <chrono>
 #include <csignal>
+#include <list>
 
 inline volatile sig_atomic_t g_extSignal{ 0 };	// Value of external signal for premature termination in internal loops.
 
