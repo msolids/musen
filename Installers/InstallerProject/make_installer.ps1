@@ -42,7 +42,7 @@ if ($is_git_installed -eq $true) {
 # get git branch name
 $branch_name = ""
 if ($is_git_repo -eq $true) {
-	try { $branch_name = git rev-parse --abbrev-ref HEAD }
+	try { $branch_name = git symbolic-ref --short HEAD }
 	catch {
 		Write-Warning "Can not get branch name. Branch name will not be used for installer."
 	}
