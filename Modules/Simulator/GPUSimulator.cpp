@@ -27,7 +27,6 @@ CGPUSimulator::~CGPUSimulator()
 void CGPUSimulator::Construct()
 {
 	CGPU::SetExternalAccel(m_externalAcceleration);
-	m_gpu.SetAnisotropyFlag(m_considerAnisotropy);
 	m_gpu.SetPBC(m_scene.m_PBC);
 
 	CUDA_MALLOC_D(&m_pDispatchedResults_d, sizeof(SDispatchedResults));
@@ -45,9 +44,6 @@ void CGPUSimulator::Initialize()
 	CBaseSimulator::Initialize();
 
 	CGPU::SetSimulationDomain(m_pSystemStructure->GetSimulationDomain());
-
-	// get flag of anisotropy
-	CGPU::SetAnisotropyFlag(m_considerAnisotropy);
 
 	// Initialize scene, PBC, models on GPU
 	m_sceneGPU.InitializeScene(m_scene, m_pSystemStructure);
@@ -129,10 +125,10 @@ void CGPUSimulator::MoveParticles(bool _bPredictionStep)
 	{
 		if (m_variableTimeStep)
 			m_currSimulationStep = m_gpu.CalculateNewTimeStep(m_currSimulationStep, m_initSimulationStep, m_partMoveLimit, m_timeStepFactor, m_sceneGPU.GetPointerToParticles());
-		m_gpu.MoveParticles(m_currSimulationStep, m_initSimulationStep, m_sceneGPU.GetPointerToParticles(), m_variableTimeStep);
+		m_gpu.MoveParticles(m_currSimulationStep, m_considerAnisotropy, m_partVelocityLimit.value_or(0.0), m_sceneGPU.GetPointerToParticles());
 	}
 	else
-		m_gpu.MoveParticlesPrediction(m_currSimulationStep / 2., m_sceneGPU.GetPointerToParticles());
+		m_gpu.MoveParticlesPrediction(m_currSimulationStep / 2., m_considerAnisotropy, m_partVelocityLimit.value_or(0.0), m_sceneGPU.GetPointerToParticles());
 
 	MoveParticlesOverPBC(); // move virtual particles and check boundaries
 }

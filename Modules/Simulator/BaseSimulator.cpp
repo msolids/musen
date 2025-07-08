@@ -36,6 +36,7 @@ void CBaseSimulator::LoadConfiguration()
 	SetVariableTimeStep(sim.flexible_time_step());
 	SetPartMoveLimit(sim.part_move_limit());
 	SetTimeStepFactor(sim.time_step_factor());
+	SetPartVelocityLimit(sim.part_velocity_limit());
 
 	// load selective saving parameters
 	m_selectiveSaving = m_pSystemStructure->GetSimulationInfo()->selective_saving();
@@ -87,6 +88,7 @@ void CBaseSimulator::SaveConfiguration()
 	pSim->set_flexible_time_step(m_variableTimeStep);
 	pSim->set_part_move_limit(m_partMoveLimit);
 	pSim->set_time_step_factor(m_timeStepFactor);
+	pSim->set_part_velocity_limit(m_partVelocityLimit.value_or(0.0));
 
 	// save selective saving parameters
 	m_pSystemStructure->GetSimulationInfo()->set_selective_saving(m_selectiveSaving);
@@ -151,6 +153,20 @@ void CBaseSimulator::SetTimeStepFactor(double _factor)
 {
 	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
 	m_timeStepFactor = _factor;
+}
+
+std::optional<double> CBaseSimulator::GetPartVelocityLimit() const
+{
+	return m_partVelocityLimit;
+}
+
+void CBaseSimulator::SetPartVelocityLimit(const std::optional<double>& _velocity)
+{
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
+	if (!_velocity.has_value() || _velocity <= 0.0)
+		m_partVelocityLimit.reset();
+	else
+		m_partVelocityLimit = _velocity;
 }
 
 bool CBaseSimulator::IsSelectiveSavingEnabled() const
@@ -681,6 +697,7 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 	SetVariableTimeStep(_other.m_variableTimeStep);
 	SetPartMoveLimit(_other.m_partMoveLimit);
 	SetTimeStepFactor(_other.m_timeStepFactor);
+	SetPartVelocityLimit(_other.m_partVelocityLimit);
 
 	m_nInactiveParticles = _other.m_nInactiveParticles;
 	m_nBrokenBonds = _other.m_nBrokenBonds;

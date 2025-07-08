@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>230</width>
-    <height>560</height>
+    <width>249</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Simulator settings</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+   <iconset resource="../../MusenGUI/musengui.qrc">
     <normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -200,6 +200,47 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBoxOther">
+     <property name="title">
+      <string>Other</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QCheckBox" name="checkBoxPartVelocityLimit">
+        <property name="toolTip">
+         <string>Limit the maximum velocity of particle movement</string>
+        </property>
+        <property name="statusTip">
+         <string>Limit the maximum velocity of particle movement</string>
+        </property>
+        <property name="whatsThis">
+         <string>Limit the maximum velocity of particle movement</string>
+        </property>
+        <property name="text">
+         <string>Particle velocity limit [m/s]</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEditPartVelocityLimit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>Maximum particle velocity allowed</string>
+        </property>
+        <property name="statusTip">
+         <string>Maximum particle velocity allowed</string>
+        </property>
+        <property name="whatsThis">
+         <string>Maximum particle velocity allowed</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBoxCPUs">
      <property name="title">
       <string>Allowed CPUs</string>
@@ -246,7 +287,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

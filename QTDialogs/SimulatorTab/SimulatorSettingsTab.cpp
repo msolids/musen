@@ -14,10 +14,12 @@ CSimulatorSettingsTab::CSimulatorSettingsTab(CSimulatorManager* _pSimulatorManag
 	const QRegExp regExpFloat("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
 	// set regular expression for limitation of input in QLineEdits
 	ui.lineEditVerletCoeff->setValidator(new QRegExpValidator(regExpFloat, this));
+	ui.lineEditPartVelocityLimit->setValidator(new QRegExpValidator(regExpFloat, this));
 
 	connect(ui.listCPU,					&QListWidget::itemChanged,   this, &CSimulatorSettingsTab::ThreadPoolChanged);
 	connect(ui.buttonBox,				&QDialogButtonBox::accepted, this, &CSimulatorSettingsTab::AcceptChanges);
 	connect(ui.checkBoxStopBrokenBonds, &QCheckBox::stateChanged, [=](int _state) { ui.lineEditBrokenBonds->setEnabled(_state == Qt::CheckState::Checked); });
+	connect(ui.checkBoxPartVelocityLimit, &QCheckBox::stateChanged, [this](int _state) { ui.lineEditPartVelocityLimit->setEnabled(_state == Qt::CheckState::Checked); });
 }
 
 void CSimulatorSettingsTab::UpdateWholeView()
@@ -35,6 +37,11 @@ void CSimulatorSettingsTab::UpdateWholeView()
 	ui.lineEditBrokenBonds->setText(QString::number(m_pSimulatorManager->GetSimulatorPtr()->GetStopValues().maxBrokenBonds));
 
 	ui.checkBoxPartPartContact->setChecked(m_pSimulatorManager->GetSimulatorPtr()->GetModelManager()->GetConnectedPPContact());
+
+	ShowConvLabel(ui.checkBoxPartVelocityLimit, "Particle velocity limit", EUnitType::VELOCITY);
+	const std::optional<double> partVelocityLimit = m_pSimulatorManager->GetSimulatorPtr()->GetPartVelocityLimit();
+	ui.checkBoxPartVelocityLimit->setChecked(partVelocityLimit.has_value());
+	ShowConvValue(ui.lineEditPartVelocityLimit, partVelocityLimit.value_or(0.0), EUnitType::VELOCITY);
 
 	m_bAvoidSignal = false;
 	UpdateCPUList();
@@ -113,6 +120,11 @@ void CSimulatorSettingsTab::AcceptChanges()
 	m_pSimulatorManager->GetSimulatorPtr()->SetStopCriteria(stopCriteria);
 	m_pSimulatorManager->GetSimulatorPtr()->SetStopValues(values);
 	m_pSimulatorManager->GetSimulatorPtr()->GetModelManager()->SetConnectedPPContact(ui.checkBoxPartPartContact->isChecked());
+
+	if (ui.checkBoxPartVelocityLimit->isChecked())
+		m_pSimulatorManager->GetSimulatorPtr()->SetPartVelocityLimit(GetConvValue(ui.lineEditPartVelocityLimit, EUnitType::VELOCITY));
+	else
+		m_pSimulatorManager->GetSimulatorPtr()->SetPartVelocityLimit(std::nullopt);
 
 	SetCPUList();
 	accept();

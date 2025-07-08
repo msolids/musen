@@ -65,7 +65,6 @@ public:
 	static void SetSimulationDomain(const SVolumeType& _domain);
 	void SetPBC(const SPBC& _PBCInfo);
 	static void SetCompoundsNumber(size_t _nCompounds);
-	static void SetAnisotropyFlag(bool _enabled);
 
 	void InitializeWalls(const std::vector<std::vector<unsigned>>& _vvWallsInGeom, const std::vector<std::vector<unsigned>>& _adjacentWalls);
 	void InitializeCollisions();	// create or update information about interaction properties for GPU
@@ -80,8 +79,8 @@ public:
 
 	void ApplyExternalAcceleration(SGPUParticles& _particles);
 	double CalculateNewTimeStep(double _currTimeStep, double _initTimeStep, double _partMoveLimit, double _timeStepFactor, SGPUParticles& _particles) const;
-	void MoveParticles(double& _currTimeStep, double _initTimeStep, SGPUParticles& _particles, bool _bFlexibleTimeStep);
-	void MoveParticlesPrediction(double _timeStep, SGPUParticles& _particles);
+	void MoveParticles(double _timeStep, bool _anisotropy, double _partVelocityLimit, const SGPUParticles& _particles);
+	void MoveParticlesPrediction(double _timeStep, bool _anisotropy, double _partVelocityLimit, const SGPUParticles& _particles);
 
 	void MoveWalls(double _timeStep, size_t _iWallsInGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix,
 		const CVector3& _freeMotion, bool _isForceDependentMotion, bool _isRotateAroundCenter, double _mass, SGPUWalls& _walls, const CVector3& _externalAccel);

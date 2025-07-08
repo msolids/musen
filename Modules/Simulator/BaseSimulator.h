@@ -10,6 +10,7 @@
 #include <chrono>
 #include <csignal>
 #include <list>
+#include <optional>
 
 inline volatile sig_atomic_t g_extSignal{ 0 };	// Value of external signal for premature termination in internal loops.
 
@@ -63,6 +64,7 @@ protected:
 	bool m_variableTimeStep{ false };								// Use variable or constant simulation time step.
 	double m_partMoveLimit{ 1e-8 };									// Max movement of particles over a single time step; is used to calculate flexible time step.
 	double m_timeStepFactor{ 1.01 };								// Factor used to increase current simulation time step if flexible time step is used.
+	std::optional<double> m_partVelocityLimit{};					// Maximal allowed velocity of particles.
 
 	CGenerationManager* m_generationManager{ nullptr };
 	CSimplifiedScene m_scene;				// simplified scene
@@ -148,6 +150,8 @@ public:
 	virtual void SetPartMoveLimit(double _dx);
 	double GetTimeStepFactor() const;
 	virtual void SetTimeStepFactor(double _factor);
+	[[nodiscard]] std::optional<double> GetPartVelocityLimit() const;
+	virtual void SetPartVelocityLimit(const std::optional<double>& _velocity);
 
 	// selective saving
 	bool IsSelectiveSavingEnabled() const;
