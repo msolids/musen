@@ -140,6 +140,9 @@ struct SJob
 	double maxPartMove{ 0. };
 	double stepIncFactor{ 0. };
 
+	// other simulator options
+	double partVelocityLimit{ -1.0 };
+
 	// package generator, <index, generator>
 	std::map<size_t, SPackageGenerator> packageGenerators;
 

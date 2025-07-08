@@ -38,11 +38,6 @@ void CGPU::SetCompoundsNumber(size_t _nCompounds)
 	CUDAKernels::SetCompoundsNumber(_nCompounds);
 }
 
-void CGPU::SetAnisotropyFlag(bool _enabled)
-{
-	CUDAKernels::SetAnisotropyFlag(_enabled);
-}
-
 void CGPU::InitializeWalls(const std::vector<std::vector<unsigned>>& _vvWallsInGeom, const std::vector<std::vector<unsigned>>& _adjacentWalls)
 {
 	/// set walls in geometries
@@ -141,16 +136,48 @@ double CGPU::CalculateNewTimeStep(double _currTimeStep, double _initTimeStep, do
 	return _currTimeStep;
 }
 
-void CGPU::MoveParticles(double& _currTimeStep, double _initTimeStep, SGPUParticles& _particles, bool _bFlexibleTimeStep)
+void CGPU::MoveParticles(double _timeStep, bool _anisotropy, double _partVelocityLimit, const SGPUParticles& _particles)
 {
-	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::MoveParticles_kernel, _currTimeStep, static_cast<unsigned>(_particles.nElements), _particles.Masses, _particles.InertiaMoments,
-		_particles.Moments, _particles.Forces, _particles.Vels, _particles.AnglVels, _particles.Coords, _particles.Quaternions);
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesVelocity_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+		_particles.Masses, _particles.Forces, _particles.Vels);
+	if (_partVelocityLimit > 0)
+	{
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::LimitParticlesVelocity_kernel, static_cast<unsigned>(_particles.nElements), _partVelocityLimit, _particles.Vels);
+	}
+	if (!_anisotropy)
+	{
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesAngVelocity_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+			_particles.InertiaMoments, _particles.Moments, _particles.AnglVels);
+	}
+	else
+	{
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesAngVelocityWithAnisotropy_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+			_particles.InertiaMoments, _particles.Moments, _particles.Quaternions, _particles.AnglVels);
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesOrientation_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+			_particles.AnglVels, _particles.Quaternions);
+	}
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesCoordinate_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+		_particles.Vels, _particles.Coords);
 }
 
-void CGPU::MoveParticlesPrediction(double _timeStep, SGPUParticles& _particles)
+void CGPU::MoveParticlesPrediction(double _timeStep, bool _anisotropy, double _partVelocityLimit, const SGPUParticles& _particles)
 {
-	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::MoveParticlesPrediction_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
-		_particles.Masses, _particles.InertiaMoments, _particles.Moments, _particles.Forces, _particles.Vels, _particles.AnglVels, _particles.Quaternions);
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesVelocity_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+		_particles.Masses, _particles.Forces, _particles.Vels);
+	if (_partVelocityLimit > 0)
+	{
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::LimitParticlesVelocity_kernel, static_cast<unsigned>(_particles.nElements), _partVelocityLimit, _particles.Vels);
+	}
+	if (!_anisotropy)
+	{
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesAngVelocity_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+			_particles.InertiaMoments, _particles.Moments, _particles.AnglVels);
+	}
+	else
+	{
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::CalculateParticlesAngVelocityWithAnisotropy_kernel, _timeStep, static_cast<unsigned>(_particles.nElements),
+			_particles.InertiaMoments, _particles.Moments, _particles.Quaternions, _particles.AnglVels);
+	}
 }
 
 void CGPU::CalculateTotalForceOnWall(size_t _iGeom, SGPUWalls& _walls, d_vec_v3& _vTotalForce)

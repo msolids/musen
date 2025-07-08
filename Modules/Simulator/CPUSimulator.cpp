@@ -271,6 +271,13 @@ void CCPUSimulator::MoveParticles(bool _bPredictionStep)
 		if (!particles.Active(i)) return;
 
 		particles.Vel(i) += particles.Force(i) / particles.Mass(i) * dTimeStep;
+		// artificially limit particle velocity
+		if (m_partVelocityLimit.has_value())
+		{
+			const double currVel = particles.Vel(i).Length();
+			if (currVel > m_partVelocityLimit.value())
+				particles.Vel(i) *= m_partVelocityLimit.value() / currVel;
+		}
 
 		if (m_considerAnisotropy)
 		{

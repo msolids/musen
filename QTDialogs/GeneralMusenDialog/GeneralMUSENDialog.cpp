@@ -94,6 +94,11 @@ void CMusenDialog::ShowConvLabel(QRadioButton* _pItem, const QString& _sLabel, E
 	_pItem->setText(_sLabel + " [" + ss2qs(m_pUnitConverter->GetSelectedUnit(_nUnitType)) + "]");
 }
 
+void CMusenDialog::ShowConvLabel(QCheckBox* _item, const QString& _label, EUnitType _unitType) const
+{
+	_item->setText(_label + " [" + ss2qs(m_pUnitConverter->GetSelectedUnit(_unitType)) + "]");
+}
+
 void CMusenDialog::ShowConvValue(QTableWidgetItem* _pItem, double _dValue, EUnitType _nUnitType) const
 {
 	_pItem->setText(QString::number(m_pUnitConverter->GetValue(_nUnitType, _dValue)));

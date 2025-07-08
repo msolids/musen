@@ -211,6 +211,9 @@ void CConsoleSimulator::SetupSimulationManager()
 		m_simulatorManager.GetSimulatorPtr()->SetStopCriteria(m_job.stopCriteria);
 		m_simulatorManager.GetSimulatorPtr()->SetStopValues(m_job.stopValues);
 	}
+
+	// set other simulator options
+	if (m_job.partVelocityLimit != -1.0) m_simulatorManager.GetSimulatorPtr()->SetPartVelocityLimit(m_job.partVelocityLimit);
 }
 
 bool CConsoleSimulator::SimulationPrecheck() const
@@ -304,6 +307,8 @@ void CConsoleSimulator::PrintSimulationInfo()
 				PrintFormatted("Additional stop criterion", "BROKEN_BONDS", simulator->GetStopValues().maxBrokenBonds);
 				break;
 			}
+	if (simulator->GetPartVelocityLimit().has_value())
+		PrintFormatted("Limit particle velocity [m/s]", simulator->GetPartVelocityLimit().value());
 	PrintModelsInfo();
 	PrintFormatted("Auto-adjust Verlet distance", B2S(simulator->GetAutoAdjustFlag()));
 	PrintFormatted(simulator->GetAutoAdjustFlag() ? "Initial Verlet coefficient" : "Verlet coefficient", simulator->GetVerletCoeff());

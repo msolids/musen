@@ -29,7 +29,6 @@ namespace CUDAKernels
 	void SetSimulationDomain(const SVolumeType& _domain);
 	void SetPBC(const SPBC& _PBCInfo);
 	void SetCompoundsNumber(size_t _nCompounds);
-	void SetAnisotropyFlag(bool _enabled);
 
 	//////////////////////////////////////////////////////////////////////////
 	/// GPU kernels
@@ -38,13 +37,22 @@ namespace CUDAKernels
 
 	__global__ void GatherForFlexibleTimeStep_kernel(unsigned _nParticles, const double* _partMasses, const CVector3* _partForces, double* _res);
 
-	__global__ void MoveParticles_kernel(double _dTimeStep, unsigned _nParticles,
-		const double* _partMasses, const double* _partInertiaMoments, const CVector3* _partMoments,
-		CVector3* _partForces, CVector3* _partVels, CVector3* _partAnglVels, CVector3* _partCoords, CQuaternion* _partQuaternions);
+	__global__ void CalculateParticlesVelocity_kernel(double _timeStep, unsigned _partNum,
+		const double* _partMasses, const CVector3* _partForces, CVector3* _partVels);
 
-	__global__ void MoveParticlesPrediction_kernel(double _dTimeStep, unsigned _nParticles,
-		const double* _partMasses, const double* _partInertiaMoments, const CVector3* _partMoments,
-		CVector3* _partForces, CVector3* _partVels, CVector3* _partAnglVels, CQuaternion* _partQuaternions);
+	__global__ void LimitParticlesVelocity_kernel(unsigned _partNum, double _limitVel, CVector3* _partVels);
+
+	__global__ void CalculateParticlesAngVelocity_kernel(double _timeStep, unsigned _partNum,
+		const double* _partInertiaMoments, const CVector3* _partMoments, CVector3* _partAnglVels);
+
+	__global__ void CalculateParticlesAngVelocityWithAnisotropy_kernel(double _timeStep, unsigned _partNum,
+		const double* _partInertiaMoments, const CVector3* _partMoments, CQuaternion* _partOrientations, CVector3* _partAnglVels);
+
+	__global__ void CalculateParticlesOrientation_kernel(double _timeStep, unsigned _partNum,
+		const CVector3* _partAnglVels, CQuaternion* _partOrientations);
+
+	__global__ void CalculateParticlesCoordinate_kernel(double _timeStep, unsigned _partNum,
+		const CVector3* _partVels, CVector3* _partCoords);
 
 	__global__ void UpdateTemperatures_kernel(double _dTimeStep, unsigned _nParticles, const double* _partHeatCapacities,
 		const double* _partMasses, const double* _partHeatFluxes, double* _partTemperatures);

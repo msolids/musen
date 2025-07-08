@@ -138,6 +138,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 			m_jobs.back().stopValues.maxBrokenBonds = GetValueFromStream<size_t>(&ss);
 		}
 	}
+	else if (key == "LIMIT_PARTICLE_VELOCITY") ss >> m_jobs.back().partVelocityLimit;
 	else if (key == "MONITOR")				m_jobs.back().vMonitors.push_back(GetRestOfLine(&ss));
 	else if (key == "POSTPROCESS")			m_jobs.back().vPostProcessCommands.push_back(GetRestOfLine(&ss));
 	else if (key.rfind("PACK_GEN", 0) == 0)

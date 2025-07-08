@@ -8,6 +8,7 @@
 #include "GeometriesDatabase.h"
 #include "AgglomeratesDatabase.h"
 #include "SimulatorManager.h"
+#include <QCheckBox>
 #include <QDialog>
 #include <QTableWidgetItem>
 #include <QLabel>
@@ -59,6 +60,8 @@ protected:
 	void ShowConvLabel(QTableWidgetItem* _pItem, const QString& _sLabel, EUnitType _nUnitType) const;
 	void ShowConvLabel(QLabel* _pItem, const QString& _sLabel, EUnitType _nUnitType) const;
 	void ShowConvLabel(QRadioButton* _pItem, const QString& _sLabel, EUnitType _nUnitType) const;
+	void ShowConvLabel(QCheckBox* _item, const QString& _label, EUnitType _unitType) const;
+
 	void ShowConvValue(QTableWidgetItem* _pItem, double _dValue) const;
 	void ShowConvValue(QTableWidgetItem* _pItem, double _dValue, EUnitType _nUnitType) const;
 	void ShowConvValue(QLineEdit* _pItem, double _dValue, EUnitType _nUnitType, int _precision = -1) const;

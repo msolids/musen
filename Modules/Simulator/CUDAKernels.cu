@@ -10,7 +10,6 @@ namespace CUDAKernels
 	__constant__ CVector3 m_vExternalAccel;			// External acceleration.
 	__constant__ SVolumeType m_simulationDomain;	// Current simulation domain.
 	__constant__ size_t m_nCompoundsNumber;			// Number of unique compounds on current scene.
-	__constant__ bool m_considerAnisotropy;			// Whether to consider anisotropy of particles.
 	__constant__ unsigned THREADS_PER_BLOCK;		// Number of threads per block.
 
 	// parameters for PBC
@@ -41,11 +40,6 @@ namespace CUDAKernels
 		CUDA_MEMCOPY_TO_SYMBOL(m_nCompoundsNumber, _nCompounds, sizeof(_nCompounds));
 	}
 
-	void SetAnisotropyFlag(bool _enabled)
-	{
-		CUDA_MEMCOPY_TO_SYMBOL(m_considerAnisotropy, _enabled, sizeof(_enabled));
-	}
-
 	__global__ void ApplyExternalAcceleration_kernel(unsigned _nParticles, const double* _partMasses, CVector3* _partForces)
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
@@ -61,47 +55,66 @@ namespace CUDAKernels
 				_res[i] = DBL_MAX;
 	}
 
-	__global__ void MoveParticles_kernel(double _dTimeStep, unsigned _nParticles,
-		const double* _partMasses, const double* _partInertiaMoments, const CVector3* _partMoments,
-		CVector3* _partForces, CVector3* _partVels, CVector3* _partAnglVels, CVector3* _partCoords, CQuaternion* _partQuaternions)
+	__global__ void CalculateParticlesVelocity_kernel(double _timeStep, unsigned _partNum,
+		const double* _partMasses, const CVector3* _partForces, CVector3* _partVels)
 	{
-		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _partNum; i += blockDim.x * gridDim.x)
 		{
-			_partVels[i] += _partForces[i] * _dTimeStep / _partMasses[i];
-			if (m_considerAnisotropy)
-			{
-				const CMatrix3 rotMatrix = _partQuaternions[i].ToRotmat();
-				const CVector3 vTemp = (rotMatrix.Transpose()*_partMoments[i]) / _partInertiaMoments[i];
-				_partAnglVels[i] += rotMatrix * vTemp * _dTimeStep;
-				CQuaternion quaternTemp;
-				quaternTemp.q0 = 0.5*_dTimeStep*(-_partQuaternions[i].q1*_partAnglVels[i].x - _partQuaternions[i].q2*_partAnglVels[i].y - _partQuaternions[i].q3*_partAnglVels[i].z);
-				quaternTemp.q1 = 0.5*_dTimeStep*(_partQuaternions[i].q0*_partAnglVels[i].x + _partQuaternions[i].q3*_partAnglVels[i].y - _partQuaternions[i].q2*_partAnglVels[i].z);
-				quaternTemp.q2 = 0.5*_dTimeStep*(-_partQuaternions[i].q3*_partAnglVels[i].x + _partQuaternions[i].q0*_partAnglVels[i].y + _partQuaternions[i].q1*_partAnglVels[i].z);
-				quaternTemp.q3 = 0.5*_dTimeStep*(_partQuaternions[i].q2*_partAnglVels[i].x - _partQuaternions[i].q1*_partAnglVels[i].y + _partQuaternions[i].q0*_partAnglVels[i].z);
-				_partQuaternions[i] += quaternTemp;
-				_partQuaternions[i].Normalize();
-			}
-			else
-				_partAnglVels[i] += _partMoments[i] * _dTimeStep / _partInertiaMoments[i];
-			_partCoords[i] += _partVels[i] * _dTimeStep;
+			_partVels[i] += _partForces[i] / _partMasses[i] * _timeStep;
 		}
 	}
 
-	__global__ void MoveParticlesPrediction_kernel(double _dTimeStep, unsigned _nParticles,
-		const double* _partMasses, const double* _partInertiaMoments, const CVector3* _partMoments,
-		CVector3* _partForces, CVector3* _partVels, CVector3* _partAnglVels, CQuaternion* _partQuaternions)
+	__global__ void LimitParticlesVelocity_kernel(unsigned _partNum, double _limitVel, CVector3* _partVels)
 	{
-		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nParticles; i += blockDim.x * gridDim.x)
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _partNum; i += blockDim.x * gridDim.x)
 		{
-			_partVels[i] += _partForces[i] / _partMasses[i] * _dTimeStep;
-			if (m_considerAnisotropy)
-			{
-				const CMatrix3 rotMatrix = _partQuaternions[i].ToRotmat();
-				const CVector3 vTemp = (rotMatrix.Transpose()*_partMoments[i]) / _partInertiaMoments[i];
-				_partAnglVels[i] += rotMatrix * vTemp * _dTimeStep;
-			}
-			else
-				_partAnglVels[i] += _partMoments[i] / _partInertiaMoments[i] * _dTimeStep;
+			const double currVel = _partVels[i].Length();
+			if (currVel > _limitVel)
+				_partVels[i] *= _limitVel / currVel;
+		}
+	}
+
+	__global__ void CalculateParticlesAngVelocity_kernel(double _timeStep, unsigned _partNum,
+		const double* _partInertiaMoments, const CVector3* _partMoments, CVector3* _partAnglVels)
+	{
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _partNum; i += blockDim.x * gridDim.x)
+		{
+			_partAnglVels[i] += _partMoments[i] / _partInertiaMoments[i] * _timeStep;
+		}
+	}
+
+	__global__ void CalculateParticlesAngVelocityWithAnisotropy_kernel(double _timeStep, unsigned _partNum,
+		const double* _partInertiaMoments, const CVector3* _partMoments, CQuaternion* _partOrientations, CVector3* _partAnglVels)
+	{
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _partNum; i += blockDim.x * gridDim.x)
+		{
+			const CMatrix3 rotMatrix = _partOrientations[i].ToRotmat();
+			const CVector3 anglAcceleration = (rotMatrix.Transpose() * _partMoments[i]) / _partInertiaMoments[i];
+			_partAnglVels[i] += rotMatrix * anglAcceleration * _timeStep;
+		}
+	}
+
+	__global__ void CalculateParticlesOrientation_kernel(double _timeStep, unsigned _partNum,
+		const CVector3* _partAnglVels, CQuaternion* _partOrientations)
+	{
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _partNum; i += blockDim.x * gridDim.x)
+		{
+			CQuaternion orientationChange;
+			orientationChange.q0 = 0.5 * _timeStep * (-_partOrientations[i].q1 * _partAnglVels[i].x - _partOrientations[i].q2 * _partAnglVels[i].y - _partOrientations[i].q3 * _partAnglVels[i].z);
+			orientationChange.q1 = 0.5 * _timeStep * ( _partOrientations[i].q0 * _partAnglVels[i].x + _partOrientations[i].q3 * _partAnglVels[i].y - _partOrientations[i].q2 * _partAnglVels[i].z);
+			orientationChange.q2 = 0.5 * _timeStep * (-_partOrientations[i].q3 * _partAnglVels[i].x + _partOrientations[i].q0 * _partAnglVels[i].y + _partOrientations[i].q1 * _partAnglVels[i].z);
+			orientationChange.q3 = 0.5 * _timeStep * ( _partOrientations[i].q2 * _partAnglVels[i].x - _partOrientations[i].q1 * _partAnglVels[i].y + _partOrientations[i].q0 * _partAnglVels[i].z);
+			_partOrientations[i] += orientationChange;
+			_partOrientations[i].Normalize();
+		}
+	}
+
+	__global__ void CalculateParticlesCoordinate_kernel(double _timeStep, unsigned _partNum,
+		const CVector3* _partVels, CVector3* _partCoords)
+	{
+		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _partNum; i += blockDim.x * gridDim.x)
+		{
+			_partCoords[i] += _partVels[i] * _timeStep;
 		}
 	}
 
