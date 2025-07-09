@@ -132,8 +132,12 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 	for (size_t iObj = 0; iObj < nNewObjects; ++iObj)
 		maxObjectsNumber += m_bGenerateMixture ? 1 : (m_PreLoadedAgglomerate.vParticles.size() + m_PreLoadedAgglomerate.vBonds.size());
 
-	// get free indices: already reserved + new
-	const auto indices = _pSystemStructure->GetFreeIDs(_newObjects.size() + maxObjectsNumber);
+	// get free indices after the already existing ones;
+	// we don't want to use existing empty elements inside the system structure
+	// otherwise, the file merge function will not work properly
+	size_t firstID = _pSystemStructure->GetTotalObjectsCount();
+	std::vector<size_t> indices(_newObjects.size() + maxObjectsNumber);
+	std::iota(indices.begin(), indices.end(), firstID);
 	// index of the first not yet reserved
 	size_t iFree = _newObjects.size();
 
