@@ -36,8 +36,10 @@ public:
 	void Merge();
 
 private:
-	/// Returns the number of objects which will be removed from the system structure after making a snapshot.
-	static size_t GetNumberOfRemovedObjects(const CSystemStructure* _systemStructure);
+	/// Returns the number of objects which will be removed from the end of the system structure after making a snapshot.
+	static size_t GetNumberOfRemovedObjects(const CSystemStructure& _systemStructure);
+	/// Returns the number of objects which are added to the system structure in this snapshot.
+	static size_t GetNumberOfGeneratedObjects(const CSystemStructure& _systemStructure);
 
 private:
 	CSystemStructure* m_systemStructure{};	///< Pointer to system structure.

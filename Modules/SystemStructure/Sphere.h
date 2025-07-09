@@ -37,6 +37,9 @@ public:
 	std::vector<uint8_t> GetObjectGeometryBin() const override;
 	void SetObjectGeometryBin(const std::vector<uint8_t>& _data) override;
 
+	/// Clones the data from another object of the same type.
+	void CloneData(const CPhysicalObject& _other) override;
+
 	inline double GetRadius() const { return m_dRadius; }
 	inline double GetContactRadius() const { return m_dContactRadius; }
 	inline double GetSqrtRadius() const { return m_dRadiusSqrt; }

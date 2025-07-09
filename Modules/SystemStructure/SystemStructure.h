@@ -102,6 +102,7 @@ public:
 	std::vector<size_t> GetAllObjectsIDs() const;
 
 	std::vector<CPhysicalObject*> GetAllActiveObjects(double _dTime, unsigned _nObjectType = UNKNOWN_OBJECT);
+	std::vector<const CPhysicalObject*> GetAllObjects() const;
 	std::vector<CSphere*> GetAllSpheres(double _time, bool _onlyActive = true);
 	std::vector<const CSphere*> GetAllSpheres(double _time, bool _onlyActive = true) const;
 	std::vector<CSolidBond*> GetAllSolidBonds(double _time, bool _onlyActive = true) const;
@@ -124,6 +125,8 @@ public:
 	It returns the pointer to this object. if the object with specified ID already exists, than  the memory will not be allocated */
 	CPhysicalObject* AddObject(unsigned objectType);
 	CPhysicalObject* AddObject(unsigned _objectType, size_t _nObjectID);
+	// Adds a new object as a clone of the specified one. Uses the same ID as the original object.
+	CPhysicalObject* AddCloneObject(const CPhysicalObject& _other);
 	std::vector<CPhysicalObject*> AddSeveralObjects(unsigned _objectType, size_t _nObjectsCount);
 	std::vector<size_t> GetFreeIDs(size_t _objectsCount); // Returns the list of IDs, available to add _objectsCount new objects.
 	void AddMultisphere(const std::vector<size_t>& _vIndexes); // specify new multisphere which consists from several objects

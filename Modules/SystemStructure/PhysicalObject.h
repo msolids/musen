@@ -31,6 +31,9 @@ protected:
 	void Save() const; // save geometry
 	void Load();
 
+	/// Clones the data from another object of the same type.
+	virtual void CloneData(const CPhysicalObject& _other);
+
 	friend class CSystemStructure;
 
 	virtual void UpdateCompoundProperties(const CCompound* _pCompound) = 0;

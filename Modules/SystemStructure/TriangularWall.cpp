@@ -10,6 +10,11 @@ CTriangularWall::CTriangularWall(unsigned _id, CDemStorage* _storage) :CPhysical
 	m_storage->Object(m_lObjectID)->set_type(ProtoParticleInfo::kTriangularWall);
 }
 
+void CTriangularWall::CloneData(const CPhysicalObject& _other)
+{
+	CPhysicalObject::CloneData(_other);
+}
+
 void CTriangularWall::SetPlaneCoord(double _time, const CVector3& _vert1, const CVector3& _vert2, const CVector3& _vert3) const
 {
 	SetCoordinates(_time, _vert1);

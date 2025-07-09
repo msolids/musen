@@ -16,6 +16,10 @@ public:
 
 
 	CLiquidBond(unsigned _id, CDemStorage* _storage);
+
+	/// Clones the data from another object of the same type.
+	void CloneData(const CPhysicalObject& _other) override;
+
 	inline double GetSurfaceTension() const { return m_dSurfaceTension; }
 
 	inline void SetViscosity(const double& _dViscosity) { m_dViscosity = _dViscosity; UpdatePrecalculatedValues(); }

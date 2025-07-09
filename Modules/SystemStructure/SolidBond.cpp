@@ -21,6 +21,29 @@ CSolidBond::CSolidBond(unsigned _id, CDemStorage* _storage) : CBond(_id, _storag
 	UpdatePrecalculatedValues();
 }
 
+void CSolidBond::CloneData(const CPhysicalObject& _other)
+{
+	CBond::CloneData(_other);
+	if (_other.GetObjectType() != SOLID_BOND)
+		return;
+	const auto& other = dynamic_cast<const CSolidBond&>(_other);
+	m_dYoungModulus       = other.m_dYoungModulus;
+	m_dPoissonRatio       = other.m_dPoissonRatio;
+	m_dShearModulus       = other.m_dShearModulus;
+	m_dNormalStrength     = other.m_dNormalStrength;
+	m_dTangentialStrength = other.m_dTangentialStrength;
+	m_dTimeThermExpCoeff  = other.m_dTimeThermExpCoeff;
+	m_dYieldStrength      = other.m_dYieldStrength;
+	m_thermalConductivity = other.m_thermalConductivity;
+	m_dAxialMoment        = other.m_dAxialMoment;
+	m_dCrossCutSurface    = other.m_dCrossCutSurface;
+	m_NormalForce         = other.m_NormalForce;
+	m_TangentialForce     = other.m_TangentialForce;
+	m_NormalMoment        = other.m_NormalMoment;
+	m_TangentialMoment    = other.m_TangentialMoment;
+	m_TangDisplacement    = other.m_TangDisplacement;
+}
+
 void CSolidBond::UpdateCompoundProperties(const CCompound* _pCompound)
 {
 	m_dYoungModulus = _pCompound->GetPropertyValue(PROPERTY_YOUNG_MODULUS);
