@@ -13,6 +13,9 @@ class CTriangularWall : public CPhysicalObject
 public:
 	CTriangularWall(unsigned _id, CDemStorage *_storage);
 
+	/// Clones the data from another object of the same type.
+	void CloneData(const CPhysicalObject& _other) override;
+
 	//////////////////////////////////////////////////////////////////////////
 	/// Sequential getters of time-dependent data.
 	CVector3 GetCoordVertex1(double _time) const { return GetCoordinates(_time); }

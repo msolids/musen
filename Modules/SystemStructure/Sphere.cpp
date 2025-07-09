@@ -43,6 +43,19 @@ void CSphere::SetObjectGeometryBin(const std::vector<uint8_t>& _data)
 	m_dContactRadius = saver.data.contactRadius;
 }
 
+void CSphere::CloneData(const CPhysicalObject& _other)
+{
+	CPhysicalObject::CloneData(_other);
+	if (_other.GetObjectType() != SPHERE)
+		return;
+	const auto& other = dynamic_cast<const CSphere&>(_other);
+	m_dRadius        = other.m_dRadius;
+	m_dContactRadius = other.m_dContactRadius;
+	m_dRadiusSqrt    = other.m_dRadiusSqrt;
+	m_dInertiaMoment = other.m_dInertiaMoment;
+	m_dHeatCapacity  = other.m_dHeatCapacity;
+}
+
 void CSphere::SetRadius(const double& _radius)
 {
 	m_dRadius = (_radius >= 0 ? _radius : 0);

@@ -32,6 +32,14 @@ void CPhysicalObject::Load()
 	}
 }
 
+void CPhysicalObject::CloneData(const CPhysicalObject& _other)
+{
+	m_lObjectID        = _other.m_lObjectID;
+	m_dMass            = _other.m_dMass;
+	m_ObjectColor      = _other.m_ObjectColor;
+	m_ConnectedBondsID = _other.m_ConnectedBondsID;
+}
+
 unsigned CPhysicalObject::GetObjectType() const
 {
 	return m_storage->Object(m_lObjectID)->type();

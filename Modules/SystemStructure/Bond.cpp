@@ -41,3 +41,16 @@ void CBond::SetObjectGeometryBin(const std::vector<uint8_t>& _data)
 	m_dDiameter      = info.data.diameter;
 	m_dInitialLength = info.data.initialLength;
 }
+
+void CBond::CloneData(const CPhysicalObject& _other)
+{
+	CPhysicalObject::CloneData(_other);
+	if (_other.GetObjectType() != SOLID_BOND && _other.GetObjectType() != LIQUID_BOND)
+		return;
+	const auto& other = dynamic_cast<const CBond&>(_other);
+	m_nLeftObjectID = other.m_nLeftObjectID;
+	m_nRightObjectID = other.m_nRightObjectID;
+	m_dDiameter = other.m_dDiameter;
+	m_dViscosity = other.m_dViscosity;
+	m_dInitialLength = other.m_dInitialLength;
+}

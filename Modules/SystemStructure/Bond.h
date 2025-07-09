@@ -19,6 +19,9 @@ public:
 	std::vector<uint8_t> GetObjectGeometryBin() const override;
 	void SetObjectGeometryBin(const std::vector<uint8_t>& _data) override;
 
+	/// Clones the data from another object of the same type.
+	void CloneData(const CPhysicalObject& _other) override;
+
 	inline double GetDiameter() const { return m_dDiameter; }
 	inline double GetInitLength() const { return m_dInitialLength; }
 	inline double GetViscosity() const { return m_dViscosity; }

@@ -229,6 +229,16 @@ std::vector<CPhysicalObject*> CSystemStructure::GetAllActiveObjects(double _dTim
 	return vResult;
 }
 
+std::vector<const CPhysicalObject*> CSystemStructure::GetAllObjects() const
+{
+	std::vector<const CPhysicalObject*> res;
+	res.reserve(objects.size());
+	for (const auto& o : objects)
+		if (o)
+			res.push_back(o);
+	return res;
+}
+
 std::vector<CSphere*> CSystemStructure::GetAllSpheres(double _time, bool _onlyActive/* = true*/)
 {
 	std::vector<CSphere*> res;
@@ -380,6 +390,14 @@ CPhysicalObject* CSystemStructure::AddObject(unsigned _objectType, size_t _nObje
 	}
 	objects[_nObjectID] = newObject;
 	return newObject;
+}
+
+CPhysicalObject* CSystemStructure::AddCloneObject(const CPhysicalObject& _other)
+{
+	auto* object = AddObject(_other.GetObjectType(), _other.m_lObjectID);
+	if (!object) return nullptr;
+	object->CloneData(_other);
+	return object;
 }
 
 std::vector<CPhysicalObject*> CSystemStructure::AddSeveralObjects(unsigned _objectType, size_t _nObjectsCount)

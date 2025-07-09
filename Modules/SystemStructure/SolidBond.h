@@ -28,6 +28,9 @@ public:
 public:
 	CSolidBond(unsigned _id, CDemStorage* _storage);
 
+	/// Clones the data from another object of the same type.
+	void CloneData(const CPhysicalObject& _other) override;
+
 	//////////////////////////////////////////////////////////////////////////
 	/// Sequential getters of time-dependent data.
 	CVector3 GetOldTangentialOverlap(double _time) const { return GetAngleAcceleration(_time); } // is used only for old file transformation

@@ -13,6 +13,18 @@ CLiquidBond::CLiquidBond(unsigned _id, CDemStorage* _storage) : CBond(_id, _stor
 	m_dContactAngle = _CONTACT_ANGLE_DEFAULT;
 }
 
+void CLiquidBond::CloneData(const CPhysicalObject& _other)
+{
+	CBond::CloneData(_other);
+	if (_other.GetObjectType() != LIQUID_BOND)
+		return;
+	const auto& other = dynamic_cast<const CLiquidBond&>(_other);
+	m_dSurfaceTension   = other.m_dSurfaceTension;
+	m_dContactAngle     = other.m_dContactAngle;
+	m_vecResultForce    = other.m_vecResultForce;
+	m_ResultUnsymMoment = other.m_ResultUnsymMoment;
+}
+
 void CLiquidBond::UpdateCompoundProperties(const CCompound* _pCompound)
 {
 	m_dViscosity = _pCompound->GetPropertyValue(PROPERTY_DYNAMIC_VISCOSITY);

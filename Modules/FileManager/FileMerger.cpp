@@ -80,7 +80,7 @@ void CFileMerger::Merge()
 	double lastTimePoint = resultSS->GetAllTimePoints().back(); // last time point in the last processed file
 
 	size_t numberOfObjects = resultSS->GetTotalObjectsCount();					// total number of objects in the file
-	const size_t numberOfRemovedObjects = GetNumberOfRemovedObjects(resultSS);	// number of objects which will be removed after data snapshot
+	const size_t numberOfRemovedObjects = GetNumberOfRemovedObjects(*resultSS);	// number of objects which will be removed after data snapshot
 	numberOfObjects = numberOfObjects - numberOfRemovedObjects;
 
 	m_progress = 100. / static_cast<double>(m_listOfFiles.size());
@@ -90,6 +90,9 @@ void CFileMerger::Merge()
 
 		auto currentSS = std::make_unique<CSystemStructure>();	// temporary system structure for getting data from current file
 		currentSS->LoadFromFile(m_listOfFiles[iFile]);			// load current file to temporary system structure
+
+		const size_t generatedObjectsCount = GetNumberOfGeneratedObjects(*currentSS); // number of objects which were generated in the current file
+		numberOfObjects += generatedObjectsCount;                                     // update total number of objects
 
 		if (currentSS->GetTotalObjectsCount() == numberOfObjects && m_listOfFiles[iFile] != resultSS->GetFileName())
 		{
@@ -116,6 +119,14 @@ void CFileMerger::Merge()
 					const CPhysicalObject* objectNew = currentSS->GetObjectByIndex(k);
 					if (!objectNew) continue;
 					CPhysicalObject* object = resultSS->GetObjectByIndex(k);
+
+					if (!object) // new object generated in the current file
+					{
+						object = resultSS->AddCloneObject(*objectNew);
+						object->SetCompoundKey(objectNew->GetCompoundKey());
+						object->SetStartActivityTime(lastTimePoint + objectNew->GetActivityStart());
+						object->SetEndActivityTime(DEFAULT_ACTIVITY_END);
+					}
 
 					if (objectNew->IsActive(timePoints[iTime]))
 					{
@@ -183,7 +194,7 @@ void CFileMerger::Merge()
 			m_progress = 0;
 			break;
 		}
-		numberOfObjects -= GetNumberOfRemovedObjects(currentSS.get());
+		numberOfObjects -= GetNumberOfRemovedObjects(*currentSS);
 		m_progress = static_cast<double>(iFile + 1) * 100. / static_cast<double>(m_listOfFiles.size());
 	}
 	resultSS->SaveToFile(m_resultFile);
@@ -206,18 +217,25 @@ void CFileMerger::Merge()
 	m_progressMessage = "Merging finished";
 }
 
-size_t CFileMerger::GetNumberOfRemovedObjects(const CSystemStructure* _systemStructure)
+size_t CFileMerger::GetNumberOfRemovedObjects(const CSystemStructure& _systemStructure)
 {
-	const std::vector<double> timePoints = _systemStructure->GetAllTimePoints();
+	const double lastTP = _systemStructure.GetAllTimePoints().back();
 	size_t numberOfRemovedObjects = 0;
-	for (auto i = _systemStructure->GetTotalObjectsCount() - 1; i > 0; --i)
+	for (int64_t i = static_cast<int64_t>(_systemStructure.GetTotalObjectsCount()) - 1; i >= 0; --i)
 	{
-		const CPhysicalObject* object = _systemStructure->GetObjectByIndex(i);
-		if (object && object->IsActive(timePoints.back()))
-		{
+		const CPhysicalObject* object = _systemStructure.GetObjectByIndex(i);
+		if (object && object->IsActive(lastTP))
 			break;
-		}
 		numberOfRemovedObjects++;
 	}
 	return numberOfRemovedObjects;
+}
+
+size_t CFileMerger::GetNumberOfGeneratedObjects(const CSystemStructure& _systemStructure)
+{
+	const auto& objects = _systemStructure.GetAllObjects();
+	return std::count_if(objects.begin(), objects.end(),
+		[](const CPhysicalObject* _object) {
+		return _object && _object->GetActivityStart() > 0.0;
+	});
 }
