@@ -1,14 +1,3 @@
 Core:
-- Calculation of geometry centres via surface area and centroids.
-- Default CUDA version upgraded to 11.8.
-
-CLI:
-- Proper treatment of EXPORT_AS_TEXT flags in the script.
-
-File merger: 
-- Fix calculation of activity interval.
-- Keep time points without active objects.
-- Account for variable time step.
-
-Fixes:
-- Change the order of calculation of geometry movement: first rotate then move.
+- Option to limit maximum particle velocity.
+- Make dynamic generator compatible with file merger.
