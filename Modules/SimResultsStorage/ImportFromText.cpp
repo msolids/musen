@@ -242,6 +242,7 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 				pGeometry->SetKey(GetValueFromStream<std::string>(&tempStream));
 				pGeometry->SetMass(GetValueFromStream<double>(&tempStream));
 				pGeometry->SetFreeMotion(GetValueFromStream<CBasicVector3<bool>>(&tempStream));
+				pGeometry->SetRotateAroundCenter(GetValueFromStream<bool>(&tempStream));
 				break;
 			}
 			case ETXTCommands::GEOMETRY_PLANES:

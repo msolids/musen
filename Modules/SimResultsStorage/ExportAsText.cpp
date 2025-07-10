@@ -401,7 +401,7 @@ void CExportAsText::WriteGeometriesData()
 	// geometries
 	for (const auto* g: m_systemStructure->AllGeometries())
 	{
-		if (m_selectors.geometries.baseInfo    ) WriteLine(ETXTCommands::GEOMETRY       , g->Name(), g->Key(), g->Mass(), g->FreeMotion());
+		if (m_selectors.geometries.baseInfo    ) WriteLine(ETXTCommands::GEOMETRY       , g->Name(), g->Key(), g->Mass(), g->FreeMotion(), g->RotateAroundCenter());
 		if (m_selectors.geometries.tdProperties) WriteLine(ETXTCommands::GEOMETRY_TDVEL , *g->Motion());
 		if (m_selectors.geometries.wallsList   ) WriteLine(ETXTCommands::GEOMETRY_PLANES, g->Planes().size(), g->Planes());
 	}
