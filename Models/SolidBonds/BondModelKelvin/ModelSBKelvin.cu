@@ -6,7 +6,7 @@
 #include "ModelSBKelvin.h"
 #include <device_launch_parameters.h>
 
-__constant__ double m_vConstantModelParameters[2];
+__constant__ double m_vConstantModelParameters[1];
 __constant__ SPBC PBC;
 
 void CModelSBKelvin::SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc)
@@ -34,6 +34,7 @@ void CModelSBKelvin::CalculateSBGPU(double _time, double _timeStep, const SGPUPa
 		_bonds.InitialLengths,
 		_bonds.LeftIDs,
 		_bonds.RightIDs,
+		_bonds.Viscosities,
 		_bonds.NormalStiffnesses,
 		_bonds.NormalStrengths,
 		_bonds.TangentialStiffnesses,
@@ -66,6 +67,7 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 	const double	_bondInitialLengths[],
 	const unsigned	_bondLeftIDs[],
 	const unsigned	_bondRightIDs[],
+	const double	_bondViscosities[],
 	const double	_bondNormalStiffnesses[],
 	const double	_bondNormalStrengths[],
 	const double	_bondTangentialStiffnesses[],
@@ -117,7 +119,7 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 		double dStrainTotal = (dDistanceBetweenCenters-dBondInitLength) / dBondInitLength;
 		CVector3 vNormalForce = currentContact * (-1*_bondCrossCuts[i] * _bondNormalStiffnesses[i] * dStrainTotal);
 
-		double dMu = m_vConstantModelParameters[1];
+		double dMu = _bondViscosities[i];
 
 		CVector3 vDampingForce = -dMu * normalVelocity*_bondCrossCuts[i] * _bondNormalStiffnesses[i] *fabs(dStrainTotal);
 		if (vDampingForce.Length() > 0.5*vNormalForce.Length())

@@ -11,7 +11,6 @@ CModelSBKelvin::CModelSBKelvin()
 	m_helpFileName = "/Solid Bond/Kelvin.pdf";
 
 	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
-	AddParameter("MU", "MU", 1);
 	m_hasGPUSupport = true;
 }
 
@@ -20,7 +19,7 @@ void CModelSBKelvin::CalculateSB(double _time, double _timeStep, size_t _iLeft, 
 	// relative angle velocity of contact partners
 	CVector3 relAngleVel = Particles().AnglVel(_iLeft) - Particles().AnglVel(_iRight);
 
-	double dMu = m_parameters[1].value;
+	double dMu = Bonds().Viscosity(_iBond);
 	// the bond in the global coordinate system
 	CVector3 currentBond = GetSolidBond(Particles().Coord(_iRight), Particles().Coord(_iLeft), m_PBC);
 	double dDistanceBetweenCenters = currentBond.Length();

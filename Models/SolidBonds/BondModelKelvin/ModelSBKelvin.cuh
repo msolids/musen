@@ -23,6 +23,7 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 	const double	_bondInitialLengths[],
 	const unsigned	_bondLeftIDs[],
 	const unsigned	_bondRightIDs[],
+	const double	_bondViscosities[],
 	const double	_bondNormalStiffnesses[],
 	const double	_bondNormalStrengths[],
 	const double	_bondTangentialStiffnesses[],
