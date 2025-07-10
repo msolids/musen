@@ -86,6 +86,10 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 	{
 		if (!_bondActivities[i]) continue;
 
+		// model parameters
+		const bool considerBreakage = m_vConstantModelParameters[0] != 0.0;
+		const double& maxDampRatio = m_vConstantModelParameters[1];
+
 		// relative angle velocity of contact partners
 		const CVector3 relAngleVel = _partAnglVels[_bondLeftIDs[i]] - _partAnglVels[_bondRightIDs[i]];
 
@@ -118,15 +122,21 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 		const CVector3 normalForce = currentContact * (-1 * _bondCrossCuts[i] * _bondNormalStiffnesses[i] * strainTotal);
 
 		CVector3 dampingForceNorm = -_bondViscosities[i] * normalVelocity * _bondCrossCuts[i] * _bondNormalStiffnesses[i] * fabs(strainTotal);
-		if (dampingForceNorm.Length() > 0.5 * normalForce.Length())
-			dampingForceNorm *= 0.5 * normalForce.Length() / dampingForceNorm.Length();
+		if (maxDampRatio != 0.0)
+		{
+			if (dampingForceNorm.Length() > maxDampRatio * normalForce.Length())
+				dampingForceNorm *= maxDampRatio * normalForce.Length() / dampingForceNorm.Length();
+		}
 
 		_bondTangentialOverlaps[i] = M * _bondTangentialOverlaps[i] - tangentialVelocity * _timeStep;
 		const CVector3 tangentialForce = _bondTangentialOverlaps[i] * (_bondTangentialStiffnesses[i] * _bondCrossCuts[i] / _bondInitialLengths[i]);
 
 		CVector3 dampingForceTang = -_bondViscosities[i] * tangentialVelocity * _bondTangentialOverlaps[i].Length() * (_bondTangentialStiffnesses[i] * _bondCrossCuts[i] / _bondInitialLengths[i]);
-		if (dampingForceTang.Length() > 0.5 * tangentialForce.Length())
-			dampingForceTang *= 0.5 * tangentialForce.Length() / dampingForceTang.Length();
+		if (maxDampRatio != 0.0)
+		{
+			if (dampingForceTang.Length() > maxDampRatio * tangentialForce.Length())
+				dampingForceTang *= maxDampRatio * tangentialForce.Length() / dampingForceTang.Length();
+		}
 
 		const CVector3 bondNormalMoment = M * _bondNormalMoments[i] - normalAngleVel * (_timeStep * 2 * _bondAxialMoments[i] * _bondTangentialStiffnesses[i] / _bondInitialLengths[i]);
 		const CVector3 bondTangentialMoment = M * _bondTangentialMoments[i] - tangAngleVel * (_timeStep * _bondNormalStiffnesses[i] * _bondAxialMoments[i] / _bondInitialLengths[i]);
@@ -137,7 +147,7 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 		_bondPrevBonds[i] = currentBond;
 		_bondTotalForces[i] = normalForce + tangentialForce + dampingForceNorm + dampingForceTang;
 
-		if (m_vConstantModelParameters[0])
+		if (considerBreakage)
 		{
 			double forceLength = normalForce.Length();
 			if (strainTotal <= 0)	// compression
