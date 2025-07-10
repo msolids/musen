@@ -76,6 +76,7 @@ SVolumeType CRealGeometry::BoundingBox(double _time) const
 
 void CRealGeometry::SetMesh(const CTriangularMesh& _mesh)
 {
+	const auto material = Material(); // temporary store current material
 	const auto& triangles = _mesh.Triangles();
 	m_systemStructure->DeleteObjects(m_planes);
 	m_planes.clear();
@@ -90,7 +91,7 @@ void CRealGeometry::SetMesh(const CTriangularMesh& _mesh)
 		wall->SetPlaneCoord(triangles[i]);
 		m_planes.push_back(wall->m_lObjectID);
 	}
-
+	SetMaterial(material); // restore material
 }
 
 void CRealGeometry::SetPlanesIndices(const std::vector<size_t>& _planes)
