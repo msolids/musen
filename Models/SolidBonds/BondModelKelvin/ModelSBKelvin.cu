@@ -87,72 +87,67 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 		if (!_bondActivities[i]) continue;
 
 		// relative angle velocity of contact partners
-		CVector3 relAngleVel = _partAnglVels[_bondLeftIDs[i]] - _partAnglVels[_bondRightIDs[i]];
+		const CVector3 relAngleVel = _partAnglVels[_bondLeftIDs[i]] - _partAnglVels[_bondRightIDs[i]];
 
 		// the bond in the global coordinate system
-		CVector3 currentBond = GetSolidBond(_partCoords[_bondRightIDs[i]], _partCoords[_bondLeftIDs[i]], PBC);
-		double dDistanceBetweenCenters = currentBond.Length();
-
-		double dBondInitLength = _bondInitialLengths[i];
+		const CVector3 currentBond = GetSolidBond(_partCoords[_bondRightIDs[i]], _partCoords[_bondLeftIDs[i]], PBC);
+		double distanceBetweenCenters = currentBond.Length();
 
 		// optimized
-		CVector3 sumAngleVelocity = _partAnglVels[_bondLeftIDs[i]] + _partAnglVels[_bondRightIDs[i]];
-		CVector3 relativeVelocity = _partVels[_bondLeftIDs[i]] - _partVels[_bondRightIDs[i]] - sumAngleVelocity*currentBond*0.5;
+		const CVector3 sumAngleVelocity = _partAnglVels[_bondLeftIDs[i]] + _partAnglVels[_bondRightIDs[i]];
+		const CVector3 relativeVelocity = _partVels[_bondLeftIDs[i]] - _partVels[_bondRightIDs[i]] - sumAngleVelocity * currentBond * 0.5;
 
-		CVector3 currentContact = currentBond / dDistanceBetweenCenters;
-		CVector3 tempVector = _bondPrevBonds[i] * currentBond;
+		const CVector3 currentContact = currentBond / distanceBetweenCenters;
+		const CVector3 tempVector = _bondPrevBonds[i] * currentBond;
 
-		CVector3 Phi = currentContact*(DotProduct(sumAngleVelocity, currentContact)*_timeStep*0.5);
+		const CVector3 phi = currentContact * (DotProduct(sumAngleVelocity, currentContact) * _timeStep * 0.5);
 
-		CMatrix3 M(	1 + tempVector.z*Phi.z + tempVector.y*Phi.y,	Phi.z - tempVector.z - tempVector.y*Phi.x,		-Phi.y - tempVector.z*Phi.x + tempVector.y,
-					tempVector.z - Phi.z - tempVector.x*Phi.y,		tempVector.z*Phi.z + 1 + tempVector.x*Phi.x,	-tempVector.z*Phi.y + Phi.x - tempVector.x,
-					-tempVector.y - tempVector.x*Phi.z + Phi.y,		-tempVector.y*Phi.z + tempVector.x - Phi.x,		tempVector.y*Phi.y + tempVector.x*Phi.x + 1);
+		const CMatrix3 M(1 + tempVector.z * phi.z + tempVector.y * phi.y, phi.z - tempVector.z - tempVector.y * phi.x, -phi.y - tempVector.z * phi.x + tempVector.y,
+			tempVector.z - phi.z - tempVector.x * phi.y, tempVector.z * phi.z + 1 + tempVector.x * phi.x, -tempVector.z * phi.y + phi.x - tempVector.x,
+			-tempVector.y - tempVector.x * phi.z + phi.y, -tempVector.y * phi.z + tempVector.x - phi.x, tempVector.y * phi.y + tempVector.x * phi.x + 1);
 
-		CVector3 normalVelocity = currentContact * DotProduct(currentContact, relativeVelocity);
-		CVector3 tangentialVelocity = relativeVelocity - normalVelocity;
+		const CVector3 normalVelocity = currentContact * DotProduct(currentContact, relativeVelocity);
+		const CVector3 tangentialVelocity = relativeVelocity - normalVelocity;
 
 		// normal angle velocity
-		CVector3 normalAngleVel = currentContact*DotProduct(currentContact, relAngleVel);
-		CVector3 tangAngleVel = relAngleVel - normalAngleVel;
+		const CVector3 normalAngleVel = currentContact * DotProduct(currentContact, relAngleVel);
+		const CVector3 tangAngleVel = relAngleVel - normalAngleVel;
 
 		// calculate the force
-		double dStrainTotal = (dDistanceBetweenCenters-dBondInitLength) / dBondInitLength;
-		CVector3 vNormalForce = currentContact * (-1*_bondCrossCuts[i] * _bondNormalStiffnesses[i] * dStrainTotal);
+		const double strainTotal = (distanceBetweenCenters - _bondInitialLengths[i]) / _bondInitialLengths[i];
+		const CVector3 normalForce = currentContact * (-1 * _bondCrossCuts[i] * _bondNormalStiffnesses[i] * strainTotal);
 
-		double dMu = _bondViscosities[i];
-
-		CVector3 vDampingForce = -dMu * normalVelocity*_bondCrossCuts[i] * _bondNormalStiffnesses[i] *fabs(dStrainTotal);
-		if (vDampingForce.Length() > 0.5*vNormalForce.Length())
-			vDampingForce *= 0.5*vNormalForce.Length() / vDampingForce.Length();
+		CVector3 dampingForceNorm = -_bondViscosities[i] * normalVelocity * _bondCrossCuts[i] * _bondNormalStiffnesses[i] * fabs(strainTotal);
+		if (dampingForceNorm.Length() > 0.5 * normalForce.Length())
+			dampingForceNorm *= 0.5 * normalForce.Length() / dampingForceNorm.Length();
 
 		_bondTangentialOverlaps[i] = M * _bondTangentialOverlaps[i] - tangentialVelocity * _timeStep;
-		const CVector3 vTangentialForce = _bondTangentialOverlaps[i] * (_bondTangentialStiffnesses[i] * _bondCrossCuts[i] / dBondInitLength);
+		const CVector3 tangentialForce = _bondTangentialOverlaps[i] * (_bondTangentialStiffnesses[i] * _bondCrossCuts[i] / _bondInitialLengths[i]);
 
-		CVector3 vDampingTangForce = -dMu * tangentialVelocity*_bondTangentialOverlaps[i].Length() *(_bondTangentialStiffnesses[i] * _bondCrossCuts[i] / dBondInitLength);
-		if (vDampingTangForce.Length() > 0.5*vTangentialForce.Length())
-			vDampingTangForce *= 0.5*vTangentialForce.Length() / vDampingTangForce.Length();
+		CVector3 dampingForceTang = -_bondViscosities[i] * tangentialVelocity * _bondTangentialOverlaps[i].Length() * (_bondTangentialStiffnesses[i] * _bondCrossCuts[i] / _bondInitialLengths[i]);
+		if (dampingForceTang.Length() > 0.5 * tangentialForce.Length())
+			dampingForceTang *= 0.5 * tangentialForce.Length() / dampingForceTang.Length();
 
-		const CVector3 vBondNormalMoment = M * _bondNormalMoments[i] - normalAngleVel * (_timeStep * 2 * _bondAxialMoments[i] * _bondTangentialStiffnesses[i] / dBondInitLength);
-		const CVector3 vBondTangentialMoment = M * _bondTangentialMoments[i] - tangAngleVel * (_timeStep * _bondNormalStiffnesses[i] * _bondAxialMoments[i] / dBondInitLength);
+		const CVector3 bondNormalMoment = M * _bondNormalMoments[i] - normalAngleVel * (_timeStep * 2 * _bondAxialMoments[i] * _bondTangentialStiffnesses[i] / _bondInitialLengths[i]);
+		const CVector3 bondTangentialMoment = M * _bondTangentialMoments[i] - tangAngleVel * (_timeStep * _bondNormalStiffnesses[i] * _bondAxialMoments[i] / _bondInitialLengths[i]);
+		const CVector3 bondUnsymMoment = currentBond * 0.5 * tangentialForce;
 
-		_bondNormalMoments[i] = vBondNormalMoment;
-		_bondTangentialMoments[i] = vBondTangentialMoment;
-
-		const CVector3 vUnsymMoment = currentBond*0.5 * vTangentialForce;
+		_bondNormalMoments[i] = bondNormalMoment;
+		_bondTangentialMoments[i] = bondTangentialMoment;
 		_bondPrevBonds[i] = currentBond;
-		_bondTotalForces[i] = vNormalForce + vTangentialForce +  vDampingForce + vDampingTangForce;
+		_bondTotalForces[i] = normalForce + tangentialForce + dampingForceNorm + dampingForceTang;
 
 		if (m_vConstantModelParameters[0])
 		{
-			double dForceLength = vNormalForce.Length();
-			if (dStrainTotal <= 0)	// compression
-				dForceLength *= -1;
+			double forceLength = normalForce.Length();
+			if (strainTotal <= 0)	// compression
+				forceLength *= -1;
 
 			// check the bond destruction
-			double dMaxStress = dForceLength / _bondCrossCuts[i] + vBondTangentialMoment.Length() * _bondDiameters[i] / (2 * _bondAxialMoments[i]);
-			double dMaxTorque = vTangentialForce.Length() / _bondCrossCuts[i] + vBondNormalMoment.Length() * _bondDiameters[i] / (4 * _bondAxialMoments[i]);
+			const double maxStress = forceLength / _bondCrossCuts[i] + bondTangentialMoment.Length() * _bondDiameters[i] / (2 * _bondAxialMoments[i]);
+			const double maxTorque = tangentialForce.Length() / _bondCrossCuts[i] + bondNormalMoment.Length() * _bondDiameters[i] / (4 * _bondAxialMoments[i]);
 
-			if (dMaxStress >= _bondNormalStrengths[i] || dMaxTorque >= _bondTangentialStrengths[i])
+			if (maxStress >= _bondNormalStrengths[i] || maxTorque >= _bondTangentialStrengths[i])
 			{
 				_bondActivities[i] = false;
 				_bondEndActivities[i] = _time;
@@ -161,9 +156,9 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 		}
 
 		// apply forces and moments directly to particles, only if bond is not broken
-		const CVector3 partForce = vNormalForce + vTangentialForce + vDampingForce + vDampingTangForce;
-		const CVector3 partMoment1 = vBondNormalMoment + vBondTangentialMoment - vUnsymMoment;
-		const CVector3 partMoment2 = vBondNormalMoment + vBondTangentialMoment + vUnsymMoment;
+		const CVector3 partForce = normalForce + tangentialForce + dampingForceNorm + dampingForceTang;
+		const CVector3 partMoment1 = bondNormalMoment + bondTangentialMoment - bondUnsymMoment;
+		const CVector3 partMoment2 = bondNormalMoment + bondTangentialMoment + bondUnsymMoment;
 		CUDA_VECTOR3_ATOMIC_ADD(_partForces[_bondLeftIDs[i]], partForce);
 		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[_bondLeftIDs[i]], partMoment1);
 		CUDA_VECTOR3_ATOMIC_SUB(_partForces[_bondRightIDs[i]], partForce);
