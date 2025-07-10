@@ -146,6 +146,8 @@ private slots:
 
 	void ChangeCurrentTime(); // Change selected time point in all controls.
 	void UpdateMaterialsInSystemStructure();
+	void MakeGeometryVisible(const std::string& _key) const;	// Reaction on adding a new geometry to the system structure.
+	void MakeVolumeVisible(const std::string& _key) const;		// Reaction on adding a new volume to the system structure.
 
 	void ClearSystemStructure();
 	void ClearAllTimePoints(); // Delete all time points in the system structure.

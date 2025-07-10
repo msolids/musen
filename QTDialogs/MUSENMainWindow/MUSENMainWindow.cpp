@@ -172,6 +172,8 @@ void MUSENMainWindow::InitializeConnections()
 		connect(tab, &CMusenDialog::UpdateViewLegend    , m_pViewManager, &CViewManager::UpdateLegend    );
 	}
 
+	connect(m_pGeometriesEditorTab, &CGeometriesEditorTab::GeometryAdded,	this,                   &MUSENMainWindow::MakeGeometryVisible);
+	connect(m_pGeometriesEditorTab, &CGeometriesEditorTab::VolumeAdded,	    this,                   &MUSENMainWindow::MakeVolumeVisible);
 	connect(m_pGeometriesEditorTab, &CGeometriesEditorTab::ObjectsChanged,	m_pPackageGeneratorTab, &CPackageGeneratorTab::UpdateWholeView);
 	connect(m_pObjectsEditorTab,	&CObjectsEditorTab::MaterialsChanged,	m_pViewOptionsTab,      &CViewOptionsTab::UpdateMaterials);
 
@@ -540,6 +542,22 @@ void MUSENMainWindow::ChangeCurrentTime()
 void MUSENMainWindow::UpdateMaterialsInSystemStructure()
 {
 	m_SystemStructure.UpdateAllObjectsCompoundsProperties();
+}
+
+void MUSENMainWindow::MakeGeometryVisible(const std::string& _key) const
+{
+	// force new geometry to be visible
+	auto visibleGeometries = m_pViewSettings->VisibleGeometries();
+	visibleGeometries.insert(_key);
+	m_pViewSettings->VisibleGeometries(visibleGeometries);
+}
+
+void MUSENMainWindow::MakeVolumeVisible(const std::string& _key) const
+{
+	// force new volume to be visible
+	auto visibleVolumes = m_pViewSettings->VisibleVolumes();
+	visibleVolumes.insert(_key);
+	m_pViewSettings->VisibleVolumes(visibleVolumes);
 }
 
 void MUSENMainWindow::ClearSystemStructure()

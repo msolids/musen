@@ -524,6 +524,10 @@ void CGeometriesEditorTab::AddGeometryStd(EVolumeShape _shape, EType _type)
 	if (!geometry) return;
 	UpdateGeometriesList();
 	ui.listGeometries->SetCurrentItem(QString::fromStdString(geometry->Key()));
+	if (_type == EType::GEOMETRY)
+		emit GeometryAdded(geometry->Key());
+	else
+		emit VolumeAdded(geometry->Key());
 	EmitChangeSignals();
 }
 
@@ -541,6 +545,10 @@ void CGeometriesEditorTab::AddGeometryLib(const std::string& _key, EType _type)
 	if (!geometry) return;
 	UpdateGeometriesList();
 	ui.listGeometries->SetCurrentItem(QString::fromStdString(geometry->Key()));
+	if (_type == EType::GEOMETRY)
+		emit GeometryAdded(geometry->Key());
+	else
+		emit VolumeAdded(geometry->Key());
 	EmitChangeSignals();
 }
 
