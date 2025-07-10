@@ -130,4 +130,6 @@ private slots:
 signals:
 	void ObjectsChanged();
 	void AnalysisGeometriesChanged();
+	void GeometryAdded(const std::string& _key);	// Is emitted when a new real geometry is created in the system.
+	void VolumeAdded(const std::string& _key);		// Is emitted when a new analysis volume is created in the system.
 };
