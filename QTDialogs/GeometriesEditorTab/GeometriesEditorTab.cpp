@@ -70,7 +70,7 @@ void CGeometriesEditorTab::SetupGeometriesList()
 
 void CGeometriesEditorTab::SetupPropertiesList()
 {
-	/* Most of names are set to elements only for proper automatic resizing of items.
+	/* Most of the names are set to elements only for proper automatic resizing of items.
 	 * They will be replaced with proper names in update functions.*/
 
 	ui.treeProperties->setColumnCount(3);
