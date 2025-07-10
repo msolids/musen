@@ -10,12 +10,17 @@ CModelSBKelvin::CModelSBKelvin()
 	m_uniqueKey = "09405654485642A686561E1FC646DF1E";
 	m_helpFileName = "/Solid Bond/Kelvin.pdf";
 
-	AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
+	/* 0 */ AddParameter("CONSIDER_BREAKAGE", "Consider breakage Yes=1/No=0", 1);
+	/* 1 */ AddParameter("MAX_DAMP_RATIO", "Max ratio of the damping force to the elastic force", 1);
 	m_hasGPUSupport = true;
 }
 
 void CModelSBKelvin::CalculateSB(double _time, double _timeStep, size_t _iLeft, size_t _iRight, size_t _iBond, SSolidBondStruct& _bonds, unsigned* _brokenBondsNum) const
 {
+	// model parameters
+	const bool considerBreakage = m_parameters[0].value != 0.0;
+	const double maxDampRatio = m_parameters[1].value;
+
 	// relative angle velocity of contact partners
 	const CVector3 relAngleVel = Particles().AnglVel(_iLeft) - Particles().AnglVel(_iRight);
 
@@ -55,15 +60,21 @@ void CModelSBKelvin::CalculateSB(double _time, double _timeStep, size_t _iLeft, 
 	const CVector3 normalForce = currentContact * (-1 * Bonds().CrossCut(_iBond) * Bonds().NormalStiffness(_iBond) * strainTotal);
 
 	CVector3 dampingForceNorm = -mu * normalVelocity * Bonds().CrossCut(_iBond) * Bonds().NormalStiffness(_iBond) * fabs(strainTotal);
-	if (dampingForceNorm.Length() > 0.5 * normalForce.Length())
-		dampingForceNorm *= 0.5 * normalForce.Length() / dampingForceNorm.Length();
+	if (maxDampRatio != 0.0)
+	{
+		if (dampingForceNorm.Length() > maxDampRatio * normalForce.Length())
+			dampingForceNorm *= maxDampRatio * normalForce.Length() / dampingForceNorm.Length();
+	}
 
 	_bonds.TangentialOverlap(_iBond) = M * Bonds().TangentialOverlap(_iBond) - tangentialVelocity * _timeStep;
 	_bonds.TangentialForce(_iBond) = Bonds().TangentialOverlap(_iBond) * (Bonds().TangentialStiffness(_iBond) * Bonds().CrossCut(_iBond) / Bonds().InitialLength(_iBond));
 
 	CVector3 dampingForceTang = -mu * tangentialVelocity * Bonds().TangentialOverlap(_iBond).Length() * (Bonds().TangentialStiffness(_iBond) * Bonds().CrossCut(_iBond) / Bonds().InitialLength(_iBond));
-	if (dampingForceTang.Length() > 0.5 * Bonds().TangentialForce(_iBond).Length())
-		dampingForceTang *= 0.5 * Bonds().TangentialForce(_iBond).Length() / dampingForceTang.Length();
+	if (maxDampRatio != 0.0)
+	{
+		if (dampingForceTang.Length() > maxDampRatio * Bonds().TangentialForce(_iBond).Length())
+			dampingForceTang *= maxDampRatio * Bonds().TangentialForce(_iBond).Length() / dampingForceTang.Length();
+	}
 
 	_bonds.NormalMoment(_iBond) = M * Bonds().NormalMoment(_iBond) - normalAngleVel * (_timeStep * 2 * Bonds().AxialMoment(_iBond) * Bonds().TangentialStiffness(_iBond) / Bonds().InitialLength(_iBond));
 	_bonds.TangentialMoment(_iBond) = M * Bonds().TangentialMoment(_iBond) - tangAngleVel * (_timeStep * Bonds().NormalStiffness(_iBond) * Bonds().AxialMoment(_iBond) / Bonds().InitialLength(_iBond));
@@ -72,7 +83,7 @@ void CModelSBKelvin::CalculateSB(double _time, double _timeStep, size_t _iLeft, 
 	_bonds.UnsymMoment(_iBond) = currentBond * 0.5 * Bonds().TangentialForce(_iBond);
 	_bonds.PrevBond(_iBond) = currentBond;
 
-	if (m_parameters[0].value == 0.0) return; // consider breakage
+	if (!considerBreakage) return;
 
 	// check the bond destruction
 	double forceLength = normalForce.Length();
