@@ -49,9 +49,9 @@ protected:
 	ERunningStatus m_status{ ERunningStatus::IDLE };			// Current status of the simulator - IDLE, RUNNING, etc.
 	CVector3 m_externalAcceleration{ 0, 0, -GRAVITY_CONSTANT };	// Value of external acceleration in the system.
 
-	size_t m_nInactiveParticles{ 0 };								// Number of particles which lost their activity during simulation.
-	size_t m_nBrokenBonds{ 0 };									// Number of the broken bonds.
-	size_t m_nBrokenLiquidBonds{ 0 };								// Number of the ruptured liquid bonds.
+	size_t m_inactiveParticles{ 0 };								// Number of particles which lost their activity during the simulation.
+	size_t m_inactiveBonds{ 0 };									// Number of bonds which lost their activity during the simulation.
+	size_t m_brokenBonds{ 0 };										// Number of the broken bonds.
 	size_t m_nGeneratedObjects{ 0 };								// Number of generated objects.
 	double m_maxParticleVelocity{ 0 };								// Maximal velocity of particle which is used to calculate verlet list.
 	double m_maxParticleTemperature{ 0 };							// Maximal temperature of particles.
@@ -157,9 +157,9 @@ public:
 	bool IsSelectiveSavingEnabled() const;
 	SSelectiveSavingFlags GetSelectiveSavingFlags() const;
 
-	size_t GetNumberOfInactiveParticles() const;
-	size_t GetNumberOfBrokenBonds() const;
-	size_t GetNumberOfBrokenLiquidBonds() const;
+	[[nodiscard]] size_t GetNumberOfInactiveParticles() const;
+	[[nodiscard]] size_t GetNumberOfInactiveBonds() const;
+	[[nodiscard]] size_t GetNumberOfBrokenBonds() const;
 	size_t GetNumberOfGeneratedObjects() const;
 	double GetMaxParticleVelocity() const;
 	// Returns all current maximal and average overlap between particles with particle indexes smaller than _nMaxParticleID.

@@ -480,10 +480,10 @@ void CSimulatorTab::UpdateSimulationStatistics() const
 	ui.statTable->item(EStatTable::SIM_TIME, 0)->setText(QString::number(sim->GetCurrentTime()));
 	ui.statTable->item(EStatTable::SIM_TIME_STEP, 0)->setText(QString::number(sim->GetCurrSimulationStep()));
 	ui.statTable->item(EStatTable::MAX_PART_VELO, 0)->setText(QString::number(sim->GetMaxParticleVelocity()));
-	ui.statTable->item(EStatTable::NUM_BROKEN_S_BONDS, 0)->setText(QString::number(sim->GetNumberOfBrokenBonds()));
-	ui.statTable->item(EStatTable::NUM_BROKEN_L_BONDS, 0)->setText(QString::number(sim->GetNumberOfBrokenLiquidBonds()));
 	ui.statTable->item(EStatTable::NUM_GENERATED, 0)->setText(QString::number(sim->GetNumberOfGeneratedObjects()));
-	ui.statTable->item(EStatTable::NUM_INACTIVE, 0)->setText(QString::number(sim->GetNumberOfInactiveParticles()));
+	ui.statTable->item(EStatTable::NUM_INACTIVE_PARTS, 0)->setText(QString::number(sim->GetNumberOfInactiveParticles()));
+	ui.statTable->item(EStatTable::NUM_INACTIVE_BONDS, 0)->setText(QString::number(sim->GetNumberOfInactiveBonds()));
+	ui.statTable->item(EStatTable::NUM_BROKEN_BONDS, 0)->setText(QString::number(sim->GetNumberOfBrokenBonds()));
 
 	const auto now = std::chrono::system_clock::now();
 	const auto startTimePointQt = QDateTime::fromSecsSinceEpoch(std::chrono::system_clock::to_time_t(sim->GetStartDateTime()));

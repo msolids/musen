@@ -18,5 +18,5 @@ public:
 	double GetMaxPartTemperature(SGPUParticles& _particles) const;
 	void GetMaxWallVelocity(SGPUWalls& _walls, double* _bufMaxVel) const;
 
-	size_t GetBrokenBondsNumber(const SGPUSolidBonds& _bonds) const;
+	static size_t GetInactiveBondsNumber(const SGPUSolidBonds& _bonds);
 };

@@ -56,9 +56,9 @@ void CSimplifiedSceneGPU::GetMaxWallVelocity(double* _bufMaxVelocity)
 	m_gpuScene.GetMaxWallVelocity(m_Walls, _bufMaxVelocity);
 }
 
-size_t CSimplifiedSceneGPU::GetBrokenBondsNumber() const
+size_t CSimplifiedSceneGPU::GetInactiveBondsNumber() const
 {
-	return m_gpuScene.GetBrokenBondsNumber(m_SolidBonds);
+	return m_gpuScene.GetInactiveBondsNumber(m_SolidBonds);
 }
 
 void CSimplifiedSceneGPU::CUDASaveVerletCoords() const
