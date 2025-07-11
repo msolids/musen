@@ -93,7 +93,7 @@ __global__ void CUDA_CalcSBForce_WK_kernel(
 	const double	_bondYieldStrengths[],
 
 	curandState*	_randStates,
-	uint8_t		_bondActivities[],
+	unsigned	_bondActivities[],
 	double		_bondEndActivities[],
 	CVector3	_bondNormalMoments[],
 	double		_bondNormalPlasticStrains[],

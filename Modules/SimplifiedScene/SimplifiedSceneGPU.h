@@ -35,6 +35,7 @@ public:
 	double GetMaxPartTemperature();
 	void GetMaxWallVelocity(double* _bufMaxVelocity);
 	size_t GetInactiveBondsNumber() const;
+	void GetActiveBondsNumber(unsigned* _bufNumber) const;
 
 	void CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU);				// update info about bonds on GPU
 	void CUDABondsGPU2CPU(CSimplifiedScene& _pSceneCPU);				// update info about bonds on CPU

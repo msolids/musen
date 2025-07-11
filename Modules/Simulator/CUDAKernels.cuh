@@ -115,7 +115,7 @@ namespace CUDAKernels
 		unsigned* _partActivity, double* _partEndActivity, const CVector3* _partCoords);
 
 	__global__ void CheckBondsActivity_kernel(double _currTime, unsigned _nBonds, const unsigned* _partActivity,
-		uint8_t* _bondActive, const unsigned* _bondLeftID, const unsigned* _bondRightID, double* _bondEndActivity);
+		unsigned* _bondActive, const unsigned* _bondLeftID, const unsigned* _bondRightID, double* _bondEndActivity);
 
 	__global__ void MoveVirtualParticlesBox(unsigned _nParticles, const unsigned* _partActivity,
 		CVector3* _partCoords, CVector3* _partCoordsVerlet, uint8_t* _vCrossingShifts, bool* _vCrossingFlags);

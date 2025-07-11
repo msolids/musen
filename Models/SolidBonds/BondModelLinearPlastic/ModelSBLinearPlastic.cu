@@ -72,7 +72,7 @@ void __global__ CUDA_CalcSBForce_LP_kernel(
 	const double	_bondTangentialStiffnesses[],
 	const double	_bondTangentialStrengths[],
 
-	uint8_t		_bondActivities[],
+	unsigned	_bondActivities[],
 	double		_bondEndActivities[],
 	double		_bondNormalPlasticStrains[],
 	CVector3	_bondNormalMoments[],

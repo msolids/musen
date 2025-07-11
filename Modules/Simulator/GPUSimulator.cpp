@@ -110,11 +110,10 @@ void CGPUSimulator::CalculateForcesPW(double _dTimeStep)
 void CGPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
 	if (m_scene.GetBondsNumber() == 0) return;
-	const auto inactiveBondsBefore = m_sceneGPU.GetInactiveBondsNumber();
+	m_sceneGPU.GetActiveBondsNumber(&m_pDispatchedResults_d->activeBondsNumBeforeBreak);
 	for (auto* model : m_SBModels)
 		model->CalculateSBGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
-	const auto inactiveBondsAfter = m_sceneGPU.GetInactiveBondsNumber();
-	m_brokenBonds += inactiveBondsAfter - inactiveBondsBefore; // update number of broken bonds
+	m_sceneGPU.GetActiveBondsNumber(&m_pDispatchedResults_d->activeBondsNumAfterBreak);
 }
 
 void CGPUSimulator::CalculateForcesEF(double _dTimeStep)
@@ -314,19 +313,20 @@ void CGPUSimulator::CUDAUpdateGlobalCPUData()
 
 	CUDA_MEMCPY_D2H(m_pDispatchedResults_h, m_pDispatchedResults_d, sizeof(SDispatchedResults));
 
+	m_brokenBonds += m_pDispatchedResults_h->activeBondsNumBeforeBreak - m_pDispatchedResults_h->activeBondsNumAfterBreak;
+
 	const bool bNewInactiveParticles = (m_inactiveParticles != m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum);
 	if (bNewInactiveParticles && m_sceneGPU.GetBondsNumber())
 	{
 		m_gpu.CheckBondsActivity(m_currentTime, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
 		m_sceneGPU.CUDABondsActivityGPU2CPU(m_scene);
 		m_scene.UpdateParticlesToBonds();
+		m_inactiveBonds = m_sceneGPU.GetInactiveBondsNumber() - m_brokenBonds;
 	}
 
 	m_inactiveParticles = m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum;
 	if (m_wallsVelocityChanged)
 		m_maxWallVelocity = m_pDispatchedResults_h->dMaxWallVel;
-
-	m_inactiveBonds = m_sceneGPU.GetInactiveBondsNumber() - m_brokenBonds;
 }
 
 void CGPUSimulator::CUDAUpdateActiveCollisions()

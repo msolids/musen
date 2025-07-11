@@ -19,4 +19,5 @@ public:
 	void GetMaxWallVelocity(SGPUWalls& _walls, double* _bufMaxVel) const;
 
 	static size_t GetInactiveBondsNumber(const SGPUSolidBonds& _bonds);
+	void GetActiveBondsNumber(const SGPUSolidBonds& _bonds, unsigned* _bufNumber) const;
 };

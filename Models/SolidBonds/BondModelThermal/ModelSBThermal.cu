@@ -73,7 +73,7 @@ void __global__ CUDA_CalcSBForce_TH_kernel(
 	const double	_bondTangentialStrengths[],
 	const double	_bondThermExpCoeffs[],
 
-	uint8_t		_bondActivities[],
+	unsigned	_bondActivities[],
 	double		_bondEndActivities[],
 	CVector3	_bondNormalMoments[],
 	CVector3	_bondPrevBonds[],

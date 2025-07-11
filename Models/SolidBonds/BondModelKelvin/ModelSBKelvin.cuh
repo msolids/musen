@@ -29,7 +29,7 @@ void __global__ CUDA_CalcSBForce_Kelvin_kernel(
 	const double	_bondTangentialStiffnesses[],
 	const double	_bondTangentialStrengths[],
 
-	uint8_t		_bondActivities[],
+	unsigned	_bondActivities[],
 	double		_bondEndActivities[],
 	CVector3	_bondNormalMoments[],
 	CVector3	_bondPrevBonds[],
