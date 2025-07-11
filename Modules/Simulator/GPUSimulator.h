@@ -24,6 +24,8 @@ class CGPUSimulator : public CBaseSimulator
 	struct SDispatchedResults
 	{
 		unsigned nActivePartNum;
+		unsigned activeBondsNumBeforeBreak;
+		unsigned activeBondsNumAfterBreak;
 		double dMaxSquaredPartDist;
 		double dMaxWallVel;
 	};

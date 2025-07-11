@@ -508,7 +508,7 @@ namespace CUDAKernels
 	}
 
 	__global__ void CheckBondsActivity_kernel(double _currTime, const unsigned _nBonds, const unsigned* _partActivity,
-		uint8_t* _bondActive, const unsigned* _bondLeftID, const unsigned* _bondRightID, double* _bondEndActivity)
+		unsigned* _bondActive, const unsigned* _bondLeftID, const unsigned* _bondRightID, double* _bondEndActivity)
 	{
 		for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _nBonds; i += blockDim.x * gridDim.x)
 			if (_bondActive[i] && (!_partActivity[_bondLeftID[i]] || !_partActivity[_bondRightID[i]]))

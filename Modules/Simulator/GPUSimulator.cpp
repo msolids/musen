@@ -73,6 +73,9 @@ void CGPUSimulator::UpdateCollisionsStep(double _dTimeStep)
 	// check that all particles are remains in simulation domain
 	m_gpu.CheckParticlesInDomain(m_currentTime, m_sceneGPU.GetPointerToParticles(), &m_pDispatchedResults_d->nActivePartNum);
 
+	// update statistics
+	CUDAUpdateGlobalCPUData();
+
 	// if there is no contact model, then there is no necessity to calculate contacts
 	if (!m_PPModels.empty() || !m_PWModels.empty())
 	{
@@ -107,8 +110,10 @@ void CGPUSimulator::CalculateForcesPW(double _dTimeStep)
 void CGPUSimulator::CalculateForcesSB(double _dTimeStep)
 {
 	if (m_scene.GetBondsNumber() == 0) return;
+	m_sceneGPU.GetActiveBondsNumber(&m_pDispatchedResults_d->activeBondsNumBeforeBreak);
 	for (auto* model : m_SBModels)
 		model->CalculateSBGPU(m_currentTime, _dTimeStep, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
+	m_sceneGPU.GetActiveBondsNumber(&m_pDispatchedResults_d->activeBondsNumAfterBreak);
 }
 
 void CGPUSimulator::CalculateForcesEF(double _dTimeStep)
@@ -276,7 +281,6 @@ void CGPUSimulator::SaveData()
 	m_sceneGPU.CUDABondsGPU2CPU( m_scene );
 	m_sceneGPU.CUDAParticlesGPU2CPUAllData(m_scene);
 	m_sceneGPU.CUDAWallsGPU2CPUAllData(m_scene);
-	m_nBrokenBonds = m_sceneGPU.GetBrokenBondsNumber();
 	m_maxParticleVelocity = m_sceneGPU.GetMaxPartVelocity();
 	if (m_scene.GetRefToParticles().ThermalsExist())
 		m_maxParticleTemperature = m_sceneGPU.GetMaxPartTemperature();
@@ -287,7 +291,6 @@ void CGPUSimulator::SaveData()
 
 void CGPUSimulator::UpdateVerletLists(double _dTimeStep)
 {
-	CUDAUpdateGlobalCPUData();
 	if (m_verletList.IsNeedToBeUpdated(_dTimeStep, sqrt(m_pDispatchedResults_h->dMaxSquaredPartDist) , m_maxWallVelocity))
 	{
 		m_sceneGPU.CUDAParticlesGPU2CPUVerletData(m_scene);
@@ -310,15 +313,18 @@ void CGPUSimulator::CUDAUpdateGlobalCPUData()
 
 	CUDA_MEMCPY_D2H(m_pDispatchedResults_h, m_pDispatchedResults_d, sizeof(SDispatchedResults));
 
-	const bool bNewInactiveParticles = (m_nInactiveParticles != m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum);
+	m_brokenBonds += m_pDispatchedResults_h->activeBondsNumBeforeBreak - m_pDispatchedResults_h->activeBondsNumAfterBreak;
+
+	const bool bNewInactiveParticles = (m_inactiveParticles != m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum);
 	if (bNewInactiveParticles && m_sceneGPU.GetBondsNumber())
 	{
 		m_gpu.CheckBondsActivity(m_currentTime, m_sceneGPU.GetPointerToParticles(), m_sceneGPU.GetPointerToSolidBonds());
 		m_sceneGPU.CUDABondsActivityGPU2CPU(m_scene);
 		m_scene.UpdateParticlesToBonds();
+		m_inactiveBonds = m_sceneGPU.GetInactiveBondsNumber() - m_brokenBonds;
 	}
 
-	m_nInactiveParticles = m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum;
+	m_inactiveParticles = m_sceneGPU.GetParticlesNumber() - m_pDispatchedResults_h->nActivePartNum;
 	if (m_wallsVelocityChanged)
 		m_maxWallVelocity = m_pDispatchedResults_h->dMaxWallVel;
 }

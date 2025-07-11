@@ -284,17 +284,17 @@ bool CBaseSimulator::GetAutoAdjustFlag() const
 
 size_t CBaseSimulator::GetNumberOfInactiveParticles() const
 {
-	return m_nInactiveParticles;
+	return m_inactiveParticles;
+}
+
+size_t CBaseSimulator::GetNumberOfInactiveBonds() const
+{
+	return m_inactiveBonds;
 }
 
 size_t CBaseSimulator::GetNumberOfBrokenBonds() const
 {
-	return m_nBrokenBonds;
-}
-
-size_t CBaseSimulator::GetNumberOfBrokenLiquidBonds() const
-{
-	return m_nBrokenLiquidBonds;
+	return m_brokenBonds;
 }
 
 size_t CBaseSimulator::GetNumberOfGeneratedObjects() const
@@ -517,9 +517,9 @@ void CBaseSimulator::Initialize()
 	m_wallsVelocityChanged = true;
 
 	// statistics
-	m_nInactiveParticles = 0;
-	m_nBrokenBonds = 0;
-	m_nBrokenLiquidBonds = 0;
+	m_inactiveParticles = 0;
+	m_inactiveBonds = 0;
+	m_brokenBonds = 0;
 	m_nGeneratedObjects = 0;
 
 	// settings
@@ -674,7 +674,7 @@ bool CBaseSimulator::AdditionalStopCriterionMet()
 		{
 		case EStopCriteria::NONE: break;
 		case EStopCriteria::BROKEN_BONDS:
-			if (m_nBrokenBonds > m_stopValues.maxBrokenBonds)
+			if (m_brokenBonds > m_stopValues.maxBrokenBonds)
 				return true;
 			break;
 		}
@@ -699,9 +699,9 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 	SetTimeStepFactor(_other.m_timeStepFactor);
 	SetPartVelocityLimit(_other.m_partVelocityLimit);
 
-	m_nInactiveParticles = _other.m_nInactiveParticles;
-	m_nBrokenBonds = _other.m_nBrokenBonds;
-	m_nBrokenLiquidBonds = _other.m_nBrokenLiquidBonds;
+	m_inactiveParticles = _other.m_inactiveParticles;
+	m_inactiveBonds = _other.m_inactiveBonds;
+	m_brokenBonds = _other.m_brokenBonds;
 	m_nGeneratedObjects = _other.m_nGeneratedObjects;
 
 	SetSystemStructure(_other.m_pSystemStructure);

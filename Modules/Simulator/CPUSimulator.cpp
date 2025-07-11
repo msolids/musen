@@ -181,7 +181,7 @@ void CCPUSimulator::CalculateForcesSB(double _timeStep)
 			if (bonds.Active(iBond))
 				model->Calculate(m_currentTime, _timeStep, iBond, bonds, &brokenBonds[iBond % m_nThreads]);
 		});
-		m_nBrokenBonds += VectorSum(brokenBonds);
+		m_brokenBonds += VectorSum(brokenBonds);
 
 		ParallelFor(partToSolidBonds.size(), [&](size_t iPart)
 		{
@@ -213,7 +213,7 @@ void CCPUSimulator::CalculateForcesLB(double _timeStep)
 			if (bonds.Active(i))
 				model->Calculate(m_currentTime, _timeStep, i, bonds, &brokenBonds[i % m_nThreads]);
 		});
-		m_nBrokenLiquidBonds += VectorSum(brokenBonds);
+		m_brokenBonds += VectorSum(brokenBonds);
 
 		for (size_t iBond = 0; iBond < m_scene.GetLiquidBondsNumber(); ++iBond)
 			if (bonds.Active(iBond))
@@ -582,32 +582,37 @@ void CCPUSimulator::CheckParticlesInDomain()
 	SParticleStruct& particles = m_scene.GetRefToParticles();
 	SSolidBondStruct& solidBonds = m_scene.GetRefToSolidBonds();
 	SLiquidBondStruct& liquidBonds = m_scene.GetRefToLiquidBonds();
-	std::vector<size_t> vInactiveParticlesNum(m_scene.GetTotalParticlesNumber());
+	std::vector<size_t> inactiveParticlesNum(m_scene.GetTotalParticlesNumber());
+	std::vector<size_t> inactiveBondsNum(m_scene.GetTotalParticlesNumber());
 	ParallelFor(m_scene.GetTotalParticlesNumber(), [&](size_t i)
 	{
 		if ((particles.Active(i)) && (!IsPointInDomain(simDomain, particles.Coord(i)))) // remove particles situated not in the domain
 		{
 			particles.Active(i) = false;
 			particles.EndActivity(i) = m_currentTime;
-			vInactiveParticlesNum[i]++;
+			inactiveParticlesNum[i]++;
 			for (size_t j = 0; j < solidBonds.Size(); ++j) // delete all bonds that connected to this particle
 				if ((solidBonds.Active(j)) && ((solidBonds.LeftID(j) == i) || (solidBonds.RightID(j) == i)))
 				{
 					solidBonds.Active(j) = false;
 					solidBonds.EndActivity(j) = m_currentTime;
+					inactiveBondsNum[i]++;
 				}
 			for (size_t j = 0; j < liquidBonds.Size(); ++j) // delete all bonds that connected to this particle
 				if ((liquidBonds.Active(j)) && ((liquidBonds.LeftID(j) == i) || (liquidBonds.RightID(j) == i)))
 				{
 					liquidBonds.Active(j) = false;
 					liquidBonds.EndActivity(j) = m_currentTime;
+					inactiveBondsNum[i]++;
 				}
 		}
 	});
 
-	const size_t nNewInactiveParticles = VectorSum(vInactiveParticlesNum);
-	m_nInactiveParticles += nNewInactiveParticles;
-	if (nNewInactiveParticles > 0)
+	const size_t newInactiveParticles = VectorSum(inactiveParticlesNum);
+	const size_t newInactiveBonds = VectorSum(inactiveBondsNum);
+	m_inactiveParticles += newInactiveParticles;
+	m_inactiveBonds += newInactiveBonds;
+	if (newInactiveParticles > 0)
 		m_scene.UpdateParticlesToBonds();
 }
 

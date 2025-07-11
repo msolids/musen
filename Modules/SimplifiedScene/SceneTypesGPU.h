@@ -193,7 +193,7 @@ public:
 // GPU definition of solid bond
 struct SGPUSolidBonds : SBasicGPUStruct
 {
-	uint8_t* Activities;
+	unsigned* Activities;
 	unsigned* LeftIDs;
 	unsigned* RightIDs;
 	// const parameters

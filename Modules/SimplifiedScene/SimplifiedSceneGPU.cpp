@@ -56,9 +56,14 @@ void CSimplifiedSceneGPU::GetMaxWallVelocity(double* _bufMaxVelocity)
 	m_gpuScene.GetMaxWallVelocity(m_Walls, _bufMaxVelocity);
 }
 
-size_t CSimplifiedSceneGPU::GetBrokenBondsNumber() const
+size_t CSimplifiedSceneGPU::GetInactiveBondsNumber() const
 {
-	return m_gpuScene.GetBrokenBondsNumber(m_SolidBonds);
+	return m_gpuScene.GetInactiveBondsNumber(m_SolidBonds);
+}
+
+void CSimplifiedSceneGPU::GetActiveBondsNumber(unsigned* _bufNumber) const
+{
+	m_gpuScene.GetActiveBondsNumber(m_SolidBonds, _bufNumber);
 }
 
 void CSimplifiedSceneGPU::CUDASaveVerletCoords() const
@@ -144,7 +149,7 @@ void CSimplifiedSceneGPU::CUDABondsGPU2CPUDynamicData(CSimplifiedScene& _sceneCP
 	SSolidBondStruct& bondsCPU = _sceneCPU.GetRefToSolidBonds();
 	const size_t& N = m_SolidBonds.nElements;
 
-	std::vector<uint8_t> Activities(N);               CUDA_MEMCPY_D2H(Activities.data()             , m_SolidBonds.Activities, sizeof(uint8_t) * N);
+	std::vector<unsigned> Activities(N);              CUDA_MEMCPY_D2H(Activities.data()             , m_SolidBonds.Activities, sizeof(unsigned) * N);
 	std::vector<CVector3> NormalMoment(N);            CUDA_MEMCPY_D2H(NormalMoment.data()           , m_SolidBonds.NormalMoments, sizeof(CVector3) * N);
 	std::vector<CVector3> TangentialMoment(N);        CUDA_MEMCPY_D2H(TangentialMoment.data()       , m_SolidBonds.TangentialMoments, sizeof(CVector3) * N);
 	std::vector<double> EndActivities(N);             CUDA_MEMCPY_D2H(EndActivities.data()          , m_SolidBonds.EndActivities, sizeof(double) * N);
@@ -172,7 +177,7 @@ void CSimplifiedSceneGPU::CUDABondsActivityGPU2CPU(CSimplifiedScene& _pSceneCPU)
 	SSolidBondStruct& bondsCPU = _pSceneCPU.GetRefToSolidBonds();
 	bool* pActivityHost;
 	CUDA_MALLOC_H(&pActivityHost, sizeof(bool)*bondsCPU.Size());
-	CUDA_MEMCPY_D2H(pActivityHost, m_SolidBonds.Activities, sizeof(uint8_t)*bondsCPU.Size());
+	CUDA_MEMCPY_D2H(pActivityHost, m_SolidBonds.Activities, sizeof(unsigned)*bondsCPU.Size());
 	ParallelFor(bondsCPU.Size(), [&](size_t i)
 	{
 		bondsCPU.Active(i) = pActivityHost[i];

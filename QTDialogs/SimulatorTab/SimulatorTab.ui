@@ -407,22 +407,22 @@
        </row>
        <row>
         <property name="text">
-         <string>Broken solid bonds</string>
+         <string>Generated objects</string>
         </property>
        </row>
        <row>
         <property name="text">
-         <string>Broken liquid bonds</string>
+         <string>Inactive particles</string>
         </property>
        </row>
        <row>
         <property name="text">
-         <string>Number of generated objects</string>
+         <string>Inactive bonds</string>
         </property>
        </row>
        <row>
         <property name="text">
-         <string>Number of inactive particles</string>
+         <string>Broken bonds</string>
         </property>
        </row>
        <row>
@@ -623,7 +623,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+        <iconset resource="../../MusenGUI/musengui.qrc">
          <normaloff>:/MusenGUI/Pictures/play.png</normaloff>:/MusenGUI/Pictures/play.png</iconset>
        </property>
       </widget>
@@ -643,7 +643,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+        <iconset resource="../../MusenGUI/musengui.qrc">
          <normaloff>:/MusenGUI/Pictures/stop.png</normaloff>:/MusenGUI/Pictures/stop.png</iconset>
        </property>
       </widget>
@@ -653,7 +653,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

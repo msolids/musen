@@ -78,7 +78,7 @@ __global__ void CUDA_CalcSBForce_EPP_kernel(
 	const double	_bondTangentialStrengths[],
 	const double	_bondYieldStrengths[],
 
-	uint8_t		_bondActivities[],
+	unsigned	_bondActivities[],
 	double		_bondEndActivities[],
 	CVector3	_bondNormalMoments[],
 	double		_bondNormalPlasticStrains[],
