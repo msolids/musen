@@ -6,7 +6,7 @@
 #include "ModelSBKelvin.h"
 #include <device_launch_parameters.h>
 
-__constant__ double m_vConstantModelParameters[1];
+__constant__ double m_vConstantModelParameters[2];
 __constant__ SPBC PBC;
 
 void CModelSBKelvin::SetParametersGPU(const std::vector<double>& _parameters, const SPBC& _pbc)
