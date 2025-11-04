@@ -311,7 +311,7 @@ void CGPUSimulator::CUDAUpdateGlobalCPUData()
 	if (m_wallsVelocityChanged)
 		m_sceneGPU.GetMaxWallVelocity(&m_pDispatchedResults_d->dMaxWallVel);
 
-	CUDA_MEMCPY_D2H(m_pDispatchedResults_h, m_pDispatchedResults_d, sizeof(SDispatchedResults));
+	CUDA_MEMCPY_D2H(m_pDispatchedResults_h, m_pDispatchedResults_d, sizeof(std::remove_pointer_t<decltype(m_pDispatchedResults_d)>));
 
 	m_brokenBonds += m_pDispatchedResults_h->activeBondsNumBeforeBreak - m_pDispatchedResults_h->activeBondsNumAfterBreak;
 
@@ -380,15 +380,16 @@ void CGPUSimulator::CUDAInitializeMaterials()
 	m_gpu.SetCompoundsNumber( nCompounds );
 	if (!nCompounds) return;
 
-	SInteractProps* pInteractPropsHost;
-	CUDA_MALLOC_H(&pInteractPropsHost, sizeof(SInteractProps)*nCompounds*nCompounds);
-	CUDA_MALLOC_D(&m_pInteractProps,   sizeof(SInteractProps)*nCompounds*nCompounds);
+	using type = std::remove_pointer_t<decltype(m_pInteractProps)>;
+	type* pInteractPropsHost;
+	CUDA_MALLOC_H(&pInteractPropsHost, sizeof(type)*nCompounds*nCompounds);
+	CUDA_MALLOC_D(&m_pInteractProps,   sizeof(type)*nCompounds*nCompounds);
 
 	for (unsigned i = 0; i < nCompounds; ++i)
 		for (unsigned j = 0; j < nCompounds; ++j)
 			pInteractPropsHost[i*nCompounds + j] = m_scene.GetInteractProp(i*nCompounds + j);
 
-	CUDA_MEMCPY_H2D(m_pInteractProps, pInteractPropsHost, sizeof(SInteractProps)*nCompounds*nCompounds);
+	CUDA_MEMCPY_H2D(m_pInteractProps, pInteractPropsHost, sizeof(type)*nCompounds*nCompounds);
 	CUDA_FREE_H(pInteractPropsHost);
 
 }

@@ -30,10 +30,10 @@ void CSimplifiedSceneGPU::InitializeScene(CSimplifiedScene& _pScene, CSystemStru
 
 void CSimplifiedSceneGPU::ClearStates() const
 {
-	CUDA_MEMSET(m_Particles.Forces    , 0, sizeof(CVector3) * m_Particles.nElements);
-	CUDA_MEMSET(m_Particles.Moments   , 0, sizeof(CVector3) * m_Particles.nElements);
-	CUDA_MEMSET(m_Particles.HeatFluxes, 0, sizeof(double)   * m_Particles.nElements);
-	CUDA_MEMSET(m_Walls.Forces        , 0, sizeof(CVector3) * m_Walls.nElements);
+	CUDA_MEMSET(m_Particles.Forces    , 0, sizeof(std::remove_pointer_t<decltype(m_Particles.Forces    )>) * m_Particles.nElements);
+	CUDA_MEMSET(m_Particles.Moments   , 0, sizeof(std::remove_pointer_t<decltype(m_Particles.Moments   )>) * m_Particles.nElements);
+	CUDA_MEMSET(m_Particles.HeatFluxes, 0, sizeof(std::remove_pointer_t<decltype(m_Particles.HeatFluxes)>) * m_Particles.nElements);
+	CUDA_MEMSET(m_Walls.Forces        , 0, sizeof(std::remove_pointer_t<decltype(m_Walls.Forces        )>) * m_Walls.nElements);
 }
 
 void CSimplifiedSceneGPU::GetMaxSquaredPartDist(double* _bufMaxVelocity)
@@ -68,7 +68,8 @@ void CSimplifiedSceneGPU::GetActiveBondsNumber(unsigned* _bufNumber) const
 
 void CSimplifiedSceneGPU::CUDASaveVerletCoords() const
 {
-	CUDA_MEMCPY_H2D(m_Particles.CoordsVerlet, m_Particles.Coords, m_Particles.nElements * sizeof(CVector3));
+	using type = std::remove_pointer_t<decltype(m_Particles.Coords)>;
+	CUDA_MEMCPY_H2D(m_Particles.CoordsVerlet, m_Particles.Coords, m_Particles.nElements * sizeof(type));
 }
 
 void CSimplifiedSceneGPU::CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU)
@@ -149,14 +150,23 @@ void CSimplifiedSceneGPU::CUDABondsGPU2CPUDynamicData(CSimplifiedScene& _sceneCP
 	SSolidBondStruct& bondsCPU = _sceneCPU.GetRefToSolidBonds();
 	const size_t& N = m_SolidBonds.nElements;
 
-	std::vector<unsigned> Activities(N);              CUDA_MEMCPY_D2H(Activities.data()             , m_SolidBonds.Activities, sizeof(unsigned) * N);
-	std::vector<CVector3> NormalMoment(N);            CUDA_MEMCPY_D2H(NormalMoment.data()           , m_SolidBonds.NormalMoments, sizeof(CVector3) * N);
-	std::vector<CVector3> TangentialMoment(N);        CUDA_MEMCPY_D2H(TangentialMoment.data()       , m_SolidBonds.TangentialMoments, sizeof(CVector3) * N);
-	std::vector<double> EndActivities(N);             CUDA_MEMCPY_D2H(EndActivities.data()          , m_SolidBonds.EndActivities, sizeof(double) * N);
-	std::vector<double> NormalPlasticStrain(N);       CUDA_MEMCPY_D2H(NormalPlasticStrain.data()    , m_SolidBonds.NormalPlasticStrains, sizeof(double) * N);
-	std::vector<CVector3> PrevBonds(N);               CUDA_MEMCPY_D2H(PrevBonds.data()              , m_SolidBonds.PrevBonds, sizeof(CVector3) * N);
-	std::vector<CVector3> TangentialOverlap(N);       CUDA_MEMCPY_D2H(TangentialOverlap.data()      , m_SolidBonds.TangentialOverlaps, sizeof(CVector3) * N);
-	std::vector<CVector3> TangentialPlasticStrain(N); CUDA_MEMCPY_D2H(TangentialPlasticStrain.data(), m_SolidBonds.TangentialPlasticStrains, sizeof(CVector3) * N);
+	// helper lambda to create a CPU vector and copy GPU array there
+	auto CreateAndCopyFromGPU = [N](auto* _gpuPtr)
+	{
+		using T = std::remove_pointer_t<decltype(_gpuPtr)>;
+		std::vector<T> result(N);
+		CUDA_MEMCPY_D2H(result.data(), _gpuPtr, sizeof(T) * N);
+		return result;
+	};
+
+	const auto Activities              = CreateAndCopyFromGPU(m_SolidBonds.Activities);
+	const auto NormalMoment            = CreateAndCopyFromGPU(m_SolidBonds.NormalMoments);
+	const auto TangentialMoment        = CreateAndCopyFromGPU(m_SolidBonds.TangentialMoments);
+	const auto EndActivities           = CreateAndCopyFromGPU(m_SolidBonds.EndActivities);
+	const auto NormalPlasticStrain     = CreateAndCopyFromGPU(m_SolidBonds.NormalPlasticStrains);
+	const auto PrevBonds               = CreateAndCopyFromGPU(m_SolidBonds.PrevBonds);
+	const auto TangentialOverlap       = CreateAndCopyFromGPU(m_SolidBonds.TangentialOverlaps);
+	const auto TangentialPlasticStrain = CreateAndCopyFromGPU(m_SolidBonds.TangentialPlasticStrains);
 
 	ParallelFor(bondsCPU.Size(), [&](size_t i)
 	{
@@ -175,9 +185,10 @@ void CSimplifiedSceneGPU::CUDABondsGPU2CPUDynamicData(CSimplifiedScene& _sceneCP
 void CSimplifiedSceneGPU::CUDABondsActivityGPU2CPU(CSimplifiedScene& _pSceneCPU)
 {
 	SSolidBondStruct& bondsCPU = _pSceneCPU.GetRefToSolidBonds();
-	bool* pActivityHost;
-	CUDA_MALLOC_H(&pActivityHost, sizeof(bool)*bondsCPU.Size());
-	CUDA_MEMCPY_D2H(pActivityHost, m_SolidBonds.Activities, sizeof(unsigned)*bondsCPU.Size());
+	using activity_t = std::remove_pointer_t<decltype(m_SolidBonds.Activities)>;
+	activity_t* pActivityHost;
+	CUDA_MALLOC_H(&pActivityHost, sizeof(activity_t)*bondsCPU.Size());
+	CUDA_MEMCPY_D2H(pActivityHost, m_SolidBonds.Activities, sizeof(activity_t)*bondsCPU.Size());
 	ParallelFor(bondsCPU.Size(), [&](size_t i)
 	{
 		bondsCPU.Active(i) = pActivityHost[i];
@@ -220,10 +231,10 @@ void CSimplifiedSceneGPU::CUDAParticlesCPU2GPU(CSimplifiedScene& _pSceneCPU)
 void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUVerletData(CSimplifiedScene& _pSceneCPU)
 {
 	SParticleStruct& particlesCPU = _pSceneCPU.GetRefToParticles();
-	static std::vector<unsigned> vActivity;	vActivity.resize(m_Particles.nElements);
-	static std::vector<CVector3> vCoords;	vCoords.resize(m_Particles.nElements);
-	CUDA_MEMCPY_D2H(vActivity.data(), m_Particles.Activities, sizeof(unsigned) * m_Particles.nElements);
-	CUDA_MEMCPY_D2H(vCoords.data(), m_Particles.Coords, sizeof(CVector3) * m_Particles.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Particles.Activities)>> vActivity; vActivity.resize(m_Particles.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Particles.Coords    )>> vCoords;   vCoords.resize(m_Particles.nElements);
+	CUDA_MEMCPY_D2H(vActivity.data(), m_Particles.Activities, sizeof(std::remove_pointer_t<decltype(m_Particles.Activities)>) * m_Particles.nElements);
+	CUDA_MEMCPY_D2H(vCoords  .data(), m_Particles.Coords    , sizeof(std::remove_pointer_t<decltype(m_Particles.Coords    )>) * m_Particles.nElements);
 	ParallelFor(particlesCPU.Size(), [&](size_t i)
 	{
 		particlesCPU.Coord(i) = vCoords[i];
@@ -236,22 +247,33 @@ void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUDynamicData(CSimplifiedScene& _sce
 	SParticleStruct& particlesCPU = _sceneCPU.GetRefToParticles();
 	const size_t& N = m_Particles.nElements;
 
-	std::vector<CVector3> coords(N);      CUDA_MEMCPY_D2H(coords.data()       , m_Particles.Coords       , sizeof(CVector3) * N);
-	std::vector<CVector3> vels(N);        CUDA_MEMCPY_D2H(vels.data()         , m_Particles.Vels         , sizeof(CVector3) * N);
-	std::vector<CVector3> anglVels(N);    CUDA_MEMCPY_D2H(anglVels.data()     , m_Particles.AnglVels     , sizeof(CVector3) * N);
-	std::vector<unsigned> activities(N);  CUDA_MEMCPY_D2H(activities.data()   , m_Particles.Activities   , sizeof(unsigned) * N);
-	std::vector<double> endActivities(N); CUDA_MEMCPY_D2H(endActivities.data(), m_Particles.EndActivities, sizeof(double) * N);
+	// helper lambda to create a CPU vector and copy GPU array there
+	auto CreateAndCopyFromGPU = [N](auto* _gpuPtr)
+	{
+		using T = std::remove_pointer_t<decltype(_gpuPtr)>;
+		std::vector<T> result(N);
+		CUDA_MEMCPY_D2H(result.data(), _gpuPtr, sizeof(T) * N);
+		return result;
+	};
 
-	std::vector<CQuaternion> quarternions(N);
+	const auto coords        = CreateAndCopyFromGPU(m_Particles.Coords);
+	const auto vels          = CreateAndCopyFromGPU(m_Particles.Vels);
+	const auto anglVels      = CreateAndCopyFromGPU(m_Particles.AnglVels);
+	const auto activities    = CreateAndCopyFromGPU(m_Particles.Activities);
+	const auto endActivities = CreateAndCopyFromGPU(m_Particles.EndActivities);
+
+	std::vector<CQuaternion> quaternions(N);
 	if (particlesCPU.QuaternionExist())
 	{
-		quarternions.resize(N); CUDA_MEMCPY_D2H(quarternions.data(), m_Particles.Quaternions, sizeof(CQuaternion) * N);
+		quaternions.resize(N);
+		CUDA_MEMCPY_D2H(quaternions.data(), m_Particles.Quaternions, sizeof(std::remove_pointer_t<decltype(m_Particles.Quaternions)>) * N);
 	}
 
 	std::vector<double> temperature(N);
 	if (particlesCPU.ThermalsExist())
 	{
-		temperature.resize(N); CUDA_MEMCPY_D2H(temperature.data(), m_Particles.Temperatures, sizeof(double) * N);
+		temperature.resize(N);
+		CUDA_MEMCPY_D2H(temperature.data(), m_Particles.Temperatures, sizeof(std::remove_pointer_t<decltype(m_Particles.Temperatures)>) * N);
 	}
 
 	ParallelFor(particlesCPU.Size(), [&](size_t i)
@@ -262,7 +284,7 @@ void CSimplifiedSceneGPU::CUDAParticlesGPU2CPUDynamicData(CSimplifiedScene& _sce
 		particlesCPU.Active(i) = activities[i] != 0;
 		particlesCPU.EndActivity(i) = endActivities[i];
 		if (particlesCPU.QuaternionExist())
-			particlesCPU.Quaternion(i) = quarternions[i];
+			particlesCPU.Quaternion(i) = quaternions[i];
 		if (particlesCPU.ThermalsExist())
 			particlesCPU.Temperature(i) = temperature[i];
 	});
@@ -317,18 +339,18 @@ void CSimplifiedSceneGPU::CUDAWallsCPU2GPU(CSimplifiedScene& _pSceneCPU)
 void CSimplifiedSceneGPU::CUDAWallsGPU2CPUVerletData(CSimplifiedScene& _pSceneCPU)
 {
 	SWallStruct& wallsCPU = _pSceneCPU.GetRefToWalls();
-	static std::vector<CVector3> vVertex1;		vVertex1.resize(m_Walls.nElements);
-	static std::vector<CVector3> vVertex2;		vVertex2.resize(m_Walls.nElements);
-	static std::vector<CVector3> vVertex3;		vVertex3.resize(m_Walls.nElements);
-	static std::vector<CVector3> vNormalVector;	vNormalVector.resize(m_Walls.nElements);
-	static std::vector<CVector3> vMinCoord;		vMinCoord.resize(m_Walls.nElements);
-	static std::vector<CVector3> vMaxCoord;		vMaxCoord.resize(m_Walls.nElements);
-	CUDA_MEMCPY_D2H(vVertex1.data(), m_Walls.Vertices1, sizeof(CVector3) * m_Walls.nElements);
-	CUDA_MEMCPY_D2H(vVertex2.data(), m_Walls.Vertices2, sizeof(CVector3) * m_Walls.nElements);
-	CUDA_MEMCPY_D2H(vVertex3.data(), m_Walls.Vertices3, sizeof(CVector3) * m_Walls.nElements);
-	CUDA_MEMCPY_D2H(vNormalVector.data(), m_Walls.NormalVectors, sizeof(CVector3) * m_Walls.nElements);
-	CUDA_MEMCPY_D2H(vMinCoord.data(), m_Walls.MinCoords, sizeof(CVector3) * m_Walls.nElements);
-	CUDA_MEMCPY_D2H(vMaxCoord.data(), m_Walls.MaxCoords, sizeof(CVector3) * m_Walls.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Walls.Vertices1)>> vVertex1;			vVertex1.resize(m_Walls.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Walls.Vertices2)>> vVertex2;			vVertex2.resize(m_Walls.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Walls.Vertices3)>> vVertex3;			vVertex3.resize(m_Walls.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Walls.NormalVectors)>> vNormalVector;	vNormalVector.resize(m_Walls.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Walls.MinCoords)>> vMinCoord;			vMinCoord.resize(m_Walls.nElements);
+	static std::vector<std::remove_pointer_t<decltype(m_Walls.MaxCoords)>> vMaxCoord;			vMaxCoord.resize(m_Walls.nElements);
+	CUDA_MEMCPY_D2H(vVertex1     .data(), m_Walls.Vertices1    , sizeof(std::remove_pointer_t<decltype(m_Walls.Vertices1    )>) * m_Walls.nElements);
+	CUDA_MEMCPY_D2H(vVertex2     .data(), m_Walls.Vertices2    , sizeof(std::remove_pointer_t<decltype(m_Walls.Vertices2    )>) * m_Walls.nElements);
+	CUDA_MEMCPY_D2H(vVertex3     .data(), m_Walls.Vertices3    , sizeof(std::remove_pointer_t<decltype(m_Walls.Vertices3    )>) * m_Walls.nElements);
+	CUDA_MEMCPY_D2H(vNormalVector.data(), m_Walls.NormalVectors, sizeof(std::remove_pointer_t<decltype(m_Walls.NormalVectors)>) * m_Walls.nElements);
+	CUDA_MEMCPY_D2H(vMinCoord    .data(), m_Walls.MinCoords    , sizeof(std::remove_pointer_t<decltype(m_Walls.MinCoords    )>) * m_Walls.nElements);
+	CUDA_MEMCPY_D2H(vMaxCoord    .data(), m_Walls.MaxCoords    , sizeof(std::remove_pointer_t<decltype(m_Walls.MaxCoords    )>) * m_Walls.nElements);
 	ParallelFor(wallsCPU.Size(), [&](size_t i)
 	{
 		wallsCPU.Vert1(i) = vVertex1[i];

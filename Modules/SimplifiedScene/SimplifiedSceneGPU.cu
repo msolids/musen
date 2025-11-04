@@ -94,7 +94,7 @@ void CGPUScene::GetMaxWallVelocity(SGPUWalls& _walls, double* _bufMaxVel) const
 
 size_t CGPUScene::GetInactiveBondsNumber(const SGPUSolidBonds& _bonds)
 {
-	const thrust::device_ptr<unsigned> activity = thrust::device_pointer_cast(_bonds.Activities);
+	const thrust::device_ptr<std::remove_pointer_t<decltype(_bonds.Activities)>> activity = thrust::device_pointer_cast(_bonds.Activities);
 	return thrust::count(activity, activity + _bonds.nElements, false);
 }
 
@@ -107,7 +107,7 @@ void CGPUScene::GetActiveBondsNumber(const SGPUSolidBonds& _bonds, unsigned* _bu
 		return;
 	}
 
-	static thrust::device_vector<unsigned> tempUInt;
+	static thrust::device_vector<std::remove_pointer_t<decltype(_bonds.Activities)>> tempUInt;
 	tempUInt.resize(_bonds.nElements);
 	CUDA_REDUCE_CALLER(CUDAKernels::ReduceSum_kernel, _bonds.nElements, _bonds.Activities, tempUInt.data().get(), _bufNumber);
 }
