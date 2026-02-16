@@ -32,17 +32,18 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(QtMsBuild)\qt_defaults.props" Condition="Exists('$(QtMsBuild)\qt_defaults.props')" />
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
-    <QtModules>core;gui;opengl;widgets</QtModules>
+    <QtInstall>qt_msvc_musen</QtInstall>
+    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
-    <QtModules>core;gui;opengl;widgets</QtModules>
+    <QtInstall>qt_msvc_musen</QtInstall>
+    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') OR !Exists('$(QtMsBuild)\Qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
   </Target>
-  <ImportGroup Label="ExtensionSettings"></ImportGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="..\..\PropertySheets\MusenCommonQtPath.props" />
     <Import Project="..\..\PropertySheets\MusenCommonDebug.props" />
@@ -92,12 +93,15 @@
     <ClCompile Include="GeometriesDatabaseTab.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="GeometriesDatabaseTab.h"></QtMoc>
+    <QtMoc Include="GeometriesDatabaseTab.h">
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="GeometriesDatabaseTab.ui"></QtUic>
+    <QtUic Include="GeometriesDatabaseTab.ui">
+    </QtUic>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />
-  <ImportGroup Label="ExtensionTargets"></ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
 </Project>

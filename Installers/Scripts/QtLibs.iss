@@ -4,13 +4,14 @@
 
 #define QtPlatformsDir 		"platforms"
 #define QtImageformatsDir 	"imageformats"
-#define QtStylesDir 		"styles"
+// ; # define QtStylesDir 		"styles"
 
-#dim QtLibs[4]
-#define QtLibs[0] "Qt5Core"
-#define QtLibs[1] "Qt5Gui"
-#define QtLibs[2] "Qt5OpenGL"
-#define QtLibs[3] "Qt5Widgets"
+#dim QtLibs[5]
+#define QtLibs[0] "Qt6Core"
+#define QtLibs[1] "Qt6Gui"
+#define QtLibs[2] "Qt6OpenGL"
+#define QtLibs[3] "Qt6Widgets"
+#define QtLibs[4] "Qt6OpenGLWidgets"
 
 #dim QtLibsPlatforms[1]
 #define QtLibsPlatforms[0] "qwindows"
@@ -18,8 +19,8 @@
 #dim QtLibsImageFormats[1]
 #define QtLibsImageFormats[0] "qjpeg"
 
-#dim QtLibsStyles[1]
-#define QtLibsStyles[0] "qwindowsvistastyle"
+// ; #dim QtLibsStyles[1]
+// ; #define QtLibsStyles[0] "qwindowsvistastyle"
 
 #define I
 
@@ -39,12 +40,12 @@ Source: "{#QtPath}\plugins\{#QtImageformatsDir}\{#QtLibsImageFormats[I]}.dll"; 	
 #endsub
 #for {I = 0; I < DimOf(QtLibsImageFormats); I++} QtLibsImageFormats_entry
 
-#sub QtLibsStyles_entry
-Source: "{#QtPath}\plugins\{#QtStylesDir}\{#QtLibsStyles[I]}.dll"; 				DestDir: "{app}\{#QtStylesDir}"; 		Flags: ignoreversion
-#endsub
-#for {I = 0; I < DimOf(QtLibsStyles); I++} QtLibsStyles_entry
+; #sub QtLibsStyles_entry
+; Source: "{#QtPath}\plugins\{#QtStylesDir}\{#QtLibsStyles[I]}.dll"; 				DestDir: "{app}\{#QtStylesDir}"; 		Flags: ignoreversion
+; #endsub
+; #for {I = 0; I < DimOf(QtLibsStyles); I++} QtLibsStyles_entry
 
 [Dirs]
 Name: "{app}\{#QtPlatformsDir}"; 	Flags: uninsalwaysuninstall
 Name: "{app}\{#QtImageformatsDir}"; Flags: uninsalwaysuninstall
-Name: "{app}\{#QtStylesDir}"; 		Flags: uninsalwaysuninstall
+; Name: "{app}\{#QtStylesDir}"; 		Flags: uninsalwaysuninstall

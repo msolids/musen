@@ -11,14 +11,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="ExportAsTextTab.h"></QtMoc>
-    <QtMoc Include="FileMergerTab.h"></QtMoc>
-    <QtMoc Include="FileConverterTab.h"></QtMoc>
-    <QtMoc Include="ClearSpecificTPTab.h"></QtMoc>
-    <QtMoc Include="ViewOptionsTab.h"></QtMoc>
-    <QtMoc Include="TimeSliderTab.h"></QtMoc>
+    <QtMoc Include="ExportAsTextTab.h">
+    </QtMoc>
+    <QtMoc Include="FileMergerTab.h">
+    </QtMoc>
+    <QtMoc Include="FileConverterTab.h">
+    </QtMoc>
+    <QtMoc Include="ClearSpecificTPTab.h">
+    </QtMoc>
+    <QtMoc Include="ViewOptionsTab.h">
+    </QtMoc>
+    <QtMoc Include="TimeSliderTab.h">
+    </QtMoc>
     <QtMoc Include="MUSENMainWindow.h" />
-    <QtMoc Include="ImageGeneratorTab.h"></QtMoc>
+    <QtMoc Include="ImageGeneratorTab.h">
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutWindow.cpp" />
@@ -35,28 +42,36 @@
   <ItemGroup>
     <QtUic Include="AboutWindow.ui" />
     <QtUic Include="CameraSettings.ui" />
-    <QtUic Include="ImageGeneratorTab.ui"></QtUic>
+    <QtUic Include="ImageGeneratorTab.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="MUSENMainWindow.ui"></QtUic>
+    <QtUic Include="MUSENMainWindow.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="TimeSliderTab.ui"></QtUic>
+    <QtUic Include="TimeSliderTab.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="ViewOptions.ui"></QtUic>
+    <QtUic Include="ViewOptions.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="ExportAsTextTab.ui"></QtUic>
+    <QtUic Include="ExportAsTextTab.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="FileMergerTab.ui"></QtUic>
+    <QtUic Include="FileMergerTab.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="FileConverterTab.ui"></QtUic>
+    <QtUic Include="FileConverterTab.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="ClearSpecificTPTab.ui"></QtUic>
+    <QtUic Include="ClearSpecificTPTab.ui">
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="CameraSettings.h" />
@@ -91,17 +106,18 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(QtMsBuild)\qt_defaults.props" Condition="Exists('$(QtMsBuild)\qt_defaults.props')" />
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
-    <QtModules>core;gui;opengl;widgets</QtModules>
+    <QtInstall>qt_msvc_musen</QtInstall>
+    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
-    <QtModules>core;gui;opengl;widgets</QtModules>
+    <QtInstall>qt_msvc_musen</QtInstall>
+    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') OR !Exists('$(QtMsBuild)\Qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
   </Target>
-  <ImportGroup Label="ExtensionSettings"></ImportGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="..\..\PropertySheets\MusenCommonQtPath.props" />
     <Import Project="..\..\PropertySheets\MusenCommonDebug.props" />
@@ -153,5 +169,6 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />
-  <ImportGroup Label="ExtensionTargets"></ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
 </Project>

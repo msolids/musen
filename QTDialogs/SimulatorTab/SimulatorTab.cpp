@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "SimulatorTab.h"
 #include "SelectiveSavingTab.h"
@@ -78,7 +78,11 @@ void CSimulatorTab::InitializeConnections() const
 	connect(ui.savingStep,         &QLineEdit::editingFinished,                         this, &CSimulatorTab::SetParameters);
 	connect(ui.endTime,            &QLineEdit::editingFinished,                         this, &CSimulatorTab::SetParameters);
 	connect(ui.accelerationTable,  &QTableWidget::itemChanged,                          this, &CSimulatorTab::SetParameters);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxCollisions, &QCheckBox::checkStateChanged,                       this, &CSimulatorTab::SetParameters);
+#else
 	connect(ui.checkBoxCollisions, &QCheckBox::stateChanged,                            this, &CSimulatorTab::SetParameters);
+#endif
 	connect(ui.comboSimulatorType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &CSimulatorTab::SetParameters);
 
 	// signals about selective saving

@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "MaterialsDatabaseTab.h"
 #include "qtOperations.h"
@@ -317,7 +317,11 @@ void CMaterialsDatabaseTab::CompoundColorChanged()
 	if (m_bAvoidSignal) return;
 	CCompound* pCompound = m_pMaterialsDB->GetCompound(GetElementKey(ui.listCompounds));
 	if (!pCompound) return;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	float r, g, b, f;
+#else
 	qreal r, g, b, f;
+#endif
 	ui.widgetColorView->getColor().getRgbF(&r, &g, &b, &f);
 	pCompound->SetColor(r, g, b, f);
 

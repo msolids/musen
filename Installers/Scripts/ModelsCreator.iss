@@ -87,10 +87,10 @@ Source: "{#QtPath}\plugins\{#QtPlatformsDir}\{#QtLibsPlatforms[I]}d.dll"; 		Dest
 Source: "{#QtPath}\plugins\{#QtImageformatsDir}\{#QtLibsImageFormats[I]}d.dll";	DestDir: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtImageformatsDir}"; Flags: ignoreversion
 #endsub
 #for {I = 0; I < DimOf(QtLibsImageFormats); I++} QtLibsImageFormatsd_entry
-#sub QtLibsStylesd_entry
-Source: "{#QtPath}\plugins\{#QtStylesDir}\{#QtLibsStyles[I]}d.dll";				DestDir: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtStylesDir}"; 		Flags: ignoreversion
-#endsub
-#for {I = 0; I < DimOf(QtLibsStyles); I++} QtLibsStylesd_entry
+; #sub QtLibsStylesd_entry
+; Source: "{#QtPath}\plugins\{#QtStylesDir}\{#QtLibsStyles[I]}d.dll";				DestDir: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtStylesDir}"; 		Flags: ignoreversion
+; #endsub
+; #for {I = 0; I < DimOf(QtLibsStyles); I++} QtLibsStylesd_entry
 
 [Dirs]
 ; Main directory
@@ -117,7 +117,7 @@ Name: "{#ModelsCreatorDir}\PropertySheets";								Flags: uninsalwaysuninstall
 Name: "{#ModelsCreatorDir}\{#DebugExeDir}"; 							Flags: uninsalwaysuninstall
 Name: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtPlatformsDir}"; 			Flags: uninsalwaysuninstall
 Name: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtImageformatsDir}";		Flags: uninsalwaysuninstall
-Name: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtStylesDir}";				Flags: uninsalwaysuninstall
+; Name: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtStylesDir}";				Flags: uninsalwaysuninstall
 
 [Code]
 // Replaces all lines that contain Tag with Value

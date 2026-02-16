@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "ConfigurationTab.h"
 #include "TexturePicker.h"
@@ -32,9 +32,15 @@ void CConfigurationTab::InitializeConnections() const
 	connect(ui.pushButtonPartTexturePick,	 &QPushButton::clicked,  this, &CConfigurationTab::PickPartTexture);
 
 	// visibility settings
-	connect(ui.checkBoxShowAxes,         &QCheckBox::stateChanged, this, &CConfigurationTab::ShowAxesToggled);
-	connect(ui.checkBoxShowTime,         &QCheckBox::stateChanged, this, &CConfigurationTab::ShowTimeToggled);
-	connect(ui.checkBoxShowLegend,       &QCheckBox::stateChanged, this, &CConfigurationTab::ShowLegendToggled);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxShowAxes,   &QCheckBox::checkStateChanged, this, &CConfigurationTab::ShowAxesToggled);
+	connect(ui.checkBoxShowTime,   &QCheckBox::checkStateChanged, this, &CConfigurationTab::ShowTimeToggled);
+	connect(ui.checkBoxShowLegend, &QCheckBox::checkStateChanged, this, &CConfigurationTab::ShowLegendToggled);
+#else
+	connect(ui.checkBoxShowAxes,   &QCheckBox::stateChanged, this, &CConfigurationTab::ShowAxesToggled);
+	connect(ui.checkBoxShowTime,   &QCheckBox::stateChanged, this, &CConfigurationTab::ShowTimeToggled);
+	connect(ui.checkBoxShowLegend, &QCheckBox::stateChanged, this, &CConfigurationTab::ShowLegendToggled);
+#endif
 
 	// fonts
 	connect(ui.toolButtonFontAxes,   &QToolButton::clicked, this, &CConfigurationTab::OnAxisFontChange);
@@ -47,7 +53,11 @@ void CConfigurationTab::InitializeConnections() const
 	connect(ui.widgetColorLegend, &CColorView::ColorChanged, this, &CConfigurationTab::OnLegendColorChange);
 
 	// system
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxAskTDData, &QCheckBox::checkStateChanged, this, &CConfigurationTab::OnAskTDDataChange);
+#else
 	connect(ui.checkBoxAskTDData, &QCheckBox::stateChanged, this, &CConfigurationTab::OnAskTDDataChange);
+#endif
 
 	// buttons
 	connect(ui.buttonClose, &QPushButton::clicked, this, &CConfigurationTab::accept);

@@ -32,9 +32,9 @@ jobs:
         # If cached, only install essential build tools and set environmental variables.
         cache-key-prefix: 'cache-qt'
         # Version of Qt to install.
-        version: 5.15.2
+        version: 6.10.2
         # Architecture.
-        arch: win64_msvc2019_64
+        arch: win64_msvc2022_64
         # Directory to install.
         dir: ${{github.workspace}}/ExternalLibraries/qt
         # Whether or not to automatically run setup-python to find a valid python version.

@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "SceneEditorTab.h"
 #include "QtSignalBlocker.h"
@@ -30,10 +30,15 @@ CSceneEditorTab::CSceneEditorTab(QWidget *parent /*= 0*/) : CMusenDialog(parent)
 
 	connect(ui.groupBoxPBC,		&QGroupBox::toggled, this, &CSceneEditorTab::SetPBC);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxPBCX, &QCheckBox::checkStateChanged, this, &CSceneEditorTab::SetPBC);
+	connect(ui.checkBoxPBCY, &QCheckBox::checkStateChanged, this, &CSceneEditorTab::SetPBC);
+	connect(ui.checkBoxPBCZ, &QCheckBox::checkStateChanged, this, &CSceneEditorTab::SetPBC);
+#else
 	connect(ui.checkBoxPBCX, &QCheckBox::stateChanged, this, &CSceneEditorTab::SetPBC);
 	connect(ui.checkBoxPBCY, &QCheckBox::stateChanged, this, &CSceneEditorTab::SetPBC);
 	connect(ui.checkBoxPBCZ, &QCheckBox::stateChanged, this, &CSceneEditorTab::SetPBC);
-
+#endif
 	connect(ui.lineEditPBCMinX, &QLineEdit::editingFinished, this, &CSceneEditorTab::SetPBC);
 	connect(ui.lineEditPBCMinY, &QLineEdit::editingFinished, this, &CSceneEditorTab::SetPBC);
 	connect(ui.lineEditPBCMinZ, &QLineEdit::editingFinished, this, &CSceneEditorTab::SetPBC);
@@ -44,8 +49,13 @@ CSceneEditorTab::CSceneEditorTab(QWidget *parent /*= 0*/) : CMusenDialog(parent)
 	connect(ui.lineEditVelocityY, &QLineEdit::editingFinished, this, &CSceneEditorTab::SetPBC);
 	connect(ui.lineEditVelocityZ, &QLineEdit::editingFinished, this, &CSceneEditorTab::SetPBC);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxAnisotropy   , &QCheckBox::checkStateChanged, this, &CSceneEditorTab::SetAnisotropy);
+	connect(ui.checkBoxContactRadius, &QCheckBox::checkStateChanged, this, &CSceneEditorTab::SetContactRadius);
+#else
 	connect(ui.checkBoxAnisotropy, &QCheckBox::stateChanged, this, &CSceneEditorTab::SetAnisotropy);
 	connect(ui.checkBoxContactRadius, &QCheckBox::stateChanged, this, &CSceneEditorTab::SetContactRadius);
+#endif
 	connect(ui.buttonResetBonds, &QPushButton::clicked, this, &CSceneEditorTab::ResetBonds);
 }
 

@@ -15,7 +15,7 @@ A fully functional version can be compiled and built with Microsoft Visual Studi
 
 ## Requirements on Windows
 - [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)
-- [Qt 5.15.2 msvc2019_64](https://download.qt.io/archive/online_installers/4.0/)
+- [Qt 6.X.X msvc2022](https://download.qt.io/archive/online_installers/4.0/)
 - [Qt Visual Studio Tools for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools2022)
 - [CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Windows&target_arch=x86_64)
 - [Git](https://git-scm.com/downloads)
@@ -27,14 +27,14 @@ A fully functional version can be compiled and built with Microsoft Visual Studi
 	
 	1.1. Microsoft Visual Studio: select "Desktop Development with C++" when choosing what components to install.
 	
-	1.2. Qt: You will need to create a free Qt-account to run installation. When selecting components, choose Qt → Qt 5.15.2 → MSVC 2019 64-bit. 
+	1.2. Qt: You will need to create a free Qt-account to run installation. When selecting components, choose Qt → Qt 6.X.X → MSVC 2022. 
 	
 	1.3. CUDA: Download the specified version of CUDA and install the configuration proposed by the setup utility.
 	
 	1.4. Use the last available version of CMake and select the option "Add to system path" if available during installation.
 	
 	1.5. Use the last available version of Git.
-2. Setup Qt Visual Studio Tools extension to point to the installed Qt libraries. In Visual Studio, go to Extensions → Qt VS Tools → Qt Options → Add → ... → Navigate in the Qt installation directory to `X:/path/to/Qt/5.15.2/msvc2019_64` → OK.
+2. Setup Qt Visual Studio Tools extension to point to the installed Qt libraries. In Visual Studio, go to Extensions → Qt VS Tools → Qt Versions → add new Qt version → … → Navigate in the Qt installation directory to Qt/6.x.x/msvc2022_64/ → rename Version to qt_msvc_musen → OK.
 3. Prepare third-party statically linked libraries: zlib, protobuf. To do this, navigate to `X:/path/to/msolids/MUSEN/ExternalLibraries/` and execute files `RunZLibCompile.bat` and `RunProtobufCompile.bat`. They will download and build all the required libraries by executing files `CompileZLib.ps1`, `CompileProtobuf.ps1`.
 4. Open `X:/path/to/msolids/MUSEN/MUSEN/musen.sln` file with Visual Studio and build the solution.
 

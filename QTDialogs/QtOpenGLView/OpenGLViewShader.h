@@ -4,15 +4,17 @@
 
 #pragma once
 
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
+#include <QOpenGLFunctions>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QOpenGLVertexArrayObject>
+#include <QOpenGLWidget>
 #include <QPainter>
-#include "SystemStructure.h"
+#include <QQuaternion>
+
 #include "BaseGLView.h"
+#include "SystemStructure.h"
 
 class COpenGLViewShader : public QOpenGLWidget, protected QOpenGLFunctions, public CBaseGLView
 {

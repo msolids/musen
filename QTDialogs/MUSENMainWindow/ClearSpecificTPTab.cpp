@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "ClearSpecificTPTab.h"
 #include "qtOperations.h"
@@ -43,9 +43,9 @@ CClearSpecificTPTab::CClearSpecificTPTab(QWidget *parent): CMusenDialog(parent)
 	ui.progressBar->setValue(0);
 
 	// Regular expression for floating point numbers
-	QRegExp regExp("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
+	QRegularExpression regExp("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
 	// Set regular expression for limitation of input in qlineEdits
-	ui.lineEditTimeStep->setValidator(new QRegExpValidator(regExp, this));
+	ui.lineEditTimeStep->setValidator(new QRegularExpressionValidator(regExp, this));
 
 	InitializeConnections();
 }

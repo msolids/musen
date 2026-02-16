@@ -10,6 +10,7 @@
 #include "AgglomOpenGLView.h"
 #include "UnitConvertor.h"
 #include "GeneralMUSENDialog.h"
+#include <QComboBox>
 
 class CInsertAgglomTab : public CMusenDialog
 {

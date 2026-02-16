@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "SelectiveSavingTab.h"
 
@@ -17,6 +17,15 @@ void CSelectiveSavingTab::InitializeConnections() const
 	connect(ui.pushButtonOk, &QPushButton::clicked, this, &CSelectiveSavingTab::accept);
 	// particles
 	connect(ui.groupBoxPropertiesP,   &QGroupBox::toggled,		this, &CSelectiveSavingTab::SetParameters);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxCoordinates,	  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxVelocity,	  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxAngVelocity,	  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxForce,		  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxQuaternion,	  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxTensor,		  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxTemperature,	  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+#else
 	connect(ui.checkBoxCoordinates,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxVelocity,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxAngVelocity,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
@@ -24,20 +33,37 @@ void CSelectiveSavingTab::InitializeConnections() const
 	connect(ui.checkBoxQuaternion,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxTensor,		  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxTemperature,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
+#endif
 	// solid bonds
 	connect(ui.groupBoxPropertiesSB,  &QGroupBox::toggled,		this, &CSelectiveSavingTab::SetParameters);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxSBForce,		  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxSBTangOverlap, &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxSBTotTorque,	  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+#else
 	connect(ui.checkBoxSBForce,		  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxSBTangOverlap, &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxSBTotTorque,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
+#endif
 	// liquid bonds
 	connect(ui.groupBoxPropertiesLB,  &QGroupBox::toggled,		this, &CSelectiveSavingTab::SetParameters);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxLBForce,		  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+#else
 	connect(ui.checkBoxLBForce,		  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
+#endif
 	// triangular walls
 	connect(ui.groupBoxPropertiesTW,  &QGroupBox::toggled,		this, &CSelectiveSavingTab::SetParameters);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxTWCoordinates, &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxTWForce,		  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+	connect(ui.checkBoxTWVelocity,	  &QCheckBox::checkStateChanged, this, &CSelectiveSavingTab::SetParameters);
+#else
 	connect(ui.checkBoxTWCoordinates, &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxTWForce,		  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
 	connect(ui.checkBoxTWVelocity,	  &QCheckBox::stateChanged, this, &CSelectiveSavingTab::SetParameters);
-}
+#endif
+	}
 
 void CSelectiveSavingTab::UpdateWholeView()
 {

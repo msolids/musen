@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "SimulatorSettingsTab.h"
 
@@ -11,15 +11,20 @@ CSimulatorSettingsTab::CSimulatorSettingsTab(CSimulatorManager* _pSimulatorManag
 	ui.setupUi(this);
 
 	// regular expression for floating point numbers
-	const QRegExp regExpFloat("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
+	const QRegularExpression regExpFloat("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
 	// set regular expression for limitation of input in QLineEdits
-	ui.lineEditVerletCoeff->setValidator(new QRegExpValidator(regExpFloat, this));
-	ui.lineEditPartVelocityLimit->setValidator(new QRegExpValidator(regExpFloat, this));
+	ui.lineEditVerletCoeff->setValidator(new QRegularExpressionValidator(regExpFloat, this));
+	ui.lineEditPartVelocityLimit->setValidator(new QRegularExpressionValidator(regExpFloat, this));
 
 	connect(ui.listCPU,					&QListWidget::itemChanged,   this, &CSimulatorSettingsTab::ThreadPoolChanged);
 	connect(ui.buttonBox,				&QDialogButtonBox::accepted, this, &CSimulatorSettingsTab::AcceptChanges);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxStopBrokenBonds, &QCheckBox::checkStateChanged, [this](int _state) { ui.lineEditBrokenBonds->setEnabled(_state == Qt::CheckState::Checked); });
+	connect(ui.checkBoxPartVelocityLimit, &QCheckBox::checkStateChanged, [this](int _state) { ui.lineEditPartVelocityLimit->setEnabled(_state == Qt::CheckState::Checked); });
+#else
 	connect(ui.checkBoxStopBrokenBonds, &QCheckBox::stateChanged, [=](int _state) { ui.lineEditBrokenBonds->setEnabled(_state == Qt::CheckState::Checked); });
 	connect(ui.checkBoxPartVelocityLimit, &QCheckBox::stateChanged, [this](int _state) { ui.lineEditPartVelocityLimit->setEnabled(_state == Qt::CheckState::Checked); });
+#endif
 }
 
 void CSimulatorSettingsTab::UpdateWholeView()

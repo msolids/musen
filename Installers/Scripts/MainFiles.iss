@@ -22,4 +22,4 @@ Source: "{#SolutionDir}\LICENSE"; 								DestDir: "{app}\Licenses"; 								Fla
 [Dirs]
 Name: "{#DatabasesDirDst}"; 	Flags: uninsalwaysuninstall
 Name: "{app}\Licenses"; 		Flags: uninsalwaysuninstall
-Name: "{app}\styles"; 			Flags: uninsalwaysuninstall
+; Name: "{app}\styles"; 			Flags: uninsalwaysuninstall

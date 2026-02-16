@@ -3,7 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 attribute vec3 SphereCoordinate;
-attribute vec3 SphereRadius;
+attribute float SphereRadius;
 attribute vec3 SphereColor;
 
 uniform float SphereScale;   // scale to calculate size in pixels

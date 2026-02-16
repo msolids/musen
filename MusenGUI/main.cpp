@@ -4,21 +4,39 @@
 
 #include "MUSENMainWindow.h"
 #include "BuildVersion.h"
-#include <QtWidgets/QApplication>
+#include <QApplication>
+#include <QStyleFactory>
 
 //#define TUHH_DOMAIN_MEMBER
 
 int main(int argc, char *argv[])
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #ifdef _WIN32
 	SetProcessDPIAware(); // deals with some high-DPI issues. maybe
+#endif
 #endif
 
 	srand(time(nullptr));
 
 	QApplication app(argc, argv);
 
+#ifdef _MSC_VER
+	// force Qt6 to look in ./styles folder for style libraries
+	QCoreApplication::addLibraryPath(QCoreApplication::applicationDirPath() + "/styles");
+
+	const QStringList available = QStyleFactory::keys();
+	if (available.contains("windowsvista", Qt::CaseInsensitive))
+		QApplication::setStyle("windowsvista");
+	else if (available.contains("fusion", Qt::CaseInsensitive))
+		QApplication::setStyle("fusion");
+	else if (available.contains("windows11", Qt::CaseInsensitive))
+		QApplication::setStyle("windows11");
+#endif
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	qRegisterMetaTypeStreamOperators<QList<int>>("QList<int>");
+#endif
 
 	QSurfaceFormat format;
 	format.setDepthBufferSize(24);
@@ -35,7 +53,7 @@ int main(int argc, char *argv[])
 	const QFileInfo styleInfo("." + stylePath);
 	const QString styleFullPath = styleInfo.exists() && styleInfo.isFile() ? "." + stylePath : QCoreApplication::applicationDirPath() + stylePath;
 	QFile styleFile(styleFullPath);
-	styleFile.open(QFile::ReadOnly);
+	const bool success = styleFile.open(QFile::ReadOnly);
 	const QString StyleSheet = QLatin1String(styleFile.readAll());
 	app.setStyleSheet(StyleSheet);
 

@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team. 
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "ColorView.h"
 #include <QPainter>
@@ -33,9 +33,15 @@ QColor CColorView::getColor() const
 
 CColor CColorView::getColor2() const
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	float r, g, b, f;
+	m_actualColor.getRgbF(&r, &g, &b, &f);
+	return { r, g, b, f };
+#else
 	qreal r, g, b, f;
 	m_actualColor.getRgbF(&r, &g, &b, &f);
 	return {static_cast<float>(r), static_cast<float>(g), static_cast<float>(b), static_cast<float>(f)};
+#endif
 }
 
 void CColorView::paintEvent(QPaintEvent* _event)

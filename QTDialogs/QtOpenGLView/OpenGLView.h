@@ -1,20 +1,24 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #pragma once
 
-#include <QGLWidget>
-#include <GL/glu.h>
-#include <QtOpenGL>
 #include <QImage>
-#include "SystemStructure.h"
+#include <QOpenGLWidget>
+#ifdef _WIN32
+#include <Windows.h>
+#include <GL/gl.h>
+#endif
+#include <GL/glu.h>
+
 #include "BaseGLView.h"
+#include "SystemStructure.h"
 #include "ViewSettings.h"
 
 class CSampleAnalyzerTab;
 
-class COpenGLView : public QGLWidget, public CBaseGLView
+class COpenGLView : public QOpenGLWidget, public CBaseGLView
 {
 	Q_OBJECT
 
@@ -142,4 +146,6 @@ private:
 
 	// Sets new viewport according to given parameters and updates perspective projection matrix accordingly.
 	void UpdatePerspective() override;
+
+	void qglColor(const QColor& _color) const;
 };

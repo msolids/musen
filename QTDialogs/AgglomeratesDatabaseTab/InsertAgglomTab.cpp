@@ -1,8 +1,10 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "InsertAgglomTab.h"
+#include <QComboBox>
+
 CInsertAgglomTab::CInsertAgglomTab(QWidget *parent) : CMusenDialog(parent)
 {
 	ui.setupUi(this);

@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "MaterialsDatabaseLocalTab.h"
 #include "qtOperations.h"
@@ -83,8 +83,13 @@ void CMaterialsDatabaseLocalTab::AddCompound(int _iCompound)
 		QMessageBox msgBox(QMessageBox::Question, tr("Add compound"),
 			tr("A compound '%1' with such a key is already added. Do you want to add a new compound as a copy or to overwrite an existing compound with properties from the database?").arg(ss2qs(m_pMaterialsDB->GetCompoundName(sBaseKey))),
 			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+		msgBox.addButton(tr("Copy"), QMessageBox::ButtonRole::YesRole);
+		msgBox.addButton(tr("Overwrite"), QMessageBox::ButtonRole::NoRole);
+#else
 		msgBox.setButtonText(QMessageBox::Yes, tr("Copy"));
 		msgBox.setButtonText(QMessageBox::No, tr("Overwrite"));
+#endif
 		int reply = msgBox.exec();
 
 		if (reply == QMessageBox::Yes)		// add a copy
@@ -120,8 +125,13 @@ void CMaterialsDatabaseLocalTab::AddMixture(int _iMixture)
 		QMessageBox msgBox(QMessageBox::Question, tr("Add Mixture"),
 			tr("A mixture '%1' with such a key is already added. Do you want to add a new mixture as a copy or to overwrite an existing mixture with properties from the database?").arg(ss2qs(m_pMaterialsDB->GetMixtureName(sBaseKey))),
 			QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+		msgBox.addButton(tr("Copy"), QMessageBox::ButtonRole::YesRole);
+		msgBox.addButton(tr("Overwrite"), QMessageBox::ButtonRole::NoRole);
+#else
 		msgBox.setButtonText(QMessageBox::Yes, tr("Copy"));
 		msgBox.setButtonText(QMessageBox::No, tr("Overwrite"));
+#endif
 		int reply = msgBox.exec();
 
 		if (reply == QMessageBox::Yes)		// add a copy

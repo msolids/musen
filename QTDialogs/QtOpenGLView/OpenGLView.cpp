@@ -1,23 +1,38 @@
-﻿/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+﻿/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "OpenGLView.h"
+
+#include <QDebug>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QWheelEvent>
+
 #include "AgglomeratesAnalyzer.h"
 #include "SampleAnalyzerTab.h"
 
 COpenGLView::COpenGLView(CViewSettings* _viewSettings, QWidget* _parent) :
-	QGLWidget(QGLFormat(QGL::SampleBuffers), _parent),
+	QOpenGLWidget(_parent),
 	m_viewSettings{ _viewSettings }
 {
+	QSurfaceFormat fmt;
+	fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
+	fmt.setVersion(2, 0);
+	setFormat(fmt);
+
 	COpenGLView::SetRenderQuality(100);
 }
 
 COpenGLView::COpenGLView(const CBaseGLView& _other, CViewSettings* _viewSettings, QWidget* _parent) :
-	QGLWidget(QGLFormat(QGL::SampleBuffers), _parent),
+	QOpenGLWidget(_parent),
 	CBaseGLView(_other),
 	m_viewSettings{ _viewSettings }
 {
+	QSurfaceFormat fmt;
+	fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
+	fmt.setVersion(2, 0);
+	setFormat(fmt);
 }
 
 COpenGLView::~COpenGLView()
@@ -59,8 +74,9 @@ void COpenGLView::UpdatePerspective()
 {
 	// calculate aspect ratio
 	m_viewport.aspect = static_cast<float>(m_windowSize.width()) / static_cast<float>(m_windowSize.height() != 0 ? m_windowSize.height() : 1);
+	const auto dpr = devicePixelRatioF();
 	// changing viewport size to match the new size of the window:
-	glViewport(0, 0, m_windowSize.width(), m_windowSize.height());
+	glViewport(0, 0, static_cast<GLsizei>(m_windowSize.width() * dpr), static_cast<GLsizei>(m_windowSize.height() * dpr));
 	// changing the projection matrix to match the new size of the window:
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -599,8 +615,13 @@ void COpenGLView::SetColorGL(const CColor& _color)
 
 void COpenGLView::mouseMoveEvent(QMouseEvent *event)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	const float dx = (event->position().x() - m_lastMousePos.x()) / static_cast<float>(m_windowSize.height());
+	const float dy = (event->position().y() - m_lastMousePos.y()) / static_cast<float>(m_windowSize.width());
+#else
 	const float dx = (event->x() - m_lastMousePos.x()) / static_cast<float>(m_windowSize.height());
 	const float dy = (event->y() - m_lastMousePos.y()) / static_cast<float>(m_windowSize.width());
+#endif
 
 	if ((event->buttons() & Qt::LeftButton) && (event->modifiers() & Qt::ShiftModifier))
 	{
@@ -663,7 +684,7 @@ void COpenGLView::SetCurrentTime(double _dTime)
 void COpenGLView::RedrawScene()
 {
 	//repaint();
-	updateGL();
+	update();
 }
 
 SBox COpenGLView::WinCoord2LineOfSight(const QPoint& _pos) const
@@ -701,7 +722,7 @@ QImage COpenGLView::Snapshot(uint8_t _scaling)
 	resize(oldSize * m_scaling);
 	repaint();
 	// get current image
-	QImage image = grabFrameBuffer();
+	QImage image = grabFramebuffer();
 	// draw text
 	QPainter painter(&image);
 	painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
@@ -1020,3 +1041,7 @@ void COpenGLView::DrawTriangularPlane(const CTriangle& _triangle, const CVector3
 	glEnd();
 }
 
+void COpenGLView::qglColor(const QColor& _color) const
+{
+	glColor4f(_color.redF(), _color.greenF(), _color.blueF(), _color.alphaF());
+}

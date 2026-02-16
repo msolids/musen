@@ -1048,7 +1048,8 @@ void CObjectsEditorTab::SaveConfiguration() const
 		for (const auto& field : _dataFields)
 			if (field.active)
 				activeTypes.append(static_cast<int>(field.type));
-		m_settings->setValue(_key, QVariant::fromValue(activeTypes));
+		QVariantList variantList(activeTypes.begin(), activeTypes.end());
+		m_settings->setValue(_key, QVariant::fromValue(variantList));
 	};
 
 	m_settings->setValue(c_AUTO_UPDATE       , m_autoUpdate);
@@ -1064,7 +1065,10 @@ void CObjectsEditorTab::LoadConfiguration()
 	{
 		if (m_settings->value(_key).isValid())
 		{
-			const QList<int>& activeTypes = m_settings->value(_key).value<QList<int>>();
+			const QList<QVariant> variantList = m_settings->value(_key).toList();
+			QList<int> activeTypes;
+			for (const QVariant& var : variantList)
+				activeTypes.append(var.toInt());
 			for (auto& field : _dataFields)
 				field.active = activeTypes.contains(static_cast<int>(field.type));
 		}

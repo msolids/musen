@@ -1,19 +1,20 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #pragma once
-#include <QGLWidget>
-#include <QWheelEvent>
-#include <GL/glu.h>
+#include <QOpenGLWidget>
 #include <QtOpenGL>
-#include <QImage>
-#include <QPainter>
-#include <QGLFunctions>
-#include "qtOperations.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#include <GL/gl.h>
+#endif
+#include <GL/glu.h>
+
 #include "AgglomeratesDatabase.h"
 
-class CAgglomOpenGLView : public  QGLWidget
+class CAgglomOpenGLView : public  QOpenGLWidget
 {
 	 Q_OBJECT
 

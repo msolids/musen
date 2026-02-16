@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "QtTable.h"
 #include <QApplication>
@@ -101,7 +101,7 @@ void CQtTable::Paste()
 {
 	const bool block = blockSignals(m_bBlockingPaste);
 	const QString selectedText = QApplication::clipboard()->text();
-	QStringList rows = selectedText.split(QRegExp(QLatin1String("\n")));
+	QStringList rows = selectedText.split(QRegularExpression(QLatin1String("\n")));
 	while (!rows.isEmpty() && rows.back().isEmpty())
 		rows.pop_back();
 
@@ -109,7 +109,7 @@ void CQtTable::Paste()
 	const int firstRow = indexes.count() ? indexes.at(0).row()    : 0;
 	const int firstCol = indexes.count() ? indexes.at(0).column() : 0;
 
-	const int maxRow = std::min(rows.count(), rowCount() - firstRow);
+	const int maxRow = std::min(static_cast<int>(rows.count()), rowCount() - firstRow);
 	int rowsHidden = 0;
 	for (int iRow = 0; iRow < maxRow; ++iRow)
 	{
@@ -117,10 +117,10 @@ void CQtTable::Paste()
 			rowsHidden++;
 		const int iRealRow = iRow + firstRow + rowsHidden;
 
-		QStringList columns = rows[iRow].split(QRegExp("[\t ]"));
+		QStringList columns = rows[iRow].split(QRegularExpression("[\t ]"));
 		while (!columns.isEmpty() && columns.back().isEmpty())
 			columns.pop_back();
-		const int maxCol = std::min(columns.count(), columnCount() - firstCol);
+		const int maxCol = std::min(static_cast<int>(columns.count()), columnCount() - firstCol);
 		int colsHidden = 0;
 		for (int iCol = 0; iCol < maxCol; ++iCol)
 		{
@@ -435,8 +435,13 @@ QCheckBox* CQtTable::SetCheckBox(const int _row, const int _col, bool _checked /
 		widget->setLayout(layout);
 		checkBox->setChecked(_checked);
 		checkBox->setObjectName("CheckBox");
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+		connect(checkBox, &QCheckBox::checkStateChanged, this, [this, _row, _col, checkBox] { CheckBoxStateChanged(_row, _col, checkBox); });
+		connect(checkBox, &QCheckBox::checkStateChanged, this, [this, _row, _col] { setCurrentCell(_row, _col); });
+#else
 		connect(checkBox, &QCheckBox::stateChanged, this, [=] { CheckBoxStateChanged(_row, _col, checkBox); });
 		connect(checkBox, &QCheckBox::stateChanged, this, [=] { setCurrentCell(_row, _col); });
+#endif
 		setCellWidget(_row, _col, widget);
 	}
 	return checkBox;
@@ -444,7 +449,9 @@ QCheckBox* CQtTable::SetCheckBox(const int _row, const int _col, bool _checked /
 
 QCheckBox* CQtTable::GetCheckBox(int _row, int _col) const
 {
-	return cellWidget(_row, _col)->findChild<QCheckBox*>("CheckBox");
+	const auto* widget = cellWidget(_row, _col);
+	if (!widget) return {};
+	return widget->findChild<QCheckBox*>("CheckBox");
 }
 
 void CQtTable::SetCheckBoxChecked(int _row, int _col, bool _checked) const

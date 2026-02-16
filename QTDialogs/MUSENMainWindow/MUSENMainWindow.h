@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #pragma once
 
@@ -24,6 +24,7 @@
 #include "AgglomeratesAnalyzerTab.h"
 #include "GeometriesAnalyzerTab.h"
 //#include "CollisionsAnalyzerTab.h"
+
 #include "SimulatorTab.h"
 #include "MaterialsDatabaseLocalTab.h"
 #include "ExportAsTextTab.h"
@@ -34,6 +35,11 @@
 #include "ViewManager.h"
 #include "ViewOptionsTab.h"
 #include "CameraSettings.h"
+
+#include <QLockFile>
+#include <QMainWindow>
+#include <QMessageBox>
+#include <QSettings>
 
 #define MAX_RECENT_FILES 10
 #define RENDER_SPHERE_TEXTURE "RNDR_SPHERE_TEXTURE"
@@ -46,7 +52,7 @@ class MUSENMainWindow : public QMainWindow
 
 	static const QString m_sRecentFilesParamName;
 
-	Ui::MUSENMainWindowClass ui;
+	Ui::MusenGUIClass ui;
 
 	CSystemStructure m_SystemStructure;
 	CMaterialsDatabase m_MaterialsDB;

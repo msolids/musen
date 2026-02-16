@@ -1,6 +1,6 @@
-﻿/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+﻿/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "ExportAsTextTab.h"
 #include "qtOperations.h"
@@ -46,11 +46,11 @@ CExportAsTextTab::CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGe
 	ui.tabWidget->setEnabled(false);
 
 	// regular expression for positive floating point numbers
-	const QRegExp regExpPosFloat("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
+	const QRegularExpression regExpPosFloat("^[0-9]*[.]?[0-9]+(?:[eE][-+]?[0-9]+)?$");
 	// set regular expression for limitation of input in QLineEdits
-	ui.lineTimeStep->setValidator(new QRegExpValidator(regExpPosFloat, this));
-	ui.lineTimeBeg ->setValidator(new QRegExpValidator(regExpPosFloat, this));
-	ui.lineTimeEnd ->setValidator(new QRegExpValidator(regExpPosFloat, this));
+	ui.lineTimeStep->setValidator(new QRegularExpressionValidator(regExpPosFloat, this));
+	ui.lineTimeBeg ->setValidator(new QRegularExpressionValidator(regExpPosFloat, this));
+	ui.lineTimeEnd ->setValidator(new QRegularExpressionValidator(regExpPosFloat, this));
 
 	InitializeConnections();
 	m_sHelpFileName = "Users Guide/Export as text.pdf";
@@ -93,9 +93,15 @@ void CExportAsTextTab::InitializeConnections() const
 
 	// checkboxes
 	connect(ui.groupObjectType  , &QGroupBox::toggled     , this, &CExportAsTextTab::SetEnabledObjectWidgets);
-	connect(ui.checkTypeParts   , &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
-	connect(ui.checkTypeBonds   , &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
-	connect(ui.checkTypeWalls   , &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkTypeParts, &QCheckBox::checkStateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+	connect(ui.checkTypeBonds, &QCheckBox::checkStateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+	connect(ui.checkTypeWalls, &QCheckBox::checkStateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+#else
+	connect(ui.checkTypeParts, &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+	connect(ui.checkTypeBonds, &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+	connect(ui.checkTypeWalls, &QCheckBox::stateChanged, this, &CExportAsTextTab::SetEnabledTDWidgets);
+#endif
 
 	// time data
 	connect(ui.lineTimeBeg   , &QLineEdit::editingFinished, this, &CExportAsTextTab::UpdateTime);

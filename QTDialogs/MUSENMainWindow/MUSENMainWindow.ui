@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MUSENMainWindowClass</class>
+ <class>MusenGUIClass</class>
  <widget class="QMainWindow" name="MusenGUIClass">
   <property name="geometry">
    <rect>
@@ -20,7 +20,7 @@
    <string>MUSEN</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+   <iconset resource="../../MusenGUI/musengui.qrc">
     <normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</iconset>
   </property>
   <property name="iconSize">
@@ -30,9 +30,6 @@
    </size>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <property name="MainWidget" stdset="0">
-    <bool>true</bool>
-   </property>
    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,5">
     <property name="leftMargin">
      <number>4</number>
@@ -70,7 +67,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>23</height>
+     <height>33</height>
     </rect>
    </property>
    <property name="font">
@@ -232,7 +229,7 @@
     </size>
    </property>
    <property name="toolButtonStyle">
-    <enum>Qt::ToolButtonIconOnly</enum>
+    <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
    </property>
    <property name="floatable">
     <bool>false</bool>
@@ -262,7 +259,7 @@
   </widget>
   <action name="actionLoad">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/folderr.png</normaloff>:/MusenGUI/folderr.png</iconset>
    </property>
    <property name="text">
@@ -308,7 +305,7 @@
   </action>
   <action name="actionBondsGeneration">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/bondsGeneratorIco/bonds_generator.png</normaloff>:/bondsGeneratorIco/bonds_generator.png</iconset>
    </property>
    <property name="text">
@@ -376,7 +373,7 @@
   </action>
   <action name="actionNew">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/newPage.png</normaloff>:/MusenGUI/newPage.png</iconset>
    </property>
    <property name="text">
@@ -400,7 +397,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/save_button.png</normaloff>:/MusenGUI/save_button.png</iconset>
    </property>
    <property name="text">
@@ -421,7 +418,7 @@
   </action>
   <action name="actionExportToText">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/save_button_txt.png</normaloff>:/MusenGUI/save_button_txt.png</iconset>
    </property>
    <property name="text">
@@ -456,7 +453,7 @@
   </action>
   <action name="actionClearTimePoints">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/clock.png</normaloff>:/MusenGUI/Pictures/clock.png</iconset>
    </property>
    <property name="text">
@@ -522,7 +519,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/youtube_icon.png</normaloff>:/MusenGUI/Pictures/youtube_icon.png</iconset>
    </property>
    <property name="text">
@@ -568,7 +565,7 @@
   </action>
   <action name="actionDeleteAllParticles">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/deleteParticles.png</normaloff>:/MusenGUI/Pictures/deleteParticles.png</iconset>
    </property>
    <property name="text">
@@ -614,7 +611,7 @@
   </action>
   <action name="actionAgglomeratesDatabase">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/aggloIco.png</normaloff>:/MusenGUI/Pictures/aggloIco.png</iconset>
    </property>
    <property name="text">
@@ -646,7 +643,7 @@
   </action>
   <action name="actionGeometriesEditor">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/geomEditorIco.png</normaloff>:/MusenGUI/Pictures/geomEditorIco.png</iconset>
    </property>
    <property name="text">
@@ -664,7 +661,7 @@
   </action>
   <action name="actionStartSimulation">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/Play_Icon.png</normaloff>:/MusenGUI/Pictures/Play_Icon.png</iconset>
    </property>
    <property name="text">
@@ -766,7 +763,7 @@
   </action>
   <action name="actionSaveAs">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/save_as.png</normaloff>:/MusenGUI/Pictures/save_as.png</iconset>
    </property>
    <property name="text">
@@ -787,7 +784,7 @@
   </action>
   <action name="actionAutoCentrateView">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/autoCentrate.png</normaloff>:/MusenGUI/autoCentrate.png</iconset>
    </property>
    <property name="text">
@@ -883,7 +880,7 @@
   </action>
   <action name="actionAutoCentrateViewX">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/autoCentrateX.png</normaloff>:/MusenGUI/Pictures/autoCentrateX.png</iconset>
    </property>
    <property name="text">
@@ -895,7 +892,7 @@
   </action>
   <action name="actionAutoCentrateViewY">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/autoCentrateY.png</normaloff>:/MusenGUI/Pictures/autoCentrateY.png</iconset>
    </property>
    <property name="text">
@@ -907,7 +904,7 @@
   </action>
   <action name="actionAutoCentrateViewZ">
    <property name="icon">
-    <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+    <iconset resource="../../MusenGUI/musengui.qrc">
      <normaloff>:/MusenGUI/Pictures/autoCentrateZ.png</normaloff>:/MusenGUI/Pictures/autoCentrateZ.png</iconset>
    </property>
    <property name="text">
@@ -982,7 +979,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
 </ui>

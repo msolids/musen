@@ -1,11 +1,16 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "AgglomOpenGLView.h"
 
-CAgglomOpenGLView::CAgglomOpenGLView( QWidget *parent )	: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+CAgglomOpenGLView::CAgglomOpenGLView( QWidget *parent )	: QOpenGLWidget(parent)
 {
+	QSurfaceFormat fmt;
+	fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
+	fmt.setVersion(2, 0);
+	setFormat(fmt);
+
 	//camera position :
 	m_pCameraTranslation[ 0 ] = 0.0f;
 	m_pCameraTranslation[ 1 ] = 0.0f;
@@ -91,8 +96,9 @@ void CAgglomOpenGLView::SetupViewPort( int _nWidth, int _nHeight )
 	//// saving new width and height:
 	m_nWindowWidth = _nWidth;
 	m_nWindowHeight = _nHeight;
-	// changing viewport size to much the new size of the window:
-	glViewport( 0, 0, _nWidth, _nHeight );
+	// changing viewport size to match the new size of the window:
+	const auto dpr = devicePixelRatioF();
+	glViewport(0, 0, static_cast<GLsizei>(_nWidth * dpr), static_cast<GLsizei>(_nHeight * dpr));
 	// changing the projection matrix to much the new size of the window:
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
@@ -179,7 +185,6 @@ void CAgglomOpenGLView::AutoCentrateView()
 	m_pCameraRotation[2] = 0;
 
 	update();
-	updateGL();	// black magic to omit shading of first frame
 }
 
 void CAgglomOpenGLView::ZoomView( int _nZoomIn )
@@ -196,8 +201,13 @@ void CAgglomOpenGLView::wheelEvent( QWheelEvent * event )
 
 void CAgglomOpenGLView::mouseMoveEvent( QMouseEvent *event )
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	float dx = (event->position().x() - m_LastMousePos.x()) / (float)m_nWindowHeight;
+	float dy = (event->position().y() - m_LastMousePos.y()) / (float)m_nWindowWidth;
+#else
 	float dx = (event->x() - m_LastMousePos.x()) / (float)m_nWindowHeight;
 	float dy = (event->y() - m_LastMousePos.y()) / (float)m_nWindowWidth;
+#endif
 
 	if (( event->buttons() & Qt::LeftButton ) && ( event->modifiers() & Qt::ShiftModifier) )
 	{

@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "FileMergerTab.h"
 #include "qtOperations.h"
@@ -78,7 +78,11 @@ void CFileMergerTab::InitializeConnections()
 	connect(ui.lineEditOutputFilePath, &QLineEdit::editingFinished, this, &CFileMergerTab::EditOutputFileName);
 
 	// checkbox
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	connect(ui.checkBoxLoadFile, &QCheckBox::checkStateChanged, this, &CFileMergerTab::SetFlagOfLoadMergedFile);
+#else
 	connect(ui.checkBoxLoadFile, &QCheckBox::stateChanged, this, &CFileMergerTab::SetFlagOfLoadMergedFile);
+#endif
 
 	// timer
 	connect(&m_UpdateTimer, &QTimer::timeout, this, &CFileMergerTab::UpdateProgressInfo);

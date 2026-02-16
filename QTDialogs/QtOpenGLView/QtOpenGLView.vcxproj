@@ -21,13 +21,16 @@
     <ClCompile Include="ViewManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="OpenGLView.h"></QtMoc>
+    <QtMoc Include="OpenGLView.h">
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="OpenGLViewGlu.h"></QtMoc>
+    <QtMoc Include="OpenGLViewGlu.h">
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="OpenGLViewMixed.h"></QtMoc>
+    <QtMoc Include="OpenGLViewMixed.h">
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\MusenGUI\shaders\DiscFragCompatibility.glsl" />
@@ -67,7 +70,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseGLView.h" />
-    <QtMoc Include="EventMonitor.h"></QtMoc>
+    <QtMoc Include="EventMonitor.h">
+    </QtMoc>
     <ClInclude Include="OpenGLTypes.h" />
     <ClInclude Include="ViewSettings.h" />
     <ClInclude Include="OpenGLViewShader.h">
@@ -78,7 +82,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="ViewManager.h"></QtMoc>
+    <QtMoc Include="ViewManager.h">
+    </QtMoc>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DA8B8971-C00B-4629-AB99-A6AED2965E09}</ProjectGuid>
@@ -107,17 +112,18 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(QtMsBuild)\qt_defaults.props" Condition="Exists('$(QtMsBuild)\qt_defaults.props')" />
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
-    <QtModules>core;gui;opengl;widgets</QtModules>
+    <QtInstall>qt_msvc_musen</QtInstall>
+    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <QtInstall>msvc2019_64</QtInstall>
-    <QtModules>core;gui;opengl;widgets</QtModules>
+    <QtInstall>qt_msvc_musen</QtInstall>
+    <QtModules>core;gui;widgets;opengl;openglwidgets</QtModules>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') OR !Exists('$(QtMsBuild)\Qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
   </Target>
-  <ImportGroup Label="ExtensionSettings"></ImportGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="..\..\PropertySheets\MusenCommonQtPath.props" />
     <Import Project="..\..\PropertySheets\MusenCommonDebug.props" />
@@ -175,5 +181,6 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />
-  <ImportGroup Label="ExtensionTargets"></ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
 </Project>

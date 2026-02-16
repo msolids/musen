@@ -1,6 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
-   See LICENSE file for license and warranty information. */
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+ * Copyright (c) 2025, DyssolTEC GmbH.
+ * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "OpenGLViewShader.h"
 #include <QMouseEvent>
@@ -21,6 +21,11 @@ COpenGLViewShader::COpenGLViewShader(const CBaseGLView& _other, QWidget* _parent
 
 void COpenGLViewShader::Construct()
 {
+	QSurfaceFormat fmt;
+	fmt.setProfile(QSurfaceFormat::CoreProfile);
+	fmt.setVersion(3, 3);
+	setFormat(fmt);
+
 	// precalculate data for rendering of cylinders
 	m_bondPreData = PrecalculateCylinderData((c_LINES_PER_CYLINDER_MIN + c_LINES_PER_CYLINDER_MAX) / 2); // with default quality
 	m_arrwPreData = PrecalculateCylinderData(4); //
@@ -795,8 +800,13 @@ void COpenGLViewShader::mousePressEvent(QMouseEvent* _event)
 
 void COpenGLViewShader::mouseMoveEvent(QMouseEvent* _event)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	const float dx = static_cast<float>(_event->position().x() - m_lastMousePos.x()) / static_cast<float>(m_windowSize.height());
+	const float dy = static_cast<float>(_event->position().y() - m_lastMousePos.y()) / static_cast<float>(m_windowSize.width());
+#else
 	const float dx = static_cast<float>(_event->x() - m_lastMousePos.x()) / static_cast<float>(m_windowSize.height());
 	const float dy = static_cast<float>(_event->y() - m_lastMousePos.y()) / static_cast<float>(m_windowSize.width());
+#endif
 
 	if (_event->buttons() & Qt::LeftButton && _event->modifiers() & Qt::ShiftModifier)
 	{
@@ -922,8 +932,9 @@ void COpenGLViewShader::DrawParticles()
 	// disable blending of alpha channel
 	glDisable(GL_BLEND);
 
-	// scaling factor for particles sizes
-	const GLfloat scale = (static_cast<GLfloat>(m_windowSize.height()) > 0.0f ? static_cast<GLfloat>(m_windowSize.height()) : 1.0f) / std::tan(m_viewport.fovy * 0.5f * static_cast<GLfloat>(PI_180));
+	// scaling factor for particles sizes; use physical pixels for correct point sprite sizing on high-DPI displays
+	const GLfloat dprHeight = static_cast<GLfloat>(m_windowSize.height() * devicePixelRatioF());
+	const GLfloat scale = (dprHeight > 0.0f ? dprHeight : 1.0f) / std::tan(m_viewport.fovy * 0.5f * static_cast<GLfloat>(PI_180));
 
 	for (auto& shader : m_partProgram.shaders)
 	{

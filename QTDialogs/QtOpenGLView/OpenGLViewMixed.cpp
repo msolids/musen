@@ -9,12 +9,22 @@ const QString COpenGLViewMixed::m_csStandardSphereTexture = QString(":/MusenGUI/
 COpenGLViewMixed::COpenGLViewMixed(CViewSettings* _viewSettings, QWidget *_parent)
 	:COpenGLView(_viewSettings, _parent)
 {
+	QSurfaceFormat fmt;
+	fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
+	fmt.setVersion(2, 0);
+	setFormat(fmt);
+
 	m_sCurrTexture = m_csStandardSphereTexture;
 }
 
 COpenGLViewMixed::COpenGLViewMixed(const CBaseGLView& _other, CViewSettings* _viewSettings, QWidget* _parent) :
 	COpenGLView(_other, _viewSettings, _parent)
 {
+	QSurfaceFormat fmt;
+	fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
+	fmt.setVersion(2, 0);
+	setFormat(fmt);
+
 	m_sCurrTexture = m_csStandardSphereTexture;
 }
 
@@ -44,7 +54,9 @@ void COpenGLViewMixed::DrawParticles()
 
 	InitializeVBO();
 
-	const GLfloat spheresScale = static_cast<GLfloat>(m_windowSize.height()) / std::tan(m_viewport.fovy * 0.5f * static_cast<GLfloat>(PI_180));
+	// scaling factor for particles sizes; use physical pixels for correct point sprite sizing on high-DPI displays
+	const GLfloat dprHeight = static_cast<GLfloat>(m_windowSize.height() * devicePixelRatioF());
+	const GLfloat spheresScale = dprHeight / std::tan(m_viewport.fovy * 0.5f * static_cast<GLfloat>(PI_180));
 
 	m_MatrixProjection.setToIdentity();
 	m_MatrixProjection.perspective(m_viewport.fovy, m_viewport.aspect, m_viewport.zNear, m_viewport.zFar);
@@ -101,7 +113,6 @@ void COpenGLViewMixed::initializeGL()
 
 	InitializeShader();
 	InitializeTextures();
-
 }
 
 void COpenGLViewMixed::InitializeShader()
@@ -222,6 +233,9 @@ void COpenGLViewMixed::RecreateBuffer(QOpenGLBuffer* _pBuffer, const void* _pDat
 
 void COpenGLViewMixed::InitializeTextures(const QString& _sPath /*= ""*/)
 {
+	// ensure context is current
+	if (!context()) return;
+
 	QString sActualPath = _sPath.isEmpty() ? m_sCurrTexture : _sPath;
 
 	QImage image;
