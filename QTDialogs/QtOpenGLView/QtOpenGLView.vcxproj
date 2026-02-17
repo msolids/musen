@@ -37,6 +37,8 @@
     <None Include="..\..\MusenGUI\shaders\DiscFragCore.glsl" />
     <None Include="..\..\MusenGUI\shaders\DiscVertCompatibility.glsl" />
     <None Include="..\..\MusenGUI\shaders\DiscVertCore.glsl" />
+    <None Include="..\..\MusenGUI\shaders\ParticleGeomCompatibility.glsl" />
+    <None Include="..\..\MusenGUI\shaders\ParticleGeomCore.glsl" />
     <None Include="..\..\MusenGUI\shaders\VolumeFragCompatibility.glsl" />
     <None Include="..\..\MusenGUI\shaders\VolumeFragCore.glsl" />
     <None Include="..\..\MusenGUI\shaders\VolumeVertCompatibility.glsl" />

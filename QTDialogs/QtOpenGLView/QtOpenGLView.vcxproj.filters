@@ -159,6 +159,12 @@
     <None Include="..\..\MusenGUI\shaders\DiscVertCore.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\..\MusenGUI\shaders\ParticleGeomCore.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\MusenGUI\shaders\ParticleGeomCompatibility.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ViewSettings.h">
