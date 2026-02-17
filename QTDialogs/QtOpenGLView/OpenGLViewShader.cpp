@@ -3,6 +3,7 @@
  * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
 
 #include "OpenGLViewShader.h"
+#include <QFile>
 #include <QMouseEvent>
 #include "GeometricFunctions.h"
 
@@ -845,6 +846,11 @@ void COpenGLViewShader::InitShaders(SShaderBlock* _shaderBlock) const
 	{
 		// compile vertex shader
 		shader->program.addShaderFromSourceFile(QOpenGLShader::Vertex, fileNameSuffix + (isCore ? "VertCore.glsl" : "VertCompatibility.glsl"));
+
+		// compile geometry shader
+		const QString geomFile = fileNameSuffix + (isCore ? "GeomCore.glsl" : "GeomCompatibility.glsl");
+		if (QFile::exists(geomFile))
+			shader->program.addShaderFromSourceFile(QOpenGLShader::Geometry, geomFile);
 
 		// compile fragment shader
 		shader->program.addShaderFromSourceFile(QOpenGLShader::Fragment, fileNameSuffix + (isCore ? "FragCore.glsl" : "FragCompatibility.glsl"));

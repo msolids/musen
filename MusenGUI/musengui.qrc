@@ -53,10 +53,12 @@
         <file>shaders/BondFragCore.glsl</file>
         <file>shaders/BondVertCore.glsl</file>
         <file>shaders/ParticleFragCore.glsl</file>
+        <file>shaders/ParticleGeomCore.glsl</file>
         <file>shaders/ParticleVertCore.glsl</file>
         <file>shaders/BondFragCompatibility.glsl</file>
         <file>shaders/BondVertCompatibility.glsl</file>
         <file>shaders/ParticleFragCompatibility.glsl</file>
+        <file>shaders/ParticleGeomCompatibility.glsl</file>
         <file>shaders/ParticleVertCompatibility.glsl</file>
         <file>shaders/WallFragCompatibility.glsl</file>
         <file>shaders/WallFragCore.glsl</file>
