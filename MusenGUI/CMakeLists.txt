@@ -1,4 +1,6 @@
-# Copyright (c) 2023, MUSEN Development Team. All rights reserved. This file is part of MUSEN framework http://msolids.net/musen. See LICENSE file for license and warranty information.
+# Copyright (c) 2023, MUSEN Development Team. 
+# Copyright (c) 2025, DyssolTEC GmbH. 
+# All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information.
 
 SET(INSTALL_STYLES_PATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/MUSEN/Styles)
 
@@ -23,21 +25,29 @@ ENDFOREACH()
 LIST(REMOVE_DUPLICATES hdr_paths)
 INCLUDE_DIRECTORIES(${hdr_paths})
 
-FIND_PACKAGE(Qt5 COMPONENTS OpenGL Widgets REQUIRED)
+find_package(Qt6 QUIET COMPONENTS OpenGL OpenGLWidgets Widgets)
+if (NOT Qt6_FOUND)
+    find_package(Qt5 REQUIRED COMPONENTS OpenGL Widgets)
+endif()
 SET(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_AUTOUIC ON)
 
+SET(OpenGL_GL_PREFERENCE GLVND)
 FIND_PACKAGE(OpenGL REQUIRED)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(MUSEN ${lib_musen_gui_src})
 
-TARGET_LINK_LIBRARIES(MUSEN libmusen_static Qt5::OpenGL Qt5::Widgets ${OPENGL_LIBRARIES})
+if (Qt6_FOUND)
+  TARGET_LINK_LIBRARIES(MUSEN libmusen_static Qt::OpenGL Qt::OpenGLWidgets Qt::Widgets ${OPENGL_LIBRARIES})
+else()
+  TARGET_LINK_LIBRARIES(MUSEN libmusen_static Qt5::OpenGL Qt5::Widgets ${OPENGL_LIBRARIES})
+endif()
 
 # link filesystem or experimantal/filesystem for gcc
 IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+  IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
     TARGET_LINK_LIBRARIES(MUSEN -lstdc++fs)
   ENDIF()
 ENDIF()

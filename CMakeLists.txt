@@ -2,7 +2,7 @@
 
 # TODO: optional GPU
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0)
 
 SET(VERSION 1.74.2)
 SET(SOVERSION 1.74)
@@ -14,9 +14,15 @@ OPTION(BUILD_CLI "Build a version with command line interface" ON)
 OPTION(INSTALL_AUX_DATA "Install documentation, examples, databases, etc." ON)
 
 ENABLE_LANGUAGE(CUDA)
+SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
 SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CUDA_STANDARD 14)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+# CUDA C++17 support requires CUDA 11.0+
+IF(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL "11.0")
+  SET(CMAKE_CUDA_STANDARD 17)
+ELSE()
+  SET(CMAKE_CUDA_STANDARD 14)
+ENDIF()
 
 INCLUDE(GNUInstallDirs)
 
@@ -83,24 +89,50 @@ SET(cuda_cc_9    "30;32;35;37;50;52;53;60;61;62;70")
 SET(cuda_cc_10   "30;32;35;37;50;52;53;60;61;62;70;72;75")
 SET(cuda_cc_11_0 "50;52;53;60;61;62;70;72;75;80")
 SET(cuda_cc_11_1 "50;52;53;60;61;62;70;72;75;80;86")
-SET(cuda_cc_11_5 "50;52;53;60;61;62;70;72;75;80;86;87")
+SET(cuda_cc_11_4 "50;52;53;60;61;62;70;72;75;80;86;87")
 SET(cuda_cc_11_8 "50;52;53;60;61;62;70;72;75;80;86;87;89;90")
+SET(cuda_cc_12_8 "50;52;53;60;61;62;70;72;75;80;86;87;89;90;100;101;120")
+SET(cuda_cc_12_9 "50;52;53;60;61;62;70;72;75;80;86;87;89;90;100;101;103;120;121")
+SET(cuda_cc_13_0 "75;80;86;87;89;90;100;103;110;120;121")
 FIND_PACKAGE(${cuda_package_name} REQUIRED)
 INCLUDE_DIRECTORIES(${${cuda_include_dirs_name}})
-LINK_DIRECTORIES(${cuda_link_directories_name})
-IF(${cuda_version_major_name} LESS 10)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_9})
-ELSEIF(${cuda_version_major_name} LESS 11)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_10})
-ELSEIF(${cuda_version_major_name} EQUAL 11 AND ${cuda_version_minor_name} LESS 1)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_0})
-ELSEIF(${cuda_version_major_name} EQUAL 11 AND ${cuda_version_minor_name} LESS 5)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_1})
-ELSEIF(${cuda_version_major_name} EQUAL 11 AND ${cuda_version_minor_name} LESS 8)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_5})
-ELSE()
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_8})
+# for CUDA 13+
+IF(IS_DIRECTORY "${${cuda_include_dirs_name}}/cccl")
+  INCLUDE_DIRECTORIES("${${cuda_include_dirs_name}}/cccl")
 ENDIF()
+LINK_DIRECTORIES(${${cuda_link_directories_name}})
+SET(_cuda_major ${${cuda_version_major_name}})
+SET(_cuda_minor ${${cuda_version_minor_name}})
+IF(_cuda_major LESS 10)
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_9})
+ELSEIF(_cuda_major LESS 11)
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_10})
+ELSEIF(_cuda_major EQUAL 11 AND _cuda_minor LESS 1)
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_0})
+ELSEIF(_cuda_major EQUAL 11 AND _cuda_minor LESS 4)
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_1})
+ELSEIF(_cuda_major EQUAL 11 AND _cuda_minor LESS 8)
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_4})
+ELSEIF(_cuda_major EQUAL 11 OR (_cuda_major EQUAL 12 AND _cuda_minor LESS 8))
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_8})
+ELSEIF(_cuda_major EQUAL 12 AND _cuda_minor LESS 9)
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_12_8})
+ELSEIF(_cuda_major EQUAL 12)
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_12_9})
+ELSE()
+  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_13_0})
+ENDIF()
+
+# pass __CUDA_ARCH_LIST__ to host compiler for CUDA 12.8+ Thrust ABI namespace compatibility
+SET(_cuda_arch_list "")
+FOREACH(_arch ${CMAKE_CUDA_ARCHITECTURES})
+  MATH(EXPR _arch_val "${_arch} * 10")
+  IF(_cuda_arch_list)
+    SET(_cuda_arch_list "${_cuda_arch_list},${_arch_val}")
+  ELSE()
+    SET(_cuda_arch_list "${_arch_val}")
+  ENDIF()
+ENDFOREACH()
 
 # zlib
 IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
@@ -161,7 +193,7 @@ IF(BUILD_CLI)
   
   # link filesystem or experimental/filesystem for gcc
   IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
       TARGET_LINK_LIBRARIES(CMUSEN -lstdc++fs)
     ENDIF()
   ENDIF()
@@ -171,6 +203,13 @@ ENDIF(BUILD_CLI)
 
 # TARGET_COMPILE_DEFINITIONS(libmusen_shared PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
 TARGET_COMPILE_DEFINITIONS(libmusen_static PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
+# CUDA 12.8+ CCCL/Thrust (>= 2.7.0) uses __CUDA_ARCH_LIST__ for ABI-versioned namespaces.
+# Thrust headers leak into .cpp files (GPUSimulator.cuh → GPUSimulator.h → CGPU public API with thrust types),
+# so the CXX compiler must see the same __CUDA_ARCH_LIST__ as NVCC; otherwise namespaces mismatch → linker errors.
+# Remove this once Thrust types are hidden from .cpp files.
+IF((_cuda_major EQUAL 12 AND _cuda_minor GREATER_EQUAL 8) OR _cuda_major GREATER_EQUAL 13)
+  TARGET_COMPILE_DEFINITIONS(libmusen_static PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:__CUDA_ARCH_LIST__=${_cuda_arch_list}>")
+ENDIF()
 
 IF(INSTALL_AUX_DATA)
   INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Databases/" DESTINATION ${INSTALL_PATH_ROOT}/Databases)

@@ -6,11 +6,13 @@
 
 #include "CUDAKernels.cuh"
 #include "DisableWarningHelper.h"
+#ifndef Q_MOC_RUN
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 PRAGMA_WARNING_POP
+#endif
 
 class CGPU
 {

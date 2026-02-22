@@ -1048,7 +1048,9 @@ void CObjectsEditorTab::SaveConfiguration() const
 		for (const auto& field : _dataFields)
 			if (field.active)
 				activeTypes.append(static_cast<int>(field.type));
-		QVariantList variantList(activeTypes.begin(), activeTypes.end());
+		QVariantList variantList;
+		for (const auto& v : activeTypes)
+			variantList.append(v);
 		m_settings->setValue(_key, QVariant::fromValue(variantList));
 	};
 

@@ -94,7 +94,7 @@ cd musen
 ```
 2. Install required tools and libraries.
 ```sh
-sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
+sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt6opengl6-dev
 ```
 3. Install CUDA
 ```sh
@@ -149,6 +149,6 @@ cd ../install
 - [CUDA 11.8](https://developer.nvidia.com/cuda-zone) – Nvidia Corporation – [NVIDIA License](https://docs.nvidia.com/cuda/pdf/EULA.pdf)
 - [Inno Setup 6.1.2](https://jrsoftware.org/isinfo.php) – Jordan Russell – [Modified BSD License](http://www.jrsoftware.org/files/is/license.txt)
 - [Protobuf 3.21.12](https://developers.google.com/protocol-buffers/) – Google Inc. – [BSD License](https://github.com/protocolbuffers/protobuf/blob/master/LICENSE)
-- [Qt 5.15.2](https://www.qt.io/) – The Qt Company – [LGPLv3 License](https://doc.qt.io/qt-5/lgpl.html)
+- [Qt 6.10.2](https://www.qt.io/) – The Qt Company – [LGPLv3 License](https://doc.qt.io/qt-5/lgpl.html)
 - [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/) – Microsoft Corporation – [Microsoft Software License Terms](https://visualstudio.microsoft.com/license-terms/mlt031819/)
 - [zlib v1.3.1](https://www.zlib.net/) – Jean-loup Gailly and Mark Adler – [zlib License](https://www.zlib.net/zlib_license.html)
