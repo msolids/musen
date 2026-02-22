@@ -23,8 +23,13 @@ jobs:
     - name: Update packages
       run: sudo apt update && sudo apt upgrade
 
-    - name: Install build dependencies
-      run: sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt6opengl6-dev
+    - name: Install build dependencies ubuntu-22.04
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      run: sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
+      
+    - name: Install build dependencies ubuntu-24.04
+      if: ${{ matrix.os == 'ubuntu-24.04' }}
+      run: sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt6opengl6-dev libglu1-mesa-dev
 
     - name: Install CUDA
       if: ${{ matrix.os != 'ubuntu-22.04' }}
