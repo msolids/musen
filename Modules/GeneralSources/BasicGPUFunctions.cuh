@@ -30,7 +30,13 @@ public:
 		cudaDeviceProp prop{};
 		cudaGetDeviceProperties(&prop, _iDevice);
 		const int blocksNumber = prop.multiProcessorCount;
-		const int threadsPerBlock = prop.singleToDoublePrecisionPerfRatio > 4 ? 256 : 512;
+		int ratio;
+#if CUDART_VERSION >= 13000
+		cudaDeviceGetAttribute(&ratio, cudaDevAttrSingleToDoublePrecisionPerfRatio, _iDevice);
+#else
+		ratio = prop.singleToDoublePrecisionPerfRatio;
+#endif
+		const int threadsPerBlock = ratio > 4 ? 256 : 512;
 		return { blocksNumber, threadsPerBlock };
 	}
 };

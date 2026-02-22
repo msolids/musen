@@ -14,6 +14,18 @@ PRAGMA_WARNING_DISABLE
 #include <thrust/extrema.h>
 PRAGMA_WARNING_POP
 
+#if __CUDACC_VER_MAJOR__ >= 13
+namespace musen_functors
+{
+	template<typename T> using plus = cuda::std::plus<T>;
+}
+#else
+namespace musen_functors
+{
+	template<typename T> using plus = thrust::plus<T>;
+}
+#endif
+
 __constant__ double m_vConstantModelParameters[16];
 __constant__ double m_temperatureCoefGPU;
 
@@ -284,7 +296,7 @@ void CModelEFLiquidDiffusion::CalculateEFGPU(double _time, double _timeStep, SGP
 
 				tempKineticEnergy.data().get()
 			);
-			const double kinEnergy = thrust::reduce(tempKineticEnergy.begin(), tempKineticEnergy.begin() + _particles.nElements, static_cast<double>(0), thrust::plus<double>());
+			const double kinEnergy = thrust::reduce(tempKineticEnergy.begin(), tempKineticEnergy.begin() + _particles.nElements, static_cast<double>(0), musen_functors::plus<double>());
 			m_fileKineticEnergy << std::setprecision(outPerc) << _time << ";" << kinEnergy << std::endl;
 
 			// temperature

@@ -4,6 +4,20 @@
 
 #include "PackageGeneratorHelperGPU.cuh"
 
+#if __CUDACC_VER_MAJOR__ >= 13
+namespace musen_functors
+{
+	template<typename T> using minus   = cuda::std::minus<T>;
+	template<typename T> using maximum = cuda::maximum<T>;
+}
+#else
+namespace musen_functors
+{
+	template<typename T> using minus   = thrust::minus<T>;
+	template<typename T> using maximum = thrust::maximum<T>;
+}
+#endif
+
 namespace functors
 {
 	struct mul_04
@@ -61,7 +75,7 @@ void CPackageGeneratorHelperGPU::ScaleVelocitiesToRadius(double _minRadius) cons
 	const thrust::device_ptr<const double> radii  = thrust::device_pointer_cast(m_particles->ContactRadii);
 
 	thrust::transform(vels, vels + m_number, radii, m_deltaCoord->begin(), functors::calc_deltas(_minRadius));
-	thrust::transform(coords, coords + m_number, m_deltaCoord->begin(), coords, thrust::minus<CVector3>());
+	thrust::transform(coords, coords + m_number, m_deltaCoord->begin(), coords, musen_functors::minus<CVector3>());
 }
 
 double CPackageGeneratorHelperGPU::MaxRelativeVelocity() const
@@ -70,7 +84,7 @@ double CPackageGeneratorHelperGPU::MaxRelativeVelocity() const
 	const thrust::device_ptr<const double>   radii = thrust::device_pointer_cast(m_particles->ContactRadii);
 
 	thrust::transform(vels, vels + m_number, radii, m_relVels->begin(), functors::cals_rel_vel());
-	const double maxRelVel = thrust::reduce(m_relVels->begin(), m_relVels->end(), 0.0, thrust::maximum<double>());
+	const double maxRelVel = thrust::reduce(m_relVels->begin(), m_relVels->end(), 0.0, musen_functors::maximum<double>());
 	return sqrt(maxRelVel);
 }
 
@@ -79,7 +93,7 @@ void CPackageGeneratorHelperGPU::ResetMovement()
 	const thrust::device_ptr<CVector3> coords = thrust::device_pointer_cast(m_particles->Coords);
 	const thrust::device_ptr<CVector3> vels = thrust::device_pointer_cast(m_particles->Vels);
 
-	thrust::transform(coords, coords + m_number, vels, coords, thrust::minus<CVector3>());
+	thrust::transform(coords, coords + m_number, vels, coords, musen_functors::minus<CVector3>());
 	thrust::fill_n(vels, m_number, CVector3{ 0 });
 	thrust::fill(m_oldVels->begin(), m_oldVels->end(), CVector3{ 0 });
 }

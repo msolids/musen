@@ -375,9 +375,15 @@ void CConsoleSimulator::PrintGPUInfo() const
 		cudaDeviceProp prop{};
 		cudaGetDeviceProperties(&prop, 0);
 		PrintFormatted(" GPU name", prop.name);
-		PrintFormatted(" Memory clock rate [MHz]", prop.memoryClockRate / 1000);
+		int memoryClockRate;
+#if CUDART_VERSION >= 13000
+		cudaDeviceGetAttribute(&memoryClockRate, cudaDevAttrMemoryClockRate, 0);
+#else
+		memoryClockRate = prop.memoryClockRate;
+#endif
+		PrintFormatted(" Memory clock rate [MHz]", memoryClockRate / 1000);
 		PrintFormatted(" Memory bus width [bits]", prop.memoryBusWidth);
-		PrintFormatted(" Peak memory bandwidth [GB/s]", 2.0 * prop.memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
+		PrintFormatted(" Peak memory bandwidth [GB/s]", 2.0 * memoryClockRate * (prop.memoryBusWidth / 8) / 1.0e6);
 		PrintFormatted(" Cuda blocks number", CCUDADefines::GetSettings(0).first);
 		PrintFormatted(" Cuda threads per block", CCUDADefines::GetSettings(0).second);
 	}
