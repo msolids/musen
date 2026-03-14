@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	const QFileInfo styleInfo("." + stylePath);
 	const QString styleFullPath = styleInfo.exists() && styleInfo.isFile() ? "." + stylePath : QCoreApplication::applicationDirPath() + stylePath;
 	QFile styleFile(styleFullPath);
-	const bool success = styleFile.open(QFile::ReadOnly);
+	[[maybe_unused]] const bool success = styleFile.open(QFile::ReadOnly);
 	const QString StyleSheet = QLatin1String(styleFile.readAll());
 	app.setStyleSheet(StyleSheet);
 

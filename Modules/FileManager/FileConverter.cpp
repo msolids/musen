@@ -72,7 +72,7 @@ void CFileConverter::ConvertFileV0ToV2(CSystemStructure* _pSystemStructure)
 
 	double dCurrTime = 0;
 	bool IsFirstIter = true;
-	for (auto i = 0; i < vTimePoints.size(); i++)
+	for (int i = 0; i < static_cast<int>(vTimePoints.size()); i++)
 	{
 		dCurrTime = vTimePoints[i];
 		// in cases when first saved time point != 0 -> add zero time point, this action is to be checked and removed if it is unnecessary
@@ -84,7 +84,7 @@ void CFileConverter::ConvertFileV0ToV2(CSystemStructure* _pSystemStructure)
 		}
 		m_sProgressMessage = "In progress... Current time point " + std::to_string(dCurrTime) + " [s]";
 
-		for (auto j = 0; j < nNumberOfObjects; j++)
+		for (size_t j = 0; j < nNumberOfObjects; j++)
 		{
 			CPhysicalObject* pObject = _pSystemStructure->GetObjectByIndex(j);
 			CPhysicalObject* pObjectNew = pNewSystemStructure->GetObjectByIndex(j);

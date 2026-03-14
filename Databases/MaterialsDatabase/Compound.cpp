@@ -266,8 +266,8 @@ void CCompound::SetPropertyValue(unsigned _nPropType, double _dValue)
 {
 	if (CConstProperty *prop = GetConstProperty(_nPropType))
 		prop->SetValue(_dValue);
-	else if (CTPProperty *prop = GetProperty(_nPropType))
-		prop->SetCorrelation(_dValue);
+	else if (CTPProperty *prop2 = GetProperty(_nPropType))
+		prop2->SetCorrelation(_dValue);
 }
 
 void CCompound::InitializeConditions(double _dT, double _dP)

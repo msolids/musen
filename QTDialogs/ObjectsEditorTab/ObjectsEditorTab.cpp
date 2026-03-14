@@ -223,35 +223,35 @@ void CObjectsEditorTab::UpdateTableParts() const
 			break;
 		case EFieldTypes::COORDINATE:
 		{
-			std::vector<CVector3> data(particles.size());
+			std::vector<CVector3> values(particles.size());
 			ParallelFor(particles.size(), [&](size_t iRow)
 			{
-				data[iRow] = particles[iRow]->GetCoordinates();
+				values[iRow] = particles[iRow]->GetCoordinates();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::VELOCITY:
 		{
-			std::vector<CVector3> data(particles.size());
+			std::vector<CVector3> values(particles.size());
 			ParallelFor(particles.size(), [&](size_t iRow)
 			{
-				data[iRow] = particles[iRow]->GetVelocity();
+				values[iRow] = particles[iRow]->GetVelocity();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::ROTATION_VELOCITY:
 		{
-			std::vector<CVector3> data(particles.size());
+			std::vector<CVector3> values(particles.size());
 			ParallelFor(particles.size(), [&](size_t iRow)
 			{
-				data[iRow] = particles[iRow]->GetAngleVelocity();
+				values[iRow] = particles[iRow]->GetAngleVelocity();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::DIAMETER:
@@ -278,46 +278,46 @@ void CObjectsEditorTab::UpdateTableParts() const
 		}
 		case EFieldTypes::FORCE:
 		{
-			std::vector<CVector3> data(particles.size());
+			std::vector<CVector3> values(particles.size());
 			ParallelFor(particles.size(), [&](size_t iRow)
 			{
-				data[iRow] = particles[iRow]->GetForce();
+				values[iRow] = particles[iRow]->GetForce();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::STRESS:
 		{
-			std::vector<CVector3> data(particles.size());
+			std::vector<CVector3> values(particles.size());
 			ParallelFor(particles.size(), [&](size_t iRow)
 			{
-				data[iRow] = particles[iRow]->GetNormalStress();
+				values[iRow] = particles[iRow]->GetNormalStress();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::TEMPERATURE:
 		{
-			std::vector<double> data(particles.size());
+			std::vector<double> values(particles.size());
 			ParallelFor(particles.size(), [&](size_t iRow)
 			{
-				data[iRow] = particles[iRow]->GetTemperature();
+				values[iRow] = particles[iRow]->GetTemperature();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::ORIENTATION:
 		{
-			std::vector<CQuaternion> data(particles.size());
+			std::vector<CQuaternion> values(particles.size());
 			ParallelFor(particles.size(), [&](size_t iRow)
 			{
-				data[iRow] = particles[iRow]->GetOrientation();
+				values[iRow] = particles[iRow]->GetOrientation();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::PARTNERS_ID:
@@ -371,24 +371,24 @@ void CObjectsEditorTab::UpdateTableBonds() const
 			break;
 		case EFieldTypes::COORDINATE:
 		{
-			std::vector<CVector3> data(bonds.size());
+			std::vector<CVector3> values(bonds.size());
 			ParallelFor(bonds.size(), [&](size_t iRow)
 			{
-				data[iRow] = m_pSystemStructure->GetBondCoordinate(m_dCurrentTime, bonds[iRow]->m_lObjectID);
+				values[iRow] = m_pSystemStructure->GetBondCoordinate(m_dCurrentTime, bonds[iRow]->m_lObjectID);
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::VELOCITY:
 		{
-			std::vector<CVector3> data(bonds.size());
+			std::vector<CVector3> values(bonds.size());
 			ParallelFor(bonds.size(), [&](size_t iRow)
 			{
-				data[iRow] = m_pSystemStructure->GetBondVelocity(m_dCurrentTime, bonds[iRow]->m_lObjectID);
+				values[iRow] = m_pSystemStructure->GetBondVelocity(m_dCurrentTime, bonds[iRow]->m_lObjectID);
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::PARTNERS_ID:
@@ -412,35 +412,35 @@ void CObjectsEditorTab::UpdateTableBonds() const
 			break;
 		case EFieldTypes::FORCE:
 		{
-			std::vector<CVector3> data(bonds.size());
+			std::vector<CVector3> values(bonds.size());
 			ParallelFor(bonds.size(), [&](size_t iRow)
 			{
-				data[iRow] = bonds[iRow]->GetForce();
+				values[iRow] = bonds[iRow]->GetForce();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowNotEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::TEMPERATURE:
 		{
-			std::vector<double> data(bonds.size());
+			std::vector<double> values(bonds.size());
 			ParallelFor(bonds.size(), [&](size_t iRow)
 			{
-				data[iRow] = bonds[iRow]->GetTemperature();
+				values[iRow] = bonds[iRow]->GetTemperature();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::TANGENTIAL_OVERLAP:
 		{
-			std::vector<CVector3> data(bonds.size());
+			std::vector<CVector3> values(bonds.size());
 			ParallelFor(bonds.size(), [&](size_t iRow)
 			{
-				data[iRow] = bonds[iRow]->GetTangentialOverlap();
+				values[iRow] = bonds[iRow]->GetTangentialOverlap();
 			});
 			for (int iRow = 0; iRow < number; ++iRow)
-				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, data[iRow], field.units);
+				ui.objectsTable->SetItemsRowEditableConv(iRow, iCol, values[iRow], field.units);
 			break;
 		}
 		case EFieldTypes::MAX_OVERLAP:

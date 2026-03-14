@@ -181,26 +181,26 @@ void COpenGLViewShader::SetParticles(const std::vector<SParticle>& _particles)
 		const size_t nParticlesInBlock = std::min(nParticlesPerBlock, nParticles - shift); // number of particles in current block
 
 		// a continuous list of vertices for all particles
-		std::vector<SParticleVertex> data(nParticlesInBlock);
+		std::vector<SParticleVertex> values(nParticlesInBlock);
 
 		// for each particle
 		ParallelFor(nParticlesInBlock, [&](size_t j)
 		{
 			const size_t iPart = j + shift; // index of particle in _particles vector
-			data[j] = { _particles[iPart].coord, QColorToQVector4D(_particles[iPart].color), _particles[iPart].radius };
+			values[j] = { _particles[iPart].coord, QColorToQVector4D(_particles[iPart].color), _particles[iPart].radius };
 		});
 
 		makeCurrent();
 
 		// transfer vertex data to VBO 0
 		m_partProgram.shaders[iBlock]->dataBuf.bind();
-		m_partProgram.shaders[iBlock]->dataBuf.allocate(&data[0], static_cast<int>(data.size() * sizeof(data[0])));
+		m_partProgram.shaders[iBlock]->dataBuf.allocate(&values[0], static_cast<int>(values.size() * sizeof(values[0])));
 		m_partProgram.shaders[iBlock]->dataBuf.release();
 
 		doneCurrent();
 
 		// save number of objects to be drawn
-		m_partProgram.shaders[iBlock]->objects = static_cast<GLsizei>(data.size());
+		m_partProgram.shaders[iBlock]->objects = static_cast<GLsizei>(values.size());
 	}
 }
 
@@ -223,7 +223,7 @@ void COpenGLViewShader::SetBonds(const std::vector<SBond>& _bonds)
 		const size_t nIndices = nBondsInBlock * (2 * nLinesPerBond + 3);       // number of indices needed to describe all bonds in block
 
 		// a continuous list of vertices for all cylinders in block, 2 * nLinesPerBond per bond
-		std::vector<SSolidVertex> data(nVertices);
+		std::vector<SSolidVertex> values(nVertices);
 		// list of indices, pointing to vertices, which indicate the order of points drawing; draw as GL_TRIANGLE_STRIP
 		// e.g., for the first cylinder, drawn with 4 walls, it will look like [0, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 1]
 		std::vector<GLuint> indices(nIndices);
@@ -245,8 +245,8 @@ void COpenGLViewShader::SetBonds(const std::vector<SBond>& _bonds)
 			{
 				// calculate vertices
 				iDataOffset = 2 * j * nLinesPerBond + 2 * iLine;
-				data[iDataOffset + 0] = { { coord2 + points[iLine] }, { points[iLine] }, color };
-				data[iDataOffset + 1] = { { coord1 + points[iLine] }, { points[iLine] }, color };
+				values[iDataOffset + 0] = { { coord2 + points[iLine] }, { points[iLine] }, color };
+				values[iDataOffset + 1] = { { coord1 + points[iLine] }, { points[iLine] }, color };
 
 				// calculate indices
 				iIndexOffset = iDataOffset + 3 * j;
@@ -262,7 +262,7 @@ void COpenGLViewShader::SetBonds(const std::vector<SBond>& _bonds)
 
 		// transfer vertex data to VBO 0
 		m_bondProgram.shaders[iBlock]->dataBuf.bind();
-		m_bondProgram.shaders[iBlock]->dataBuf.allocate(&data[0], static_cast<int>(data.size() * sizeof(data[0])));
+		m_bondProgram.shaders[iBlock]->dataBuf.allocate(&values[0], static_cast<int>(values.size() * sizeof(values[0])));
 		m_bondProgram.shaders[iBlock]->dataBuf.release();
 
 		// transfer index data to VBO 1
@@ -293,7 +293,7 @@ void COpenGLViewShader::SetWalls(const std::vector<STriangle>& _walls)
 		const size_t nWallsInBlock = std::min(nWallsPerBlock, nWalls - shift); // number of triangles in current block
 
 		// a continuous list of vertices for all triangles
-		std::vector<SSolidVertex> data(3 * nWallsInBlock);
+		std::vector<SSolidVertex> values(3 * nWallsInBlock);
 
 		// for each triangle
 		ParallelFor(nWallsInBlock, [&](size_t j)
@@ -301,22 +301,22 @@ void COpenGLViewShader::SetWalls(const std::vector<STriangle>& _walls)
 			const size_t iWall = j + shift; // index of triangle in _walls vector
 			const QVector4D color = QColorToQVector4D(_walls[iWall].color);
 			const QVector3D normal = Normalize(QVector3D::crossProduct(_walls[iWall].coord2 - _walls[iWall].coord1, _walls[iWall].coord3 - _walls[iWall].coord1));
-			data[3 * j + 0] = { _walls[iWall].coord1, normal, color };
-			data[3 * j + 1] = { _walls[iWall].coord2, normal, color };
-			data[3 * j + 2] = { _walls[iWall].coord3, normal, color };
+			values[3 * j + 0] = { _walls[iWall].coord1, normal, color };
+			values[3 * j + 1] = { _walls[iWall].coord2, normal, color };
+			values[3 * j + 2] = { _walls[iWall].coord3, normal, color };
 		});
 
 		makeCurrent();
 
 		// transfer vertex data to VBO 0
 		m_wallProgram.shaders[iBlock]->dataBuf.bind();
-		m_wallProgram.shaders[iBlock]->dataBuf.allocate(&data[0], static_cast<int>(data.size() * sizeof(data[0])));
+		m_wallProgram.shaders[iBlock]->dataBuf.allocate(&values[0], static_cast<int>(values.size() * sizeof(values[0])));
 		m_wallProgram.shaders[iBlock]->dataBuf.release();
 
 		doneCurrent();
 
 		// save number of objects to be drawn
-		m_wallProgram.shaders[iBlock]->objects = static_cast<GLsizei>(data.size());
+		m_wallProgram.shaders[iBlock]->objects = static_cast<GLsizei>(values.size());
 	}
 }
 
@@ -336,29 +336,29 @@ void COpenGLViewShader::SetVolumes(const std::vector<STriangle>& _walls)
 		const size_t nWallsInBlock = std::min(nWallsPerBlock, nWalls - shift); // number of triangles in current block
 
 		// a continuous list of vertices for all triangles
-		std::vector<SFrameVertex> data(3 * nWallsInBlock);
+		std::vector<SFrameVertex> values(3 * nWallsInBlock);
 
 		// for each triangle
 		ParallelFor(nWallsInBlock, [&](size_t j)
 		{
 			const size_t iWall = j + shift; // index of triangle in _walls vector
 			const QVector4D color = QColorToQVector4D(_walls[iWall].color);
-			data[3 * j + 0] = { _walls[iWall].coord1, color/*, 0*/ };
-			data[3 * j + 1] = { _walls[iWall].coord2, color/*, 1*/ };
-			data[3 * j + 2] = { _walls[iWall].coord3, color/*, 2*/ };
+			values[3 * j + 0] = { _walls[iWall].coord1, color/*, 0*/ };
+			values[3 * j + 1] = { _walls[iWall].coord2, color/*, 1*/ };
+			values[3 * j + 2] = { _walls[iWall].coord3, color/*, 2*/ };
 		});
 
 		makeCurrent();
 
 		// transfer vertex data to VBO 0
 		m_volmProgram.shaders[iBlock]->dataBuf.bind();
-		m_volmProgram.shaders[iBlock]->dataBuf.allocate(&data[0], static_cast<int>(data.size() * sizeof(data[0])));
+		m_volmProgram.shaders[iBlock]->dataBuf.allocate(&values[0], static_cast<int>(values.size() * sizeof(values[0])));
 		m_volmProgram.shaders[iBlock]->dataBuf.release();
 
 		doneCurrent();
 
 		// save number of objects to be drawn
-		m_volmProgram.shaders[iBlock]->objects = static_cast<GLsizei>(data.size());
+		m_volmProgram.shaders[iBlock]->objects = static_cast<GLsizei>(values.size());
 	}
 }
 
@@ -386,7 +386,7 @@ void COpenGLViewShader::SetDiscs(const std::vector<SDiscs>& _discs)
 		const size_t nIndices = nIndicesPerDisc * nDiscsInBlock;				// number of indices needed to describe all discs in block
 
 		// a continuous list of vertices for all discs, 4 per disc
-		std::vector<SDiscVertex> data(nVertices);
+		std::vector<SDiscVertex> values(nVertices);
 		// list of indices, pointing to vertices, which indicate the order of points drawing; draw as GL_TRIANGLE_FAN
 		// e.g., for the first disc, drawn with 2 triangles, it will look like [0, 1, 2, 3, 0xFFFFFFFF]
 		std::vector<GLuint> indices(nIndices);
@@ -415,7 +415,7 @@ void COpenGLViewShader::SetDiscs(const std::vector<SDiscs>& _discs)
 				case Qt::YAxis: coord = { center.x() + radius * local[i].x(), center.y(), center.z() + radius * local[i].y() }; break;
 				case Qt::ZAxis: coord = { center.x() + radius * local[i].x(), center.y() + radius * local[i].y(), center.z() }; break;
 				}
-				data[iDataOffset + i] = { coord, color, local[i] };
+				values[iDataOffset + i] = { coord, color, local[i] };
 				indices[iIndexOffset + i] = static_cast<GLuint>(iDataOffset + i);
 			}
 
@@ -426,7 +426,7 @@ void COpenGLViewShader::SetDiscs(const std::vector<SDiscs>& _discs)
 
 		// transfer vertex data to VBO 0
 		m_discProgram.shaders[iBlock]->dataBuf.bind();
-		m_discProgram.shaders[iBlock]->dataBuf.allocate(&data[0], static_cast<int>(data.size() * sizeof(data[0])));
+		m_discProgram.shaders[iBlock]->dataBuf.allocate(&values[0], static_cast<int>(values.size() * sizeof(values[0])));
 		m_discProgram.shaders[iBlock]->dataBuf.release();
 
 		// transfer index data to VBO 1
@@ -452,7 +452,7 @@ void COpenGLViewShader::SetDomain(const SDomain& _box)
 	const size_t nVertices = 8; // total number of vertices to draw a box
 	const size_t nEdges = 12; // total number of edges to draw a box
 	// a continuous list of all vertices of the box
-	std::vector<SFrameVertex> data(nVertices);
+	std::vector<SFrameVertex> values(nVertices);
 	// list of indices, pointing to vertices, which indicate the order of points drawing; draw as GL_LINES
 	std::vector<GLuint> indices(2 * nEdges);
 
@@ -460,15 +460,15 @@ void COpenGLViewShader::SetDomain(const SDomain& _box)
 	const QVector4D color = QColorToQVector4D(_box.color);
 
 	// bottom rectangle
-	data[0] = { {_box.coordMin.x(), _box.coordMin.y(), _box.coordMin.z() }, color };
-	data[1] = { {_box.coordMax.x(), _box.coordMin.y(), _box.coordMin.z() }, color };
-	data[2] = { {_box.coordMax.x(), _box.coordMax.y(), _box.coordMin.z() }, color };
-	data[3] = { {_box.coordMin.x(), _box.coordMax.y(), _box.coordMin.z() }, color };
+	values[0] = { {_box.coordMin.x(), _box.coordMin.y(), _box.coordMin.z() }, color };
+	values[1] = { {_box.coordMax.x(), _box.coordMin.y(), _box.coordMin.z() }, color };
+	values[2] = { {_box.coordMax.x(), _box.coordMax.y(), _box.coordMin.z() }, color };
+	values[3] = { {_box.coordMin.x(), _box.coordMax.y(), _box.coordMin.z() }, color };
 	// top rectangle
-	data[4] = { {_box.coordMin.x(), _box.coordMin.y(), _box.coordMax.z() }, color };
-	data[5] = { {_box.coordMax.x(), _box.coordMin.y(), _box.coordMax.z() }, color };
-	data[6] = { {_box.coordMax.x(), _box.coordMax.y(), _box.coordMax.z() }, color };
-	data[7] = { {_box.coordMin.x(), _box.coordMax.y(), _box.coordMax.z() }, color };
+	values[4] = { {_box.coordMin.x(), _box.coordMin.y(), _box.coordMax.z() }, color };
+	values[5] = { {_box.coordMax.x(), _box.coordMin.y(), _box.coordMax.z() }, color };
+	values[6] = { {_box.coordMax.x(), _box.coordMax.y(), _box.coordMax.z() }, color };
+	values[7] = { {_box.coordMin.x(), _box.coordMax.y(), _box.coordMax.z() }, color };
 
 	// bottom rectangle
 	indices[ 0] = 0;	indices[ 1] = 1;
@@ -490,7 +490,7 @@ void COpenGLViewShader::SetDomain(const SDomain& _box)
 
 	// transfer vertex data to VBO 0
 	m_sdomProgram.shaders.front()->dataBuf.bind();
-	m_sdomProgram.shaders.front()->dataBuf.allocate(&data[0], static_cast<int>(data.size() * sizeof(data[0])));
+	m_sdomProgram.shaders.front()->dataBuf.allocate(&values[0], static_cast<int>(values.size() * sizeof(values[0])));
 	m_sdomProgram.shaders.front()->dataBuf.release();
 
 	// transfer index data to VBO 1
@@ -515,7 +515,7 @@ void COpenGLViewShader::SetPeriodic(const SPeriodic& _pbc)
 	const size_t nVerticesPerBoundary = 12; // total number of vertices to draw a single boundary
 
 	// a continuous list of all vertices of the periodic boundaries
-	std::vector<SSimpleVertex> data;
+	std::vector<SSimpleVertex> values;
 
 	// all points
 	const QVector3D v0(_pbc.coordMin.x(), _pbc.coordMin.y(), _pbc.coordMin.z());
@@ -529,38 +529,38 @@ void COpenGLViewShader::SetPeriodic(const SPeriodic& _pbc)
 
 	if (_pbc.x)
 	{
-		data.reserve(data.size() + nVerticesPerBoundary);
-		data.push_back(SSimpleVertex{ v0, 0.0f }); data.push_back(SSimpleVertex{ v4, 0.0f }); data.push_back(SSimpleVertex{ v3, 0.0f });
-		data.push_back(SSimpleVertex{ v3, 0.0f }); data.push_back(SSimpleVertex{ v4, 0.0f }); data.push_back(SSimpleVertex{ v7, 0.0f });
-		data.push_back(SSimpleVertex{ v1, 0.0f }); data.push_back(SSimpleVertex{ v2, 0.0f }); data.push_back(SSimpleVertex{ v5, 0.0f });
-		data.push_back(SSimpleVertex{ v5, 0.0f }); data.push_back(SSimpleVertex{ v2, 0.0f }); data.push_back(SSimpleVertex{ v6, 0.0f });
+		values.reserve(values.size() + nVerticesPerBoundary);
+		values.push_back(SSimpleVertex{ v0, 0.0f }); values.push_back(SSimpleVertex{ v4, 0.0f }); values.push_back(SSimpleVertex{ v3, 0.0f });
+		values.push_back(SSimpleVertex{ v3, 0.0f }); values.push_back(SSimpleVertex{ v4, 0.0f }); values.push_back(SSimpleVertex{ v7, 0.0f });
+		values.push_back(SSimpleVertex{ v1, 0.0f }); values.push_back(SSimpleVertex{ v2, 0.0f }); values.push_back(SSimpleVertex{ v5, 0.0f });
+		values.push_back(SSimpleVertex{ v5, 0.0f }); values.push_back(SSimpleVertex{ v2, 0.0f }); values.push_back(SSimpleVertex{ v6, 0.0f });
 	}
 	if (_pbc.y)
 	{
-		data.reserve(data.size() + nVerticesPerBoundary);
-		data.push_back(SSimpleVertex{ v0, 1.0f }); data.push_back(SSimpleVertex{ v1, 1.0f }); data.push_back(SSimpleVertex{ v5, 1.0f });
-		data.push_back(SSimpleVertex{ v5, 1.0f }); data.push_back(SSimpleVertex{ v4, 1.0f }); data.push_back(SSimpleVertex{ v0, 1.0f });
-		data.push_back(SSimpleVertex{ v2, 1.0f }); data.push_back(SSimpleVertex{ v3, 1.0f }); data.push_back(SSimpleVertex{ v7, 1.0f });
-		data.push_back(SSimpleVertex{ v7, 1.0f }); data.push_back(SSimpleVertex{ v2, 1.0f }); data.push_back(SSimpleVertex{ v6, 1.0f });
+		values.reserve(values.size() + nVerticesPerBoundary);
+		values.push_back(SSimpleVertex{ v0, 1.0f }); values.push_back(SSimpleVertex{ v1, 1.0f }); values.push_back(SSimpleVertex{ v5, 1.0f });
+		values.push_back(SSimpleVertex{ v5, 1.0f }); values.push_back(SSimpleVertex{ v4, 1.0f }); values.push_back(SSimpleVertex{ v0, 1.0f });
+		values.push_back(SSimpleVertex{ v2, 1.0f }); values.push_back(SSimpleVertex{ v3, 1.0f }); values.push_back(SSimpleVertex{ v7, 1.0f });
+		values.push_back(SSimpleVertex{ v7, 1.0f }); values.push_back(SSimpleVertex{ v2, 1.0f }); values.push_back(SSimpleVertex{ v6, 1.0f });
 	}
 	if (_pbc.z)
 	{
-		data.reserve(data.size() + nVerticesPerBoundary);
-		data.push_back(SSimpleVertex{ v0, 2.0f }); data.push_back(SSimpleVertex{ v3, 2.0f }); data.push_back(SSimpleVertex{ v1, 2.0f });
-		data.push_back(SSimpleVertex{ v1, 2.0f }); data.push_back(SSimpleVertex{ v3, 2.0f }); data.push_back(SSimpleVertex{ v2, 2.0f });
-		data.push_back(SSimpleVertex{ v4, 2.0f }); data.push_back(SSimpleVertex{ v5, 2.0f }); data.push_back(SSimpleVertex{ v7, 2.0f });
-		data.push_back(SSimpleVertex{ v7, 2.0f }); data.push_back(SSimpleVertex{ v5, 2.0f }); data.push_back(SSimpleVertex{ v6, 2.0f });
+		values.reserve(values.size() + nVerticesPerBoundary);
+		values.push_back(SSimpleVertex{ v0, 2.0f }); values.push_back(SSimpleVertex{ v3, 2.0f }); values.push_back(SSimpleVertex{ v1, 2.0f });
+		values.push_back(SSimpleVertex{ v1, 2.0f }); values.push_back(SSimpleVertex{ v3, 2.0f }); values.push_back(SSimpleVertex{ v2, 2.0f });
+		values.push_back(SSimpleVertex{ v4, 2.0f }); values.push_back(SSimpleVertex{ v5, 2.0f }); values.push_back(SSimpleVertex{ v7, 2.0f });
+		values.push_back(SSimpleVertex{ v7, 2.0f }); values.push_back(SSimpleVertex{ v5, 2.0f }); values.push_back(SSimpleVertex{ v6, 2.0f });
 	}
 
 	// transfer vertex data to VBO 0
 	makeCurrent();
 	m_pbcsProgram.shaders.front()->dataBuf.bind();
-	m_pbcsProgram.shaders.front()->dataBuf.allocate(data.data(), static_cast<int>(data.size() * sizeof(data[0])));
+	m_pbcsProgram.shaders.front()->dataBuf.allocate(values.data(), static_cast<int>(values.size() * sizeof(values[0])));
 	m_pbcsProgram.shaders.front()->dataBuf.release();
 	doneCurrent();
 
 	// save number of objects to be drawn
-	m_pbcsProgram.shaders.front()->objects = static_cast<GLsizei>(data.size());
+	m_pbcsProgram.shaders.front()->objects = static_cast<GLsizei>(values.size());
 }
 
 void COpenGLViewShader::SetOrientations(const std::vector<SOrientation>& _orientations)
@@ -584,7 +584,7 @@ void COpenGLViewShader::SetOrientations(const std::vector<SOrientation>& _orient
 		const size_t nIndices = nArrows3InBlock * nIndicesPerArrow3;				 // number of indices needed to describe all triple arrows in block
 
 		// a continuous list of vertices for all triple arrows in block
-		std::vector<SSimpleVertex> data(nVertices);
+		std::vector<SSimpleVertex> values(nVertices);
 		// list of indices, pointing to vertices, which indicate the order of points drawing; draw as GL_TRIANGLE_FAN
 		// e.g., for the first arrow, drawn with 4 walls, it will look like [0, 1, 2, 3, 4, 1, 0xFFFFFFFF], if 0 is a spike point
 		std::vector<GLuint> indices(nIndices);
@@ -610,13 +610,13 @@ void COpenGLViewShader::SetOrientations(const std::vector<SOrientation>& _orient
 				// get offsets relative to the cylinder's central axis for points lying on the cylindrical surface
 				std::vector<QVector3D> points = CylinderOffsets(center, coord, radius, m_arrwPreData);
 				// set point at spike
-				data[iDataOffset++] = { coord, _type };
+				values[iDataOffset++] = { coord, _type };
 				indices[iIndexOffset++] = static_cast<GLuint>(iDataOffset - 1); // index of the spike point
 				// for each point on base
 				for (size_t iLine = 0; iLine < nLinesPerArrow; ++iLine)
 				{
 					// calculate vertex
-					data[iDataOffset++] = { { center + points[nLinesPerArrow - iLine - 1] }, _type };
+					values[iDataOffset++] = { { center + points[nLinesPerArrow - iLine - 1] }, _type };
 					// set index
 					indices[iIndexOffset++] = static_cast<GLuint>(iDataOffset - 1);
 				}
@@ -633,7 +633,7 @@ void COpenGLViewShader::SetOrientations(const std::vector<SOrientation>& _orient
 
 		// transfer vertex data to VBO 0
 		m_orntProgram.shaders[iBlock]->dataBuf.bind();
-		m_orntProgram.shaders[iBlock]->dataBuf.allocate(&data[0], static_cast<int>(data.size() * sizeof(data[0])));
+		m_orntProgram.shaders[iBlock]->dataBuf.allocate(&values[0], static_cast<int>(values.size() * sizeof(values[0])));
 		m_orntProgram.shaders[iBlock]->dataBuf.release();
 
 		// transfer index data to VBO 1
@@ -666,7 +666,7 @@ void COpenGLViewShader::SetAxes(bool _visible/* = true*/)
 	const size_t nVertices = nVerticesPerAxis * 3; // total number of vertices for 3 axes
 
 	// a continuous list of vertices for all axes
-	std::vector<SAxisVertex> data(nVertices);
+	std::vector<SAxisVertex> values(nVertices);
 
 	// precalculate cylinder-specific data, needed for calculation of offsets
 	const SCylinderPreData preData = PrecalculateCylinderData(nLines);
@@ -675,9 +675,9 @@ void COpenGLViewShader::SetAxes(bool _visible/* = true*/)
 	const auto SetData = [&](const QVector3D& _p1, const QVector3D& _p2, const QVector3D& _p3, float _type, size_t& _i)
 	{
 		const QVector3D normal = Normalize(QVector3D::crossProduct(_p2 - _p1, _p3 - _p1)); // normal vector
-		data[_i++] = { _p1, normal, _type };
-		data[_i++] = { _p2, normal, _type };
-		data[_i++] = { _p3, normal, _type };
+		values[_i++] = { _p1, normal, _type };
+		values[_i++] = { _p2, normal, _type };
+		values[_i++] = { _p3, normal, _type };
 	};
 
 	ParallelFor(3, [&](size_t iAxis)
@@ -718,13 +718,13 @@ void COpenGLViewShader::SetAxes(bool _visible/* = true*/)
 
 	// transfer vertex data to VBO 0
 	m_axisProgram.shaders.front()->dataBuf.bind();
-	m_axisProgram.shaders.front()->dataBuf.allocate(data.data(), static_cast<int>(data.size() * sizeof(data[0])));
+	m_axisProgram.shaders.front()->dataBuf.allocate(values.data(), static_cast<int>(values.size() * sizeof(values[0])));
 	m_axisProgram.shaders.front()->dataBuf.release();
 
 	doneCurrent();
 
 	// save number of objects to be drawn
-	m_axisProgram.shaders.front()->objects = static_cast<GLsizei>(data.size());
+	m_axisProgram.shaders.front()->objects = static_cast<GLsizei>(values.size());
 }
 
 void COpenGLViewShader::SetTime(double _time, bool _visible/* = true*/)

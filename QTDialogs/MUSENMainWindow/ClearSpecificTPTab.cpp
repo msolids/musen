@@ -91,7 +91,7 @@ void CClearSpecificTPTab::UpdateWholeView()
 	ui.labelNumberOfTPAfter->setText(QString::number(m_vAllTimePoints.size()));
 	ui.labelEndTime->setText(QString::number(m_pSystemStructure->GetMaxTime()));
 	// fill list of time points
-	for (auto i = 0; i < m_vAllTimePoints.size(); i++)
+	for (size_t i = 0; i < m_vAllTimePoints.size(); i++)
 		ui.listWidgetTimePoints->addItem(QString::number(m_vAllTimePoints[i]));
 }
 
@@ -114,10 +114,10 @@ void CClearSpecificTPTab::SelectTimeStep()
 		return;
 	}
 
-	double dTimeStep = ui.lineEditTimeStep->text().toDouble();	     // time step for cleaning
+	double timeStep = ui.lineEditTimeStep->text().toDouble();	     // time step for cleaning
 	double dTimeEnd = m_vAllTimePoints[m_vAllTimePoints.size() - 1]; // end time
 
-	if (dTimeStep >= dTimeEnd)
+	if (timeStep >= dTimeEnd)
 	{
 		QMessageBox::warning(this, "Error", "Value of time step for selection has to be smaller than end time value.");
 		return;
@@ -128,7 +128,7 @@ void CClearSpecificTPTab::SelectTimeStep()
 	ui.labelStatus->setText("Applying time step for selection...");
 
 	size_t nCurrIter = 0;
-	double dCurrTime = dTimeStep;
+	double dCurrTime = timeStep;
 
 	while (dCurrTime <= dTimeEnd)
 	{
@@ -143,7 +143,7 @@ void CClearSpecificTPTab::SelectTimeStep()
 				if (i != 0) ui.listWidgetTimePoints->item(static_cast<int>(i))->setSelected(true);
 
 		}
-		dCurrTime = dCurrTime + dTimeStep;
+		dCurrTime = dCurrTime + timeStep;
 	}
 
 	ui.labelNumberOfTPAfter->setText(QString::number(m_vAllTimePoints.size() - ui.listWidgetTimePoints->selectedItems().size()));
@@ -163,7 +163,7 @@ void CClearSpecificTPTab::SelectEachSecondTimePoint()
 	UpdateWholeView();
 	ui.labelStatus->setText("Selection of each second time point...");
 
-	for (auto i = 1; i < m_vAllTimePoints.size(); i = i + 2)
+	for (size_t i = 1; i < m_vAllTimePoints.size(); i = i + 2)
 		ui.listWidgetTimePoints->item(static_cast<int>(i))->setSelected(true);
 
 	ui.labelNumberOfTPAfter->setText(QString::number(m_vAllTimePoints.size() - ui.listWidgetTimePoints->selectedItems().size()));

@@ -138,7 +138,7 @@ std::vector<std::string> CConstraints::GetCommonMaterials() const
 	for (auto it = m_MaterialsMap.begin(); it != m_MaterialsMap.end(); ++it)
 	{
 		std::set<std::string> currSet = it->second;
-		size_t nSize = currSet.size();
+		//size_t nSize = currSet.size();
 		std::set<std::string> bufSet;
 		std::set_intersection(commonSet.begin(), commonSet.end(), currSet.begin(), currSet.end(), std::inserter(bufSet, bufSet.begin()));
 		commonSet = bufSet;

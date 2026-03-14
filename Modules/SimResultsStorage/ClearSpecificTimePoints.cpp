@@ -65,20 +65,20 @@ void CClearSpecificTimePoints::Remove()
 	size_t nTotalObjects = pTempSystemStructure->GetTotalObjectsCount();
 
 	// get all time points
-	std::vector<double> m_vAllTimePoints = pTempSystemStructure->GetAllTimePoints();
-	if (m_vAllTimePoints.size() == 0)
-		m_vAllTimePoints = pTempSystemStructure->GetAllTimePointsOldFormat();
-	size_t nTotalTimePoints = m_vAllTimePoints.size();
+	std::vector<double> vAllTimePoints = pTempSystemStructure->GetAllTimePoints();
+	if (vAllTimePoints.size() == 0)
+		vAllTimePoints = pTempSystemStructure->GetAllTimePointsOldFormat();
+	size_t nTotalTimePoints = vAllTimePoints.size();
 
 	for (size_t i = 0; i < nTotalTimePoints; i++)
 	{
 		if (std::find(m_vIndexesOfSelectedTPs.begin(), m_vIndexesOfSelectedTPs.end(), i) != m_vIndexesOfSelectedTPs.end())
 			continue; // skip time point which has to be removed
 
-		double dCurrTime = m_vAllTimePoints[i];
+		double dCurrTime = vAllTimePoints[i];
 		m_sProgressMessage = "In progress... Current time point " + std::to_string(dCurrTime) + " [s]";
 
-		for (auto k = 0; k < nTotalObjects; k++)
+		for (size_t k = 0; k < nTotalObjects; k++)
 		{
 			CPhysicalObject* pObjectTemp = pTempSystemStructure->GetObjectByIndex(k);
 			CPhysicalObject* pObject = m_pSystemStructure->GetObjectByIndex(k);

@@ -20,7 +20,7 @@ CTriState& CTriState::operator=(bool _flag)
 
 bool CTriState::operator==(bool _flag) const
 {
-	return _flag && m_state == EState::TRUE || !_flag && m_state == EState::FALSE;
+	return (_flag && m_state == EState::TRUE) || (!_flag && m_state == EState::FALSE);
 }
 
 bool CTriState::IsDefined() const

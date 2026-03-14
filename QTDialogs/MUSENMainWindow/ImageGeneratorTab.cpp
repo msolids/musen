@@ -125,7 +125,7 @@ void CImageGeneratorTab::StartGeneration()
 	const uint8_t quality = 100 - ui.spinBoxCompression->value();
 
 	if (!QDir(folderPath).exists())
-		const bool res = QDir().mkdir(folderPath);
+		[[maybe_unused]] const bool res = QDir().mkdir(folderPath);
 
 	setWindowModality(Qt::ApplicationModal);
 

@@ -1,227 +1,252 @@
-# Copyright (c) 2023, MUSEN Development Team. All rights reserved. This file is part of MUSEN framework http://msolids.net/musen. See LICENSE file for license and warranty information.
+# Copyright (c) 2023, MUSEN Development Team. 
+# Copyright (c) 2025, DyssolTEC GmbH.
+# All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen. 
+# See LICENSE file for license and warranty information.
 
-# TODO: optional GPU
+cmake_minimum_required(VERSION 3.23...3.31)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0)
+# =============================================================================
+# Version
+# =============================================================================
+set(MUSEN_VERSION_MAJOR 1)
+set(MUSEN_VERSION_MINOR 74)
+set(MUSEN_VERSION_PATCH 2)
+set(MUSEN_VERSION "${MUSEN_VERSION_MAJOR}.${MUSEN_VERSION_MINOR}.${MUSEN_VERSION_PATCH}")
 
-SET(VERSION 1.74.2)
-SET(SOVERSION 1.74)
+project(MUSEN VERSION ${MUSEN_VERSION} LANGUAGES CXX)
 
-PROJECT(MUSEN VERSION ${VERSION} LANGUAGES CXX)
+# =============================================================================
+# Options
+# =============================================================================
+option(MUSEN_BUILD_GUI        "Build MUSEN GUI application"     ON)
+option(MUSEN_BUILD_CLI        "Build CMUSEN CLI application"    ON)
+option(MUSEN_ENABLE_CUDA      "Build with CUDA GPU support"     ON)
+mark_as_advanced(MUSEN_ENABLE_CUDA) # Can't be disabled right now; remove after GPU code refactoring 
+option(MUSEN_INSTALL_DATA     "Install docs, examples, DBs"     ON)
+if(WIN32)
+  option(MUSEN_BUILD_INSTALLER  "Build Windows installer target"   OFF)
+endif()
 
-OPTION(BUILD_GUI "Build a version with graphical user interface" ON)
-OPTION(BUILD_CLI "Build a version with command line interface" ON)
-OPTION(INSTALL_AUX_DATA "Install documentation, examples, databases, etc." ON)
+# Default install prefix on Windows: writable location next to the build directory
+if(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/../install" CACHE PATH "" FORCE)
+endif()
 
-ENABLE_LANGUAGE(CUDA)
-SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-# CUDA C++17 support requires CUDA 11.0+
-IF(CMAKE_CUDA_COMPILER_VERSION VERSION_GREATER_EQUAL "11.0")
-  SET(CMAKE_CUDA_STANDARD 17)
-ELSE()
-  SET(CMAKE_CUDA_STANDARD 14)
-ENDIF()
+# =============================================================================
+# Global settings
+# =============================================================================
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MUSEN)
 
-INCLUDE(GNUInstallDirs)
+include(GNUInstallDirs)
+if(NOT WIN32)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
 
-SET(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# CMake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(CompilerSettings)
+include(CudaSettings)
+include(Dependencies)
+include(VersionSetup)
 
-SET(lib_musen_names
-  "CMusen"
+# =============================================================================
+# libmusen_static sources
+# =============================================================================
+set(LIB_MUSEN_DIRS
   "Databases"
   "Models"
   "Modules"
   "Version"
 )
 
-# gather all sources
-FOREACH(folder_name ${lib_musen_names})
-  FILE(GLOB_RECURSE src   ${CMAKE_SOURCE_DIR}/${folder_name}/*.cpp ${CMAKE_SOURCE_DIR}/${folder_name}/*.cu)
-  FILE(GLOB_RECURSE hdr   ${CMAKE_SOURCE_DIR}/${folder_name}/*.h   ${CMAKE_SOURCE_DIR}/${folder_name}/*.cuh)
-  FILE(GLOB_RECURSE proto ${CMAKE_SOURCE_DIR}/${folder_name}/*.proto)
-  SET(lib_musen_src ${lib_musen_src} ${src})
-  SET(lib_musen_hdr ${lib_musen_hdr} ${hdr})
-  SET(proto_files ${proto_files} ${proto})
-ENDFOREACH(folder_name ${lib_musen_names})
+set(LIB_MUSEN_SOURCES "")
+set(LIB_MUSEN_HEADERS "")
+foreach(_dir ${LIB_MUSEN_DIRS})
+  if(MUSEN_ENABLE_CUDA)
+    file(GLOB_RECURSE _src "${CMAKE_SOURCE_DIR}/${_dir}/*.cpp" "${CMAKE_SOURCE_DIR}/${_dir}/*.cu")
+    file(GLOB_RECURSE _hdr "${CMAKE_SOURCE_DIR}/${_dir}/*.h"   "${CMAKE_SOURCE_DIR}/${_dir}/*.cuh")
+  else()
+    file(GLOB_RECURSE _src "${CMAKE_SOURCE_DIR}/${_dir}/*.cpp")
+    file(GLOB_RECURSE _hdr "${CMAKE_SOURCE_DIR}/${_dir}/*.h")
+  endif()
+  list(APPEND LIB_MUSEN_SOURCES ${_src})
+  list(APPEND LIB_MUSEN_HEADERS ${_hdr})
+endforeach()
 
-# gather include directories
-FOREACH(hdr_file ${lib_musen_hdr})
-  GET_FILENAME_COMPONENT(hdr_path ${hdr_file} PATH)
-  SET(hdr_paths ${hdr_paths} ${hdr_path})
-ENDFOREACH()
-LIST(REMOVE_DUPLICATES hdr_paths)
-INCLUDE_DIRECTORIES(${hdr_paths})
+# Exclude model templates
+list(FILTER LIB_MUSEN_SOURCES EXCLUDE REGEX ".*/Models/Templates/.*")
+list(FILTER LIB_MUSEN_HEADERS EXCLUDE REGEX ".*/Models/Templates/.*")
 
-# exclude model templates with dynamic libraries
-SET(exclude_dirs
-  "Models/Templates/ModelEF/"
-  "Models/Templates/ModelPP/"
-  "Models/Templates/ModelPW/"
-  "Models/Templates/ModelSB/"
+# Add version files (generated by VersionSetup.cmake)
+list(APPEND LIB_MUSEN_SOURCES "${MUSEN_GENERATED_DIR}/BuildVersion.cpp")
+list(APPEND LIB_MUSEN_HEADERS "${MUSEN_GENERATED_DIR}/MUSENVersion.h")
+
+# Gather include directories from all headers
+set(_include_dirs "")
+foreach(_hdr ${LIB_MUSEN_HEADERS})
+  get_filename_component(_dir "${_hdr}" DIRECTORY)
+  list(APPEND _include_dirs "${_dir}")
+endforeach()
+list(REMOVE_DUPLICATES _include_dirs)
+
+# Proto files generation
+include(ProtobufCompile)
+musen_protobuf_generate(PROTO_GENERATED_SOURCES)
+
+# =============================================================================
+# libmusen_static target
+# =============================================================================
+add_library(libmusen_static STATIC
+  ${LIB_MUSEN_SOURCES}
+  ${LIB_MUSEN_HEADERS}
+  ${PROTO_GENERATED_SOURCES}
 )
-FOREACH(folder_path ${lib_musen_src})
-  FOREACH(exclude_dir ${exclude_dirs})
-    STRING(FIND ${folder_path} ${exclude_dir} exclude_dir_found)
-    IF(NOT ${exclude_dir_found} EQUAL -1)
-  	  LIST(REMOVE_ITEM lib_musen_src ${folder_path})
-    ENDIF()
-  ENDFOREACH(exclude_dir)
-ENDFOREACH(folder_path)
+add_dependencies(libmusen_static generate_build_version)
 
-# cuda
-IF(${CMAKE_VERSION} VERSION_LESS "3.17.0")
-  SET(cuda_package_name "CUDA")
-  SET(cuda_include_dirs_name "CUDA_INCLUDE_DIRS")
-  SET(cuda_link_directories_name "CUDA_LIBRARIES")
-  SET(cuda_version_major_name "CUDA_VERSION_MAJOR")
-  SET(cuda_version_minor_name "CUDA_VERSION_MINOR")
-ELSE()
-  SET(cuda_package_name "CUDAToolkit")
-  SET(cuda_include_dirs_name "CUDAToolkit_INCLUDE_DIRS")
-  SET(cuda_link_directories_name "CUDAToolkit_LIBRARY_DIR")
-  SET(cuda_version_major_name "CUDAToolkit_VERSION_MAJOR")
-  SET(cuda_version_minor_name "CUDAToolkit_VERSION_MINOR")
-ENDIF()
-SET(cuda_cc_9    "30;32;35;37;50;52;53;60;61;62;70")
-SET(cuda_cc_10   "30;32;35;37;50;52;53;60;61;62;70;72;75")
-SET(cuda_cc_11_0 "50;52;53;60;61;62;70;72;75;80")
-SET(cuda_cc_11_1 "50;52;53;60;61;62;70;72;75;80;86")
-SET(cuda_cc_11_4 "50;52;53;60;61;62;70;72;75;80;86;87")
-SET(cuda_cc_11_8 "50;52;53;60;61;62;70;72;75;80;86;87;89;90")
-SET(cuda_cc_12_8 "50;52;53;60;61;62;70;72;75;80;86;87;89;90;100;101;120")
-SET(cuda_cc_12_9 "50;52;53;60;61;62;70;72;75;80;86;87;89;90;100;101;103;120;121")
-SET(cuda_cc_13_0 "75;80;86;87;89;90;100;103;110;120;121")
-FIND_PACKAGE(${cuda_package_name} REQUIRED)
-INCLUDE_DIRECTORIES(${${cuda_include_dirs_name}})
-# for CUDA 13+
-IF(IS_DIRECTORY "${${cuda_include_dirs_name}}/cccl")
-  INCLUDE_DIRECTORIES("${${cuda_include_dirs_name}}/cccl")
-ENDIF()
-LINK_DIRECTORIES(${${cuda_link_directories_name}})
-SET(_cuda_major ${${cuda_version_major_name}})
-SET(_cuda_minor ${${cuda_version_minor_name}})
-IF(_cuda_major LESS 10)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_9})
-ELSEIF(_cuda_major LESS 11)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_10})
-ELSEIF(_cuda_major EQUAL 11 AND _cuda_minor LESS 1)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_0})
-ELSEIF(_cuda_major EQUAL 11 AND _cuda_minor LESS 4)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_1})
-ELSEIF(_cuda_major EQUAL 11 AND _cuda_minor LESS 8)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_4})
-ELSEIF(_cuda_major EQUAL 11 OR (_cuda_major EQUAL 12 AND _cuda_minor LESS 8))
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_11_8})
-ELSEIF(_cuda_major EQUAL 12 AND _cuda_minor LESS 9)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_12_8})
-ELSEIF(_cuda_major EQUAL 12)
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_12_9})
-ELSE()
-  SET(CMAKE_CUDA_ARCHITECTURES ${cuda_cc_13_0})
-ENDIF()
-
-# pass __CUDA_ARCH_LIST__ to host compiler for CUDA 12.8+ Thrust ABI namespace compatibility
-SET(_cuda_arch_list "")
-FOREACH(_arch ${CMAKE_CUDA_ARCHITECTURES})
-  MATH(EXPR _arch_val "${_arch} * 10")
-  IF(_cuda_arch_list)
-    SET(_cuda_arch_list "${_cuda_arch_list},${_arch_val}")
-  ELSE()
-    SET(_cuda_arch_list "${_arch_val}")
-  ENDIF()
-ENDFOREACH()
-
-# zlib
-IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.24.0")
-  SET(ZLIB_USE_STATIC_LIBS "ON")
-ENDIF()
-FIND_PACKAGE(ZLIB)
-INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
-
-# protobuf
-IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.9.0")
-  SET(Protobuf_USE_STATIC_LIBS "ON")
-ENDIF()
-FIND_PACKAGE(Protobuf REQUIRED)
-INCLUDE_DIRECTORIES(${Protobuf_INCLUDE_DIRS})
-
-# generate protobuf sources
-SET(proto_out_path ${CMAKE_BINARY_DIR}/ProtoGeneratedFiles)
-FILE(MAKE_DIRECTORY ${proto_out_path})
-FOREACH(proto ${proto_files})
-  FILE(TO_NATIVE_PATH ${proto} proto_native)
-  GET_FILENAME_COMPONENT(proto_path ${proto_native} DIRECTORY)
-  EXECUTE_PROCESS(COMMAND ${Protobuf_PROTOC_EXECUTABLE} --proto_path=${proto_path} --proto_path=${CMAKE_SOURCE_DIR}/Databases/MaterialsDatabase/ --cpp_out=${proto_out_path} ${proto_native})
-  GET_FILENAME_COMPONENT(proto_name_we ${proto_native} NAME_WE)
-  SET(lib_musen_src ${lib_musen_src} ${proto_out_path}/${proto_name_we}.pb.cc)
-  SET(lib_musen_src ${lib_musen_src} ${proto_out_path}/${proto_name_we}.pb.h)
-ENDFOREACH(proto)
-INCLUDE_DIRECTORIES(${proto_out_path})
-
-# generate version info
-EXECUTE_PROCESS(COMMAND ${CMAKE_SOURCE_DIR}/Version/generate_build_version.sh)
-
-# ADD_LIBRARY(libmusen_shared SHARED ${lib_musen_src})
-# SET_TARGET_PROPERTIES(libmusen_shared PROPERTIES
-  # VERSION ${VERSION}
-  # SOVERSION ${SOVERSION}
-  # PREFIX ""
-  # OUTPUT_NAME "libmusen"
-  # POSITION_INDEPENDENT_CODE TRUE
-# )
-
-ADD_LIBRARY(libmusen_static STATIC ${lib_musen_src})
-SET_TARGET_PROPERTIES(libmusen_static PROPERTIES
-  VERSION ${VERSION}
-  SOVERSION ${SOVERSION}
-  PREFIX ""
+set_target_properties(libmusen_static PROPERTIES
   OUTPUT_NAME "libmusen"
+  PREFIX ""
   POSITION_INDEPENDENT_CODE TRUE
 )
 
-SET(INSTALL_PATH_ROOT ${CMAKE_INSTALL_PREFIX}/)
+target_include_directories(libmusen_static PUBLIC
+  ${_include_dirs}
+  "${PROTO_OUT_DIR}"
+  "${MUSEN_GENERATED_DIR}"
+)
+if(MUSEN_ENABLE_CUDA)
+  target_include_directories(libmusen_static PUBLIC "${CUDAToolkit_INCLUDE_DIRS}")
+endif()
+if(DEFINED MUSEN_CUDA_INCLUDE_DIRS)
+  target_include_directories(libmusen_static PUBLIC ${MUSEN_CUDA_INCLUDE_DIRS})
+endif()
 
-# TARGET_LINK_LIBRARIES(libmusen_shared ${Protobuf_LIBRARY} ${CUDA_LIBRARIES})
-TARGET_LINK_LIBRARIES(libmusen_static ${Protobuf_LIBRARIES} ${ZLIB_LIBRARIES} ${CUDA_LIBRARIES})
+# Link dependencies
+if(TARGET protobuf::libprotobuf)
+  target_link_libraries(libmusen_static PUBLIC protobuf::libprotobuf)
+else()
+  target_link_libraries(libmusen_static PUBLIC ${Protobuf_LIBRARIES})
+endif()
+target_link_libraries(libmusen_static PUBLIC ZLIB::ZLIB)
+if(MUSEN_ENABLE_CUDA)
+  target_link_libraries(libmusen_static PUBLIC CUDA::cudart_static)
+  # __CUDA_ARCH_LIST__ for CUDA 12.8+ Thrust ABI namespace compatibility
+  if(MUSEN_CUDA_ARCH_DEFINITION)
+    target_compile_definitions(libmusen_static PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:${MUSEN_CUDA_ARCH_DEFINITION}>")
+  endif()
+endif()
 
-IF(BUILD_CLI)
-  ADD_EXECUTABLE(CMUSEN ${proto_src} ${proto_files})
-  TARGET_LINK_LIBRARIES(CMUSEN libmusen_static)
-  
-  # link filesystem or experimental/filesystem for gcc
-  IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    IF (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-      TARGET_LINK_LIBRARIES(CMUSEN -lstdc++fs)
-    ENDIF()
-  ENDIF()
-  
-  INSTALL(TARGETS CMUSEN DESTINATION ${INSTALL_PATH_ROOT})
-ENDIF(BUILD_CLI)
+# =============================================================================
+# CMUSEN (CLI) target
+# =============================================================================
+if(MUSEN_BUILD_CLI)
+  set(CMUSEN_SOURCES "${CMAKE_SOURCE_DIR}/CMusen/CMusen.cpp")
+  if(WIN32)
+    list(APPEND CMUSEN_SOURCES "${CMAKE_SOURCE_DIR}/CMusen/CMusen.rc")
+  endif()
 
-# TARGET_COMPILE_DEFINITIONS(libmusen_shared PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
-TARGET_COMPILE_DEFINITIONS(libmusen_static PRIVATE INSTALL_DOCS_PATH="${INSTALL_DOCS_PATH}")
-# CUDA 12.8+ CCCL/Thrust (>= 2.7.0) uses __CUDA_ARCH_LIST__ for ABI-versioned namespaces.
-# Thrust headers leak into .cpp files (GPUSimulator.cuh → GPUSimulator.h → CGPU public API with thrust types),
-# so the CXX compiler must see the same __CUDA_ARCH_LIST__ as NVCC; otherwise namespaces mismatch → linker errors.
-# Remove this once Thrust types are hidden from .cpp files.
-IF((_cuda_major EQUAL 12 AND _cuda_minor GREATER_EQUAL 8) OR _cuda_major GREATER_EQUAL 13)
-  TARGET_COMPILE_DEFINITIONS(libmusen_static PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:__CUDA_ARCH_LIST__=${_cuda_arch_list}>")
-ENDIF()
+  add_executable(CMUSEN ${CMUSEN_SOURCES})
+  target_link_libraries(CMUSEN PRIVATE libmusen_static)
 
-IF(INSTALL_AUX_DATA)
-  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Databases/" DESTINATION ${INSTALL_PATH_ROOT}/Databases)
-  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Examples/"  DESTINATION ${INSTALL_PATH_ROOT}/Examples)
-  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Installers/Data/Licenses/"  DESTINATION ${INSTALL_PATH_ROOT}/Licenses)
-  INSTALL(DIRECTORY "${CMAKE_SOURCE_DIR}/Documentation/"             DESTINATION ${INSTALL_PATH_ROOT}/Documentation)
-  INSTALL(FILES     "${CMAKE_SOURCE_DIR}/LICENSE"                    DESTINATION ${INSTALL_PATH_ROOT})
-ENDIF(INSTALL_AUX_DATA)
+  if(MSVC)
+    set_target_properties(CMUSEN PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+    # cudart_static is always /MT: suppress its conflicting runtime in /MD builds
+    target_link_options(CMUSEN PRIVATE /NODEFAULTLIB:LIBCMT)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(CMUSEN PRIVATE -static-libstdc++ -static-libgcc)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+      target_link_libraries(CMUSEN PRIVATE stdc++fs)
+    endif()
+  endif()
+endif()
 
-# INSTALL(TARGETS libmusen_shared DESTINATION ${CMAKE_INSTALL_LIBDIR})
-# INSTALL(TARGETS libmusen_static DESTINATION ${CMAKE_INSTALL_LIBDIR})
+# =============================================================================
+# MUSEN (GUI) target
+# =============================================================================
+if(MUSEN_BUILD_GUI)
+  set(CMAKE_AUTOMOC ON)
+  set(CMAKE_AUTORCC ON)
+  set(CMAKE_AUTOUIC ON)
 
-IF(BUILD_GUI)
-  ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/MusenGUI")
-ENDIF(BUILD_GUI)
+  # Gather GUI sources
+  set(GUI_SOURCE_DIRS "MusenGUI" "QTDialogs")
+  set(GUI_SOURCES "")
+  set(GUI_HEADERS "")
+  foreach(_dir ${GUI_SOURCE_DIRS})
+    file(GLOB_RECURSE _src
+      "${CMAKE_SOURCE_DIR}/${_dir}/*.cpp"
+      "${CMAKE_SOURCE_DIR}/${_dir}/*.ui"
+      "${CMAKE_SOURCE_DIR}/${_dir}/*.qrc"
+    )
+    file(GLOB_RECURSE _hdr "${CMAKE_SOURCE_DIR}/${_dir}/*.h")
+    list(APPEND GUI_SOURCES ${_src})
+    list(APPEND GUI_HEADERS ${_hdr})
+  endforeach()
+
+  # Resource file on Windows
+  if(WIN32)
+    list(APPEND GUI_SOURCES "${CMAKE_SOURCE_DIR}/MusenGUI/resources.rc")
+  endif()
+
+  # Gather GUI include directories
+  set(_gui_include_dirs "")
+  foreach(_hdr ${GUI_HEADERS})
+    get_filename_component(_dir "${_hdr}" DIRECTORY)
+    list(APPEND _gui_include_dirs "${_dir}")
+  endforeach()
+  list(REMOVE_DUPLICATES _gui_include_dirs)
+
+  # WIN32 flag creates a Windows subsystem executable (no console window)
+  if(WIN32)
+    add_executable(MUSEN WIN32 ${GUI_SOURCES} ${GUI_HEADERS})
+  else()
+    add_executable(MUSEN ${GUI_SOURCES} ${GUI_HEADERS})
+  endif()
+
+  target_include_directories(MUSEN PRIVATE ${_gui_include_dirs})
+  set_target_properties(MUSEN PROPERTIES AUTOGEN_SOURCE_GROUP "Generated Files")
+  target_link_libraries(MUSEN PRIVATE libmusen_static ${OPENGL_LIBRARIES})
+
+  if(Qt6_FOUND)
+    target_link_libraries(MUSEN PRIVATE Qt6::OpenGL Qt6::OpenGLWidgets Qt6::Widgets)
+  else()
+    target_link_libraries(MUSEN PRIVATE Qt5::OpenGL Qt5::Widgets)
+  endif()
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    target_link_libraries(MUSEN PRIVATE stdc++fs)
+  endif()
+
+  # cudart_static is always /MT: suppress its conflicting runtime in /MD builds
+  if(MSVC)
+    target_link_options(MUSEN PRIVATE /NODEFAULTLIB:LIBCMT)
+  endif()
+
+  # MUSEN_QT_BIN_DIR is set by Dependencies.cmake
+  if(MSVC AND MUSEN_QT_BIN_DIR)
+    set_target_properties(MUSEN PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${MUSEN_QT_BIN_DIR};$ENV{PATH}")
+  endif()
+endif()
+
+# =============================================================================
+# Source groups (VS Solution Explorer filters)
+# =============================================================================
+include(SourceGroups)
+musen_apply_source_groups(LIB_MUSEN_SOURCES)
+musen_apply_source_groups(LIB_MUSEN_HEADERS)
+musen_apply_source_groups(PROTO_GENERATED_SOURCES)
+if(MUSEN_BUILD_GUI)
+  musen_apply_source_groups(GUI_SOURCES)
+  musen_apply_source_groups(GUI_HEADERS)
+endif()
+
+# =============================================================================
+# Install
+# =============================================================================
+include(InstallRules)
+include(WindowsInstaller)

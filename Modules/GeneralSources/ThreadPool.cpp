@@ -13,9 +13,10 @@
 #include <sys/sysinfo.h>
 #endif
 #ifdef _WIN64
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
-#undef NOMINMAX
 #endif
 
 constexpr size_t MIN_NONDEDICATED_THREADS = 8;

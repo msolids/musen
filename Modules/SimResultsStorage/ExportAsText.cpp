@@ -158,9 +158,9 @@ std::set<size_t> CExportAsText::FilterObjectsByType(const std::set<size_t>& _ids
 	for (const size_t id : _ids)
 	{
 		const auto type = m_systemStructure->GetObjectByIndex(id)->GetObjectType();
-		if (   type == SPHERE          && m_selectors.objectTypes.particles
-			|| type == SOLID_BOND      && m_selectors.objectTypes.bonds
-			|| type == TRIANGULAR_WALL && m_selectors.objectTypes.walls)
+		if (   (type == SPHERE          && m_selectors.objectTypes.particles)
+			|| (type == SOLID_BOND      && m_selectors.objectTypes.bonds)
+			|| (type == TRIANGULAR_WALL && m_selectors.objectTypes.walls))
 			res.insert(res.end(), id);
 	}
 	return res;

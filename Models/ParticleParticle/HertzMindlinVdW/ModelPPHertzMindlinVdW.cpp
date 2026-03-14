@@ -96,7 +96,7 @@ void CModelPPHertzMindlinVdW::CalculatePP(double _time, double _timeStep, size_t
 	else // only long range force
 	{
 		// final forces and moments
-		const CVector3 totalForce = normVector * VdWForceLen;
+		//const CVector3 totalForce = normVector * VdWForceLen;
 
 		// store results in collision
 		_collision->vTangOverlap.Init(0);

@@ -835,7 +835,7 @@ void CViewManager::SetViewSettings() const
 	}
 	case ERenderType::SHADER:
 	{
-		auto* viewerNew = dynamic_cast<COpenGLViewShader*>(m_widget);
+		//auto* viewerNew = dynamic_cast<COpenGLViewShader*>(m_widget);
 		break;
 	}
 	case ERenderType::NONE:
@@ -1247,9 +1247,9 @@ std::vector<CSphere*> CViewManager::GetVisibleSlices() const
 
 bool CViewManager::IsCutByPlanes(const CVector3& _coord) const
 {
-	return m_viewSettings->Cutting().cutByX && (_coord.x < m_viewSettings->Cutting().minX || _coord.x > m_viewSettings->Cutting().maxX) ||
-		   m_viewSettings->Cutting().cutByY && (_coord.y < m_viewSettings->Cutting().minY || _coord.y > m_viewSettings->Cutting().maxY) ||
-		   m_viewSettings->Cutting().cutByZ && (_coord.z < m_viewSettings->Cutting().minZ || _coord.z > m_viewSettings->Cutting().maxZ);
+	return (m_viewSettings->Cutting().cutByX && (_coord.x < m_viewSettings->Cutting().minX || _coord.x > m_viewSettings->Cutting().maxX))
+		|| (m_viewSettings->Cutting().cutByY && (_coord.y < m_viewSettings->Cutting().minY || _coord.y > m_viewSettings->Cutting().maxY))
+		|| (m_viewSettings->Cutting().cutByZ && (_coord.z < m_viewSettings->Cutting().minZ || _coord.z > m_viewSettings->Cutting().maxZ));
 }
 
 std::vector<QColor> CViewManager::GetObjectsColors(const std::vector<CSphere*>& _parts, const std::vector<CSolidBond*>& _bonds) const

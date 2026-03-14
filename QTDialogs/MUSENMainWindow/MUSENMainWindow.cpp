@@ -663,7 +663,7 @@ void MUSENMainWindow::SaveAsImage()
 {
 	const QString fileName = QFileDialog::getSaveFileName(this, "Save as image", QFileInfo(m_sFileName).absolutePath(), "Image files(*.png);;Image files(*.jpg);;Image files(*.bmp);;All files (*.*);;");
 	if (fileName.isEmpty()) return;
-	const bool success = m_pViewManager->GetSnapshot().save(fileName);
+	[[maybe_unused]] const bool success = m_pViewManager->GetSnapshot().save(fileName);
 }
 
 void MUSENMainWindow::ExportGeometriesAsSTL()

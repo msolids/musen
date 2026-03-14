@@ -13,8 +13,10 @@
 #include <map>
 #include <cstdint>
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 26495)
+#endif
 
 struct SSelectiveSavingFlags
 {
@@ -233,4 +235,6 @@ namespace
 	}
 }
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif

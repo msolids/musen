@@ -9,9 +9,13 @@ WORKDIR /root
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         nano rsync \
-        build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev \
+        build-essential wget ca-certificates zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev \
         nvidia-cuda-toolkit && \
     rm -rf /var/lib/apt/lists/*
+
+# Install CMake 3.31 (Ubuntu 18.04 ships too old 3.10)
+RUN wget -qO- https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz \
+        | tar xz --strip-components=1 -C /usr/local
 
 COPY --chmod=755 build_musen.sh ./build_musen.sh
 

@@ -132,7 +132,7 @@ void CModelManagerTab::SaveConfiguration()
 {
 	std::vector<std::string> vFoldesList = m_pModelManager->GetDirs();
 	m_pSettings->beginWriteArray(MM_DLL_FOLDER_NAME);
-	for (int i = 0; i < vFoldesList.size(); ++i)
+	for (int i = 0; i < (int)vFoldesList.size(); ++i)
 	{
 		m_pSettings->setArrayIndex(i);
 		m_pSettings->setValue(MM_DLL_FOLDER_NAME, QString::fromStdString(vFoldesList[i]));

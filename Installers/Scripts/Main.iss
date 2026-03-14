@@ -1,18 +1,21 @@
 ; Copyright (c) 2013-2020, MUSEN Development Team. 
 ; Copyright (c) 2024, DyssolTEC GmbH.
-; All rights reserved. This file is part of MUSEN framework http://msolids.net/musen.
+; All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
 ; See LICENSE file for license and warranty information. 
 
+; The following defines are provided by the calling CMake script:
+; ReleaseDir=<path>        - directory with Release binaries
+; DebugDir=<path>          - directory with Debug binaries
+; InstallerInfoFile=<path> - full path to generated installer_info.ini
+; QtPath=<path>            - Qt installation prefix
+
 #define public SolutionDir 	"..\.."
-#define public ProjectDir 	"..\InstallerProject"
 #define public DataDir 		SolutionDir+"\Installers\Data"
-#define public ReleaseDir 	SolutionDir+"\x64\Release"
-#define public DebugDir 	SolutionDir+"\x64\Debug"
 
 #define MyAppName 			"MUSEN"
 #define MyAppExeName 		MyAppName+".exe"
 #define MyAppVersion 		GetStringFileInfo(ReleaseDir+'\'+MyAppExeName, "ProductVersion")
-#define MyAppBranch 		ReadIni(ProjectDir+"\data.ini", "Version", "Branch", "unknown")
+#define MyAppBranch 		ReadIni(InstallerInfoFile, "Version", "Branch", "unknown")
 #define MyAppPublisher 		"MUSEN Development Team"
 #define MyAppURL 			"https://msolids.net/musen/"
 #define MyAppPublisherURL 	"https://msolids.net/musen/"

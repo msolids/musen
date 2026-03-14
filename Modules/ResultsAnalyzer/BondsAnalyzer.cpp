@@ -35,9 +35,9 @@ bool CBondsAnalyzer::Export()
 
 			CSolidBond* pBond = dynamic_cast<CSolidBond*>(m_pSystemStructure->GetObjectByIndex( vBonds[ j ] ));
 			if (!pBond->IsActive(dTime)) continue;
-			CPhysicalObject* pSphere1, *pSphere2;
-			pSphere1 = m_pSystemStructure->GetObjectByIndex(pBond->m_nLeftObjectID);
-			pSphere2 = m_pSystemStructure->GetObjectByIndex(pBond->m_nRightObjectID);
+			//CPhysicalObject* pSphere1, *pSphere2;
+			//pSphere1 = m_pSystemStructure->GetObjectByIndex(pBond->m_nLeftObjectID);
+			//pSphere2 = m_pSystemStructure->GetObjectByIndex(pBond->m_nRightObjectID);
 			switch (GetProperty())
 			{
 			case CResultsAnalyzer::EPropertyType::BondForce:

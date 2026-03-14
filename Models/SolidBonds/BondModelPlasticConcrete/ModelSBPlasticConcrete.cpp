@@ -86,7 +86,7 @@ void CModelSBPlasticConcrete::CalculateSB(double _time, double _timeStep, size_t
 
 	_bonds.TangentialOverlap(_iBond) = M*_bonds.TangentialOverlap(_iBond) - tangentialVelocity*_timeStep;
 	_bonds.TangentialPlasticStrain(_iBond) = M*_bonds.TangentialPlasticStrain(_iBond);
-	CVector3 vTangStrain = _bonds.TangentialOverlap(_iBond) / _bonds.InitialLength(_iBond);
+	//CVector3 vTangStrain = _bonds.TangentialOverlap(_iBond) / _bonds.InitialLength(_iBond);
 	CVector3 vTangStress = (_bonds.TangentialOverlap(_iBond) - _bonds.TangentialPlasticStrain(_iBond))*_bonds.TangentialStiffness(_iBond);
 
 	_bonds.TangentialForce(_iBond) = vTangStress*_bonds.CrossCut(_iBond);

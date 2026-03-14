@@ -9,4 +9,4 @@ SCRIPT=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
 SCRIPTPATH=$(dirname "$SCRIPT")
 # Run copy
-rsync -av --exclude=.git --exclude=.vs --exclude=Documentation --exclude=ExternalLibraries --exclude=Installers/Compiler --exclude=Installers/Installers --exclude=MUSEN_Linux --exclude=x64 ${SCRIPTPATH}/../ ~/musen/
+rsync -av --exclude=.git --exclude=.vs --exclude=build --exclude=Documentation --exclude=ExternalLibraries --exclude=Installers/Compiler --exclude=install --exclude=Installers/Installers --exclude=MUSEN_Linux --exclude=x64 ${SCRIPTPATH}/../ ~/musen/

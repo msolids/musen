@@ -64,13 +64,13 @@ void CQtTree::SetupComboBox(QTreeWidgetItem* _item, int _col, const std::vector<
 {
 	if (_names.size() != _data.size()) return;
 	std::vector<QString> names;
-	std::vector<QVariant> data;
+	std::vector<QVariant> values;
 	for (int i = 0; i < static_cast<int>(_names.size()); ++i)
 	{
 		names.emplace_back(QString::fromStdString(_names[i]));
-		data.emplace_back(QString::fromStdString(_data[i]));
+		values.emplace_back(QString::fromStdString(_data[i]));
 	}
-	SetupComboBox(_item, _col, names, data, QString::fromStdString(_selected));
+	SetupComboBox(_item, _col, names, values, QString::fromStdString(_selected));
 }
 
 void CQtTree::SetComboBoxValue(QTreeWidgetItem* _item, int _col, const QVariant& _value) const

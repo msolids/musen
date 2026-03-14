@@ -10,7 +10,7 @@ RUN dnf install -y --setopt=install_weak_deps=False dnf-plugins-core && \
     dnf config-manager --set-enabled crb && \
     dnf install -y --setopt=install_weak_deps=False \
         nano rsync wget ca-certificates \
-        gcc-c++ cmake make zlib-devel zlib-static qt6-qtbase-devel mesa-libGLU-devel && \
+        gcc-c++ libstdc++-static cmake make zlib-devel zlib-static qt6-qtbase-devel mesa-libGLU-devel && \
     dnf clean all
 
 # Build protobuf from source (static lib not available)
@@ -29,7 +29,6 @@ RUN dnf config-manager --add-repo https://developer.download.nvidia.com/compute/
         cuda-compiler-${CUDA_VERSION//./-} cuda-cudart-devel-${CUDA_VERSION//./-} \
         libcurand-devel-${CUDA_VERSION//./-} cuda-cccl-${CUDA_VERSION//./-} && \
     dnf clean all
-
 ENV PATH=/usr/local/cuda-${CUDA_VERSION}/bin${PATH:+:${PATH}}
 
 COPY --chmod=755 build_musen.sh ./build_musen.sh

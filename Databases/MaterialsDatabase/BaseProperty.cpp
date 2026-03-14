@@ -6,16 +6,16 @@
 #include "DefinesMDB.h"
 
 CBaseProperty::CBaseProperty():
-	m_nPropertyType(PROPERTY_UNDEFINED_TYPE),
 	m_sName(PROPERTY_UNDEFINED_NAME),
-	m_sUnits(PROPERTY_UNDEFINED_UNITS)
+	m_sUnits(PROPERTY_UNDEFINED_UNITS),
+	m_nPropertyType(PROPERTY_UNDEFINED_TYPE)
 {
 }
 
 CBaseProperty::CBaseProperty(unsigned _nType, const std::string& _sName, const std::string& _sUnits) :
-	m_nPropertyType(_nType),
 	m_sName(_sName),
-	m_sUnits(_sUnits)
+	m_sUnits(_sUnits),
+	m_nPropertyType(_nType)
 {
 }
 
