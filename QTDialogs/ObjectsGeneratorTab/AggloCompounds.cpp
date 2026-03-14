@@ -73,8 +73,8 @@ QComboBox* CAggloCompounds::CreateMaterialCombo(QWidget* _pParent, const QString
 	for (unsigned i = 0; i < m_pSystemStructure->m_MaterialDatabase.CompoundsNumber(); ++i)
 	{
 		pCombo->insertItem(i, ss2qs(m_pSystemStructure->m_MaterialDatabase.GetCompoundName(i)), ss2qs(m_pSystemStructure->m_MaterialDatabase.GetCompoundKey(i)));
-		if ((_pParent == ui.tableWidgetParticles) && (m_pGenerator->m_partMaterials[qs2ss(_sAlias)] == m_pSystemStructure->m_MaterialDatabase.GetCompoundKey(i))
-			|| (_pParent == ui.tableWidgetBonds) && (m_pGenerator->m_bondMaterials[qs2ss(_sAlias)] == m_pSystemStructure->m_MaterialDatabase.GetCompoundKey(i)))
+		if (((_pParent == ui.tableWidgetParticles) && (m_pGenerator->m_partMaterials[qs2ss(_sAlias)] == m_pSystemStructure->m_MaterialDatabase.GetCompoundKey(i)))
+			|| ((_pParent == ui.tableWidgetBonds) && (m_pGenerator->m_bondMaterials[qs2ss(_sAlias)] == m_pSystemStructure->m_MaterialDatabase.GetCompoundKey(i))))
 			nCurrIndex = i;
 	}
 	pCombo->setCurrentIndex(nCurrIndex);

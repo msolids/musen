@@ -92,10 +92,10 @@ void CFileHandler::SetFileSize(uint64_t _nSize)
 
 #ifdef _WIN32
 	int filedes = _fileno(m_pFile);
-	int res = _chsize_s(filedes, _nSize); // ftruncate
+	_chsize_s(filedes, _nSize); // ftruncate
 #else
 	int filedes = fileno(m_pFile);
-	int res = ftruncate(filedes, _nSize);
+	ftruncate(filedes, _nSize);
 #endif
 }
 

@@ -333,7 +333,7 @@ bool CScriptRunner::LoadAndResaveSystemStructure()
 bool CScriptRunner::LoadSourceFile()
 {
 	// check whether the file is already loaded
-	if (m_job.sourceFileName.empty() && !m_systemStructure.GetFileName().empty() || !m_job.sourceFileName.empty() && m_systemStructure.GetFileName() == m_job.sourceFileName)
+	if ((m_job.sourceFileName.empty() && !m_systemStructure.GetFileName().empty()) || (!m_job.sourceFileName.empty() && m_systemStructure.GetFileName() == m_job.sourceFileName))
 	{
 		m_job.sourceFileName = m_systemStructure.GetFileName();
 		m_out << "The source file is already loaded" << std::endl;

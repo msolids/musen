@@ -1,17 +1,29 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36930.0 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MUSEN_API", "MUSEN_API\MUSEN_API.vcxproj", "{C2538231-09B7-469C-8375-CEC61DAF8D55}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelPP", "Models\ModelPP\ModelPP.vcxproj", "{EE5A57E1-673B-41F9-92A6-F33B796E89C3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C2538231-09B7-469C-8375-CEC61DAF8D55} = {C2538231-09B7-469C-8375-CEC61DAF8D55}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelPW", "Models\ModelPW\ModelPW.vcxproj", "{4359BFBC-3A46-474E-8D1C-5E678C96EA33}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C2538231-09B7-469C-8375-CEC61DAF8D55} = {C2538231-09B7-469C-8375-CEC61DAF8D55}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelSB", "Models\ModelSB\ModelSB.vcxproj", "{7CB06D2D-8362-4EA1-9ADA-12E19A720AAD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C2538231-09B7-469C-8375-CEC61DAF8D55} = {C2538231-09B7-469C-8375-CEC61DAF8D55}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelEF", "Models\ModelEF\ModelEF.vcxproj", "{5C3690FA-B69B-40DD-A380-0FB674B6DE6E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C2538231-09B7-469C-8375-CEC61DAF8D55} = {C2538231-09B7-469C-8375-CEC61DAF8D55}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

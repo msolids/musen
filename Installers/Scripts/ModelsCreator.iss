@@ -69,9 +69,9 @@ Source: "{#ModelsCreatorDirSrc}\{#APIDir}\*.vcxproj"; 					DestDir: "{#ModelsCre
 Source: "{#ModelsCreatorDirSrc}\{#APIDir}\*.vcxproj.user"; 				DestDir: "{#ModelsCreatorDir}\{#APIDir}"; Flags: ignoreversion
 			
 ; Property sheets
-Source: "{#SolutionDir}\PropertySheets\MusenCommonDebug.props";   DestDir: "{#ModelsCreatorDir}\PropertySheets"; 		Flags: ignoreversion
-Source: "{#SolutionDir}\PropertySheets\MusenCommonRelease.props"; DestDir: "{#ModelsCreatorDir}\PropertySheets"; 		Flags: ignoreversion
-Source: "{#SolutionDir}\PropertySheets\MusenCommonPath.props"; 	  DestDir: "{#ModelsCreatorDir}\PropertySheets"; 		Flags: ignoreversion
+Source: "{#ModelsCreatorDirSrc}\PropertySheets\MusenCommonDebug.props";   DestDir: "{#ModelsCreatorDir}\PropertySheets"; 		Flags: ignoreversion
+Source: "{#ModelsCreatorDirSrc}\PropertySheets\MusenCommonRelease.props"; DestDir: "{#ModelsCreatorDir}\PropertySheets"; 		Flags: ignoreversion
+Source: "{#ModelsCreatorDirSrc}\PropertySheets\MusenCommonPath.props"; 	  DestDir: "{#ModelsCreatorDir}\PropertySheets"; 		Flags: ignoreversion
 
 ; Debud executables and Qt libraties
 Source: "{#DebugDir}\{#MyAppExeName}"; 											DestDir: "{#ModelsCreatorDir}\{#DebugExeDir}";						Flags: ignoreversion

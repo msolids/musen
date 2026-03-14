@@ -203,11 +203,13 @@ void CSystemStructure::GetAllObjectsOfSpecifiedCompound(double _dTime, std::vect
 		if (objects[i] != NULL)
 			if (objects[i]->GetObjectType() == _nObjectType)
 				if (objects[i]->IsActive(_dTime))
+				{
 					if (_sCompoundKey.empty()) // consider all spheres
 						_vecIndexes->push_back(objects[i]);
 					else
 						if (objects[i]->GetCompoundKey() == _sCompoundKey)
 							_vecIndexes->push_back(objects[i]);
+				}
 }
 
 std::vector<size_t> CSystemStructure::GetAllObjectsIDs() const
@@ -243,7 +245,7 @@ std::vector<CSphere*> CSystemStructure::GetAllSpheres(double _time, bool _onlyAc
 {
 	std::vector<CSphere*> res;
 	for (auto& o : objects)
-		if (o && dynamic_cast<CSphere*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+		if (o && dynamic_cast<CSphere*>(o) && ((_onlyActive && o->IsActive(_time)) || !_onlyActive))
 			res.push_back(dynamic_cast<CSphere*>(o));
 	return res;
 }
@@ -252,7 +254,7 @@ std::vector<const CSphere*> CSystemStructure::GetAllSpheres(double _time, bool _
 {
 	std::vector<const CSphere*> res;
 	for (const auto& o : objects)
-		if (o && dynamic_cast<const CSphere*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+		if (o && dynamic_cast<const CSphere*>(o) && ((_onlyActive && o->IsActive(_time)) || !_onlyActive))
 			res.push_back(dynamic_cast<const CSphere*>(o));
 	return res;
 }
@@ -261,7 +263,7 @@ std::vector<CSolidBond*> CSystemStructure::GetAllSolidBonds(double _time, bool _
 {
 	std::vector<CSolidBond*> res;
 	for (auto& o : objects)
-		if (o && dynamic_cast<CSolidBond*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+		if (o && dynamic_cast<CSolidBond*>(o) && ((_onlyActive && o->IsActive(_time)) || !_onlyActive))
 			res.push_back(dynamic_cast<CSolidBond*>(o));
 	return res;
 }
@@ -270,7 +272,7 @@ std::vector<CLiquidBond*> CSystemStructure::GetAllLiquidBonds(double _time, bool
 {
 	std::vector<CLiquidBond*> res;
 	for (auto& o : objects)
-		if (o && dynamic_cast<CLiquidBond*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+		if (o && dynamic_cast<CLiquidBond*>(o) && ((_onlyActive && o->IsActive(_time)) || !_onlyActive))
 			res.push_back(dynamic_cast<CLiquidBond*>(o));
 	return res;
 }
@@ -279,7 +281,7 @@ std::vector<CBond*> CSystemStructure::GetAllBonds(double _time, bool _onlyActive
 {
 	std::vector<CBond*> res;
 	for (auto& o : objects)
-		if (o && dynamic_cast<CBond*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+		if (o && dynamic_cast<CBond*>(o) && ((_onlyActive && o->IsActive(_time)) || !_onlyActive))
 			res.push_back(dynamic_cast<CBond*>(o));
 	return res;
 }
@@ -288,7 +290,7 @@ std::vector<CTriangularWall*> CSystemStructure::GetAllWalls(double _time, bool _
 {
 	std::vector<CTriangularWall*> res;
 	for (auto& o : objects)
-		if (o && dynamic_cast<CTriangularWall*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+		if (o && dynamic_cast<CTriangularWall*>(o) && ((_onlyActive && o->IsActive(_time)) || !_onlyActive))
 			res.push_back(dynamic_cast<CTriangularWall*>(o));
 	return res;
 }
@@ -297,7 +299,7 @@ std::vector<const CTriangularWall*> CSystemStructure::GetAllWalls(double _time, 
 {
 	std::vector<const CTriangularWall*> res;
 	for (const auto& o : objects)
-		if (o && dynamic_cast<const CTriangularWall*>(o) && (_onlyActive && o->IsActive(_time) || !_onlyActive))
+		if (o && dynamic_cast<const CTriangularWall*>(o) && ((_onlyActive && o->IsActive(_time)) || !_onlyActive))
 			res.push_back(dynamic_cast<const CTriangularWall*>(o));
 	return res;
 }
@@ -310,7 +312,7 @@ std::vector<CTriangularWall*> CSystemStructure::GetAllWallsForGeometry(double _t
 	for (size_t iWall : geometry->Planes())
 	{
 		auto* wall = dynamic_cast<CTriangularWall*>(GetObjectByIndex(iWall));
-		if (wall && (_onlyActive && wall->IsActive(_time) || !_onlyActive))
+		if (wall && ((_onlyActive && wall->IsActive(_time)) || !_onlyActive))
 			res.push_back(wall);
 	}
 	return res;
@@ -761,12 +763,16 @@ double CSystemStructure::GetMinParticleDiameter() const
 	double dSmallestRadius = -1;
 	for (unsigned i = 0; i < objects.size(); i++)
 		if (objects[i] != NULL)
+		{
 			if (objects[i]->GetObjectType() == SPHERE)
+			{
 				if (dSmallestRadius == -1)
 					dSmallestRadius = ((CSphere*)objects[i])->GetRadius();
 				else
 					if (dSmallestRadius > ((CSphere*)objects[i])->GetRadius())
 						dSmallestRadius = ((CSphere*)objects[i])->GetRadius();
+			}
+		}
 	return dSmallestRadius * 2;
 }
 
@@ -775,12 +781,16 @@ double CSystemStructure::GetMaxParticleDiameter() const
 	double dMaxRadius = -1;
 	for (unsigned i = 0; i < objects.size(); i++)
 		if (objects[i] != NULL)
+		{
 			if (objects[i]->GetObjectType() == SPHERE)
+			{
 				if (dMaxRadius == -1)
 					dMaxRadius = ((CSphere*)objects[i])->GetRadius();
 				else
 					if (dMaxRadius < ((CSphere*)objects[i])->GetRadius())
 						dMaxRadius = ((CSphere*)objects[i])->GetRadius();
+			}
+		}
 	return dMaxRadius * 2;
 }
 
@@ -1442,6 +1452,7 @@ void CSystemStructure::RotateSystem(double _dTime, const CVector3& _RotCenter, c
 	{
 		CPhysicalObject* pTempPhysicalObject = GetObjectByIndex(i);
 		if (pTempPhysicalObject != NULL)
+		{
 			if (pTempPhysicalObject->GetObjectType() == SPHERE)
 			{
 				CVector3 vecNewCoord = RotMatrix * (pTempPhysicalObject->GetCoordinates(_dTime) - _RotCenter);
@@ -1455,6 +1466,7 @@ void CSystemStructure::RotateSystem(double _dTime, const CVector3& _RotCenter, c
 				CVector3 vertex3 = RotMatrix * (pWall->GetCoordVertex3(_dTime) - _RotCenter) + _RotCenter;
 				pWall->SetPlaneCoord(_dTime, vertex1, vertex2, vertex3);
 			}
+		}
 	}
 }
 
@@ -1948,7 +1960,7 @@ void CSystemStructure::ClearAllTDData()
 {
 	size_t nNumberOfObjects = this->GetTotalObjectsCount();		   // total number of objects in the old file
 
-	for (auto j = 0; j < nNumberOfObjects; j++)
+	for (size_t j = 0; j < nNumberOfObjects; j++)
 	{
 		CPhysicalObject* pObject = this->GetObjectByIndex(j);
 

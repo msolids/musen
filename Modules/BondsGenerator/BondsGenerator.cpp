@@ -109,7 +109,7 @@ void CBondsGenerator::StartGeneration()
 					const bool bCmp2InList1 = VectorContains(generator.compoundsLists.first,  particles[i2].compound);
 					const bool bCmp1InList2 = VectorContains(generator.compoundsLists.second, particles[i1].compound);
 					const bool bCmp2InList2 = VectorContains(generator.compoundsLists.second, particles[i2].compound);
-					if (!(bCmp1InList1 && bCmp2InList2 || bCmp2InList1 && bCmp1InList2)) return;
+					if (!((bCmp1InList1 && bCmp2InList2) || (bCmp2InList1 && bCmp1InList2))) return;
 				}
 
 				// check overlay

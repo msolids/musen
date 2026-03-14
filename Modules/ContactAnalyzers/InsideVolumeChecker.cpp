@@ -263,18 +263,15 @@ void CInsideVolumeChecker::TryIntersectWithXAxis( const CTriangle &triangle, boo
 
 	if (fabs(c1) < e)
 	{
-		if (fabs(p1.y) < e	&& p1.z < 0 == p2.z > 0
-			|| p1.y < 0 == p2.y > 0) return;
+		if ((fabs(p1.y) < e && (p1.z < 0) == (p2.z > 0)) || (p1.y < 0) == (p2.y > 0)) return;
 	}
 	if (fabs(c2) < e)
 	{
-		if (fabs(p2.y) < e	&& p2.z < 0 == p3.z > 0
-			|| p2.y < 0 == p3.y > 0) return;
+		if ((fabs(p2.y) < e && (p2.z < 0) == (p3.z > 0)) || (p2.y < 0) == (p3.y > 0)) return;
 	}
 	if (fabs(c3) < e)
 	{
-		if (fabs(p3.y) < e	&& p3.z < 0 == p1.z > 0
-			|| p3.y < 0 == p1.y > 0) return;
+		if ((fabs(p3.y) < e && (p3.z < 0) == (p1.z > 0)) || (p3.y < 0) == (p1.y > 0)) return;
 	}
 
 	isOnEdge = false;
@@ -289,6 +286,6 @@ void CInsideVolumeChecker::TryIntersectWithXAxis( const CTriangle &triangle, boo
 		double A = p1.y * (p2.z - p3.z) + p2.y * (p3.z - p1.z) + p3.y  * (p1.z - p2.z);
 		double D = -(p1.x * (p2.y * p3.z - p3.y * p2.z) + p2.x * (p3.y * p1.z - p1.y * p3.z) + p3.x * (p1.y * p2.z - p2.y * p1.z));
 
-		isIntersecting = A <= 0 == D <= 0;
+		isIntersecting = (A <= 0) == (D <= 0);
 	}
 }

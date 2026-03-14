@@ -62,7 +62,7 @@ void CAboutWindow::SetHeaderText(const QString& _buildVersion) const
 void CAboutWindow::SetLicense() const
 {
 	QFile file(":/MusenGUI/License");
-	const bool success = file.open(QIODevice::ReadOnly);
+	[[maybe_unused]] const bool success = file.open(QIODevice::ReadOnly);
 	ui.textBrowserLicense->append(QTextStream{ &file }.readAll());
 	QTextCursor textCursor = ui.textBrowserLicense->textCursor();
 	textCursor.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor, 1);

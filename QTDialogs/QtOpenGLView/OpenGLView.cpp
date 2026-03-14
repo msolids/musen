@@ -147,9 +147,9 @@ void COpenGLView::GetObjectColor(size_t nObjectID, CColor* _ResultColor)
 	*_ResultColor = m_DefaultObjectColor;
 	if (object == NULL) return;
 
-	if (m_viewSettings->Coloring().type == EColoring::OVERLAP && !m_bOverlapsReady
-	 || m_viewSettings->Coloring().type == EColoring::COORD_NUMBER && !m_bCoordNumberReady
-	 || m_viewSettings->Coloring().type == EColoring::AGGL_SIZE && !m_bAgglSizeReady)
+	if ((m_viewSettings->Coloring().type == EColoring::OVERLAP && !m_bOverlapsReady)
+	 || (m_viewSettings->Coloring().type == EColoring::COORD_NUMBER && !m_bCoordNumberReady)
+	 || (m_viewSettings->Coloring().type == EColoring::AGGL_SIZE && !m_bAgglSizeReady))
 		RecalculateColoringProperties();
 
 	switch (m_viewSettings->Coloring().type)

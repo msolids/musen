@@ -70,7 +70,7 @@ void CSimulatorSettingsTab::UpdateCPUList() const
 		QListWidgetItem *item = new QListWidgetItem(tr("CPU%1").arg(i));	// create an entry
 		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);			// make it checkable
 		if (VectorContains(systemCPUs, i))	// if allowed by the system
-			if (userCPUs.empty() || !userCPUs.empty() && VectorContains(userCPUs, i))	// if allowed by user or not specified
+			if (userCPUs.empty() || (!userCPUs.empty() && VectorContains(userCPUs, i)))	// if allowed by user or not specified
 				item->setCheckState(Qt::Checked);										// turn it on
 			else																		// explicitly disallowed by user
 				item->setCheckState(Qt::Unchecked);										// turn it of

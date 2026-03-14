@@ -63,7 +63,7 @@ void COpenGLViewGlu::DrawParticlesWithFFP()
 {
 	CVector3 vCoord;
 	CColor tempColor;
-	size_t nSpheres = m_pSystemStructure->GetNumberOfSpecificObjects(SPHERE) + m_viewSettings->SelectedObjects().size();
+	//size_t nSpheres = m_pSystemStructure->GetNumberOfSpecificObjects(SPHERE) + m_viewSettings->SelectedObjects().size();
 
 	// cutting by materials
 	const auto visiblePartMaterials = m_viewSettings->VisiblePartMaterials();

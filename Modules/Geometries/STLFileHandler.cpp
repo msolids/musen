@@ -37,8 +37,8 @@ CSTLFileHandler::EFileType CSTLFileHandler::GetFileTypeR(const std::string& _fil
 CSTLFileHandler::EFileType CSTLFileHandler::GetFileTypeW(const std::string& _filePath)
 {
 	const std::string ext = ToLowerCase(MUSENFileFunctions::getFileExt(_filePath));
-	if (ext == "stla" || MUSENFileFunctions::isFileExist(_filePath) && IsSTLAscii(_filePath))					return EFileType::STL_ASCII;
-	if (ext == "stl" || ext == "stlb" || MUSENFileFunctions::isFileExist(_filePath) && IsSTLBinary(_filePath))	return EFileType::STL_BINARY;
+	if (ext == "stla" || (MUSENFileFunctions::isFileExist(_filePath) && IsSTLAscii(_filePath)))					return EFileType::STL_ASCII;
+	if (ext == "stl" || ext == "stlb" || (MUSENFileFunctions::isFileExist(_filePath) && IsSTLBinary(_filePath)))	return EFileType::STL_BINARY;
 	return EFileType::UNKNOWN;
 }
 

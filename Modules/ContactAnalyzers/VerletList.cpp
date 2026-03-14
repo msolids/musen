@@ -5,10 +5,11 @@
 #include "VerletList.h"
 #include <cfloat>
 
-CVerletList::CVerletList(CSimplifiedScene& _Scene): m_Scene(_Scene),
+CVerletList::CVerletList(CSimplifiedScene& _Scene):
 	m_nThreadsNumber(GetThreadsNumber()),
 	m_vParticles(_Scene.GetRefToParticles()),
-	m_vWalls(_Scene.GetRefToWalls())
+	m_vWalls(_Scene.GetRefToWalls()),
+	m_Scene(_Scene)
 {
 	m_SimDomain.coordBeg.Init(0);
 	m_SimDomain.coordEnd.Init(0.5);
@@ -102,7 +103,7 @@ void CVerletList::SortList()
 	// remove old contacts and save new ones
 	ParallelFor(m_PPList.size(), [&](size_t iSrc)
 	{
-		int j = 0;
+		size_t j = 0;
 		while (j < m_PPList[iSrc].size())
 		{
 			const unsigned iDst = m_PPList[iSrc][j];
@@ -564,19 +565,23 @@ void CVerletList::CheckCollisionPP(const SGridLevel& _gridLevel, unsigned _nX1, 
 		{
 			unsigned p2 = cell2.vMainPartIDs[j];
 			if (SquaredLength(vPos1 - m_vParticles.Coord(p2)) <= std::pow(dTemp1 + m_vParticles.ContactRadius(p2), 2))
-				if (( _bSameCell ) && ( p2 < p1))
+			{
+				if ((_bSameCell) && (p2 < p1))
 					AddPossibleContactPP(p2, p1);
 				else
 					AddPossibleContactPP(p1, p2);
+			}
 		}
 		for (unsigned j = 0; j < cell2.vSecondaryPartIDs.size(); ++j) // main-secondary
 		{
 			unsigned p2 = cell2.vSecondaryPartIDs[j];
 			if (SquaredLength(vPos1 - m_vParticles.Coord(p2)) <= pow(dTemp1 + m_vParticles.ContactRadius(p2), 2))
+			{
 				if ((_bSameCell) && (p2 < p1))
 					AddPossibleContactPP(p2, p1);
 				else
 					AddPossibleContactPP(p1, p2);
+			}
 		}
 	}
 

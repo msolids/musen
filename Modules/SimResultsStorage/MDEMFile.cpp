@@ -276,18 +276,18 @@ uint64_t CMDEMFile::FindAddressToAppendNewBlock()
 	uint64_t nFirstDataOffset = sizeof(SFileHeader) + sizeof(SFileThreadHeader) * m_SRunTimeFileInfo.vThreads.size();
 
 	// loop for all file threads
-	for (unsigned i = 0; i < m_SRunTimeFileInfo.vThreads.size(); i++)
+	for (size_t i = 0; i < m_SRunTimeFileInfo.vThreads.size(); i++)
 	{
 		auto& item = m_SRunTimeFileInfo.vThreads.at(i);
 		uint32_t nIndexOfFreeBlock = 0;
 
 		// loop for all blocks
-		for (uint32_t i = 0; i < SFileThreadHeader::kNumberOfBlocks; i++)
+		for (uint32_t j = 0; j < (uint32_t)SFileThreadHeader::kNumberOfBlocks; j++)
 		{
 			// look for free block
-			if (item.SFThreadHeader.vOffsetsInFile[i] == 0)
+			if (item.SFThreadHeader.vOffsetsInFile[j] == 0)
 			{
-				nIndexOfFreeBlock = i;
+				nIndexOfFreeBlock = j;
 				break;
 			}
 		}
@@ -437,7 +437,7 @@ void CMDEMFile::FinalTruncate()
 	uint64_t nEndOfTIDThread = nOffsetLastBlockTID + nOffsetInsideLastBlockTID;
 	uint64_t nEndOfTDDThread = nOffsetLastBlockTDD + nOffsetInsideLastBlockTDD;
 
-	uint64_t nFreeSpaceInLastBlockTID = GetBlockSizeByIndex(nIndexLastBlockTID) - nOffsetInsideLastBlockTID;
+	//uint64_t nFreeSpaceInLastBlockTID = GetBlockSizeByIndex(nIndexLastBlockTID) - nOffsetInsideLastBlockTID;
 
 	// if last saved block relates to time-dependent data thread
 	if (nOffsetLastBlockTID < nOffsetLastBlockTDD)

@@ -25,7 +25,6 @@ RUN apt-get update && \
         cuda-nvcc-${CUDA_VERSION//./-} cuda-cudart-dev-${CUDA_VERSION//./-} \
         libcurand-dev-${CUDA_VERSION//./-} cuda-cccl-${CUDA_VERSION//./-} && \
     rm -rf /var/lib/apt/lists/*
-
 ENV PATH=/usr/local/cuda-${CUDA_VERSION}/bin${PATH:+:${PATH}}
 
 COPY --chmod=755 build_musen.sh ./build_musen.sh

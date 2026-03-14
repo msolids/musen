@@ -19,11 +19,11 @@ struct SAggloParticle
 	std::string sCompoundAlias;
 	CQuaternion qQuaternion;
 	SAggloParticle() :
-		vecCoord({ 0 }), qQuaternion({ CQuaternion(0, 1, 0, 0) }), dRadius(0), dContactRadius(0), sCompoundAlias("")
+		vecCoord({ 0 }), dRadius(0), dContactRadius(0), sCompoundAlias(""), qQuaternion({ CQuaternion(0, 1, 0, 0) })
 	{
 	}
 	SAggloParticle(const CVector3& _vecCoord, const CQuaternion& _qQuaternion, double _dRadius, double _dContactRadius, const std::string& _sAlias = ""):
-		vecCoord(_vecCoord), qQuaternion(_qQuaternion), dRadius(_dRadius), dContactRadius(_dContactRadius), sCompoundAlias(_sAlias)
+		vecCoord(_vecCoord), dRadius(_dRadius), dContactRadius(_dContactRadius), sCompoundAlias(_sAlias), qQuaternion(_qQuaternion)
 	{
 	}
 };

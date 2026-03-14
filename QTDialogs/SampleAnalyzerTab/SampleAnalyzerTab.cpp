@@ -407,9 +407,9 @@ void CSampleAnalyzerTab::ExportData()
 			int nOffsetDiameter = (dDiameter - m_dPSDStart)/dIntervalSize;
 			int nOffsetVel = (dVelocity - m_dVelStart)/dIntervalVel;
 			if ( nOffsetVel < 0 ) nOffsetVel = 0;
-			if ( nOffsetVel >= velDistribution.size() ) nOffsetVel = (int)velDistribution.size()-1;
+			if ( nOffsetVel >= (int)velDistribution.size() ) nOffsetVel = (int)velDistribution.size()-1;
 			if ( nOffsetDiameter < 0 ) nOffsetDiameter = 0;
-			if ( nOffsetDiameter >= sizeDistribution.size() ) nOffsetDiameter = (int)sizeDistribution.size()-1;
+			if ( nOffsetDiameter >= (int)sizeDistribution.size() ) nOffsetDiameter = (int)sizeDistribution.size()-1;
 			velDistribution[ nOffsetVel ] ++;
 			sizeDistribution[ nOffsetDiameter ] ++;
 		}

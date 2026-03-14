@@ -81,7 +81,7 @@ void CModelSBElastic::CalculateSB(double _time, double _timeStep, size_t _iLeft,
 		bondBreaks = true;
 	if (m_parameters[0].value == 2.0 &&		// alternative breakage criteria
 		  (maxStress1 >= Bonds().NormalStrength(_iBond)
-		|| maxStress2 >= Bonds().NormalStrength(_iBond) && dStrainTotal > 0
+		|| (maxStress2 >= Bonds().NormalStrength(_iBond) && dStrainTotal > 0)
 		|| maxTorque1 >= Bonds().TangentialStrength(_iBond)
 		|| maxTorque2 >= Bonds().TangentialStrength(_iBond)))
 		bondBreaks = true;

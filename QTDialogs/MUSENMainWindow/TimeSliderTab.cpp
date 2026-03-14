@@ -110,7 +110,7 @@ void CTimeSliderTab::UpdateWholeView()
 void CTimeSliderTab::SetTimeSliderEnabled()
 {
 	const auto tp = m_pSystemStructure->GetAllTimePoints();
-	setEnabled(tp.size() >= 2 || m_pSystemStructure->GetAllTimePointsOldFormat().size() >= 2 || tp.size() == 1 && m_dCurrentTime > tp.front());
+	setEnabled(tp.size() >= 2 || m_pSystemStructure->GetAllTimePointsOldFormat().size() >= 2 || (tp.size() == 1 && m_dCurrentTime > tp.front()));
 }
 
 

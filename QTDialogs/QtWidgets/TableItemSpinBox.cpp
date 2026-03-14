@@ -38,18 +38,18 @@ namespace DoubleSpinnerWrapper
 						return true;
 					}
 					// any valid symbol pressed
-					if (keyEvent->key() >= Qt::Key_Plus && keyEvent->key() <= Qt::Key_Period || keyEvent->key() >= Qt::Key_0 && keyEvent->key() <= Qt::Key_9)
+					if ((keyEvent->key() >= Qt::Key_Plus && keyEvent->key() <= Qt::Key_Period) || (keyEvent->key() >= Qt::Key_0 && keyEvent->key() <= Qt::Key_9))
 						emit TextEntered(keyEvent->text());
 					// any symbol key pressed
-					if (keyEvent->key() == Qt::Key_F2 || keyEvent->key() >= Qt::Key_Space && keyEvent->key() <= Qt::Key_AsciiTilde)
+					if (keyEvent->key() == Qt::Key_F2 || (keyEvent->key() >= Qt::Key_Space && keyEvent->key() <= Qt::Key_AsciiTilde))
 						emit EditTriggered();
 					// F2 pressed
 					if (keyEvent->key() == Qt::Key_F2)
 						emit SelectRequested();
 					// discard event if necessary
 					if (keyEvent->key() == Qt::Key_F2 ||															// if F2 pressed...
-						keyEvent->key() >= Qt::Key_Space && keyEvent->key() <= Qt::Key_AsciiTilde ||				// ...or any symbol...
-						m_widget == EDITOR && (keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down))	// ...or up/down with active editor...
+						(keyEvent->key() >= Qt::Key_Space && keyEvent->key() <= Qt::Key_AsciiTilde) ||				// ...or any symbol...
+						(m_widget == EDITOR && (keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down)))	// ...or up/down with active editor...
 						return true;																				// ...discard event
 				}
 		}

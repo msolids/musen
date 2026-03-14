@@ -90,8 +90,8 @@ void CGeometriesEditorTab::SetupPropertiesList()
 
 	// motion
 	m_properties[EProperty::MOTION] = ui.treeProperties->CreateItem(general, 0, "Motion");
-	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1, 
-		{ "None", "Time-dependent", "Force-dependent", "Constant force" }, 
+	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1,
+		{ "None", "Time-dependent", "Force-dependent", "Constant force" },
 		{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT),
 		E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE) }, 0);
 	connect(motion, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::MotionTypeChanged);
@@ -295,8 +295,8 @@ void CGeometriesEditorTab::UpdateMotionCombo() const
 	{
 	case EType::NONE: break;
 	case EType::GEOMETRY:
-		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent", "Constant force" }, 
-			{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT), 
+		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent", "Constant force" },
+			{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT),
 			E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE) }, -1);
 		break;
 	case EType::VOLUME:
@@ -835,7 +835,7 @@ CGeometriesEditorTab::EType CGeometriesEditorTab::Type() const
 void CGeometriesEditorTab::EmitChangeSignals(EType _type/* = EType::NONE*/)
 {
 	emit ObjectsChanged();
-	if (_type == EType::VOLUME || _type == EType::NONE && dynamic_cast<CAnalysisVolume*>(m_object))
+	if (_type == EType::VOLUME || (_type == EType::NONE && dynamic_cast<CAnalysisVolume*>(m_object)))
 		emit AnalysisGeometriesChanged();
 }
 
@@ -853,7 +853,9 @@ void CGeometriesEditorTab::keyPressEvent(QKeyEvent* _event)
 	switch (_event->key())
 	{
 	case Qt::Key_Delete:
-		if (ui.listGeometries->hasFocus()) DeleteGeometry(); break;
+		if (ui.listGeometries->hasFocus())
+			DeleteGeometry();
+		break;
 	default: CMusenDialog::keyPressEvent(_event);
 	}
 }

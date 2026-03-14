@@ -405,7 +405,7 @@ bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _partCoords, c
 
 	// check if there are overlaps between old and new particles
 	for (size_t i = 0; i < ID1.size(); ++i)
-		if (ID1[i] < limit && ID2[i] >= limit || ID1[i] >= limit && ID2[i] < limit)
+		if ((ID1[i] < limit && ID2[i] >= limit) || (ID1[i] >= limit && ID2[i] < limit))
 			return true;
 
 	// check PW overlaps

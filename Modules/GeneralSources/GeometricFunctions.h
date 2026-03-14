@@ -159,7 +159,7 @@ double inline DistanceFromPointToTriangle( const CVector3& _vecPoint, const CVec
 	double c = DotProduct(vEdge1, vEdge1);
 	double d = DotProduct(vEdge0, vD);
 	double e = DotProduct(vEdge1, vD);
-	double f = DotProduct(vD, vD);
+	//double f = DotProduct(vD, vD);
 
 	double det = a*c - b*b;
 	double s = b*e - c*d;
