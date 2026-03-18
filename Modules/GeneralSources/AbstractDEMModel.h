@@ -21,10 +21,14 @@
 
 #ifndef DYNAMIC_MODULE
 #define DECLDIR
-#elif defined DLL_EXPORT
+#elif defined _WIN32
+#ifdef DLL_EXPORT
 #define DECLDIR __declspec(dllexport)
 #else
 #define DECLDIR __declspec(dllimport)
+#endif
+#else
+#define DECLDIR __attribute__((visibility("default")))
 #endif
 
 
