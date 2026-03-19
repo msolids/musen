@@ -4,6 +4,8 @@
    See LICENSE file for license and warranty information. */
 
 #include "GPUSimulator.cuh"
+
+#include "ThreadPool.h"
 PRAGMA_WARNING_PUSH
 PRAGMA_WARNING_DISABLE
 #include <thrust/count.h>

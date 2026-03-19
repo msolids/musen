@@ -7,11 +7,14 @@
 if(MSVC)
   # --- Compile flags (all configurations) ---
   add_compile_options(
-    $<$<COMPILE_LANGUAGE:C,CXX>:/MP>              # Multi-processor compilation
-    $<$<COMPILE_LANGUAGE:C,CXX>:/W3>              # Warning level 3
-    $<$<COMPILE_LANGUAGE:C,CXX>:/w34062>          # Warn on unhandled enum values in switch
-    $<$<COMPILE_LANGUAGE:C,CXX>:/Zc:preprocessor> # Standard-conforming preprocessor
+    $<$<COMPILE_LANGUAGE:C,CXX>:/MP>     # Multi-processor compilation
+    $<$<COMPILE_LANGUAGE:C,CXX>:/W3>     # Warning level 3
+    $<$<COMPILE_LANGUAGE:C,CXX>:/w34062> # Warn on unhandled enum values in switch
   )
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.25")
+    # Standard-conforming preprocessor
+    add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/Zc:preprocessor>)
+  endif()
   # Suppress warnings from external/system headers
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.29")
     add_compile_options(
@@ -28,14 +31,14 @@ if(MSVC)
   )
 
   # --- Debug configuration ---
-  set(CMAKE_C_FLAGS_DEBUG            "${CMAKE_C_FLAGS_DEBUG} /RTC1 /JMC /sdl")
-  set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} /RTC1 /JMC /sdl")
+  set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG}   /RTC1 /JMC /sdl")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /RTC1 /JMC /sdl")
   string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG    " /INCREMENTAL")
   string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /INCREMENTAL")
 
   # --- Release configuration ---
-  set(CMAKE_C_FLAGS_RELEASE            "${CMAKE_C_FLAGS_RELEASE} /Oi /Ot /GL /Gy /Oy /GS-")
-  set(CMAKE_CXX_FLAGS_RELEASE          "${CMAKE_CXX_FLAGS_RELEASE} /Oi /Ot /GL /Gy /Oy /GS-")
+  set(CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}   /Oi /Ot /GL /Gy /Oy /GS-")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Oi /Ot /GL /Gy /Oy /GS-")
   string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE    " /OPT:REF /OPT:ICF /LTCG")
   string(APPEND CMAKE_SHARED_LINKER_FLAGS_RELEASE " /OPT:REF /OPT:ICF /LTCG")
   string(APPEND CMAKE_STATIC_LINKER_FLAGS_RELEASE " /LTCG")

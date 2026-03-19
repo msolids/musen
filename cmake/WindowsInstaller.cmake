@@ -21,19 +21,31 @@ endif()
 set(_ISS_SCRIPT    "${CMAKE_SOURCE_DIR}/Installers/Scripts/Main.iss")
 set(_ISS_INFO_INI  "${MUSEN_GENERATED_DIR}/installer_info.ini")
 
-# Qt path for the installer's QtLibs.iss (MUSEN_QT_PREFIX set in Dependencies.cmake)
+# Qt path and version for the installer's QtLibs.iss (MUSEN_QT_PREFIX set in Dependencies.cmake)
 set(_ISS_QT_DEFINE "")
 if(MUSEN_QT_PREFIX)
   set(_ISS_QT_DEFINE "/DQtPath=${MUSEN_QT_PREFIX}")
+  if(Qt6_FOUND)
+    list(APPEND _ISS_QT_DEFINE "/DQtMajor=6")
+  else()
+    list(APPEND _ISS_QT_DEFINE "/DQtMajor=5")
+  endif()
 endif()
+
+option(MUSEN_INSTALLER_SKIP_PREBUILD "Skip Release/Debug builds inside installer target (assume already built)" OFF)
 
 # Custom target: build both Release and Debug, then run ISCC.
 # The installer bundles Release binaries + Debug MUSEN.exe (for ModelsCreator).
+set(_installer_build_commands "")
+if(NOT MUSEN_INSTALLER_SKIP_PREBUILD)
+  set(_installer_build_commands
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config Release
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config Debug
+  )
+endif()
+
 add_custom_target(installer
-  # Build Release
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config Release
-  # Build Debug (only MUSEN needed, but building all is simpler and safer)
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --config Debug
+  ${_installer_build_commands}
   # Generate installer_info.ini with git branch
   COMMAND ${CMAKE_COMMAND}
     -DSOURCE_DIR=${CMAKE_SOURCE_DIR}

@@ -5,7 +5,9 @@
 #pragma once
 #include "SimplifiedSceneGPU.cuh"
 #include "SceneTypesGPU.h"
-#include "SimplifiedScene.h"
+
+class CSimplifiedScene;
+class CSystemStructure;
 
 class CSimplifiedSceneGPU
 {

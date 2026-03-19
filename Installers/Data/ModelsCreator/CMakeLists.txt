@@ -24,52 +24,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Place .h and .cuh files into "Header Files" filter in VS Solution Explorer.
 source_group("Header Files" REGULAR_EXPRESSION "\\.(h|cuh)$")
 
-# --- CUDA setup ---------------------------------------------------------------
-# Allow unsupported CUDA-compiler-STL combnations.
-# --allow-unsupported-compiler: bypass nvcc's host compiler version check
-# _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH: bypass MSVC STL static_assert
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
-
-if(CMAKE_GENERATOR MATCHES "Visual Studio" AND MSVC)
-  # VS generator's CUDA compiler ID test .vcxproj ignores CMAKE_CUDA_FLAGS,
-  # so _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH never reaches the host compiler.
-  # Inject it via Directory.Build.props which MSBuild auto-imports from parent dirs.
-  file(WRITE "${CMAKE_BINARY_DIR}/CMakeFiles/Directory.Build.props"
-"<Project>
-  <ItemDefinitionGroup>
-    <ClCompile>
-      <PreprocessorDefinitions>_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <CudaCompile>
-      <AdditionalOptions>%(AdditionalOptions) -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH </AdditionalOptions>
-    </CudaCompile>
-  </ItemDefinitionGroup>
-</Project>
-")
-endif()
-
-enable_language(CUDA)
-find_package(CUDAToolkit REQUIRED)
-
-# Compile for all compute capabilities supported by the detected CUDA toolkit.
-# Auto-detect on first configure; afterwards the user can edit the cache value.
-if(NOT _MUSEN_MC_ARCHS_INITIALIZED)
-  execute_process(
-    COMMAND ${CMAKE_CUDA_COMPILER} --list-gpu-code
-    OUTPUT_VARIABLE _gpu_arch_list
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  string(REGEX MATCHALL "sm_([0-9]+)" _sm_matches "${_gpu_arch_list}")
-  set(_arch_nums "")
-  foreach(_sm ${_sm_matches})
-    string(REGEX REPLACE "sm_" "" _num "${_sm}")
-    list(APPEND _arch_nums "${_num}")
-  endforeach()
-  list(REMOVE_DUPLICATES _arch_nums)
-  list(SORT _arch_nums COMPARE NATURAL)
-  set(CMAKE_CUDA_ARCHITECTURES "${_arch_nums}" CACHE STRING "CUDA architectures" FORCE)
-  set(_MUSEN_MC_ARCHS_INITIALIZED TRUE CACHE INTERNAL "")
-endif()
+# --- Compiler and CUDA setup --------------------------------------------------
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerSettings.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CudaSettings.cmake")
 
 # --- VS debugger paths --------------------------------------------------------
 if(MSVC)

@@ -4,7 +4,6 @@
 
 #pragma once
 #include "GeometricFunctions.h"
-#include "SystemStructure.h"
 #include "SimplifiedSceneGPU.h"
 #include "DisableWarningHelper.h"
 PRAGMA_WARNING_PUSH

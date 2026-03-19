@@ -4,6 +4,9 @@
 
 #include "SimplifiedSceneGPU.h"
 
+#include "SimplifiedScene.h"
+#include "SystemStructure.h"
+
 CSimplifiedSceneGPU::CSimplifiedSceneGPU(const CCUDADefines* _cudaDefines)
 {
 	m_gpuScene.SetCudaDefines(_cudaDefines);

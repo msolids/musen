@@ -42,6 +42,9 @@
 ; CMake project and helper script
 Source: "{#ModelsCreatorDirSrc}\CMakeLists.txt";          DestDir: "{#ModelsCreatorDir}"; Flags: ignoreversion
 Source: "{#ModelsCreatorDirSrc}\OpenInVisualStudio.bat";  DestDir: "{#ModelsCreatorDir}"; Flags: ignoreversion
+Source: "{#SolutionDir}\cmake\CompilerSettings.cmake";    DestDir: "{#ModelsCreatorDir}\cmake"; Flags: ignoreversion
+Source: "{#SolutionDir}\cmake\CudaSettings.cmake";        DestDir: "{#ModelsCreatorDir}\cmake"; Flags: ignoreversion
+Source: "{#SolutionDir}\cmake\cccl_fix\CCCL4967.h";       DestDir: "{#ModelsCreatorDir}\cmake\cccl_fix"; Flags: ignoreversion
 
 ; Template models
 #sub ModelTemplateDirs_entry
@@ -100,6 +103,8 @@ Name: "{#ModelsCreatorDir}\{#ExamplesDir}\{#ModelExampleDirs[I]}"; Flags: uninsa
 #endsub
 #for {I = 0; I < DimOf(ModelExampleDirs); I++} ModelExampleDirs2_entry
 
+Name: "{#ModelsCreatorDir}\cmake\cccl_fix"; Flags: uninsalwaysuninstall
+Name: "{#ModelsCreatorDir}\cmake"; Flags: uninsalwaysuninstall
 Name: "{#ModelsCreatorDir}\{#APIDir}"; Flags: uninsalwaysuninstall
 Name: "{#ModelsCreatorDir}\{#DebugExeDir}"; Flags: uninsalwaysuninstall
 Name: "{#ModelsCreatorDir}\{#DebugExeDir}\{#QtPlatformsDir}"; Flags: uninsalwaysuninstall
