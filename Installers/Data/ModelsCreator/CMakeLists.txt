@@ -29,6 +29,13 @@ source_group("Header Files" REGULAR_EXPRESSION "\\.(h|cuh)$")
 # --allow-unsupported-compiler: bypass nvcc's host compiler version check
 # _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH: bypass MSVC STL static_assert
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
+# Standard-conforming preprocessor (required by CUDA 13+)
+if(MSVC)
+  add_compile_options(
+    $<$<COMPILE_LANGUAGE:C,CXX>:/Zc:preprocessor>
+    $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/Zc:preprocessor>
+  )
+endif()
 
 if(CMAKE_GENERATOR MATCHES "Visual Studio" AND MSVC)
   # VS generator's CUDA compiler ID test .vcxproj ignores CMAKE_CUDA_FLAGS, so

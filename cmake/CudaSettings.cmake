@@ -43,6 +43,11 @@ endif()
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
 
+# Standard-conforming preprocessor (required by CUDA 13+).
+if(MSVC)
+  add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/Zc:preprocessor>)
+endif()
+
 # CCCL includes for CUDA 13+
 if(IS_DIRECTORY "${CUDAToolkit_INCLUDE_DIRS}/cccl")
   list(APPEND MUSEN_CUDA_INCLUDE_DIRS "${CUDAToolkit_INCLUDE_DIRS}/cccl")

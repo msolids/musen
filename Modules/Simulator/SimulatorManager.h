@@ -4,7 +4,6 @@
 
 #pragma once
 #include "CPUSimulator.h"
-#include "GPUSimulator.h"
 
 class CSimulatorManager : public CMusenComponent
 {

@@ -3,6 +3,7 @@
    See LICENSE file for license and warranty information. */
 
 #include "SimulatorManager.h"
+#include "GPUSimulator.h"
 
 CSimulatorManager::CSimulatorManager()
 {
