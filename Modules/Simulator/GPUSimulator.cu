@@ -775,8 +775,8 @@ void CGPUSimulator::PrepareAdditionalSavingData()
 		const size_t leftID  = bonds.LeftID(i);
 		const size_t rightID = bonds.RightID(i);
 		CVector3 connVec = (particles.Coord(leftID) - particles.Coord(rightID)).Normalized();
-		m_additionalSavingData[bonds.LeftID(i) ].AddStress(-1 * connVec * particles.Radius(leftID ),      bonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID ), 3) / 6);
-		m_additionalSavingData[bonds.RightID(i)].AddStress(     connVec * particles.Radius(rightID), -1 * bonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3) / 6);
+		m_additionalSavingData[bonds.LeftID(i) ].AddStress(-1 * connVec * particles.Radius(leftID ),      bonds.TotalForce(i), PI * pow(2 * particles.Radius(leftID ), 3.0) / 6);
+		m_additionalSavingData[bonds.RightID(i)].AddStress(     connVec * particles.Radius(rightID), -1 * bonds.TotalForce(i), PI * pow(2 * particles.Radius(rightID), 3.0) / 6);
 	}
 
 	// save stresses caused by particle-particle contact
@@ -786,8 +786,8 @@ void CGPUSimulator::PrepareAdditionalSavingData()
 		const size_t srcID = PPCollisions.SrcIDs[i];
 		const size_t dstID = PPCollisions.DstIDs[i];
 		CVector3 connVec = (particles.Coord(srcID) - particles.Coord(dstID)).Normalized();
-		m_additionalSavingData[PPCollisions.SrcIDs[i]].AddStress(-1 * connVec * particles.Radius(srcID),      PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(srcID), 3) / 6);
-		m_additionalSavingData[PPCollisions.DstIDs[i]].AddStress(     connVec * particles.Radius(dstID), -1 * PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(dstID), 3) / 6);
+		m_additionalSavingData[PPCollisions.SrcIDs[i]].AddStress(-1 * connVec * particles.Radius(srcID),      PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(srcID), 3.0) / 6);
+		m_additionalSavingData[PPCollisions.DstIDs[i]].AddStress(     connVec * particles.Radius(dstID), -1 * PPCollisions.TotalForces[i], PI * pow(2 * particles.Radius(dstID), 3.0) / 6);
 	}
 
 	// save stresses caused by particle-wall contacts
@@ -795,7 +795,7 @@ void CGPUSimulator::PrepareAdditionalSavingData()
 	{
 		if (!PWCollisions.ActivityFlags[i]) continue;
 		CVector3 connVec = (PWCollisions.ContactVectors[i] - particles.Coord(PWCollisions.DstIDs[i])).Normalized();
-		m_additionalSavingData[PWCollisions.DstIDs[i]].AddStress(connVec * particles.Radius(PWCollisions.DstIDs[i]), PWCollisions.TotalForces[i], PI * pow(2 * particles.Radius(PWCollisions.DstIDs[i]), 3) / 6);
+		m_additionalSavingData[PWCollisions.DstIDs[i]].AddStress(connVec * particles.Radius(PWCollisions.DstIDs[i]), PWCollisions.TotalForces[i], PI * pow(2 * particles.Radius(PWCollisions.DstIDs[i]), 3.0) / 6);
 	}
 }
 
