@@ -1,10 +1,11 @@
 /* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "PackageGenerator.h"
 #include "PackageGeneratorHelperCPU.h"
-#include "PackageGeneratorHelperGPU.cuh"
+#include "PackageGeneratorHelperGPU.h"
 #include "CPUSimulator.h"
 #include "GPUSimulator.h"
 #include "ParticleFilter.h"
@@ -115,8 +116,12 @@ void CPackageGenerator::StartGeneration()
 		switch (m_simulatorType)
 		{
 		case ESimulatorType::BASE:
-		case ESimulatorType::CPU:	helper = new CPackageGeneratorHelperCPU{ &dynamic_cast<CCPUSimulator*>(simulator)->GetPointerToSimplifiedScene().GetRefToParticles() };	break;
-		case ESimulatorType::GPU:	helper = new CPackageGeneratorHelperGPU{ &dynamic_cast<CGPUSimulator*>(simulator)->GetPointerToSceneGPU().GetPointerToParticles() };		break;
+		case ESimulatorType::CPU:
+			helper = CreatePackageGeneratorHelperCPU(&dynamic_cast<CCPUSimulator*>(simulator)->GetPointerToSimplifiedScene().GetRefToParticles());
+			break;
+		case ESimulatorType::GPU:
+			helper = CreatePackageGeneratorHelperGPU(dynamic_cast<CGPUSimulator*>(simulator)->GetPointerToParticles());
+			break;
 		}
 
 		// perform generation
