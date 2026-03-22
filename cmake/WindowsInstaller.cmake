@@ -21,10 +21,15 @@ endif()
 set(_ISS_SCRIPT    "${CMAKE_SOURCE_DIR}/Installers/Scripts/Main.iss")
 set(_ISS_INFO_INI  "${MUSEN_GENERATED_DIR}/installer_info.ini")
 
-# Qt path for the installer's QtLibs.iss (MUSEN_QT_PREFIX set in Dependencies.cmake)
+# Qt path and version for the installer's QtLibs.iss (MUSEN_QT_PREFIX set in Dependencies.cmake)
 set(_ISS_QT_DEFINE "")
 if(MUSEN_QT_PREFIX)
   set(_ISS_QT_DEFINE "/DQtPath=${MUSEN_QT_PREFIX}")
+  if(Qt6_FOUND)
+    list(APPEND _ISS_QT_DEFINE "/DQtMajor=6")
+  else()
+    list(APPEND _ISS_QT_DEFINE "/DQtMajor=5")
+  endif()
 endif()
 
 # Custom target: build both Release and Debug, then run ISCC.

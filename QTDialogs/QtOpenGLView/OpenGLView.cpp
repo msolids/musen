@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QtMath>
 #include <QWheelEvent>
 
 #include "AgglomeratesAnalyzer.h"

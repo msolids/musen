@@ -1,17 +1,30 @@
-// ; Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-// ; This file is part of MUSEN framework http://msolids.net/musen.
-// ; See LICENSE file for license and warranty information. 
+// Copyright (c) 2013-2020, MUSEN Development Team.
+// Copyright (c) 2026, DyssolTEC GmbH.
+// All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
+// See LICENSE file for license and warranty information.
 
 #define QtPlatformsDir 		"platforms"
 #define QtImageformatsDir 	"imageformats"
 // ; # define QtStylesDir 		"styles"
 
-#dim QtLibs[5]
-#define QtLibs[0] "Qt6Core"
-#define QtLibs[1] "Qt6Gui"
-#define QtLibs[2] "Qt6OpenGL"
-#define QtLibs[3] "Qt6Widgets"
-#define QtLibs[4] "Qt6OpenGLWidgets"
+#ifndef QtMajor
+  #define QtMajor "6"
+#endif
+
+#if QtMajor == "6"
+  #dim QtLibs[5]
+  #define QtLibs[0] "Qt6Core"
+  #define QtLibs[1] "Qt6Gui"
+  #define QtLibs[2] "Qt6OpenGL"
+  #define QtLibs[3] "Qt6Widgets"
+  #define QtLibs[4] "Qt6OpenGLWidgets"
+#else
+  #dim QtLibs[4]
+  #define QtLibs[0] "Qt5Core"
+  #define QtLibs[1] "Qt5Gui"
+  #define QtLibs[2] "Qt5OpenGL"
+  #define QtLibs[3] "Qt5Widgets"
+#endif
 
 #dim QtLibsPlatforms[1]
 #define QtLibsPlatforms[0] "qwindows"

@@ -46,6 +46,9 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
 if(MSVC)
   # Standard-conforming preprocessor (required by CUDA 13+).
   add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/Zc:preprocessor>)
+  # C4506: nvcc-generated stubs reference protobuf inline functions with no definition in the CUDA TU.
+  # C4996: thrust <= 1.x uses deprecated std::allocator members in C++17.
+  # add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4506> $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/wd4996>)
 endif()
 
 # CCCL includes for CUDA 13+

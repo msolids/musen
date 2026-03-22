@@ -1,6 +1,6 @@
-# Copyright (c) 2023, MUSEN Development Team. 
+# Copyright (c) 2023, MUSEN Development Team.
 # Copyright (c) 2025, DyssolTEC GmbH.
-# All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen. 
+# All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
 # See LICENSE file for license and warranty information.
 
 cmake_minimum_required(VERSION 3.23...3.31)
@@ -21,7 +21,7 @@ project(MUSEN VERSION ${MUSEN_VERSION} LANGUAGES CXX)
 option(MUSEN_BUILD_GUI        "Build MUSEN GUI application"     ON)
 option(MUSEN_BUILD_CLI        "Build CMUSEN CLI application"    ON)
 option(MUSEN_ENABLE_CUDA      "Build with CUDA GPU support"     ON)
-mark_as_advanced(MUSEN_ENABLE_CUDA) # Can't be disabled right now; remove after GPU code refactoring 
+mark_as_advanced(MUSEN_ENABLE_CUDA) # Can't be disabled right now; remove after GPU code refactoring
 option(MUSEN_INSTALL_DATA     "Install docs, examples, DBs"     ON)
 if(WIN32)
   option(MUSEN_BUILD_INSTALLER  "Build Windows installer target"   OFF)
@@ -149,6 +149,9 @@ if(MUSEN_BUILD_CLI)
   add_executable(CMUSEN ${CMUSEN_SOURCES})
   target_link_libraries(CMUSEN PRIVATE libmusen_static)
 
+# Prevent from linking to cudart/cudadevrt; cudart_static already linked to libmusen_static.
+  set_target_properties(CMUSEN PROPERTIES CUDA_RUNTIME_LIBRARY None)
+
   if(MSVC)
     set_target_properties(CMUSEN PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")
     # cudart_static is always /MT: suppress its conflicting runtime in /MD builds
@@ -217,6 +220,9 @@ if(MUSEN_BUILD_GUI)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
     target_link_libraries(MUSEN PRIVATE stdc++fs)
   endif()
+
+  # Prevent from linking to cudart/cudadevrt; cudart_static already linked to libmusen_static.
+  set_target_properties(MUSEN PROPERTIES CUDA_RUNTIME_LIBRARY None)
 
   # cudart_static is always /MT: suppress its conflicting runtime in /MD builds
   if(MSVC)

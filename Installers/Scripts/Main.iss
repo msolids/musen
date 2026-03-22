@@ -1,13 +1,14 @@
-; Copyright (c) 2013-2020, MUSEN Development Team. 
+; Copyright (c) 2013-2020, MUSEN Development Team.
 ; Copyright (c) 2024, DyssolTEC GmbH.
 ; All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
-; See LICENSE file for license and warranty information. 
+; See LICENSE file for license and warranty information.
 
 ; The following defines are provided by the calling CMake script:
 ; ReleaseDir=<path>        - directory with Release binaries
 ; DebugDir=<path>          - directory with Debug binaries
 ; InstallerInfoFile=<path> - full path to generated installer_info.ini
 ; QtPath=<path>            - Qt installation prefix
+; QtMajor=<5|6>            - Qt major version
 
 #define public SolutionDir 	"..\.."
 #define public DataDir 		SolutionDir+"\Installers\Data"
