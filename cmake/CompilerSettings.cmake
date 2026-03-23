@@ -7,9 +7,10 @@
 if(MSVC)
   # --- Compile flags (all configurations) ---
   add_compile_options(
-    $<$<COMPILE_LANGUAGE:C,CXX>:/MP>        # Multi-processor compilation
-    $<$<COMPILE_LANGUAGE:C,CXX>:/W3>        # Warning level 3
-    $<$<COMPILE_LANGUAGE:C,CXX>:/w34062>    # Warn on unhandled enum values in switch
+    $<$<COMPILE_LANGUAGE:C,CXX>:/MP>              # Multi-processor compilation
+    $<$<COMPILE_LANGUAGE:C,CXX>:/W3>              # Warning level 3
+    $<$<COMPILE_LANGUAGE:C,CXX>:/w34062>          # Warn on unhandled enum values in switch
+    $<$<COMPILE_LANGUAGE:C,CXX>:/Zc:preprocessor> # Standard-conforming preprocessor
   )
   # Suppress warnings from external/system headers
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.29")

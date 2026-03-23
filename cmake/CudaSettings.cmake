@@ -12,8 +12,8 @@
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --allow-unsupported-compiler -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
 
 if(CMAKE_GENERATOR MATCHES "Visual Studio" AND MSVC)
-  # VS generator's CUDA compiler ID test .vcxproj ignores CMAKE_CUDA_FLAGS, so
-  # _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH never reaches the host compiler.
+  # VS generator's CUDA compiler ID test .vcxproj ignores CMAKE_CUDA_FLAGS,
+  # so _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH never reaches the host compiler.
   # Inject it via Directory.Build.props which MSBuild auto-imports from parent dirs.
   file(WRITE "${CMAKE_BINARY_DIR}/CMakeFiles/Directory.Build.props"
 "<Project>
@@ -43,6 +43,11 @@ endif()
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
 
+if(MSVC)
+  # Standard-conforming preprocessor (required by CUDA 13+).
+  add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=/Zc:preprocessor>)
+endif()
+
 # CCCL includes for CUDA 13+
 if(IS_DIRECTORY "${CUDAToolkit_INCLUDE_DIRS}/cccl")
   list(APPEND MUSEN_CUDA_INCLUDE_DIRS "${CUDAToolkit_INCLUDE_DIRS}/cccl")
@@ -66,17 +71,4 @@ if(NOT MUSEN_CUDA_ARCHS_INITIALIZED)
   list(SORT _arch_nums COMPARE NATURAL)
   set(CMAKE_CUDA_ARCHITECTURES "${_arch_nums}" CACHE STRING "CUDA architectures" FORCE)
   set(MUSEN_CUDA_ARCHS_INITIALIZED TRUE CACHE INTERNAL "")
-endif()
-
-# CUDA 12.8+ Thrust ABI namespace uses __CUDA_ARCH_LIST__. Since Thrust headers
-# leak into .cpp files, the CXX compiler must define it too to avoid linker errors.
-set(MUSEN_CUDA_ARCH_DEFINITION "")
-if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.8")
-  set(_arch_vals "")
-  foreach(_num ${CMAKE_CUDA_ARCHITECTURES})
-    math(EXPR _val "${_num} * 10")
-    list(APPEND _arch_vals "${_val}")
-  endforeach()
-  list(JOIN _arch_vals "," _cuda_arch_list)
-  set(MUSEN_CUDA_ARCH_DEFINITION "__CUDA_ARCH_LIST__=${_cuda_arch_list}")
 endif()

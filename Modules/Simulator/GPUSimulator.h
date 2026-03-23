@@ -1,42 +1,15 @@
 /* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
 #include "BaseSimulator.h"
-#include "GPUSimulator.cuh"
-#include "SimplifiedSceneGPU.h"
+
+struct SGPUParticles;
 
 class CGPUSimulator : public CBaseSimulator
 {
-	typedef std::vector<std::vector<unsigned>> std_matr_u;
-	typedef std::vector<std::vector<uint8_t>> std_matr_u8;
-
-	struct STempStorage
-	{
-		std_matr_u vDstSortedVerlet;
-		thrust::host_vector<unsigned> hvVerletPartInd;
-		thrust::host_vector<unsigned> hvVerletDst;
-		thrust::host_vector<unsigned> hvVerletSrc;
-		thrust::host_vector<uint8_t> hvVirtShifts;
-	};
-
-	struct SDispatchedResults
-	{
-		unsigned nActivePartNum;
-		unsigned activeBondsNumBeforeBreak;
-		unsigned activeBondsNumAfterBreak;
-		double dMaxSquaredPartDist;
-		double dMaxWallVel;
-	};
-
-	CCUDADefines* m_cudaDefines{ new CCUDADefines{} };
-	CGPU m_gpu{ m_cudaDefines };
-	CSimplifiedSceneGPU m_sceneGPU{ m_cudaDefines };
-	SInteractProps* m_pInteractProps{ nullptr };		// List of interaction properties according to current simplified scene.
-	SDispatchedResults* m_pDispatchedResults_d{ nullptr };
-	SDispatchedResults* m_pDispatchedResults_h{ nullptr };
-
 public:
 	CGPUSimulator();
 	explicit CGPUSimulator(const CBaseSimulator& _other);
@@ -48,7 +21,7 @@ public:
 
 	void SetExternalAccel(const CVector3& _accel) override;
 
-	CSimplifiedSceneGPU& GetPointerToSceneGPU() { return m_sceneGPU; }
+	SGPUParticles* GetPointerToParticles();
 
 	void Initialize() override;
 	void InitializeModelParameters() override; // Sets model parameters to GPU memory.
@@ -78,7 +51,7 @@ private:
 
 	void CUDAUpdateGlobalCPUData();	// Dispatches necessary GPU operations and gathers data with one read.
 	void CUDAUpdateActiveCollisions();
-	void CUDAUpdateVerletLists(const std_matr_u& _verletListCPU, const std_matr_u8& _verletListShiftsCPU, CGPU::SCollisionsHolder& _collisions, STempStorage& _store, bool _bPPVerlet);
+	void CUDAUpdateVerletLists(bool _bPPVerlet);
 	void CUDAInitializeMaterials();
 
 	void CUDAInitializeWalls();			// create or update information about walls for GPU
@@ -88,5 +61,8 @@ private:
 	// Check that all particles have correct coordinates and update coordinates of virtual particles.
 	// If some real particles crossed the PBC boundaries, returns true (meaning the need to update verlet lists).
 	void MoveParticlesOverPBC();
-};
 
+private:
+	struct Impl;
+	Impl* m_impl;
+};
