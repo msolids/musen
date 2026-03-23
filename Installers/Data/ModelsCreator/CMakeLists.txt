@@ -38,8 +38,8 @@ if(MSVC)
 endif()
 
 if(CMAKE_GENERATOR MATCHES "Visual Studio" AND MSVC)
-  # VS generator's CUDA compiler ID test .vcxproj ignores CMAKE_CUDA_FLAGS, so
-  # _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH never reaches the host compiler.
+  # VS generator's CUDA compiler ID test .vcxproj ignores CMAKE_CUDA_FLAGS,
+  # so _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH never reaches the host compiler.
   # Inject it via Directory.Build.props which MSBuild auto-imports from parent dirs.
   file(WRITE "${CMAKE_BINARY_DIR}/CMakeFiles/Directory.Build.props"
 "<Project>

@@ -135,10 +135,6 @@ endif()
 target_link_libraries(libmusen_static PUBLIC ZLIB::ZLIB)
 if(MUSEN_ENABLE_CUDA)
   target_link_libraries(libmusen_static PUBLIC CUDA::cudart_static)
-  # __CUDA_ARCH_LIST__ for CUDA 12.8+ Thrust ABI namespace compatibility
-  if(MUSEN_CUDA_ARCH_DEFINITION)
-    target_compile_definitions(libmusen_static PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:${MUSEN_CUDA_ARCH_DEFINITION}>")
-  endif()
 endif()
 
 # =============================================================================

@@ -1,5 +1,6 @@
 /* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "PackageGeneratorHelperGPU.cuh"
@@ -102,4 +103,9 @@ void CPackageGeneratorHelperGPU::SaveVelocities()
 {
 	const thrust::device_ptr<const CVector3> vels = thrust::device_pointer_cast(m_particles->Vels);
 	thrust::copy(vels, vels + m_number, m_oldVels->begin());
+}
+
+IPackageGeneratorHelper* CreatePackageGeneratorHelperGPU(SGPUParticles* _particles)
+{
+	return new CPackageGeneratorHelperGPU{ _particles };
 }
