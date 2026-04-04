@@ -1,3 +1,7 @@
+# Copyright (c) 2026, DyssolTEC GmbH.
+# All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
+# See LICENSE file for license and warranty information.
+
 FROM rockylinux/rockylinux:8-ubi
 LABEL description="Rocky Linux 8 to build MUSEN"
 LABEL org.opencontainers.image.source="https://github.com/msolids/musen"
@@ -8,7 +12,7 @@ WORKDIR /root
 RUN dnf install -y --setopt=install_weak_deps=False dnf-plugins-core && \
     dnf config-manager --set-enabled powertools && \
     dnf install -y --setopt=install_weak_deps=False \
-        nano rsync wget ca-certificates \
+        wget ca-certificates \
         gcc-c++ libstdc++-static make zlib-devel zlib-static qt5-qtbase-devel mesa-libGLU-devel && \
     dnf clean all
 
@@ -26,11 +30,10 @@ RUN wget -q https://github.com/protocolbuffers/protobuf/archive/refs/tags/v${PRO
     cd /root && rm -rf protobuf-${PROTOBUF_VERSION}
 
 # Install CUDA
-ARG CUDA_VERSION=12.8
+ARG CUDA_VERSION=12.9
 RUN dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo && \
     dnf install -y --setopt=install_weak_deps=False \
-        cuda-compiler-${CUDA_VERSION//./-} cuda-cudart-devel-${CUDA_VERSION//./-} \
-        libcurand-devel-${CUDA_VERSION//./-} cuda-cccl-${CUDA_VERSION//./-} && \
+        cuda-nvcc-${CUDA_VERSION//./-} cuda-cudart-devel-${CUDA_VERSION//./-} libcurand-devel-${CUDA_VERSION//./-} cuda-cccl-${CUDA_VERSION//./-} && \
     dnf clean all
 ENV PATH=/usr/local/cuda-${CUDA_VERSION}/bin${PATH:+:${PATH}}
 

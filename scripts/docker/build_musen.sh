@@ -5,20 +5,20 @@
 # See LICENSE file for license and warranty information.
 
 # Build MUSEN in a Docker container.
-# Assumes that the source code is mounted to /mnt/musen_src 
+# Assumes that the source code is mounted to /mnt/musen_src
 # and that the container has necessary build tools installed.
 
 # Exit immediately if a command exits with a non-zero status
 set -o errexit
 
-/mnt/musen_src/scripts/copy_to_home.sh
-cd ~/musen
-mkdir -p build && cd build
-cmake .. \
+mkdir -p ~/build && cd ~/build
+cmake /mnt/musen_src \
   -DCMAKE_CXX_COMPILER=g++ \
-  -DCMAKE_INSTALL_PREFIX=../install \
+  -DCMAKE_INSTALL_PREFIX=~/install \
   -DMUSEN_BUILD_CLI=ON \
   -DMUSEN_BUILD_GUI=ON \
-  -DMUSEN_INSTALL_DATA=OFF
+  -DMUSEN_INSTALL_DATA=ON \
+  ${CUDA_SM:+-DCMAKE_CUDA_ARCHITECTURES=$CUDA_SM}
 cmake --build . --parallel $(nproc)
 cmake --install .
+~/install/bin/CMUSEN -models

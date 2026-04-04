@@ -1,3 +1,7 @@
+# Copyright (c) 2026, DyssolTEC GmbH.
+# All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
+# See LICENSE file for license and warranty information.
+
 FROM ubuntu:20.04
 LABEL description="Ubuntu 20.04 to build MUSEN"
 LABEL org.opencontainers.image.source="https://github.com/msolids/musen"
@@ -5,17 +9,27 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 WORKDIR /root
 
-# Install default CUDA 10.1
+# System packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        nano rsync \
-        build-essential wget ca-certificates zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev \
-        nvidia-cuda-toolkit && \
+        wget ca-certificates \
+        build-essential zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install CMake 3.31 (Ubuntu 20.04 ships too old 3.16)
 RUN wget -qO- https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz \
         | tar xz --strip-components=1 -C /usr/local
+
+# Install CUDA from NVIDIA repo (default CUDA 10.1 doesn't support C++17)
+ARG CUDA_VERSION=11.0
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb && \
+    dpkg -i cuda-keyring_1.1-1_all.deb && \
+    rm -f cuda-keyring_1.1-1_all.deb && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        cuda-nvcc-${CUDA_VERSION//./-} libcurand-dev-${CUDA_VERSION//./-} && \
+    rm -rf /var/lib/apt/lists/*
+ENV PATH=/usr/local/cuda-${CUDA_VERSION}/bin${PATH:+:${PATH}}
 
 COPY --chmod=755 build_musen.sh ./build_musen.sh
 

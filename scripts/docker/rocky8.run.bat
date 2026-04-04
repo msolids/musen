@@ -1,5 +1,6 @@
 :: Copyright (c) 2026, DyssolTEC GmbH.
-:: All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information.
+:: All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
+:: See LICENSE file for license and warranty information.
 
-docker run -it --rm --volume=%cd%/../../:/mnt/musen_src:ro musen.rocky8:latest
+docker run -it --rm --volume=%cd%/../../:/mnt/src_host:ro musen.rocky8:latest bash -c "/mnt/src_host/scripts/copy_src.sh && exec bash"
 pause
