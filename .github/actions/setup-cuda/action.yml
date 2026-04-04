@@ -1,0 +1,63 @@
+# Copyright (c) 2026, DyssolTEC GmbH.
+# All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
+# See LICENSE file for license and warranty information.
+
+name: Setup CUDA
+description: Install CUDA toolkit with caching.
+
+inputs:
+  cuda-version:
+    description: 'Full CUDA version (e.g., 12.9.1)'
+    required: true
+  sub-packages:
+    description: 'JSON array of sub-packages, or empty string for full install'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Derive CUDA version info
+      id: info
+      shell: pwsh
+      run: |
+        $short = '${{ inputs.cuda-version }}' -replace '\.\d+$', ''
+        $pkgHash = [System.BitConverter]::ToString(
+          [System.Security.Cryptography.SHA256]::Create().ComputeHash(
+            [System.Text.Encoding]::UTF8.GetBytes('${{ inputs.sub-packages }}')
+          )
+        ).Replace('-','').Substring(0,8).ToLower()
+        echo "cuda_short=$short" >> $env:GITHUB_OUTPUT
+        echo "cuda_path=${{ env.CUDA_PATH_BASE }}\v$short" >> $env:GITHUB_OUTPUT
+        echo "pkg_hash=$pkgHash" >> $env:GITHUB_OUTPUT
+
+    - name: Cache CUDA
+      id: cache
+      uses: actions/cache@v5
+      with:
+        path: ${{ steps.info.outputs.cuda_path }}
+        key: ${{ runner.os }}-cuda-${{ inputs.cuda-version }}-${{ steps.info.outputs.pkg_hash }}
+
+    - name: Install CUDA sub-packages
+      if: steps.cache.outputs.cache-hit != 'true' && inputs.sub-packages != ''
+      uses: Jimver/cuda-toolkit@v0.2.35
+      with:
+        cuda: ${{ inputs.cuda-version }}
+        sub-packages: ${{ inputs.sub-packages }}
+        method: network
+
+    - name: Install CUDA full
+      if: steps.cache.outputs.cache-hit != 'true' && inputs.sub-packages == ''
+      uses: Jimver/cuda-toolkit@v0.2.35
+      with:
+        cuda: ${{ inputs.cuda-version }}
+        method: network
+
+    - name: Set CUDA environment
+      shell: pwsh
+      run: |
+        $cudaPath = "${{ steps.info.outputs.cuda_path }}"
+        $short = "${{ steps.info.outputs.cuda_short }}"
+        $envName = "CUDA_PATH_V" + $short.Replace('.','_')
+        echo "CUDA_PATH=$cudaPath" >> $env:GITHUB_ENV
+        echo "${envName}=$cudaPath" >> $env:GITHUB_ENV
+        echo "$cudaPath\bin" >> $env:GITHUB_PATH
