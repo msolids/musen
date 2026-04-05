@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+title: MUSEN
+message: "If you use this software, please cite it using the metadata from this file."
+type: software
+url: "https://msolids.net"
+repository-code: "https://github.com/msolids/musen"
+license: BSD-3-Clause
+authors:
+  - family-names: Dosta
+    given-names: Maksym
+    orcid: "https://orcid.org/0000-0002-7578-8408"
+  - family-names: Skorych
+    given-names: Vasyl
+    orcid: "https://orcid.org/0000-0002-6358-7385"
+preferred-citation:
+  type: article
+  title: "MUSEN: An open-source framework for GPU-accelerated DEM simulations"
+  authors:
+    - family-names: Dosta
+      given-names: Maksym
+      orcid: "https://orcid.org/0000-0002-7578-8408"
+    - family-names: Skorych
+      given-names: Vasyl
+      orcid: "https://orcid.org/0000-0002-6358-7385"
+  journal: SoftwareX
+  volume: 12
+  pages: "100618"
+  year: 2020
+  month: 7
+  issn: "2352-7110"
+  doi: "10.1016/j.softx.2020.100618"

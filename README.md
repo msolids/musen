@@ -1,154 +1,543 @@
-# MUSEN - GPU-accelerated DEM simulation framework
-- For more information, please check the [documentation](https://msolids.net/documentation). 
-- [Video introduction](https://youtu.be/bH1xydzdrGY)
-- To refer MUSEN please use [Dosta et al., 2020](https://doi.org/10.1016/j.softx.2020.100618).
-- [New versions and updates](https://github.com/msolids/musen/releases).
+[![Release](https://img.shields.io/github/v/release/msolids/musen)](https://github.com/msolids/musen/releases)
+[![License](https://img.shields.io/badge/license-BSD_3--Clause-blue)](LICENSE)
+[![Windows](https://img.shields.io/github/actions/workflow/status/msolids/musen/build_windows.yml?branch=master&label=Windows)](https://github.com/msolids/musen/actions/workflows/build_windows.yml)
+[![Linux](https://img.shields.io/github/actions/workflow/status/msolids/musen/build_linux.yml?branch=master&label=Linux)](https://github.com/msolids/musen/actions/workflows/build_linux.yml)
 
+# MUSEN
 
-# Requirements 
-MUSEN should install and work on all latest versions of Windows or Linux (Ubuntu or Red Head).
-Requires [Visual C++ Redistributable for Visual Studio 2022](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-microsoft-visual-c-redistributable-version) to run on Windows.
+MUSEN is an open-source GPU-accelerated Discrete Element Method (DEM) simulation framework with a full-featured graphical user interface and an extensible contact model architecture, working on Windows and Linux.
 
+**Key features:**
 
-# Compilation on Windows
-A fully functional version can be compiled and built with Microsoft Visual Studio 2022. 
+- GPU-accelerated simulations via CUDA
+- Full-featured graphical user interface
+- Bonded Particle Model
+- Movable physical geometries
+- Periodic boundary conditions
+- Extensible contact model architecture (custom models)
 
-## Requirements on Windows
-- [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)
-- [Qt 6.X.X msvc2022](https://download.qt.io/archive/online_installers/4.0/)
-- [Qt Visual Studio Tools for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools2022)
-- [CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Windows&target_arch=x86_64)
-- [Git](https://git-scm.com/downloads)
-- [CMake](https://cmake.org/download/)
-- (optional) MATLAB R2019a
+## Contents
 
-## Build on Windows
-1. Download and install all [requirements](#requirements-on-windows) on your computer.
-	
-	1.1. Microsoft Visual Studio: select "Desktop Development with C++" when choosing what components to install.
-	
-	1.2. Qt: You will need to create a free Qt-account to run installation. When selecting components, choose Qt → Qt 6.X.X → MSVC 2022. 
-	
-	1.3. CUDA: Download the specified version of CUDA and install the configuration proposed by the setup utility.
-	
-	1.4. Use the last available version of CMake and select the option "Add to system path" if available during installation.
-	
-	1.5. Use the last available version of Git.
-2. Setup Qt Visual Studio Tools extension to point to the installed Qt libraries. In Visual Studio, go to Extensions → Qt VS Tools → Qt Versions → add new Qt version → … → Navigate in the Qt installation directory to Qt/6.x.x/msvc2022_64/ → rename Version to qt_msvc_musen → OK.
-3. Prepare third-party statically linked libraries: zlib, protobuf. To do this, navigate to `X:/path/to/msolids/MUSEN/ExternalLibraries/` and execute files `RunZLibCompile.bat` and `RunProtobufCompile.bat`. They will download and build all the required libraries by executing files `CompileZLib.ps1`, `CompileProtobuf.ps1`.
-4. Open `X:/path/to/msolids/MUSEN/MUSEN/musen.sln` file with Visual Studio and build the solution.
+- [Links](#links)
+- [Building from Source](#building-from-source)
+  - [Minimum Requirements](#minimum-requirements)
+  - [CMake Options](#cmake-options)
+  - [Windows](#windows)
+  - [Linux](#linux)
+  - [Docker](#docker)
+- [ModelsCreator](#modelscreator-windows)
+- [Third-Party Libraries](#third-party-libraries)
+- [License](#license)
 
+## Links
 
-# Compilation for Linux on Windows with WSL (Windows Subsystem for Linux)
-A fully functional version can be compiled and built in WSL. 
+- **Website:** <https://msolids.net>
+- **Documentation:** <https://github.com/msolids/musen/wiki>
+- **Releases:** <https://github.com/msolids/musen/releases>
+- **YouTube:** <https://www.youtube.com/@musensimulations6940>
+- **Video introduction:** <https://youtu.be/bH1xydzdrGY>
+- **Citation:** [Dosta et al., SoftwareX, 2020](https://doi.org/10.1016/j.softx.2020.100618)
 
-## Build in WSL:
-1. Enable the Windows Subsystem for Linux. Open PowerShell and run:
-```PowerShell
-wsl --install
+## Building from Source
+
+MUSEN uses CMake and requires a C++17 compiler and the CUDA Toolkit. Building the GUI additionally requires Qt.
+
+The versions of CUDA and C++ compiler must be compatible. See e.g. [CUDA-compiler compatibility list](https://gist.github.com/ax3l/9489132).
+
+Other third-party libraries are fetched and built automatically during configuration if not found on the system.
+
+### Minimum Requirements
+
+| Requirement | Version |
+| --- | --- |
+| CMake | ≥ 3.23 |
+| C++ standard | C++17 |
+| CUDA Toolkit | ≥ 11 |
+| Qt | 5 or 6 |
+
+### CMake Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `MUSEN_BUILD_GUI` | `ON` | Build the Qt-based GUI application (MUSEN). Requires Qt. |
+| `MUSEN_BUILD_CLI` | `ON` | Build the command-line application (CMUSEN). |
+| `MUSEN_INSTALL_DATA` | `ON` | Install documentation, examples, and material databases alongside binaries. |
+| `MUSEN_BUILD_INSTALLER` | `OFF` | Build the Windows installer target using Inno Setup. Windows only. |
+| `MUSEN_INSTALLER_SKIP_PREBUILD` | `OFF` | Skip automatic build of binaries inside the installer target. Windows only. |
+
+### Windows
+
+#### Prerequisites
+
+- Visual Studio [2019](https://aka.ms/vs/16/release/vs_community.exe), [2022](https://aka.ms/vs/17/release/vs_community.exe), or [2026](https://aka.ms/vs/18/Stable/vs_community.exe) with the "Desktop Development with C++" workload
+- [CUDA Toolkit 11+](https://developer.nvidia.com/cuda-downloads) — see the compatibility table below
+- [CMake 3.23+](https://cmake.org/download/)
+- [Git](https://git-scm.com/install/windows)
+- [Qt 6 msvc2022_64](https://download.qt.io/official_releases/online_installers/) — only required if building the GUI
+
+#### CUDA — Visual Studio Compatibility
+
+| CUDA | VS 2019 | VS 2022 | VS 2026 |
+| --- | :---: | :---: | :---: |
+| 11.0 – 11.5 | Yes | — | — |
+| 11.6 – 13.1 | Yes | Yes | — |
+| 13.2+ | Yes | Yes | Yes |
+
+See the official [CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive) for details.
+
+#### Build with Visual Studio
+
+For Visual Studio 2026:
+
+```batch
+cmake -B build -G "Visual Studio 18 2026"
+cmake --build build --config Release --parallel
 ```
-Additional information [here](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-2. Install Ubuntu
-```PowerShell
-wsl --install -d Ubuntu-22.04
+For Visual Studio 2022:
+
+```batch
+cmake -B build -G "Visual Studio 17 2022"
+cmake --build build --config Release --parallel
 ```
 
-3. Launch the installed distribution and follow the instructions for initial setup.
+To build only the CLI (no Qt required), add `-DMUSEN_BUILD_GUI=OFF`.
 
-4. Login to your distribution and update it by running:
+Built binaries are placed in `build/Release/` by default.
+
+#### Build with Ninja
+
+The [Ninja](https://ninja-build.org/) generator can be used as an alternative to the Visual Studio generator. Ninja can work with CUDA and MSVC combinations that the Visual Studio generator does not officially support.
+
+```batch
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+```
+
+#### Installer
+
+To create a Windows Installer, configure with `-DMUSEN_BUILD_INSTALLER=ON`.
+Requires [Inno Setup](https://jrsoftware.org/isinfo.php) available on `PATH`.
+
+```batch
+cmake -B build -G "Visual Studio 17 2022" -DMUSEN_BUILD_INSTALLER=ON
+cmake --build build --target installer --config Release
+```
+
+### Linux
+
+Tested on Ubuntu 18/20/22/24, Debian 11/12/13, Fedora 41/42, and Rocky 8/9/10.
+
+Install the prerequisites for your distribution, then proceed to [build](#linux-build).
+
+#### Ubuntu
+
+<details>
+<summary>Ubuntu 18.04</summary>
+
+Install system packages:
+
 ```sh
-sudo apt update
-sudo apt upgrade
+sudo apt-get update
+sudo apt-get install -y wget ca-certificates build-essential zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
 ```
 
-5. Install all required tools and libraries, as described in [Build on Linux](#build-on-linux). 
+Install CMake 3.23+ (system version is too old):
 
-6. Compile MUSEN either with Visual Studio (step 6.a) or directly in Ubuntu (step 6.b)
-	
-	6.a Open `.../musen/musen.sln` file with Visual Studio. In Solution Explorer under `Installers` folder select `LinuxBuildWSL` project, then from the main menu navigate to (Project → Properties → Configuration Properties → Linux Build Settings) and select MUSEN versions that you want to build. Run building project `LinuxBuildWSL` (Build → Build Selection).
-	
-	6.b Compile MUSEN as described in [Build on Linux](#build-on-linux).  
-	
-7. The built executables will be placed in `...musen/Installers/Installers/`.
-
-
-# Compilation on Linux
-A fully functional version can be compiled and built with cmake and gcc. 
-
-## Minimum requirements on Linux
-- gcc-7.5, g++-7.5
-- cmake 3.0.0
-- protobuf 3.0.0
-- qt 5.9.5
-- cuda 9.1 - cuda 12.3
-The versions of CUDA and C++ compiler must be compatible. See compatibility list e.g. [here](https://gist.github.com/ax3l/9489132#nvcc).
-
-## Build on Linux 
-Tested on Ubuntu 18.04/20.04/22.04/24.04, Debian 11/12.
-1. Change the current working directory to the desired location and download the MUSEN code:
 ```sh
-cd /path/to/desired/location/
-git clone --depth 1 https://github.com/msolids/musen.git
+wget -q https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz
+sudo tar -xzf cmake-3.31.6-linux-x86_64.tar.gz -C /usr/local --strip-components=1
+rm cmake-3.31.6-linux-x86_64.tar.gz
+```
+
+Install CUDA:
+
+```sh
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y cuda-nvcc-11-0 libcurand-dev-11-0
+rm cuda-keyring_1.1-1_all.deb
+export PATH=/usr/local/cuda-11.0/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Ubuntu 20.04</summary>
+
+Install system packages:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y wget ca-certificates build-essential zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
+```
+
+Install CMake 3.23+ (system version is too old):
+
+```sh
+wget -q https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz
+sudo tar -xzf cmake-3.31.6-linux-x86_64.tar.gz -C /usr/local --strip-components=1
+rm cmake-3.31.6-linux-x86_64.tar.gz
+```
+
+Install CUDA:
+
+```sh
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y cuda-nvcc-11-0 libcurand-dev-11-0
+rm cuda-keyring_1.1-1_all.deb
+export PATH=/usr/local/cuda-11.0/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Ubuntu 22.04</summary>
+
+Install system packages:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y wget ca-certificates linux-headers-generic build-essential zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
+```
+
+Install CMake 3.23+ (system version is too old):
+
+```sh
+wget -q https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz
+sudo tar -xzf cmake-3.31.6-linux-x86_64.tar.gz -C /usr/local --strip-components=1
+rm cmake-3.31.6-linux-x86_64.tar.gz
+```
+
+Install CUDA:
+
+```sh
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y cuda-nvcc-11-7 libcurand-dev-11-7 cuda-cccl-11-7
+rm cuda-keyring_1.1-1_all.deb
+export PATH=/usr/local/cuda-11.7/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Ubuntu 24.04</summary>
+
+Install system packages:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y wget ca-certificates build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt6opengl6-dev libglu1-mesa-dev
+```
+
+Install CUDA:
+
+```sh
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y cuda-nvcc-12-6 libcurand-dev-12-6 cuda-cccl-12-6
+rm cuda-keyring_1.1-1_all.deb
+export PATH=/usr/local/cuda-12.6/bin:$PATH
+```
+
+</details>
+
+#### Debian
+
+<details>
+<summary>Debian 11</summary>
+
+Install system packages:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y wget ca-certificates build-essential zlib1g-dev libprotobuf-dev protobuf-compiler libqt5opengl5-dev
+```
+
+Install CMake 3.23+ (system version is too old):
+
+```sh
+wget -q https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz
+sudo tar -xzf cmake-3.31.6-linux-x86_64.tar.gz -C /usr/local --strip-components=1
+rm cmake-3.31.6-linux-x86_64.tar.gz
+```
+
+Install CUDA:
+
+```sh
+wget https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y cuda-nvcc-11-5 libcurand-dev-11-5 cuda-cccl-11-5
+rm cuda-keyring_1.1-1_all.deb
+export PATH=/usr/local/cuda-11.5/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Debian 12</summary>
+
+Install system packages:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y wget ca-certificates build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt6opengl6-dev libglu1-mesa-dev
+```
+
+Install CUDA:
+
+```sh
+wget https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y cuda-nvcc-12-3 libcurand-dev-12-3 cuda-cccl-12-3
+rm cuda-keyring_1.1-1_all.deb
+export PATH=/usr/local/cuda-12.3/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Debian 13</summary>
+
+Install system packages:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y wget ca-certificates linux-headers-generic build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt6opengl6-dev libglu1-mesa-dev
+```
+
+Install CUDA:
+
+```sh
+wget https://developer.download.nvidia.com/compute/cuda/repos/debian13/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get install -y cuda-nvcc-13-1 libcurand-dev-13-1 cuda-cccl-13-1
+rm cuda-keyring_1.1-1_all.deb
+export PATH=/usr/local/cuda-13.1/bin:$PATH
+```
+
+</details>
+
+#### Fedora
+
+<details>
+<summary>Fedora 41</summary>
+
+Install system packages:
+
+```sh
+sudo dnf install -y wget ca-certificates gcc-c++ libstdc++-static cmake make zlib-devel zlib-static qt6-qtbase-devel mesa-libGLU-devel
+```
+
+Install CUDA:
+
+```sh
+sudo dnf install -y 'dnf-command(config-manager)'
+sudo dnf config-manager addrepo --from-repofile=https://developer.download.nvidia.com/compute/cuda/repos/fedora41/x86_64/cuda-fedora41.repo
+sudo dnf install -y cuda-nvcc-12-9 cuda-cudart-devel-12-9 libcurand-devel-12-9 cuda-cccl-12-9
+export PATH=/usr/local/cuda-12.9/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Fedora 42</summary>
+
+Install system packages:
+
+```sh
+sudo dnf install -y wget ca-certificates gcc-c++ libstdc++-static cmake make zlib-devel zlib-static qt6-qtbase-devel mesa-libGLU-devel
+```
+
+Install CUDA:
+
+```sh
+sudo dnf install -y 'dnf-command(config-manager)'
+sudo dnf config-manager addrepo --from-repofile=https://developer.download.nvidia.com/compute/cuda/repos/fedora42/x86_64/cuda-fedora42.repo
+sudo dnf install -y cuda-nvcc-13-1 cuda-cudart-devel-13-1 libcurand-devel-13-1 cuda-cccl-13-1
+export PATH=/usr/local/cuda-13.1/bin:$PATH
+```
+
+</details>
+
+#### Rocky Linux
+
+<details>
+<summary>Rocky Linux 8</summary>
+
+Enable the PowerTools repository and install system packages:
+
+```sh
+sudo dnf config-manager --set-enabled powertools
+sudo dnf install -y wget ca-certificates gcc-c++ libstdc++-static make zlib-devel zlib-static qt5-qtbase-devel mesa-libGLU-devel
+```
+
+Install CMake 3.23+ (system version is too old):
+
+```sh
+wget -q https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz
+sudo tar -xzf cmake-3.31.6-linux-x86_64.tar.gz -C /usr/local --strip-components=1
+rm cmake-3.31.6-linux-x86_64.tar.gz
+```
+
+Install CUDA:
+
+```sh
+sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/cuda-rhel8.repo
+sudo dnf install -y cuda-nvcc-12-9 cuda-cudart-devel-12-9 libcurand-devel-12-9 cuda-cccl-12-9
+export PATH=/usr/local/cuda-12.9/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Rocky Linux 9</summary>
+
+Enable the CRB repository and install system packages:
+
+```sh
+sudo dnf config-manager --set-enabled crb
+sudo dnf install -y wget ca-certificates gcc-c++ libstdc++-static make zlib-devel zlib-static qt5-qtbase-devel mesa-libGLU-devel
+```
+
+Install CMake 3.23+ (system version is too old):
+
+```sh
+wget -q https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz
+sudo tar -xzf cmake-3.31.6-linux-x86_64.tar.gz -C /usr/local --strip-components=1
+rm cmake-3.31.6-linux-x86_64.tar.gz
+```
+
+Install CUDA:
+
+```sh
+sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo
+sudo dnf install -y cuda-nvcc-12-9 cuda-cudart-devel-12-9 libcurand-devel-12-9 cuda-cccl-12-9
+export PATH=/usr/local/cuda-12.9/bin:$PATH
+```
+
+</details>
+
+<details>
+<summary>Rocky Linux 10</summary>
+
+Enable the CRB repository and install system packages:
+
+```sh
+sudo dnf config-manager --set-enabled crb
+sudo dnf install -y wget ca-certificates gcc-c++ libstdc++-static cmake make zlib-devel zlib-static qt6-qtbase-devel mesa-libGLU-devel
+```
+
+Install CUDA:
+
+```sh
+sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel10/x86_64/cuda-rhel10.repo
+sudo dnf install -y cuda-nvcc-13-2 cuda-cudart-devel-13-2 libcurand-devel-13-2 cuda-cccl-13-2
+export PATH=/usr/local/cuda-13.2/bin:$PATH
+```
+
+</details>
+
+#### Linux Build
+
+After installing the prerequisites for your distribution:
+
+```sh
+git clone https://github.com/msolids/musen.git
 cd musen
-```
-2. Install required tools and libraries.
-```sh
-sudo apt install build-essential cmake zlib1g-dev libprotobuf-dev protobuf-compiler libqt6opengl6-dev
-```
-3. Install CUDA
-```sh
-sudo apt install nvidia-cuda-toolkit
-```
-or in case of compatibility issues (usually on Ubuntu 22.04), using official [installation guide](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html) or running the script for Ubuntu:
-```sh
-./scripts/install_cuda.sh
-exec bash
-```
-4. Build MUSEN
-```sh
-mkdir install
-mkdir build
-cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=../install
-cmake --build . --parallel $(nproc)
-make install
-```
-5. Built executables can be found in 
-```sh
-cd ../install
+cmake -B build -DCMAKE_INSTALL_PREFIX=install
+cmake --build build --parallel $(nproc)
+cmake --install build
 ```
 
-# Code organization
-- CMusen - command-line version of MUSEN
-- Databases - agglomerates, geometries and materials databases
-- Documentation - manuals
-- ExternalLibraries - external libraries used in MUSEN on Windows (zlib and protobuf)
-- GeneralFunctions - main functions and types used in MUSEN 
-- Installers - scripts and data needed to build installers on Windows
-- Models - contact models (particle-particle, particle-wall, solid bonds, etc.)
-- Modules\BondsGenerator - generate bonds between particles
-- Modules\ContactAnalyzer - functions for contacts detection 
-- Modules\FileManager - set of functions to convert, merge or modify .mdem files with simulation results
-- Modules\GeneralSources - general components
-- Modules\Geometries - set of classes and functions to work with geometrical objects
-- Modules\ObjectsGenerator - dynamic particles or agglomerates generator
-- Modules\PackageGenerator - generate packing of particles prior simulation
-- Modules\ResultsAnalyzer - analyzer of simulation results (export necessary data to csv files)
-- Modules\ScriptInterface - analyze input scripts for command-line version
-- Modules\SimplifiedScene - simplified entity generated from SystemStructure and which is used during simulation
-- Modules\SimResultsStorage - low-level functions for data handling (load and save data)
-- Modules\Simulator - CPU and GPU simulators
-- Modules\SystemStructure - main entity which stores the information about whole scene
-- MusenGUI - graphical version of MUSEN
-- QTDialog - Qt-based dialogs for graphical user interface
-- Version - version information
+Built executables are in `install/bin/`.
 
+To build only the CLI (no Qt required), add `-DMUSEN_BUILD_GUI=OFF`.
 
-# Third-party tools and libraries
-- [CUDA 11.8](https://developer.nvidia.com/cuda-zone) – Nvidia Corporation – [NVIDIA License](https://docs.nvidia.com/cuda/pdf/EULA.pdf)
-- [Inno Setup 6.1.2](https://jrsoftware.org/isinfo.php) – Jordan Russell – [Modified BSD License](http://www.jrsoftware.org/files/is/license.txt)
-- [Protobuf 3.21.12](https://developers.google.com/protocol-buffers/) – Google Inc. – [BSD License](https://github.com/protocolbuffers/protobuf/blob/master/LICENSE)
-- [Qt 6.10.2](https://www.qt.io/) – The Qt Company – [LGPLv3 License](https://doc.qt.io/qt-5/lgpl.html)
-- [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/) – Microsoft Corporation – [Microsoft Software License Terms](https://visualstudio.microsoft.com/license-terms/mlt031819/)
-- [zlib v1.3.1](https://www.zlib.net/) – Jean-loup Gailly and Mark Adler – [zlib License](https://www.zlib.net/zlib_license.html)
+### Docker
+
+Docker build scripts are provided for all 12 tested distributions in `scripts/docker/`.
+
+Build a Docker image and compile MUSEN inside a container. Run from the repository root:
+
+**Linux host:**
+
+```sh
+mkdir -p output
+docker build -f scripts/docker/ubuntu24.dockerfile -t musen_ubuntu24 scripts/docker
+docker run --rm -v "$(pwd):/mnt/musen_src:ro" -v "$(pwd)/output:/mnt/output" musen_ubuntu24 bash -c "./build_musen.sh && cp -r ~/install/* /mnt/output/"
+```
+
+The executables will be in `output/bin/`.
+
+**Windows host (Docker Desktop):**
+
+Volume mounts are very slow on Docker Desktop. Copy the source into the container's native filesystem before building:
+
+CMD:
+
+```batch
+mkdir output
+docker build -f scripts/docker/ubuntu24.dockerfile -t musen_ubuntu24 scripts/docker
+docker run --rm -v "%cd%:/mnt/src_host:ro" -v "%cd%/output:/mnt/output" musen_ubuntu24 bash -c "/mnt/src_host/scripts/copy_src.sh && ./build_musen.sh && cp -r ~/install/* /mnt/output/"
+```
+
+PowerShell:
+
+```powershell
+mkdir output
+docker build -f scripts/docker/ubuntu24.dockerfile -t musen_ubuntu24 scripts/docker
+docker run --rm -v "${PWD}:/mnt/src_host:ro" -v "${PWD}/output:/mnt/output" musen_ubuntu24 bash -c "/mnt/src_host/scripts/copy_src.sh && ./build_musen.sh && cp -r ~/install/* /mnt/output/"
+```
+
+## ModelsCreator (Windows)
+
+ModelsCreator is a standalone CMake project for building custom DEM contact model DLLs.
+It supports four model types: particle-particle, particle-wall, solid bonds, and external forces.
+The resulting `.dll` files can be loaded at runtime through MUSEN's Models Manager.
+
+ModelsCreator includes template models as starting points and example models as reference implementations.
+
+### Location
+
+ModelsCreator is installed alongside MUSEN at `C:\Program Files\MUSEN\ModelsCreator` by the Windows installer.
+
+### ModelsCreator Prerequisites
+
+- Visual Studio [2019](https://aka.ms/vs/16/release/vs_community.exe), [2022](https://aka.ms/vs/17/release/vs_community.exe), or [2026](https://aka.ms/vs/18/Stable/vs_community.exe) with the "Desktop Development with C++" workload
+- [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
+- [CMake 3.23+](https://cmake.org/download/)
+
+### ModelsCreator Build
+
+Run `OpenInVisualStudio.bat` to generate and open the Visual Studio solution, or use CMake directly, e.g.:
+
+```batch
+cmake -B build -G "Visual Studio 17 2022"
+cmake --build build --config Release
+```
+
+Add the directory containing the resulting `.dll` files to MUSEN's Models Manager.
+
+## Third-Party Libraries
+
+| Library | License |
+| --- | --- |
+| [CUDA](https://developer.nvidia.com/cuda-zone) | [NVIDIA License](https://docs.nvidia.com/cuda/pdf/EULA.pdf) |
+| [Inno Setup](https://jrsoftware.org/isinfo.php) | [Modified BSD License](http://www.jrsoftware.org/files/is/license.txt) |
+| [protobuf](https://protobuf.dev/) | [BSD License](https://github.com/protocolbuffers/protobuf/blob/master/LICENSE) |
+| [Qt](https://www.qt.io/) | [LGPLv3](https://doc.qt.io/qt-6/lgpl.html) |
+| [zlib](https://www.zlib.net/) | [zlib License](https://www.zlib.net/zlib_license.html) |
+
+## License
+
+MUSEN is licensed under the [BSD 3-Clause License](LICENSE).
