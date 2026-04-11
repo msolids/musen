@@ -48,6 +48,8 @@ void CSimulatorSettingsTab::UpdateWholeView()
 	ui.checkBoxPartVelocityLimit->setChecked(partVelocityLimit.has_value());
 	ShowConvValue(ui.lineEditPartVelocityLimit, partVelocityLimit.value_or(0.0), EUnitType::VELOCITY);
 
+	ui.checkBoxDeterministicGPU->setChecked(m_pSimulatorManager->GetSimulatorPtr()->GetDeterministicGPU());
+
 	m_bAvoidSignal = false;
 	UpdateCPUList();
 }
@@ -130,6 +132,8 @@ void CSimulatorSettingsTab::AcceptChanges()
 		m_pSimulatorManager->GetSimulatorPtr()->SetPartVelocityLimit(GetConvValue(ui.lineEditPartVelocityLimit, EUnitType::VELOCITY));
 	else
 		m_pSimulatorManager->GetSimulatorPtr()->SetPartVelocityLimit(std::nullopt);
+
+	m_pSimulatorManager->GetSimulatorPtr()->SetDeterministicGPU(ui.checkBoxDeterministicGPU->isChecked());
 
 	SetCPUList();
 	accept();

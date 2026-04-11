@@ -33,7 +33,9 @@ void CModelPPHertzMindlinVdW::CalculatePPGPU(double _time, double _timeStep, con
 		_collisions.ContactVectors,
 
 		_collisions.TangOverlaps,
-		_collisions.TotalForces
+		_collisions.TotalForces,
+		_collisions.SrcMoments,
+		_collisions.DstMoments
 	);
 }
 
@@ -58,7 +60,9 @@ void __global__ CUDA_CalcPPForce_HMVDW_kernel(
 	const CVector3	_collContactVectors[],
 
 	CVector3 _collTangOverlaps[],
-	CVector3 _collTotalForces[]
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -147,6 +151,8 @@ void __global__ CUDA_CalcPPForce_HMVDW_kernel(
 			// store results in collision
 			_collTangOverlaps[iColl] = tangOverlap;
 			_collTotalForces[iColl]  = totalForce;
+			_collSrcMoments[iColl]   = moment1;
+			_collDstMoments[iColl]   = moment2;
 
 			// apply moments and forces
 			CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart1],  totalForce);
@@ -161,6 +167,8 @@ void __global__ CUDA_CalcPPForce_HMVDW_kernel(
 
 			// store results in collision
 			_collTotalForces[iColl] = totalForce;
+			_collSrcMoments[iColl]  = CVector3{ 0 };
+			_collDstMoments[iColl]  = CVector3{ 0 };
 
 			// apply moments and forces
 			CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart1], totalForce);

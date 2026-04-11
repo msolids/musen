@@ -42,7 +42,9 @@ void CModelPWHertzMindlin::CalculatePWGPU(double _time, double _timeStep, const 
 		_collisions.VirtualShifts,
 
 		_collisions.TangOverlaps,
-		_collisions.TotalForces
+		_collisions.TotalForces,
+		_collisions.SrcMoments,
+		_collisions.DstMoments
 	);
 }
 
@@ -73,7 +75,9 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 	const uint8_t   _collVirtShifts[],
 
 	CVector3 _collTangOverlaps[],
-	CVector3 _collTotalForces[]
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -93,7 +97,14 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 
 		// normal overlap
 		const double normOverlap = partRadius - rcLen;
-		if (normOverlap < 0) continue;
+		if (normOverlap < 0)
+		{
+			// active collision but no actual overlap this step: zero per-collision accumulators so deterministic gather adds nothing.
+			_collTotalForces[iColl] = CVector3{ 0 };
+			_collSrcMoments[iColl]  = CVector3{ 0 };
+			_collDstMoments[iColl]  = CVector3{ 0 };
+			continue;
+		}
 
 		// normal and tangential relative velocity
 		const CVector3 rotVel        = !_wallRotVels[iWall].IsZero() ? (_collContactPoints[iColl] - _wallRotCenters[iWall]) * _wallRotVels[iWall] : CVector3{ 0 };
@@ -145,6 +156,8 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 		// store results in collision
 		_collTangOverlaps[iColl] = tangOverlap;
 		_collTotalForces[iColl]  = totalForce;
+		_collSrcMoments[iColl]   = CVector3{ 0 };  // wall (src) has no moment
+		_collDstMoments[iColl]   = moment;          // particle (dst) moment
 
 		// apply forces and moments
 		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[iPart], moment);

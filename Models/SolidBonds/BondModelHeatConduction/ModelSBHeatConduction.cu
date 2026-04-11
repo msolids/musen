@@ -28,7 +28,9 @@ void CModelSBHeatConduction::CalculateSBGPU(double _time, double _timeStep, cons
 		_bonds.LeftIDs,
 		_bonds.RightIDs,
 
-		_bonds.ThermalConductivities
+		_bonds.ThermalConductivities,
+
+		_bonds.HeatFluxes
 	);
 }
 
@@ -42,7 +44,9 @@ __global__ void CUDA_CalcSBHeatConduction_kernel(
 	const double   _bondCrossCuts[],
 	const unsigned _bondLeftIDs[],
 	const unsigned _bondRightIDs[],
-	const double   _bondThermalConductivity[]
+	const double   _bondThermalConductivity[],
+
+	double         _bondHeatFluxes[]
 )
 {
 	for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _bondsNum; i += blockDim.x * gridDim.x)
@@ -59,6 +63,8 @@ __global__ void CUDA_CalcSBHeatConduction_kernel(
 		const double factor = m_vConstantModelParameters[0];
 
 		const double heatFlux= factor * _bondCrossCuts[i] * thermalConductivity * (rTemperature - lTemperature) / distanceBetweenCenters;
+
+		_bondHeatFluxes[i] = heatFlux;
 
 		CUDA_ATOMIC_ADD(_partHeatFlux[lID], heatFlux);
 		CUDA_ATOMIC_SUB(_partHeatFlux[rID], heatFlux);

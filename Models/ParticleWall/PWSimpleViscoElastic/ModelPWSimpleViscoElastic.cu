@@ -37,7 +37,9 @@ void CModelPWSimpleViscoElastic::CalculatePWGPU(double _time, double _timeStep, 
 		_collisions.DstIDs,
 		_collisions.VirtualShifts,
 
-		_collisions.TotalForces
+		_collisions.TotalForces,
+		_collisions.SrcMoments,
+		_collisions.DstMoments
 	);
 }
 
@@ -61,7 +63,9 @@ void __global__ CUDA_CalcPWForce_VE_kernel(
 	const unsigned	_collDstIDs[],
 	const uint8_t   _collVirtShifts[],
 
-	CVector3 _collTotalForces[]
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -81,7 +85,13 @@ void __global__ CUDA_CalcPWForce_VE_kernel(
 
 		// normal overlap
 		const double normOverlap = _partRadii[iPart] - rcLen;
-		if (normOverlap < 0) continue;
+		if (normOverlap < 0)
+		{
+			_collTotalForces[iColl] = CVector3{ 0 };
+			_collSrcMoments[iColl]  = CVector3{ 0 };
+			_collDstMoments[iColl]  = CVector3{ 0 };
+			continue;
+		}
 
 		// normal and tangential relative velocity
 		const CVector3 rotVel   = !_wallRotVels[iWall].IsZero() ? (_collContactPoints[iColl] - _wallRotCenters[iWall]) * _wallRotVels[iWall] : CVector3{ 0 };
@@ -95,6 +105,8 @@ void __global__ CUDA_CalcPWForce_VE_kernel(
 
 		// store results in collision
 		_collTotalForces[iColl] = normForce;
+		_collSrcMoments[iColl]  = CVector3{ 0 };
+		_collDstMoments[iColl]  = CVector3{ 0 };
 
 		// apply forces and moments
 		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart], normForce);

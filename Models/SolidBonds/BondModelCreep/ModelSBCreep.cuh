@@ -39,7 +39,9 @@ void __global__ CUDA_CalcSBForce_CRP_kernel(
 	CVector3	_bondTangentialMoments[],
 	CVector3	_bondTangentialOverlaps[],
 	CVector3	_bondTangentialPlasticStrains[],
-	CVector3	_bondTotalForces[]
+	CVector3	_bondTotalForces[],
+	CVector3	_bondLeftMoments[],
+	CVector3	_bondRightMoments[]
 );
 
 

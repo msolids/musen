@@ -214,6 +214,7 @@ void CConsoleSimulator::SetupSimulationManager()
 
 	// set other simulator options
 	if (m_job.partVelocityLimit != -1.0) m_simulatorManager.GetSimulatorPtr()->SetPartVelocityLimit(m_job.partVelocityLimit);
+	if (m_job.deterministicGPUFlag.IsDefined()) m_simulatorManager.GetSimulatorPtr()->SetDeterministicGPU(m_job.deterministicGPUFlag.ToBool());
 }
 
 bool CConsoleSimulator::SimulationPrecheck() const

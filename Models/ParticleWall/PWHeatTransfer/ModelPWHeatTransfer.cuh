@@ -18,5 +18,7 @@ void __global__ CUDA_CalcPWHeatTransfer_kernel(
 	const CVector3	_collContactPoints[],
 	const unsigned	_collSrcIDs[],
 	const unsigned	_collDstIDs[],
-	const uint8_t   _collVirtShifts[]
+	const uint8_t   _collVirtShifts[],
+
+	double			_collHeatFluxes[]
 );

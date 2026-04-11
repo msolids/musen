@@ -65,7 +65,10 @@ void CModelSB::CalculateSBGPU(double _time, double _timeStep, const SGPUParticle
 		_bonds.TangentialMoments,
 		_bonds.TangentialOverlaps,
 		_bonds.TangentialPlasticStrains,
-		_bonds.TotalForces
+		_bonds.TotalForces,
+		_bonds.LeftMoments,
+		_bonds.RightMoments,
+		_bonds.HeatFluxes
 	);
 }
 
@@ -115,7 +118,10 @@ void __global__ CUDA_CalcSBForce_kernel(
 	CVector3	_bondTangentialMoments[],
 	CVector3	_bondTangentialOverlaps[],
 	CVector3	_bondTangentialPlasticStrains[],
-	CVector3	_bondTotalForces[]
+	CVector3	_bondTotalForces[],
+	CVector3	_bondLeftMoments[],
+	CVector3	_bondRightMoments[],
+	double		_bondHeatFluxes[]
 )
 {
 	for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _bondsNum; i += blockDim.x * gridDim.x)
@@ -123,5 +129,9 @@ void __global__ CUDA_CalcSBForce_kernel(
 		if (!_bondActivities[i]) continue;
 
 		// TODO: Write your model here.
+		// IMPORTANT: For deterministic GPU mode to work, you MUST also store the per-bond
+		// values into _bondTotalForces, _bondLeftMoments (left particle), _bondRightMoments (right particle),
+		// _bondHeatFluxes (in addition to applying them via CUDA_VECTOR3_ATOMIC_ADD/SUB and CUDA_ATOMIC_ADD/SUB).
+		// Use CVector3{0} or 0.0 for unused fields.
 	}
 }

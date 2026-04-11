@@ -906,4 +906,167 @@ namespace CUDAKernels
 		}
 		if (iThread == 0) _odata[blockIdx.x] = dmin[0];
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Deterministic gather kernels.
+
+	__global__ void GatherPPAccumulators_kernel(
+		unsigned        _nParticles,
+		const unsigned* _vVerletPartInd,
+		const unsigned* _vVerletPartInd_DstSorted,
+		const unsigned* _vVerletCollInd_DstSorted,
+		const bool*     _collActivityFlags,
+		const CVector3* _collTotalForces,
+		const CVector3* _collSrcMoments,
+		const CVector3* _collDstMoments,
+		const double*   _collHeatFluxes,
+		CVector3*       _partForces,
+		CVector3*       _partMoments,
+		double*         _partHeatFluxes)
+	{
+		for (unsigned iPart = blockIdx.x * blockDim.x + threadIdx.x; iPart < _nParticles; iPart += blockDim.x * gridDim.x)
+		{
+			CVector3 force{ 0 };
+			CVector3 moment{ 0 };
+			double   heat = 0.0;
+
+			// Particle as src: collision indices in [vVerletPartInd[iPart], vVerletPartInd[iPart+1]).
+			const unsigned srcBeg = _vVerletPartInd[iPart];
+			const unsigned srcEnd = _vVerletPartInd[iPart + 1];
+			for (unsigned i = srcBeg; i < srcEnd; ++i)
+			{
+				if (!_collActivityFlags[i]) continue;
+				force  += _collTotalForces[i];
+				moment += _collSrcMoments[i];
+				heat   += _collHeatFluxes[i];
+			}
+
+			// Particle as dst: lookup via dst-sorted indices.
+			const unsigned dstBeg = _vVerletPartInd_DstSorted[iPart];
+			const unsigned dstEnd = _vVerletPartInd_DstSorted[iPart + 1];
+			for (unsigned i = dstBeg; i < dstEnd; ++i)
+			{
+				const unsigned iColl = _vVerletCollInd_DstSorted[i];
+				if (!_collActivityFlags[iColl]) continue;
+				force  -= _collTotalForces[iColl];   // Newton's 3rd law for force.
+				moment += _collDstMoments[iColl];    // dst moment is stored separately.
+				heat   -= _collHeatFluxes[iColl];    // antisymmetric (+to src, -to dst).
+			}
+
+			_partForces[iPart]     += force;
+			_partMoments[iPart]    += moment;
+			_partHeatFluxes[iPart] += heat;
+		}
+	}
+
+	__global__ void GatherPWAccumulatorsParticles_kernel(
+		unsigned        _nParticles,
+		const unsigned* _vVerletPartInd_DstSorted,
+		const unsigned* _vVerletCollInd_DstSorted,
+		const bool*     _collActivityFlags,
+		const CVector3* _collTotalForces,
+		const CVector3* _collDstMoments,
+		const double*   _collHeatFluxes,
+		CVector3*       _partForces,
+		CVector3*       _partMoments,
+		double*         _partHeatFluxes)
+	{
+		for (unsigned iPart = blockIdx.x * blockDim.x + threadIdx.x; iPart < _nParticles; iPart += blockDim.x * gridDim.x)
+		{
+			CVector3 force{ 0 };
+			CVector3 moment{ 0 };
+			double   heat = 0.0;
+
+			// In PW collisions: SrcIDs = wall, DstIDs = particle. Use dst-sorted lookup.
+			const unsigned dstBeg = _vVerletPartInd_DstSorted[iPart];
+			const unsigned dstEnd = _vVerletPartInd_DstSorted[iPart + 1];
+			for (unsigned i = dstBeg; i < dstEnd; ++i)
+			{
+				const unsigned iColl = _vVerletCollInd_DstSorted[i];
+				if (!_collActivityFlags[iColl]) continue;
+				force  += _collTotalForces[iColl];   // particle gets +force, wall gets -force.
+				moment += _collDstMoments[iColl];    // particle moment.
+				heat   += _collHeatFluxes[iColl];    // particle gets the heat flux (wall is one-way sink).
+			}
+
+			_partForces[iPart]     += force;
+			_partMoments[iPart]    += moment;
+			_partHeatFluxes[iPart] += heat;
+		}
+	}
+
+	__global__ void GatherPWAccumulatorsWalls_kernel(
+		unsigned        _nWalls,
+		const unsigned* _vVerletPartInd,
+		const bool*     _collActivityFlags,
+		const CVector3* _collTotalForces,
+		CVector3*       _wallForces)
+	{
+		for (unsigned iWall = blockIdx.x * blockDim.x + threadIdx.x; iWall < _nWalls; iWall += blockDim.x * gridDim.x)
+		{
+			CVector3 force{ 0 };
+
+			// In PW collisions: walls are src; src-sorted lookup gives all PW collisions for this wall.
+			const unsigned srcBeg = _vVerletPartInd[iWall];
+			const unsigned srcEnd = _vVerletPartInd[iWall + 1];
+			for (unsigned i = srcBeg; i < srcEnd; ++i)
+			{
+				if (!_collActivityFlags[i]) continue;
+				force -= _collTotalForces[i]; // Newton's 3rd law: wall gets -force.
+			}
+
+			_wallForces[iWall] += force;
+		}
+	}
+
+	__global__ void GatherSBAccumulators_kernel(
+		unsigned        _nParticles,
+		const unsigned* _vBondIndices_LeftSorted,
+		const unsigned* _vPartInd_LeftSorted,
+		const unsigned* _vBondIndices_RightSorted,
+		const unsigned* _vPartInd_RightSorted,
+		const unsigned* _bondActivities,
+		const CVector3* _bondTotalForces,
+		const CVector3* _bondLeftMoments,
+		const CVector3* _bondRightMoments,
+		const double*   _bondHeatFluxes,
+		CVector3*       _partForces,
+		CVector3*       _partMoments,
+		double*         _partHeatFluxes)
+	{
+		for (unsigned iPart = blockIdx.x * blockDim.x + threadIdx.x; iPart < _nParticles; iPart += blockDim.x * gridDim.x)
+		{
+			CVector3 force{ 0 };
+			CVector3 moment{ 0 };
+			double   heat = 0.0;
+
+			// Particle as left side of a bond.
+			const unsigned leftBeg = _vPartInd_LeftSorted[iPart];
+			const unsigned leftEnd = _vPartInd_LeftSorted[iPart + 1];
+			for (unsigned i = leftBeg; i < leftEnd; ++i)
+			{
+				const unsigned iBond = _vBondIndices_LeftSorted[i];
+				if (!_bondActivities[iBond]) continue;
+				force  += _bondTotalForces[iBond];
+				moment += _bondLeftMoments[iBond];
+				heat   += _bondHeatFluxes[iBond];
+			}
+
+			// Particle as right side of a bond.
+			const unsigned rightBeg = _vPartInd_RightSorted[iPart];
+			const unsigned rightEnd = _vPartInd_RightSorted[iPart + 1];
+			for (unsigned i = rightBeg; i < rightEnd; ++i)
+			{
+				const unsigned iBond = _vBondIndices_RightSorted[i];
+				if (!_bondActivities[iBond]) continue;
+				force  -= _bondTotalForces[iBond];   // Newton's 3rd law: right particle gets -force.
+				moment -= _bondRightMoments[iBond];  // SB kernels apply ATOMIC_SUB to right moment.
+				heat   -= _bondHeatFluxes[iBond];    // antisymmetric (+to left, -to right).
+			}
+
+			_partForces[iPart]     += force;
+			_partMoments[iPart]    += moment;
+			_partHeatFluxes[iPart] += heat;
+		}
+	}
 }

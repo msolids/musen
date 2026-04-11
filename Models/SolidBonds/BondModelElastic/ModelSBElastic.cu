@@ -46,7 +46,9 @@ void CModelSBElastic::CalculateSBGPU(double _time, double _timeStep, const SGPUP
 		_bonds.PrevBonds,
 		_bonds.TangentialMoments,
 		_bonds.TangentialOverlaps,
-		_bonds.TotalForces
+		_bonds.TotalForces,
+		_bonds.LeftMoments,
+		_bonds.RightMoments
 	);
 }
 
@@ -78,7 +80,9 @@ void __global__ CUDA_CalcSBForce_E_kernel(
 	CVector3	_bondPrevBonds[],
 	CVector3	_bondTangentialMoments[],
 	CVector3	_bondTangentialOverlaps[],
-	CVector3	_bondTotalForces[]
+	CVector3	_bondTotalForces[],
+	CVector3	_bondLeftMoments[],
+	CVector3	_bondRightMoments[]
 )
 {
 	for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < _bondsNum; i += blockDim.x * gridDim.x)
@@ -166,6 +170,8 @@ void __global__ CUDA_CalcSBForce_E_kernel(
 		const CVector3 partForce = vNormalForce + vTangentialForce;
 		const CVector3 partMoment1 = vBondNormalMoment + vBondTangentialMoment - vUnsymMoment;
 		const CVector3 partMoment2 = vBondNormalMoment + vBondTangentialMoment + vUnsymMoment;
+		_bondLeftMoments[i]  = partMoment1;
+		_bondRightMoments[i] = partMoment2;
 		CUDA_VECTOR3_ATOMIC_ADD(_partForces[_bondLeftIDs[i]], partForce);
 		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[_bondLeftIDs[i]], partMoment1);
 		CUDA_VECTOR3_ATOMIC_SUB(_partForces[_bondRightIDs[i]], partForce);

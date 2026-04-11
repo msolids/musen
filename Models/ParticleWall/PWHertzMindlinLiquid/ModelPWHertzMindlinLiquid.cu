@@ -44,7 +44,9 @@ void CModelPWHertzMindlinLiquid::CalculatePWGPU(double _time, double _timeStep, 
 		_collisions.VirtualShifts,
 
 		_collisions.TangOverlaps,
-		_collisions.TotalForces
+		_collisions.TotalForces,
+		_collisions.SrcMoments,
+		_collisions.DstMoments
 	);
 }
 
@@ -75,7 +77,9 @@ void __global__ CUDA_CalcPWForce_HML_kernel(
 	const uint8_t	_collVirtShifts[],
 
 	CVector3 _collTangOverlaps[],
-	CVector3 _collTotalForces[]
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -170,6 +174,8 @@ void __global__ CUDA_CalcPWForce_HML_kernel(
 		// store results in collision
 		_collTangOverlaps[iColl] = tangOverlap;
 		_collTotalForces[iColl]  = totalForce;
+		_collSrcMoments[iColl]   = CVector3{ 0 };
+		_collDstMoments[iColl]   = moment1;
 
 		// apply forces and moments
 		CUDA_VECTOR3_ATOMIC_ADD(_partMoments[iPart], moment1);

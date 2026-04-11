@@ -169,6 +169,17 @@ void CBaseSimulator::SetPartVelocityLimit(const std::optional<double>& _velocity
 		m_partVelocityLimit = _velocity;
 }
 
+bool CBaseSimulator::GetDeterministicGPU() const
+{
+	return m_deterministicGPU;
+}
+
+void CBaseSimulator::SetDeterministicGPU(bool _flag)
+{
+	if (m_status != ERunningStatus::IDLE && m_status != ERunningStatus::PAUSED) return;
+	m_deterministicGPU = _flag;
+}
+
 bool CBaseSimulator::IsSelectiveSavingEnabled() const
 {
 	return m_selectiveSaving;
@@ -698,6 +709,7 @@ void CBaseSimulator::CopySimulatorData(const CBaseSimulator& _other)
 	SetPartMoveLimit(_other.m_partMoveLimit);
 	SetTimeStepFactor(_other.m_timeStepFactor);
 	SetPartVelocityLimit(_other.m_partVelocityLimit);
+	SetDeterministicGPU(_other.m_deterministicGPU);
 
 	m_inactiveParticles = _other.m_inactiveParticles;
 	m_inactiveBonds = _other.m_inactiveBonds;

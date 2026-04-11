@@ -23,7 +23,9 @@ void CModelPPHeatConduction::CalculatePPGPU(double _time, double _timeStep, cons
 		_collisions.SrcIDs,
 		_collisions.DstIDs,
 		_collisions.EquivRadii,
-		_collisions.NormalOverlaps
+		_collisions.NormalOverlaps,
+
+		_collisions.HeatFluxes
 	);
 }
 
@@ -40,7 +42,9 @@ void __global__ CUDA_CalcPPHeatTransfer_HC_kernel(
 	const unsigned	_collSrcIDs[],
 	const unsigned	_collDstIDs[],
 	const double	_collEquivRadii[],
-	const double	_collNormalOverlaps[]
+	const double	_collNormalOverlaps[],
+
+	double			_collHeatFluxes[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -68,6 +72,8 @@ void __global__ CUDA_CalcPPHeatTransfer_HC_kernel(
 
 		const double contactRadius = 2 * sqrt(_collEquivRadii[iColl] * _collNormalOverlaps[iColl]);
 		const double heatFlux = 2 * contactRadius * m_vConstantModelParameters[0] * effectiveResistivityFactor * contactThermalConductivity * (dstTemperature - srcTemperature);
+
+		_collHeatFluxes[iColl] = heatFlux;
 
 		CUDA_ATOMIC_ADD(_partHeatFluxes[_collSrcIDs[iColl]], heatFlux);
 		CUDA_ATOMIC_SUB(_partHeatFluxes[_collDstIDs[iColl]], heatFlux);

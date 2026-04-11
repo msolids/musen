@@ -21,5 +21,8 @@ void __global__ CUDA_CalcPPForce_S_Temp_kernel(
 	const CVector3  _collContactVectors[],
 
 	double	 _collInitNormalOverlaps[],
-	CVector3 _collTangOverlaps[]
+	CVector3 _collTangOverlaps[],
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 );

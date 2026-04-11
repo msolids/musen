@@ -48,6 +48,17 @@ public:
 		d_vec_u adjacentWalls;	// List of adjacent walls as flattened vector of vectors.
 	};
 
+	// Per-particle bond indexing for the deterministic gather pass.
+	// Built once at initialization time. Bonds are static (only deactivated, never re-indexed),
+	// so the sorted indices remain valid for the entire simulation.
+	struct SBondIndexing
+	{
+		d_vec_u vBondIndices_LeftSorted;   // Bond indices sorted by LeftID.
+		d_vec_u vPartInd_LeftSorted;       // Per-particle start in vBondIndices_LeftSorted.
+		d_vec_u vBondIndices_RightSorted;  // Bond indices sorted by RightID.
+		d_vec_u vPartInd_RightSorted;      // Per-particle start in vBondIndices_RightSorted.
+	};
+
 private:
 	const CCUDADefines* m_cudaDefines{ nullptr };
 	std::vector<d_vec_u> m_vvWallsInGeom; // List of walls' indices separately for each geometry.
@@ -57,6 +68,7 @@ public:
 	SCollisionsHolder m_CollisionsPP;	// Particle-particle collisions.
 	SCollisionsHolder m_CollisionsPW;	// Particle-wall collisions.
 	SAdjacentWalls m_adjacentWalls;		// List of adjacent walls and indices to iterate them.
+	SBondIndexing m_BondIndexing;		// Per-particle bond indices for deterministic gather (built on demand).
 public:
 	//////////////////////////////////////////////////////////////////////////
 	/// Setters for constant GPU memory
@@ -97,6 +109,16 @@ public:
 	void UpdateActiveCollisionsPW(const SGPUParticles& _particles, const SGPUWalls& _walls);
 
 	void SortByDst(unsigned _nPart, const d_vec_u& _vVerListSrc, const d_vec_u& _vVerListDst, d_vec_u& _vVerCollInd_DstSorted, d_vec_u& _vVerPartInd_DstSorted) const;
+
+	// Build per-particle bond indices used by the deterministic gather pass for solid bonds.
+	// Should be called once after bonds are loaded to GPU. Result is stored in m_BondIndexing.
+	void BuildBondIndices(unsigned _nPart, const SGPUSolidBonds& _bonds);
+
+	// Deterministic gather pass: re-accumulate forces/moments/heat fluxes per-particle/per-wall
+	// in a fixed iteration order, replacing the non-deterministic atomic-add scatter.
+	void GatherAccumulatorsPP(SGPUParticles& _particles);
+	void GatherAccumulatorsPW(SGPUParticles& _particles, SGPUWalls& _walls);
+	void GatherAccumulatorsSB(SGPUParticles& _particles, SGPUSolidBonds& _bonds);
 
 	void CheckParticlesInDomain(double _currTime, const SGPUParticles& _particles, unsigned* _bufActivePartsNum) const;
 

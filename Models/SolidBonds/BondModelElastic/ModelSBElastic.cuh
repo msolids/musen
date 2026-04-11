@@ -34,5 +34,7 @@ void __global__ CUDA_CalcSBForce_E_kernel(
 	CVector3	_bondPrevBonds[],
 	CVector3	_bondTangentialMoments[],
 	CVector3	_bondTangentialOverlaps[],
-	CVector3	_bondTotalForces[]
+	CVector3	_bondTotalForces[],
+	CVector3	_bondLeftMoments[],
+	CVector3	_bondRightMoments[]
 );

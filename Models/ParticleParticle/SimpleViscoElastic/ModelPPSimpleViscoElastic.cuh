@@ -16,5 +16,7 @@ void __global__ CUDA_CalcPPForce_VE_kernel(
 	const double	_collNormalOverlaps[],
 	const CVector3	_collContactVectors[],
 
-	CVector3 _collTotalForces[]
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 );

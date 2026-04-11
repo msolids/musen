@@ -15,5 +15,7 @@ void __global__ CUDA_CalcPPHeatTransfer_HC_kernel(
 	const unsigned	_collSrcIDs[],
 	const unsigned	_collDstIDs[],
 	const double	_collEquivRadii[],
-	const double	_collNormalOverlaps[]
+	const double	_collNormalOverlaps[],
+
+	double			_collHeatFluxes[]
 );

@@ -258,6 +258,10 @@ void CGPU::UpdateVerletLists(bool _bPPVerlet, const SGPUParticles& _particles, c
 	CUDA_MEMSET(newCollisions.NormalOverlaps, 0, collNum * sizeof(*newCollisions.NormalOverlaps));
 	CUDA_MEMSET(newCollisions.ActivityFlags,  0, collNum * sizeof(*newCollisions.ActivityFlags));
 	CUDA_MEMSET(newCollisions.InitNormalOverlaps, 0, collNum * sizeof(*newCollisions.InitNormalOverlaps));
+	// per-collision accumulators for deterministic gather: zero-initialize, recomputed each step
+	CUDA_MEMSET(newCollisions.SrcMoments, 0, collNum * sizeof(*newCollisions.SrcMoments));
+	CUDA_MEMSET(newCollisions.DstMoments, 0, collNum * sizeof(*newCollisions.DstMoments));
+	CUDA_MEMSET(newCollisions.HeatFluxes, 0, collNum * sizeof(*newCollisions.HeatFluxes));
 
 	if (m_PBCEnabled)
 		CUDA_MEMCPY_H2D(newCollisions.VirtualShifts, _vVirtShifts.data(), collNum * sizeof(*newCollisions.VirtualShifts));
@@ -311,6 +315,108 @@ void CGPU::SortByDst(unsigned _nPart, const d_vec_u& _vVerListSrc, const d_vec_u
 
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::FillUniqueIndexes_kernel, nCollisions, vVerListDstTemp.data().get(), vTemp.data().get());
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::FillNonExistendIndexes_kernel, _nPart, nCollisions, vTemp.data().get(), _vVerPartInd_DstSorted.data().get());
+}
+
+void CGPU::BuildBondIndices(unsigned _nPart, const SGPUSolidBonds& _bonds)
+{
+	const unsigned nBonds = static_cast<unsigned>(_bonds.nElements);
+	if (nBonds == 0)
+	{
+		m_BondIndexing.vBondIndices_LeftSorted.clear();
+		m_BondIndexing.vBondIndices_RightSorted.clear();
+		m_BondIndexing.vPartInd_LeftSorted.assign(_nPart + 1, 0);
+		m_BondIndexing.vPartInd_RightSorted.assign(_nPart + 1, 0);
+		return;
+	}
+
+	auto buildOne = [&](const unsigned* _bondPartIDs, d_vec_u& _outBondIndices, d_vec_u& _outPartInd)
+	{
+		// copy keys (LeftIDs or RightIDs) into a mutable temp vector
+		d_vec_u keys(nBonds);
+		CUDA_MEMCPY_D2D(thrust::raw_pointer_cast(keys.data()), _bondPartIDs, nBonds * sizeof(unsigned));
+
+		// initialize bond indices to 0..nBonds-1, then sort them by particle id
+		_outBondIndices.resize(nBonds);
+		thrust::sequence(thrust::device, _outBondIndices.begin(), _outBondIndices.end());
+		thrust::sort_by_key(thrust::device, keys.begin(), keys.end(), _outBondIndices.begin());
+
+		// build per-particle start indices
+		d_vec_u partTemp(_nPart + 1);
+		thrust::fill(partTemp.begin(), partTemp.end(), nBonds + 1);
+		_outPartInd.resize(_nPart + 1);
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::FillUniqueIndexes_kernel, nBonds, thrust::raw_pointer_cast(keys.data()), partTemp.data().get());
+		CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::FillNonExistendIndexes_kernel, _nPart, nBonds, partTemp.data().get(), _outPartInd.data().get());
+	};
+
+	buildOne(_bonds.LeftIDs , m_BondIndexing.vBondIndices_LeftSorted , m_BondIndexing.vPartInd_LeftSorted);
+	buildOne(_bonds.RightIDs, m_BondIndexing.vBondIndices_RightSorted, m_BondIndexing.vPartInd_RightSorted);
+}
+
+void CGPU::GatherAccumulatorsPP(SGPUParticles& _particles)
+{
+	auto& holder = m_CollisionsPP;
+	if (!holder.collisions.nElements) return;
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GatherPPAccumulators_kernel,
+		static_cast<unsigned>(_particles.nElements),
+		holder.vVerletPartInd.data().get(),
+		holder.vVerletPartInd_DstSorted.data().get(),
+		holder.vVerletCollInd_DstSorted.data().get(),
+		holder.collisions.ActivityFlags,
+		holder.collisions.TotalForces,
+		holder.collisions.SrcMoments,
+		holder.collisions.DstMoments,
+		holder.collisions.HeatFluxes,
+		_particles.Forces,
+		_particles.Moments,
+		_particles.HeatFluxes
+	);
+}
+
+void CGPU::GatherAccumulatorsPW(SGPUParticles& _particles, SGPUWalls& _walls)
+{
+	auto& holder = m_CollisionsPW;
+	if (!holder.collisions.nElements) return;
+	// Particle side: particles are dst in PW collisions.
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GatherPWAccumulatorsParticles_kernel,
+		static_cast<unsigned>(_particles.nElements),
+		holder.vVerletPartInd_DstSorted.data().get(),
+		holder.vVerletCollInd_DstSorted.data().get(),
+		holder.collisions.ActivityFlags,
+		holder.collisions.TotalForces,
+		holder.collisions.DstMoments,
+		holder.collisions.HeatFluxes,
+		_particles.Forces,
+		_particles.Moments,
+		_particles.HeatFluxes
+	);
+	// Wall side: walls are src in PW collisions.
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GatherPWAccumulatorsWalls_kernel,
+		static_cast<unsigned>(_walls.nElements),
+		holder.vVerletPartInd.data().get(),
+		holder.collisions.ActivityFlags,
+		holder.collisions.TotalForces,
+		_walls.Forces
+	);
+}
+
+void CGPU::GatherAccumulatorsSB(SGPUParticles& _particles, SGPUSolidBonds& _bonds)
+{
+	if (_bonds.nElements == 0) return;
+	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GatherSBAccumulators_kernel,
+		static_cast<unsigned>(_particles.nElements),
+		m_BondIndexing.vBondIndices_LeftSorted.data().get(),
+		m_BondIndexing.vPartInd_LeftSorted.data().get(),
+		m_BondIndexing.vBondIndices_RightSorted.data().get(),
+		m_BondIndexing.vPartInd_RightSorted.data().get(),
+		_bonds.Activities,
+		_bonds.TotalForces,
+		_bonds.LeftMoments,
+		_bonds.RightMoments,
+		_bonds.HeatFluxes,
+		_particles.Forces,
+		_particles.Moments,
+		_particles.HeatFluxes
+	);
 }
 
 void CGPU::UpdateActiveCollisionsPP(const SGPUParticles& _particles)
@@ -584,6 +690,12 @@ void CGPUSimulator::Initialize()
 	CUDAInitializeWalls();
 	m_impl->gpu.InitializeCollisions();
 	CUDAInitializeMaterials();
+
+	// Build per-particle bond indices for the deterministic gather pass.
+	// Bonds are static after this point (only deactivated, never re-indexed),
+	// so the indices remain valid for the entire simulation.
+	if (m_deterministicGPU && m_scene.GetBondsNumber() != 0)
+		m_impl->gpu.BuildBondIndices(static_cast<unsigned>(m_impl->sceneGPU.GetParticlesNumber()), m_impl->sceneGPU.GetPointerToSolidBonds());
 }
 
 void CGPUSimulator::InitializeModelParameters()
@@ -618,8 +730,21 @@ void CGPUSimulator::CalculateForcesStep(double _dTimeStep)
 	if (!m_PWModels.empty()) CalculateForcesPW(_dTimeStep);
 	if (!m_SBModels.empty()) CalculateForcesSB(_dTimeStep);
 	if (!m_LBModels.empty()) CalculateForcesLB(_dTimeStep);
+
+	if (m_deterministicGPU)
+	{
+		// Discard the non-deterministic atomic-add results and re-accumulate forces, moments
+		// and heat fluxes from per-collision/per-bond arrays in a fixed iteration order.
+		m_impl->sceneGPU.ClearAccumulators();
+		if (!m_PPModels.empty()) m_impl->gpu.GatherAccumulatorsPP(m_impl->sceneGPU.GetPointerToParticles());
+		if (!m_PWModels.empty()) m_impl->gpu.GatherAccumulatorsPW(m_impl->sceneGPU.GetPointerToParticles(), m_impl->sceneGPU.GetPointerToWalls());
+		if (!m_SBModels.empty()) m_impl->gpu.GatherAccumulatorsSB(m_impl->sceneGPU.GetPointerToParticles(), m_impl->sceneGPU.GetPointerToSolidBonds());
+	}
+
+	// EF runs after the gather pass: per-particle, already deterministic, uses simple `+=`.
 	if (!m_EFModels.empty()) CalculateForcesEF(_dTimeStep);
 }
+
 
 void CGPUSimulator::CalculateForcesPP(double _dTimeStep)
 {

@@ -39,6 +39,16 @@ void CSimplifiedSceneGPU::ClearStates() const
 	CUDA_MEMSET(m_Walls.Forces        , 0, sizeof(std::remove_pointer_t<decltype(m_Walls.Forces        )>) * m_Walls.nElements);
 }
 
+void CSimplifiedSceneGPU::ClearAccumulators() const
+{
+	// Used by the deterministic-gather pre-pass to discard non-deterministic atomic results
+	// before re-accumulating from per-collision/per-bond arrays.
+	CUDA_MEMSET(m_Particles.Forces    , 0, sizeof(std::remove_pointer_t<decltype(m_Particles.Forces    )>) * m_Particles.nElements);
+	CUDA_MEMSET(m_Particles.Moments   , 0, sizeof(std::remove_pointer_t<decltype(m_Particles.Moments   )>) * m_Particles.nElements);
+	CUDA_MEMSET(m_Particles.HeatFluxes, 0, sizeof(std::remove_pointer_t<decltype(m_Particles.HeatFluxes)>) * m_Particles.nElements);
+	CUDA_MEMSET(m_Walls.Forces        , 0, sizeof(std::remove_pointer_t<decltype(m_Walls.Forces        )>) * m_Walls.nElements);
+}
+
 void CSimplifiedSceneGPU::GetMaxSquaredPartDist(double* _bufMaxVelocity)
 {
 	m_gpuScene.GetMaxSquaredPartVerletDistance(m_Particles, _bufMaxVelocity);
@@ -109,6 +119,10 @@ void CSimplifiedSceneGPU::CUDABondsCPU2GPU(CSimplifiedScene& _pSceneCPU)
 		{
 			bondsHost.ThermalConductivities[i] = bondsCPU.ThermalConductivity(i);
 		}
+		// per-bond accumulators for deterministic gather: start zeroed
+		bondsHost.LeftMoments[i]  = CVector3{ 0 };
+		bondsHost.RightMoments[i] = CVector3{ 0 };
+		bondsHost.HeatFluxes[i]   = 0.0;
 	});
 
 	m_SolidBonds.CopyFrom(bondsHost);

@@ -32,6 +32,7 @@ public:
 	inline SGPUWalls& GetPointerToWalls() { return m_Walls; }
 
 	void ClearStates() const; // Sets current values of running variables (force, moment, heat flux) to 0.
+	void ClearAccumulators() const; // Same as ClearStates(); separate name documents intent of the deterministic-gather pre-pass.
 	void GetMaxSquaredPartDist(double* _bufMaxVelocity);
 	double GetMaxPartVelocity();
 	double GetMaxPartTemperature();

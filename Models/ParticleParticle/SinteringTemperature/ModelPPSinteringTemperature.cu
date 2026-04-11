@@ -32,7 +32,10 @@ void CModelPPSinteringTemperature::CalculatePPGPU(double _time, double _timeStep
 		_collisions.ContactVectors,
 
 		_collisions.InitNormalOverlaps,
-		_collisions.TangOverlaps
+		_collisions.TangOverlaps,
+		_collisions.TotalForces,
+		_collisions.SrcMoments,
+		_collisions.DstMoments
 	);
 }
 
@@ -57,7 +60,10 @@ void __global__ CUDA_CalcPPForce_S_Temp_kernel(
 	const CVector3  _collContactVectors[],
 
 	double	 _collInitNormalOverlaps[],
-	CVector3 _collTangOverlaps[]
+	CVector3 _collTangOverlaps[],
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -164,6 +170,11 @@ void __global__ CUDA_CalcPPForce_S_Temp_kernel(
 			// total force
 			totalForce = normForce;
 		}
+
+		// store results in collision
+		_collTotalForces[iColl] = totalForce;
+		_collSrcMoments[iColl]  = CVector3{ 0 };
+		_collDstMoments[iColl]  = CVector3{ 0 };
 
 		// apply forces
 		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart1], totalForce);

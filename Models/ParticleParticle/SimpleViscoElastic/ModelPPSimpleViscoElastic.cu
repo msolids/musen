@@ -27,7 +27,9 @@ void CModelPPSimpleViscoElastic::CalculatePPGPU(double _time, double _timeStep, 
 		_collisions.NormalOverlaps,
 		_collisions.ContactVectors,
 
-		_collisions.TotalForces
+		_collisions.TotalForces,
+		_collisions.SrcMoments,
+		_collisions.DstMoments
 	);
 }
 
@@ -42,7 +44,9 @@ void __global__ CUDA_CalcPPForce_VE_kernel(
 	const double	_collNormalOverlaps[],
 	const CVector3	_collContactVectors[],
 
-	CVector3 _collTotalForces[]
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -69,6 +73,8 @@ void __global__ CUDA_CalcPPForce_VE_kernel(
 
 		// store results in collision
 		_collTotalForces[iColl] = normForce;
+		_collSrcMoments[iColl]  = CVector3{ 0 };
+		_collDstMoments[iColl]  = CVector3{ 0 };
 
 		// apply forces
 		CUDA_VECTOR3_ATOMIC_ADD(_partForces[iPart1], normForce);

@@ -56,7 +56,11 @@ void CModelPP::CalculatePPGPU(double _time, double _timeStep, const SInteractPro
 		_collisions.NormalOverlaps,
 		_collisions.VirtualShifts,
 
-		_collisions.TangOverlaps
+		_collisions.TangOverlaps,
+		_collisions.TotalForces,
+		_collisions.SrcMoments,
+		_collisions.DstMoments,
+		_collisions.HeatFluxes
 	);
 }
 
@@ -97,11 +101,19 @@ void __global__ CUDA_CalcPPForce_kernel(
 	const double		_collNormalOverlaps[],
 	const uint8_t		_collVirtShifts[],
 
-	CVector3 _collTangOverlaps[]
+	CVector3 _collTangOverlaps[],
+	CVector3 _collTotalForces[],
+	CVector3 _collSrcMoments[],
+	CVector3 _collDstMoments[],
+	double   _collHeatFluxes[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
 		// TODO: Write your model here.
+		// IMPORTANT: For deterministic GPU mode to work, you MUST also store the per-collision
+		// values into _collTotalForces, _collSrcMoments, _collDstMoments, _collHeatFluxes
+		// (in addition to applying them via CUDA_VECTOR3_ATOMIC_ADD/SUB and CUDA_ATOMIC_ADD/SUB).
+		// Use CVector3{0} or 0.0 for unused fields.
 	}
 }

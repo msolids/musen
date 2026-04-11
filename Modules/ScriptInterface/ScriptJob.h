@@ -142,6 +142,7 @@ struct SJob
 
 	// other simulator options
 	double partVelocityLimit{ -1.0 };
+	CTriState deterministicGPUFlag{ CTriState::EState::UNDEFINED };	// force deterministic (bit-reproducible) GPU simulation results across runs
 
 	// package generator, <index, generator>
 	std::map<size_t, SPackageGenerator> packageGenerators;

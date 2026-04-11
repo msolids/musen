@@ -222,6 +222,10 @@ struct SGPUSolidBonds : SBasicGPUStruct
 	CVector3* TotalForces;				// Normal + Tangential
 	CVector3* NormalMoments;
 	CVector3* TangentialMoments;
+	// per-bond accumulators for deterministic gather (final values applied to left/right particle)
+	CVector3* LeftMoments;				// Final moment applied to left particle (computed by SB kernels).
+	CVector3* RightMoments;				// Final moment applied to right particle (computed by SB kernels).
+	double*   HeatFluxes;				// Heat flux per bond; +to left, -to right.
 private:
 	void Init()
 	{
@@ -249,6 +253,9 @@ private:
 		ADD_FIELD(TotalForces);
 		ADD_FIELD(NormalMoments);
 		ADD_FIELD(TangentialMoments);
+		ADD_FIELD(LeftMoments);
+		ADD_FIELD(RightMoments);
+		ADD_FIELD(HeatFluxes);
 	}
 public:
 	SGPUSolidBonds(EMemType _memType = EMemType::DEVICE) : SBasicGPUStruct(_memType) { Init(); }
@@ -272,6 +279,10 @@ struct SGPUCollisions : SBasicGPUStruct
 	CVector3* TotalForces;
 	uint8_t* VirtualShifts;		// Virtual shift if this is a virtual contact.
 	CVector3* ContactVectors;	// For PP contact: dstCoord - srcCoord. For PW contact: contact point.
+	// per-collision accumulators for deterministic gather
+	CVector3* SrcMoments;		// Moment applied to src particle per collision (deterministic gather).
+	CVector3* DstMoments;		// Moment applied to dst particle per collision (deterministic gather).
+	double*   HeatFluxes;		// Heat flux per collision; +to src, -to dst (deterministic gather).
 
 	// Not in the list of pointers
 	unsigned* ActiveCollisionsNum;	// Number of currently active collisions.
@@ -293,6 +304,9 @@ private:
 		ADD_FIELD(TotalForces);
 		ADD_FIELD(VirtualShifts);
 		ADD_FIELD(ContactVectors);
+		ADD_FIELD(SrcMoments);
+		ADD_FIELD(DstMoments);
+		ADD_FIELD(HeatFluxes);
 	}
 public:
 	SGPUCollisions(EMemType _memType = EMemType::DEVICE) : SBasicGPUStruct(_memType) { Init(); InitInternal(); }

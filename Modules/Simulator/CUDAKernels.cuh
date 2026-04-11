@@ -150,4 +150,69 @@ namespace CUDAKernels
 
 	__global__ void ReduceMin_kernel(unsigned _num, const double* _idata, double* _odata);
 	__global__ void ReduceMin_kernel(unsigned _num, const CVector3* _idata, double* _odata);
+
+	//////////////////////////////////////////////////////////////////////////
+	/// Deterministic gather kernels (used only in deterministic GPU mode).
+	/// One thread per particle/wall accumulates per-collision/per-bond contributions
+	/// in a fixed iteration order, replacing the non-deterministic atomic-add pattern.
+
+	// PP gather: for each particle, sum contributions from collisions where it is src and dst.
+	__global__ void GatherPPAccumulators_kernel(
+		unsigned        _nParticles,
+		// src-sorted collision indexing (particle is src)
+		const unsigned* _vVerletPartInd,
+		// dst-sorted collision indexing (particle is dst)
+		const unsigned* _vVerletPartInd_DstSorted,
+		const unsigned* _vVerletCollInd_DstSorted,
+		// per-collision data
+		const bool*     _collActivityFlags,
+		const CVector3* _collTotalForces,
+		const CVector3* _collSrcMoments,
+		const CVector3* _collDstMoments,
+		const double*   _collHeatFluxes,
+		// output (accumulated with +=)
+		CVector3*       _partForces,
+		CVector3*       _partMoments,
+		double*         _partHeatFluxes
+	);
+
+	// PW gather (particle side): particles are dst in PW collisions; sum per-particle contributions.
+	__global__ void GatherPWAccumulatorsParticles_kernel(
+		unsigned        _nParticles,
+		const unsigned* _vVerletPartInd_DstSorted,
+		const unsigned* _vVerletCollInd_DstSorted,
+		const bool*     _collActivityFlags,
+		const CVector3* _collTotalForces,
+		const CVector3* _collDstMoments,
+		const double*   _collHeatFluxes,
+		CVector3*       _partForces,
+		CVector3*       _partMoments,
+		double*         _partHeatFluxes
+	);
+
+	// PW gather (wall side): walls are src in PW collisions; sum per-wall contributions.
+	__global__ void GatherPWAccumulatorsWalls_kernel(
+		unsigned        _nWalls,
+		const unsigned* _vVerletPartInd, // src-sorted (per-wall start indices)
+		const bool*     _collActivityFlags,
+		const CVector3* _collTotalForces,
+		CVector3*       _wallForces
+	);
+
+	// SB gather: for each particle, sum contributions from bonds where it is left and right.
+	__global__ void GatherSBAccumulators_kernel(
+		unsigned        _nParticles,
+		const unsigned* _vBondIndices_LeftSorted,
+		const unsigned* _vPartInd_LeftSorted,
+		const unsigned* _vBondIndices_RightSorted,
+		const unsigned* _vPartInd_RightSorted,
+		const unsigned* _bondActivities,
+		const CVector3* _bondTotalForces,
+		const CVector3* _bondLeftMoments,
+		const CVector3* _bondRightMoments,
+		const double*   _bondHeatFluxes,
+		CVector3*       _partForces,
+		CVector3*       _partMoments,
+		double*         _partHeatFluxes
+	);
 }

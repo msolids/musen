@@ -29,7 +29,9 @@ void CModelPWHeatTransfer::CalculatePWGPU(double _time, double _timeStep, const 
 		_collisions.ContactVectors,  // interpreted as contact point
 		_collisions.SrcIDs,
 		_collisions.DstIDs,
-		_collisions.VirtualShifts
+		_collisions.VirtualShifts,
+
+		_collisions.HeatFluxes
 	);
 }
 
@@ -45,7 +47,9 @@ void __global__ CUDA_CalcPWHeatTransfer_kernel(
 	const CVector3	_collContactPoints[],
 	const unsigned	_collSrcIDs[],
 	const unsigned	_collDstIDs[],
-	const uint8_t   _collVirtShifts[]
+	const uint8_t   _collVirtShifts[],
+
+	double			_collHeatFluxes[]
 )
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
@@ -64,9 +68,15 @@ void __global__ CUDA_CalcPWHeatTransfer_kernel(
 
 		// normal overlap
 		const double normOverlap = partRadius - rcLen;
-		if (normOverlap < 0) continue;
+		if (normOverlap < 0)
+		{
+			_collHeatFluxes[iColl] = 0.0;
+			continue;
+		}
 
 		const double heatFlux = PI * partRadius * normOverlap * heatTransferCoeff * resistivityFactor * (wallTemperature - partTemperature);
+
+		_collHeatFluxes[iColl] = heatFlux;
 
 		CUDA_ATOMIC_ADD(_partHeatFluxes[iPart], heatFlux);
 	}

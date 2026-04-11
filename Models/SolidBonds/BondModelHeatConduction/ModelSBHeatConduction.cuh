@@ -16,7 +16,9 @@ void __global__ CUDA_CalcSBHeatConduction_kernel(
 	const double   _bondCrossCuts[],
 	const unsigned _bondLeftIDs[],
 	const unsigned _bondRightIDs[],
-	const double   _bondThermalConductivity[]
+	const double   _bondThermalConductivity[],
+
+	double         _bondHeatFluxes[]
 );
 
 
