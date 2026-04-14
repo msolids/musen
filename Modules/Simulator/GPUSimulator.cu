@@ -871,6 +871,10 @@ void CGPUSimulator::GenerateNewObjects()
 	CUDAUpdateVerletLists(true);
 	CUDAUpdateVerletLists(false);
 	m_impl->sceneGPU.CUDASaveVerletCoords();
+
+	// rebuild per-particle bond indices for the deterministic gather pass, since new bonds may have been added
+	if (m_deterministicGPU && m_scene.GetBondsNumber() != 0)
+		m_impl->gpu.BuildBondIndices(static_cast<unsigned>(m_impl->sceneGPU.GetParticlesNumber()), m_impl->sceneGPU.GetPointerToSolidBonds());
 }
 
 void CGPUSimulator::UpdatePBC()
