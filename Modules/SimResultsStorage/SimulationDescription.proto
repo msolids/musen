@@ -243,6 +243,7 @@ message ProtoModuleSimulator
 	double part_move_limit            = 13;
 	double time_step_factor           = 14;
 	double part_velocity_limit        = 15;
+	bool deterministic_gpu            = 16;
 }
 
 message ProtoModuleObjectsGenerator

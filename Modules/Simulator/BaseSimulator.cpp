@@ -37,6 +37,7 @@ void CBaseSimulator::LoadConfiguration()
 	SetPartMoveLimit(sim.part_move_limit());
 	SetTimeStepFactor(sim.time_step_factor());
 	SetPartVelocityLimit(sim.part_velocity_limit());
+	SetDeterministicGPU(sim.deterministic_gpu());
 
 	// load selective saving parameters
 	m_selectiveSaving = m_pSystemStructure->GetSimulationInfo()->selective_saving();
@@ -89,6 +90,7 @@ void CBaseSimulator::SaveConfiguration()
 	pSim->set_part_move_limit(m_partMoveLimit);
 	pSim->set_time_step_factor(m_timeStepFactor);
 	pSim->set_part_velocity_limit(m_partVelocityLimit.value_or(0.0));
+	pSim->set_deterministic_gpu(m_deterministicGPU);
 
 	// save selective saving parameters
 	m_pSystemStructure->GetSimulationInfo()->set_selective_saving(m_selectiveSaving);
