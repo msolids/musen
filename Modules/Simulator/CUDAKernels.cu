@@ -961,8 +961,7 @@ namespace CUDAKernels
 
 	__global__ void GatherPWAccumulatorsParticles_kernel(
 		unsigned        _nParticles,
-		const unsigned* _vVerletPartInd_DstSorted,
-		const unsigned* _vVerletCollInd_DstSorted,
+		const unsigned* _vVerletPartInd,
 		const bool*     _collActivityFlags,
 		const CVector3* _collTotalForces,
 		const CVector3* _collDstMoments,
@@ -977,16 +976,17 @@ namespace CUDAKernels
 			CVector3 moment{ 0 };
 			double   heat = 0.0;
 
-			// In PW collisions: SrcIDs = wall, DstIDs = particle. Use dst-sorted lookup.
-			const unsigned dstBeg = _vVerletPartInd_DstSorted[iPart];
-			const unsigned dstEnd = _vVerletPartInd_DstSorted[iPart + 1];
-			for (unsigned i = dstBeg; i < dstEnd; ++i)
+			// In PW verlet lists: particles are the verlet "src".
+			// vVerletPartInd[iPart] gives the start of this particle's PW collisions.
+			// Collision indices are direct (not indirected through CollInd_DstSorted).
+			const unsigned srcBeg = _vVerletPartInd[iPart];
+			const unsigned srcEnd = _vVerletPartInd[iPart + 1];
+			for (unsigned i = srcBeg; i < srcEnd; ++i)
 			{
-				const unsigned iColl = _vVerletCollInd_DstSorted[i];
-				if (!_collActivityFlags[iColl]) continue;
-				force  += _collTotalForces[iColl];   // particle gets +force, wall gets -force.
-				moment += _collDstMoments[iColl];    // particle moment.
-				heat   += _collHeatFluxes[iColl];    // particle gets the heat flux (wall is one-way sink).
+				if (!_collActivityFlags[i]) continue;
+				force  += _collTotalForces[i];   // particle gets +force.
+				moment += _collDstMoments[i];    // particle moment (stored as DstMoments by PW kernels).
+				heat   += _collHeatFluxes[i];    // particle heat flux.
 			}
 
 			_partForces[iPart]     += force;
@@ -997,7 +997,8 @@ namespace CUDAKernels
 
 	__global__ void GatherPWAccumulatorsWalls_kernel(
 		unsigned        _nWalls,
-		const unsigned* _vVerletPartInd,
+		const unsigned* _vVerletPartInd_DstSorted,
+		const unsigned* _vVerletCollInd_DstSorted,
 		const bool*     _collActivityFlags,
 		const CVector3* _collTotalForces,
 		CVector3*       _wallForces)
@@ -1006,13 +1007,15 @@ namespace CUDAKernels
 		{
 			CVector3 force{ 0 };
 
-			// In PW collisions: walls are src; src-sorted lookup gives all PW collisions for this wall.
-			const unsigned srcBeg = _vVerletPartInd[iWall];
-			const unsigned srcEnd = _vVerletPartInd[iWall + 1];
-			for (unsigned i = srcBeg; i < srcEnd; ++i)
+			// In PW verlet lists: walls are the verlet "dst".
+			// SortByDst sorts by wall ID, giving per-wall collision lookup.
+			const unsigned dstBeg = _vVerletPartInd_DstSorted[iWall];
+			const unsigned dstEnd = _vVerletPartInd_DstSorted[iWall + 1];
+			for (unsigned i = dstBeg; i < dstEnd; ++i)
 			{
-				if (!_collActivityFlags[i]) continue;
-				force -= _collTotalForces[i]; // Newton's 3rd law: wall gets -force.
+				const unsigned iColl = _vVerletCollInd_DstSorted[i];
+				if (!_collActivityFlags[iColl]) continue;
+				force -= _collTotalForces[iColl]; // Newton's 3rd law: wall gets -force.
 			}
 
 			_wallForces[iWall] += force;

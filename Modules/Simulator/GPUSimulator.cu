@@ -376,11 +376,10 @@ void CGPU::GatherAccumulatorsPW(SGPUParticles& _particles, SGPUWalls& _walls)
 {
 	auto& holder = m_CollisionsPW;
 	if (!holder.collisions.nElements) return;
-	// Particle side: particles are dst in PW collisions.
+	// Particle side: in PW verlet lists, particles are verlet "src" (vVerletPartInd indexed by particle).
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GatherPWAccumulatorsParticles_kernel,
 		static_cast<unsigned>(_particles.nElements),
-		holder.vVerletPartInd_DstSorted.data().get(),
-		holder.vVerletCollInd_DstSorted.data().get(),
+		holder.vVerletPartInd.data().get(),
 		holder.collisions.ActivityFlags,
 		holder.collisions.TotalForces,
 		holder.collisions.DstMoments,
@@ -389,10 +388,11 @@ void CGPU::GatherAccumulatorsPW(SGPUParticles& _particles, SGPUWalls& _walls)
 		_particles.Moments,
 		_particles.HeatFluxes
 	);
-	// Wall side: walls are src in PW collisions.
+	// Wall side: in PW verlet lists, walls are verlet "dst" (SortByDst builds per-wall indices).
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::GatherPWAccumulatorsWalls_kernel,
 		static_cast<unsigned>(_walls.nElements),
-		holder.vVerletPartInd.data().get(),
+		holder.vVerletPartInd_DstSorted.data().get(),
+		holder.vVerletCollInd_DstSorted.data().get(),
 		holder.collisions.ActivityFlags,
 		holder.collisions.TotalForces,
 		_walls.Forces

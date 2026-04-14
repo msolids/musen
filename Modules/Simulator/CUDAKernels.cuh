@@ -176,11 +176,12 @@ namespace CUDAKernels
 		double*         _partHeatFluxes
 	);
 
-	// PW gather (particle side): particles are dst in PW collisions; sum per-particle contributions.
+	// PW gather (particle side): In PW verlet lists, particles are the verlet "src"
+	// (vVerletPartInd indexed by particle). Collisions at indices [partInd[i], partInd[i+1])
+	// for particle i give its PW contacts.
 	__global__ void GatherPWAccumulatorsParticles_kernel(
 		unsigned        _nParticles,
-		const unsigned* _vVerletPartInd_DstSorted,
-		const unsigned* _vVerletCollInd_DstSorted,
+		const unsigned* _vVerletPartInd, // per-particle start (verlet src-sorted, size nParticles+1)
 		const bool*     _collActivityFlags,
 		const CVector3* _collTotalForces,
 		const CVector3* _collDstMoments,
@@ -190,10 +191,12 @@ namespace CUDAKernels
 		double*         _partHeatFluxes
 	);
 
-	// PW gather (wall side): walls are src in PW collisions; sum per-wall contributions.
+	// PW gather (wall side): In PW verlet lists, walls are the verlet "dst".
+	// SortByDst produces per-wall indices into collision-index array.
 	__global__ void GatherPWAccumulatorsWalls_kernel(
 		unsigned        _nWalls,
-		const unsigned* _vVerletPartInd, // src-sorted (per-wall start indices)
+		const unsigned* _vVerletPartInd_DstSorted, // per-wall start (dst-sorted, size nWalls+1)
+		const unsigned* _vVerletCollInd_DstSorted,  // collision indices sorted by wall ID
 		const bool*     _collActivityFlags,
 		const CVector3* _collTotalForces,
 		CVector3*       _wallForces
