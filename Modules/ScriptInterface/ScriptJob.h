@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team. 
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -124,6 +125,7 @@ struct SJob
 	SVolumeType simulationDomain{ CVector3{ std::numeric_limits<double>::infinity() }, CVector3{ std::numeric_limits<double>::infinity() } };
 	std::array<CTriState, 3> pbcFlags; // is it enabled in X,Y,Z directions
 	SVolumeType pbcDomain{ CVector3{ std::numeric_limits<double>::infinity() }, CVector3{ std::numeric_limits<double>::infinity() } };
+	CVector3 pbcVelocity{ std::numeric_limits<double>::infinity() }; // velocity of PBC boundaries
 
 	// materials
 	std::vector<SMDBMaterialProperties> materialProperties;

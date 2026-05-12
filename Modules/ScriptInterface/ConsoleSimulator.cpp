@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2023, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2023, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ConsoleSimulator.h"
@@ -79,6 +80,12 @@ void CConsoleSimulator::SetupSystemStructure() const
 	{
 		SPBC pbc = m_systemStructure.GetPBC();
 		pbc.SetDomain(m_job.pbcDomain.coordBeg, m_job.pbcDomain.coordEnd);
+		m_systemStructure.SetPBC(pbc);
+	}
+	if (!m_job.pbcVelocity.IsInf())
+	{
+		SPBC pbc = m_systemStructure.GetPBC();
+		pbc.vVel = m_job.pbcVelocity;
 		m_systemStructure.SetPBC(pbc);
 	}
 	if (m_job.resetBonds.ToBool())	m_systemStructure.ResetInitBondLength();
@@ -324,6 +331,8 @@ void CConsoleSimulator::PrintSimulationInfo()
 		if (pbc.bX)	PrintFormatted(" Periodic boundary domain X [m]", pbc.initDomain.coordBeg.x, "to", pbc.initDomain.coordEnd.x);
 		if (pbc.bY)	PrintFormatted(" Periodic boundary domain Y [m]", pbc.initDomain.coordBeg.y, "to", pbc.initDomain.coordEnd.y);
 		if (pbc.bZ)	PrintFormatted(" Periodic boundary domain Z [m]", pbc.initDomain.coordBeg.z, "to", pbc.initDomain.coordEnd.z);
+		if (!pbc.vVel.IsZero())
+			PrintFormatted(" Periodic boundary velocity (X:Y:Z) [m/s]", pbc.vVel.x, ":", pbc.vVel.y, ":", pbc.vVel.z);
 	}
 	PrintFormatted("External acceleration (X:Y:Z) [m/s^2]", extAccel.x, ":", extAccel.y, ":", extAccel.z);
 	PrintFormatted("Simulation domain X [m]", simDomain.coordBeg.x, "to", simDomain.coordEnd.x);
@@ -396,7 +405,7 @@ template <typename ... Args>
 void CConsoleSimulator::PrintFormatted(const std::string& _message, Args... args) const
 {
 	// length of the message
-	static int length = 38;
+	static int length = 42;
 	// justify text
 	m_out.setf(std::ios::left, std::ios::adjustfield);
 	// print the message

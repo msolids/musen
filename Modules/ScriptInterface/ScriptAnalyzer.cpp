@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ScriptAnalyzer.h"
@@ -117,6 +118,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "SIMULATION_DOMAIN")	ss >> m_jobs.back().simulationDomain;
 	else if (key == "PBC_FLAGS")            ss >> m_jobs.back().pbcFlags[0] >> m_jobs.back().pbcFlags[1] >> m_jobs.back().pbcFlags[2];
 	else if (key == "PBC_DOMAIN")           ss >> m_jobs.back().pbcDomain;
+	else if (key == "PBC_VELOCITY")         ss >> m_jobs.back().pbcVelocity;
 	else if (key == "SELECTIVE_SAVING_P")  { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bAngVelocity >> m_jobs.back().selectiveSavingFlags.bCoordinates >> m_jobs.back().selectiveSavingFlags.bForce >> m_jobs.back().selectiveSavingFlags.bQuaternion >> m_jobs.back().selectiveSavingFlags.bVelocity >> m_jobs.back().selectiveSavingFlags.bTensor >> m_jobs.back().selectiveSavingFlags.bTemperature; }
 	else if (key == "SELECTIVE_SAVING_SB") { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bSBForce >> m_jobs.back().selectiveSavingFlags.bSBTangOverlap >> m_jobs.back().selectiveSavingFlags.bSBTotTorque; }
 	else if (key == "SELECTIVE_SAVING_LB") { m_jobs.back().selectiveSavingFlag = true; ss >> m_jobs.back().selectiveSavingFlags.bLBForce; }

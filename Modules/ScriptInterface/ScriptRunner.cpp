@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ScriptRunner.h"
@@ -81,6 +82,12 @@ void CScriptRunner::GeneratePackage()
 	{
 		SPBC pbc = m_systemStructure.GetPBC();
 		pbc.SetDomain(m_job.pbcDomain.coordBeg, m_job.pbcDomain.coordEnd);
+		m_systemStructure.SetPBC(pbc);
+	}
+	if (!m_job.pbcVelocity.IsInf())
+	{
+		SPBC pbc = m_systemStructure.GetPBC();
+		pbc.vVel = m_job.pbcVelocity;
 		m_systemStructure.SetPBC(pbc);
 	}
 
