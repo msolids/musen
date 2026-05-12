@@ -1,5 +1,6 @@
-﻿/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+﻿/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ImportFromText.h"
@@ -222,9 +223,9 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 			{
 				CVector3 domainBeg, domainEnd;
 				SPBC tempPBC;
-				tempStream >> tempPBC.bEnabled >> tempPBC.bX >> tempPBC.bY >> tempPBC.bZ >> domainBeg >> domainEnd;
+				tempPBC.vVel.Init(0); // default for legacy text files without velocity
+				tempStream >> tempPBC.bEnabled >> tempPBC.bX >> tempPBC.bY >> tempPBC.bZ >> domainBeg >> domainEnd >> tempPBC.vVel;
 				tempPBC.SetDomain(domainBeg, domainEnd);
-				tempPBC.vVel.Init(0);
 				m_pSystemStructure->SetPBC(tempPBC);
 				break;
 			}

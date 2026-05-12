@@ -1,5 +1,6 @@
-﻿/* Copyright (c) 2013-2022, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+﻿/* Copyright (c) 2013-2022, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ExportAsText.h"
@@ -387,7 +388,7 @@ void CExportAsText::WriteSceneData()
 	SetStatus("Writing scene data to result file");
 
 	if (m_selectors.sceneInfo.domain       ) WriteLine(ETXTCommands::SIMULATION_DOMAIN  , m_systemStructure->GetSimulationDomain());
-	if (m_selectors.sceneInfo.pbc          ) WriteLine(ETXTCommands::PERIODIC_BOUNDARIES, m_systemStructure->GetPBC().bEnabled, m_systemStructure->GetPBC().bX, m_systemStructure->GetPBC().bY, m_systemStructure->GetPBC().bZ,	m_systemStructure->GetPBC().initDomain);
+	if (m_selectors.sceneInfo.pbc          ) WriteLine(ETXTCommands::PERIODIC_BOUNDARIES, m_systemStructure->GetPBC().bEnabled, m_systemStructure->GetPBC().bX, m_systemStructure->GetPBC().bY, m_systemStructure->GetPBC().bZ,	m_systemStructure->GetPBC().initDomain, m_systemStructure->GetPBC().vVel);
 	if (m_selectors.sceneInfo.anisotropy   ) WriteLine(ETXTCommands::ANISOTROPY         , m_systemStructure->IsAnisotropyEnabled());
 	if (m_selectors.sceneInfo.contactRadius) WriteLine(ETXTCommands::CONTACT_RADIUS     , m_systemStructure->IsContactRadiusEnabled());
 }
