@@ -163,6 +163,33 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		else if (key == "BOND_GEN_DIAMETER")	m_jobs.back().bondGenerators[index].diameter	= GetValueFromStream<double>(&ss);
 		else if (key == "BOND_GEN_OVERLAY")		m_jobs.back().bondGenerators[index].overlay		= GetValueFromStream<CTriState>(&ss);
 	}
+	else if (key.rfind("DYN_GEN", 0) == 0)
+	{
+		const auto index = GetValueFromStream<size_t>(&ss);
+		if      (key == "DYN_GEN_VOLUME")         m_jobs.back().dynamicGenerators[index].volume           = GetRestOfLine(&ss);
+		else if (key == "DYN_GEN_MAX_ITERATIONS") m_jobs.back().dynamicGenerators[index].maxIterations    = static_cast<size_t>(GetValueFromStream<double>(&ss));
+		else if (key == "DYN_GEN_INSIDE")         m_jobs.back().dynamicGenerators[index].inside           = GetValueFromStream<CTriState>(&ss);
+		else if (key == "DYN_GEN_MIXTURE")        m_jobs.back().dynamicGenerators[index].mixture          = GetRestOfLine(&ss);
+		else if (key == "DYN_GEN_AGGLOMERATE")    m_jobs.back().dynamicGenerators[index].agglomerate      = GetRestOfLine(&ss);
+		else if (key == "DYN_GEN_AGGLO_SCALE")    m_jobs.back().dynamicGenerators[index].agglomerateScale = GetValueFromStream<double>(&ss);
+		else if (key == "DYN_GEN_VELOCITY")       m_jobs.back().dynamicGenerators[index].velocity         = GetValueFromStream<CVector3>(&ss);
+		else if (key == "DYN_GEN_VEL_MAGNITUDE")  m_jobs.back().dynamicGenerators[index].velMagnitude     = GetValueFromStream<double>(&ss);
+		else if (key == "DYN_GEN_START_TIME")     m_jobs.back().dynamicGenerators[index].startTime        = GetValueFromStream<double>(&ss);
+		else if (key == "DYN_GEN_END_TIME")       m_jobs.back().dynamicGenerators[index].endTime          = GetValueFromStream<double>(&ss);
+		else if (key == "DYN_GEN_UPDATE_STEP")    m_jobs.back().dynamicGenerators[index].updateStep       = GetValueFromStream<double>(&ss);
+		else if (key == "DYN_GEN_RATE_TYPE")      m_jobs.back().dynamicGenerators[index].rateTypeName     = ToUpperCase(GetRestOfLine(&ss));
+		else if (key == "DYN_GEN_RATE")           m_jobs.back().dynamicGenerators[index].rateValue        = GetValueFromStream<double>(&ss);
+		else if (key == "DYN_GEN_PART_MATERIAL")
+		{
+			const auto alias = GetValueFromStream<std::string>(&ss);
+			m_jobs.back().dynamicGenerators[index].partMaterials[alias] = GetRestOfLine(&ss);
+		}
+		else if (key == "DYN_GEN_BOND_MATERIAL")
+		{
+			const auto alias = GetValueFromStream<std::string>(&ss);
+			m_jobs.back().dynamicGenerators[index].bondMaterials[alias] = GetRestOfLine(&ss);
+		}
+	}
 	else if (key == "MATERIAL_PROPERTY")
 	{
 		const auto propertyStr = ToUpperCase(GetValueFromStream<std::string>(&ss));

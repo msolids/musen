@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "AgglomeratesDatabase.h"
@@ -42,6 +43,14 @@ SAgglomerate* CAgglomeratesDatabase::GetAgglomerate(const std::string& _sKey)
 		if (m_vAgglomerates[i]->sKey.compare(_sKey) == 0)
 			return m_vAgglomerates[i];
 	return NULL;
+}
+
+const SAgglomerate* CAgglomeratesDatabase::GetAgglomerateByName(const std::string& _name) const
+{
+	for (const auto* a : m_vAgglomerates)
+		if (a->sName == _name)
+			return a;
+	return nullptr;
 }
 
 double CAgglomeratesDatabase::CalculateVolume(SAgglomerate* _pAgglom)

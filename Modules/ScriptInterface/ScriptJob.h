@@ -43,6 +43,25 @@ struct SJob
 		CTriState overlay{ CTriState::EState::UNDEFINED };
 	};
 
+	struct SDynamicGenerator
+	{
+		std::string volume;                                                      // analysis-volume name or key
+		size_t      maxIterations{ 0 };
+		CTriState   inside{ CTriState::EState::UNDEFINED };
+		std::string mixture;                                                     // mixture name or key
+		std::string agglomerate;                                                 // agglomerate key
+		double      agglomerateScale{ std::numeric_limits<double>::infinity() }; // agglomerate scale factor
+		std::map<std::string, std::string> partMaterials;                        // agglomerate particle-material alias->material overrides (additive)
+		std::map<std::string, std::string> bondMaterials;                        // agglomerate bond-material     alias->material overrides (additive)
+		CVector3    velocity{ std::numeric_limits<double>::infinity() };         // velocity for fixed-velocity mode
+		double      velMagnitude{ std::numeric_limits<double>::infinity() };     // velocity magnitude for random-velocity mode
+		double      startTime{ std::numeric_limits<double>::infinity() };
+		double      endTime{ std::numeric_limits<double>::infinity() };
+		double      updateStep{ std::numeric_limits<double>::infinity() };
+		std::string rateTypeName;                                                // "GENERATION_RATE" | "OBJECTS_PER_STEP" | "OBJECTS_TOTAL"
+		double      rateValue{ std::numeric_limits<double>::infinity() };
+	};
+
 	struct SMDBMaterialProperties
 	{
 		ETPPropertyTypes propertyKey;
@@ -150,6 +169,9 @@ struct SJob
 
 	// bonds generator, <index, generator>
 	std::map<size_t, SBondGenerator> bondGenerators;
+
+	// dynamic generator, <index, generator>
+	std::map<size_t, SDynamicGenerator> dynamicGenerators;
 
 	// export as text
 	CExportAsText::SExportSelector txtExportSettings;

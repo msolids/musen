@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -63,6 +64,7 @@ public:
 
 	SAgglomerate* GetAgglomerate(size_t _nIndex);
 	SAgglomerate* GetAgglomerate(const std::string& _sKey);
+	const SAgglomerate* GetAgglomerateByName(const std::string& _name) const;
 	int GetAgglomerateIndex(const std::string& _sKey);
 
 	std::string GetFileName() { return m_sDatabaseFileName; }

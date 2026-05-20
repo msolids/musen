@@ -137,6 +137,93 @@ void CConsoleSimulator::SetupGenerationManager()
 	m_generationManager.SetSystemStructure(&m_systemStructure);
 	m_generationManager.LoadConfiguration();
 	m_agglomeratesDatabase.LoadFromFile(m_job.agglomeratesDBFileName);
+
+	const auto ResolveVolumeKey = [this](const std::string& _nameOrKey)
+	{
+		if (const auto* v = m_systemStructure.AnalysisVolumeByName(_nameOrKey))
+			return v->Key();
+		return _nameOrKey;
+	};
+	const auto ResolveCompoundKey = [this](const std::string& _nameOrKey)
+	{
+		if (const auto* c = m_systemStructure.m_MaterialDatabase.GetCompoundByName(_nameOrKey))
+			return c->GetKey();
+		return _nameOrKey;
+	};
+	const auto ResolveMixtureKey = [this](const std::string& _nameOrKey)
+	{
+		if (const auto* m = m_systemStructure.m_MaterialDatabase.GetMixtureByName(_nameOrKey))
+			return m->GetKey();
+		return _nameOrKey;
+	};
+	const auto ResolveAgglomerateKey = [this](const std::string& _nameOrKey)
+	{
+		if (const auto* a = m_agglomeratesDatabase.GetAgglomerateByName(_nameOrKey))
+			return a->sKey;
+		return _nameOrKey;
+	};
+	const auto ParseRateType = [](const std::string& _name)
+	{
+		if (_name == "OBJECTS_PER_STEP") return CObjectsGenerator::ERateType::OBJECTS_PER_STEP;
+		if (_name == "OBJECTS_TOTAL")    return CObjectsGenerator::ERateType::OBJECTS_TOTAL;
+		return CObjectsGenerator::ERateType::GENERATION_RATE;
+	};
+
+	for (const auto& [idx1, dg] : m_job.dynamicGenerators)
+	{
+		const size_t index = idx1 - 1;
+		while (index >= m_generationManager.GetGeneratorsNumber())
+			m_generationManager.AddGenerator();
+		CObjectsGenerator* gen = m_generationManager.GetGenerator(index);
+		if (!dg.volume.empty())
+			gen->m_sVolumeKey = ResolveVolumeKey(dg.volume);
+		if (dg.maxIterations != 0)
+			gen->m_maxIterations = dg.maxIterations;
+		if (dg.inside.IsDefined())
+			gen->m_bInsideGeometries = dg.inside.ToBool();
+		// generation-mode (mixture vs agglomerate) is inferred from which key the user set; when more than one is set, the later wins
+		if (!dg.mixture.empty())
+		{
+			gen->m_sMixtureKey = ResolveMixtureKey(dg.mixture);
+			gen->m_bGenerateMixture = true;
+		}
+		if (!dg.agglomerate.empty())
+		{
+			gen->m_sAgglomerateKey = ResolveAgglomerateKey(dg.agglomerate);
+			gen->m_bGenerateMixture = false;
+		}
+		if (std::isfinite(dg.agglomerateScale))
+		{
+			gen->m_dAgglomerateScaleFactor = dg.agglomerateScale;
+			gen->m_bGenerateMixture = false;
+		}
+		// material-override maps are merged additively per alias, existing entries for other aliases stay
+		for (const auto& [alias, nameOrKey] : dg.partMaterials)
+			gen->m_partMaterials[alias] = ResolveCompoundKey(nameOrKey);
+		for (const auto& [alias, nameOrKey] : dg.bondMaterials)
+			gen->m_bondMaterials[alias] = ResolveCompoundKey(nameOrKey);
+		// velocity mode (fixed vs random) is inferred from which key the user set; when more than one is set, the later wins
+		if (!dg.velocity.IsInf())
+		{
+			gen->m_vObjInitVel = dg.velocity;
+			gen->m_bRandomVelocity = false;
+		}
+		if (std::isfinite(dg.velMagnitude))
+		{
+			gen->m_dVelMagnitude = dg.velMagnitude;
+			gen->m_bRandomVelocity = true;
+		}
+		if (std::isfinite(dg.startTime))
+			gen->m_dStartGenerationTime = dg.startTime;
+		if (std::isfinite(dg.endTime))
+			gen->m_dEndGenerationTime = dg.endTime;
+		if (std::isfinite(dg.updateStep))
+			gen->m_dUpdateStep = dg.updateStep;
+		if (!dg.rateTypeName.empty())
+			gen->m_rateType = ParseRateType(dg.rateTypeName);
+		if (std::isfinite(dg.rateValue))
+			gen->m_rateValue = dg.rateValue;
+	}
 }
 
 void CConsoleSimulator::SetupModelManager()
