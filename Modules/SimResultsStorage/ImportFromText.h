@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -7,6 +8,7 @@
 
 class CPackageGenerator;
 class CBondsGenerator;
+class CGenerationManager;
 
 class CImportFromText
 {
@@ -38,6 +40,7 @@ private:
 	CSystemStructure* m_pSystemStructure;		// Pointer to system structure.
 	CPackageGenerator* m_packageGenerator{ nullptr };
 	CBondsGenerator*   m_bondsGenerator{ nullptr };
+	CGenerationManager* m_dynamicGenerator{ nullptr };
 	struct STDObjectInfo						// Time-dependent properties for one object.
 	{
 		std::vector<double> vTime;
@@ -55,7 +58,7 @@ private:
 	std::vector<STDObjectInfo*> m_vObjects;		// Local storage of all TD properties of all objects.
 
 public:
-	CImportFromText(CSystemStructure* _pSystemStructure, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator);
+	CImportFromText(CSystemStructure* _pSystemStructure, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, CGenerationManager* _dynamicGenerator);
 
 	// Imports data from text file. Returns struct with extensive information about import process.
 	SImportFileInfo Import(const std::string& _fileName);

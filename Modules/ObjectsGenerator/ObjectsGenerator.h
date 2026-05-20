@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -72,6 +73,21 @@ public:
 	[[nodiscard]] bool IsGeneratingParticles() const;
 	// Checks whether the generator will produce bonds. 
 	[[nodiscard]] bool IsGeneratingBonds() const;
+
+	/**
+	 * \brief Text-format serialization.
+	 * \details Config only, runtime state is skipped.
+	 * \param _s Output stream.
+	 * \param _g Objects generator to serialize.
+	 * \return Reference to the output stream. */
+	friend std::ostream& operator<<(std::ostream& _s, const CObjectsGenerator& _g);
+	/**
+	 * \brief Text-format deserialization.
+	 * \details Config only, runtime state is skipped.
+	 * \param _s Input stream.
+	 * \param _g Objects generator to deserialize into.
+	 * \return Reference to the input stream. */
+	friend std::istream& operator>>(std::istream& _s, CObjectsGenerator& _g);
 
 private:
 	// return true if creation was successfully

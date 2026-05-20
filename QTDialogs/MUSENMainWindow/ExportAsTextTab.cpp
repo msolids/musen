@@ -1,6 +1,7 @@
 ﻿/* Copyright (c) 2013-2020, MUSEN Development Team.
- * Copyright (c) 2025, DyssolTEC GmbH.
- * All rights reserved. This file is part of MUSEN framework. See LICENSE file for license and warranty information. */
+   Copyright (c) 2025, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
+   See LICENSE file for license and warranty information. */
 
 #include "ExportAsTextTab.h"
 #include "qtOperations.h"
@@ -31,10 +32,11 @@ void CExportWorker::StopExporting() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Tab
 
-CExportAsTextTab::CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, QWidget* _parent)
+CExportAsTextTab::CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, CGenerationManager* _dynamicGenerator, QWidget* _parent)
 	: CMusenDialog{ _parent }
 	, m_packageGenerator{ _pakageGenerator }
 	, m_bondsGenerator{ _bondsGenerator }
+	, m_dynamicGenerator{ _dynamicGenerator }
 {
 	ui.setupUi(this);
 
@@ -62,7 +64,7 @@ void CExportAsTextTab::SetPointers(CSystemStructure* _systemStructure, CUnitConv
 	m_constraints.SetPointers(_systemStructure, _materialsDB);
 	ui.constraintsTab->SetPointers(_systemStructure, _unitConvertor, _materialsDB, _geometriesDB, _agglomeratesDB);
 	ui.constraintsTab->SetConstraintsPtr(&m_constraints);
-	m_exporter.SetPointers(_systemStructure, &m_constraints, m_packageGenerator, m_bondsGenerator);
+	m_exporter.SetPointers(_systemStructure, &m_constraints, m_packageGenerator, m_bondsGenerator, m_dynamicGenerator);
 }
 
 void CExportAsTextTab::setVisible(bool _visible)
@@ -249,7 +251,7 @@ void CExportAsTextTab::ApplyAllFlags()
 		SetFlags(&settings.sceneInfo  , ui.groupScene     , { ui.checkInfoDomain, ui.checkInfoPBC, ui.checkInfoAnisotropy, ui.checkInfoContactRadius });
 		SetFlags(&settings.geometries , ui.groupGeometries, { ui.checkGeometryGeneral, ui.checkGeometryTDP, ui.checkGeometryWalls, ui.checkGeometryVolumes });
 		SetFlags(&settings.materials  , ui.groupMaterials , { ui.checkMaterialCompounds, ui.checkMaterialInteractions, ui.checkMaterialMixtures });
-		SetFlags(&settings.generators , ui.groupGenerators, { ui.checkGeneratorPackage, ui.checkGeneratorBonds });
+		SetFlags(&settings.generators , ui.groupGenerators, { ui.checkGeneratorPackage, ui.checkGeneratorBonds, ui.checkGeneratorDynamic });
 	}
 
 	m_exporter.SetSelectors(settings);

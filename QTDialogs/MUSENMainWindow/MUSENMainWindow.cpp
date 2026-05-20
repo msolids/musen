@@ -64,7 +64,7 @@ MUSENMainWindow::MUSENMainWindow(const QString& _buildVersion, QWidget* parent /
 	m_pAgglomeratesAnalyzerTab = new CAgglomeratesAnalyzerTab(this);
 	m_pGeometriesAnalyzerTab   = new CGeometriesAnalyzerTab(this);
 	//m_pCollisionsAnalyzerTab   = new CCollisionsAnalyzerTab(this);
-	m_pExportAsTextTab         = new CExportAsTextTab(&m_PackageGenerator, &m_BondsGenerator, this);
+	m_pExportAsTextTab         = new CExportAsTextTab(&m_PackageGenerator, &m_BondsGenerator, &m_GenerationManager, this);
 	m_pFileMergerTab           = new CFileMergerTab(this);
 	m_pFileConverterTab        = new CFileConverterTab(this);
 	m_pSimulatorSettingsTab    = new CSimulatorSettingsTab(&m_SimulatorManager, this);
@@ -456,7 +456,7 @@ void MUSENMainWindow::LoadSystemStructureFromText()
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	m_pViewManager->DisableView();
 
-	CImportFromText importer(&m_SystemStructure, &m_PackageGenerator, &m_BondsGenerator);
+	CImportFromText importer(&m_SystemStructure, &m_PackageGenerator, &m_BondsGenerator, &m_GenerationManager);
 	const CImportFromText::SImportFileInfo importInfo = importer.Import(qs2ss(fileName));
 	switch (importInfo.importResult)
 	{

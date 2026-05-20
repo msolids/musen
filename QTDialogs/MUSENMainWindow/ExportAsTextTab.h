@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2022, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2022, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -40,9 +41,10 @@ class CExportAsTextTab : public CMusenDialog
 
 	CPackageGenerator* m_packageGenerator{ nullptr }; // Pointer to actual package generator.
 	CBondsGenerator*   m_bondsGenerator{ nullptr };   // Pointer to actual bonds generator.
+	CGenerationManager* m_dynamicGenerator{ nullptr }; // Pointer to actual dynamic generator manager.
 
 public:
-	CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, QWidget* _parent = nullptr);
+	CExportAsTextTab(CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, CGenerationManager* _dynamicGenerator, QWidget* _parent = nullptr);
 
 	// Sets all pointers to all required data. Must be called before any other function.
 	void SetPointers(CSystemStructure* _systemStructure, CUnitConvertor* _unitConvertor, CMaterialsDatabase* _materialsDB, CGeometriesDatabase* _geometriesDB, CAgglomeratesDatabase* _agglomeratesDB) override;

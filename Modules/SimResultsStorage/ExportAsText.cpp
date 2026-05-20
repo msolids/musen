@@ -7,14 +7,16 @@
 #include "Constraints.h"
 #include "PackageGenerator.h"
 #include "BondsGenerator.h"
+#include "GenerationManager.h"
 #include "MUSENFileFunctions.h"
 
-void CExportAsText::SetPointers(const CSystemStructure* _systemStructure, const CConstraints* _constraints, const CPackageGenerator* _pakageGenerator, const CBondsGenerator* _bondsGenerator)
+void CExportAsText::SetPointers(const CSystemStructure* _systemStructure, const CConstraints* _constraints, const CPackageGenerator* _pakageGenerator, const CBondsGenerator* _bondsGenerator, const CGenerationManager* _dynamicGenerator)
 {
 	m_systemStructure  = _systemStructure;
 	m_constraints      = _constraints;
 	m_packageGenerator = _pakageGenerator;
 	m_bondsGenerator   = _bondsGenerator;
+	m_dynamicGenerator = _dynamicGenerator;
 }
 
 void CExportAsText::SetSelectors(const SExportSelector& _selectors)
@@ -473,6 +475,11 @@ void CExportAsText::WriteGeneratorsData()
 	if (m_selectors.generators.bondsGenerator)
 		for (const auto& g : m_bondsGenerator->Generators())
 			WriteLine(ETXTCommands::BONDS_GENERATOR, *g);
+
+	// dynamic generator
+	if (m_selectors.generators.dynamicGenerator)
+		for (const auto* g : m_dynamicGenerator->GetGenerators())
+			WriteLine(ETXTCommands::DYNAMIC_GENERATOR, *g);
 }
 
 void CExportAsText::TryOpenFileW(std::ofstream& _file, const std::filesystem::path& _name, std::ios::openmode _mode/* = 0*/)

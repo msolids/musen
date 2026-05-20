@@ -1,3 +1,8 @@
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
+   See LICENSE file for license and warranty information. */
+
 #include "GenerationManager.h"
 
 CGenerationManager::CGenerationManager() : CMusenComponent()
@@ -37,10 +42,11 @@ std::vector<const CObjectsGenerator*> CGenerationManager::GetGenerators() const
 	return res;
 }
 
-void CGenerationManager::CreateNewGenerator()
+CObjectsGenerator* CGenerationManager::AddGenerator()
 {
 	m_vGenerators.push_back(new CObjectsGenerator(m_pAgglomDB, &m_pSystemStructure->m_MaterialDatabase));
 	m_vGenerators.back()->m_sName = "ObjectsGenerator " + std::to_string(m_vGenerators.size());
+	return m_vGenerators.back();
 }
 
 void CGenerationManager::DeleteGenerator( size_t _nIndex )
@@ -57,8 +63,7 @@ void CGenerationManager::LoadConfiguration()
 	for (int i = 0; i < protoMessage.objects_generator().generators_size(); ++i)
 	{
 		const ProtoObjectsGenerator& protoGen = protoMessage.objects_generator().generators(i);
-		CreateNewGenerator();
-		CObjectsGenerator* gen = m_vGenerators.back();
+		CObjectsGenerator* gen = AddGenerator();
 		const int version = protoGen.version();
 		gen->m_sName = protoGen.name();
 		gen->m_sVolumeKey = protoGen.volume_key();

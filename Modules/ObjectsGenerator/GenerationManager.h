@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -27,7 +28,11 @@ public:
 	// Returns const pointers to all defined generators
 	std::vector<const CObjectsGenerator*> GetGenerators() const;
 
-	void CreateNewGenerator();
+	/**
+	 * \brief Adds a new empty generator with default name.
+	 * \details The generator will be added to the end of the list and will be active by default.
+	 * \return Pointer to the newly added generator. */
+	CObjectsGenerator* AddGenerator();
 	void DeleteGenerator( size_t _nIndex );
 
 	void Initialize();

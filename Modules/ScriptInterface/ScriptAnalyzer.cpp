@@ -277,6 +277,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	{
 		m_jobs.back().txtExportSettings.generators.packageGenerator = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportSettings.generators.bondsGenerator   = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.generators.dynamicGenerator = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_PRECISION")
 	{

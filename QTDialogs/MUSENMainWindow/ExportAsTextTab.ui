@@ -14,7 +14,7 @@
    <string>Export as text</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+   <iconset resource="../../MusenGUI/musengui.qrc">
     <normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</normaloff>:/MusenGUI/Resources/MUSEN_Ico.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
@@ -1003,6 +1003,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="checkGeneratorDynamic">
+              <property name="text">
+               <string>Dynamic generator</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_4">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -1216,7 +1226,7 @@
   <tabstop>buttonExport</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections/>
  <buttongroups>

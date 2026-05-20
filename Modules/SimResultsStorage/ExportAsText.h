@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2022, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2022, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -21,6 +22,7 @@
 
 class CPackageGenerator;
 class CBondsGenerator;
+class CGenerationManager;
 class CSystemStructure;
 class CConstraints;
 
@@ -89,7 +91,7 @@ public:
 	};
 	struct SGeneratorsFlags : SBaseFlags
 	{
-		CREATE_FLAGS(SGeneratorsFlags, packageGenerator, bondsGenerator)
+		CREATE_FLAGS(SGeneratorsFlags, packageGenerator, bondsGenerator, dynamicGenerator)
 	};
 	/*
 	 * All flags to select elements and their properties to be exported.
@@ -179,10 +181,11 @@ private:
 
 	SExportSelector m_selectors; // Selection of objects and properties to export.
 
-	const CSystemStructure* m_systemStructure{};   // Pointer to system structure.
-	const CConstraints* m_constraints{};           // Pointer to defined constraints.
-	const CPackageGenerator* m_packageGenerator{}; // Pointer to package generator.
-	const CBondsGenerator* m_bondsGenerator{};     // Pointer to bonds generator.
+	const CSystemStructure* m_systemStructure{};    // Pointer to system structure.
+	const CConstraints* m_constraints{};            // Pointer to defined constraints.
+	const CPackageGenerator* m_packageGenerator{};  // Pointer to package generator.
+	const CBondsGenerator* m_bondsGenerator{};      // Pointer to bonds generator.
+	const CGenerationManager* m_dynamicGenerator{}; // Pointer to dynamic generator.
 
 	std::filesystem::path m_resFileName; // Name of resulting text file.
 	std::ofstream m_resFile;             // Resulting text file.
@@ -199,7 +202,7 @@ private:
 
 public:
 	// Sets pointers to required objects. Must be called before export.
-	void SetPointers(const CSystemStructure* _systemStructure, const CConstraints* _constraints, const CPackageGenerator* _pakageGenerator, const CBondsGenerator* _bondsGenerator);
+	void SetPointers(const CSystemStructure* _systemStructure, const CConstraints* _constraints, const CPackageGenerator* _pakageGenerator, const CBondsGenerator* _bondsGenerator, const CGenerationManager* _dynamicGenerator);
 
 	// Sets exporting settings.
 	void SetSelectors(const SExportSelector& _selectors);

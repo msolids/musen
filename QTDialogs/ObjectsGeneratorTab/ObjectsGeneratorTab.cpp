@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ObjectsGeneratorTab.h"
@@ -51,7 +52,7 @@ void CObjectsGeneratorTab::InitializeConnections() const
 
 void CObjectsGeneratorTab::AddGenerator()
 {
-	m_generationManager->CreateNewGenerator();
+	m_generationManager->AddGenerator();
 	UpdateWholeView();
 }
 

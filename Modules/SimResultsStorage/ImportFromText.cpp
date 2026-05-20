@@ -6,11 +6,13 @@
 #include "ImportFromText.h"
 #include "PackageGenerator.h"
 #include "BondsGenerator.h"
+#include "GenerationManager.h"
 
-CImportFromText::CImportFromText(CSystemStructure* _pSystemStructure, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator)
+CImportFromText::CImportFromText(CSystemStructure* _pSystemStructure, CPackageGenerator* _pakageGenerator, CBondsGenerator* _bondsGenerator, CGenerationManager* _dynamicGenerator)
 	: m_pSystemStructure{ _pSystemStructure }
 	, m_packageGenerator{ _pakageGenerator }
 	, m_bondsGenerator{ _bondsGenerator }
+	, m_dynamicGenerator{ _dynamicGenerator }
 {
 }
 
@@ -330,6 +332,12 @@ CImportFromText::SImportFileInfo CImportFromText::Import(const std::string& _fil
 			case ETXTCommands::BONDS_GENERATOR:
 			{
 				auto* g = m_bondsGenerator->AddGenerator();
+				tempStream >> *g;
+				break;
+			}
+			case ETXTCommands::DYNAMIC_GENERATOR:
+			{
+				auto* g = m_dynamicGenerator->AddGenerator();
 				tempStream >> *g;
 				break;
 			}

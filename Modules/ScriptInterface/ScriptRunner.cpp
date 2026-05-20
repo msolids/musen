@@ -9,6 +9,7 @@
 #include "FileConverter.h"
 #include "ImportFromText.h"
 #include "ExportAsText.h"
+#include "GenerationManager.h"
 #include "BondsGenerator.h"
 #include "PackageGenerator.h"
 
@@ -265,9 +266,12 @@ void CScriptRunner::ExportToText()
 	CBondsGenerator bondsGenerator;
 	bondsGenerator.SetSystemStructure(&m_systemStructure);
 	bondsGenerator.LoadConfiguration();
+	CGenerationManager dynamicGenerator;
+	dynamicGenerator.SetSystemStructure(&m_systemStructure);
+	dynamicGenerator.LoadConfiguration();
 	CExportAsText exporter;
 	CConstraints constraints;
-	exporter.SetPointers(&m_systemStructure, &constraints, &packageGenerator, &bondsGenerator);
+	exporter.SetPointers(&m_systemStructure, &constraints, &packageGenerator, &bondsGenerator, &dynamicGenerator);
 	exporter.SetFileName(m_job.resultFileName);
 	exporter.SetSelectors(m_job.txtExportSettings);
 	exporter.SetPrecision(m_job.txtPrecision);
@@ -294,12 +298,15 @@ void CScriptRunner::ImportFromText()
 	m_systemStructure.SaveToFile(m_job.resultFileName);
 	CPackageGenerator packageGenerator;
 	CBondsGenerator bondsGenerator;
+	CGenerationManager dynamicGenerator;
 	packageGenerator.SetSystemStructure(&m_systemStructure);
 	bondsGenerator.SetSystemStructure(&m_systemStructure);
-	CImportFromText importer(&m_systemStructure, &packageGenerator, &bondsGenerator);
+	dynamicGenerator.SetSystemStructure(&m_systemStructure);
+	CImportFromText importer(&m_systemStructure, &packageGenerator, &bondsGenerator, &dynamicGenerator);
 	importer.Import(m_job.sourceFileName);
 	packageGenerator.SaveConfiguration();
 	bondsGenerator.SaveConfiguration();
+	dynamicGenerator.SaveConfiguration();
 	m_systemStructure.SaveToFile(m_job.resultFileName);
 	m_out << "Import from text finished" << std::endl;
 }

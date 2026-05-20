@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -70,6 +71,7 @@ enum class ETXTCommands : unsigned
 	OBJECT_TOT_TORQUE        = 43,
 	OBJECT_PLANE_COORD       = 44,
 	OBJECT_TANG_OVERLAP      = 45,
+	DYNAMIC_GENERATOR        = 46,
 };
 
 // ********* physical constants

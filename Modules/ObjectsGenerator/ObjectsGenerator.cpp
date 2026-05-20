@@ -1,9 +1,11 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ObjectsGenerator.h"
 #include "Quaternion.h"
+#include "MUSENStringFunctions.h"
 
 CObjectsGenerator::CObjectsGenerator(CAgglomeratesDatabase* _pAgglomD, CMaterialsDatabase* _pMaterialsDB) :
 	m_pAgglomDB( _pAgglomD ), m_pMaterialsDB( _pMaterialsDB )
@@ -299,6 +301,53 @@ bool CObjectsGenerator::IsGeneratingBonds() const
 	if (!m_sAgglomerateKey.empty() && m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey) && !m_pAgglomDB->GetAgglomerate(m_sAgglomerateKey)->vBonds.empty())
 		return true;
 	return false;
+}
+
+std::ostream& operator<<(std::ostream& _s, const CObjectsGenerator& _g)
+{
+	const auto WriteMap = [&_s](const std::map<std::string, std::string>& _map)
+	{
+		_s << " " << _map.size();
+		for (const auto& [k, v] : _map)
+			_s << " " << MakeSingleString(k) << " " << MakeSingleString(v);
+	};
+
+	_s << MakeSingleString(_g.m_sName) << " " << _g.m_bActive << " "
+		<< MakeSingleString(_g.m_sVolumeKey) << " " << _g.m_maxIterations << " " << _g.m_bInsideGeometries << " "
+		<< _g.m_bGenerateMixture << " " << MakeSingleString(_g.m_sMixtureKey) << " " << MakeSingleString(_g.m_sAgglomerateKey) << " " << _g.m_dAgglomerateScaleFactor;
+	WriteMap(_g.m_partMaterials);
+	WriteMap(_g.m_bondMaterials);
+	_s << " " << _g.m_bRandomVelocity << " " << _g.m_vObjInitVel << " " << _g.m_dVelMagnitude << " "
+		<< _g.m_dStartGenerationTime << " " << _g.m_dUpdateStep << " " << _g.m_dEndGenerationTime << " "
+		<< static_cast<int>(_g.m_rateType) << " " << _g.m_rateValue;
+	return _s;
+}
+
+std::istream& operator>>(std::istream& _s, CObjectsGenerator& _g)
+{
+	const auto ReadMap = [&_s](std::map<std::string, std::string>& _map)
+	{
+		_map.clear();
+		size_t n = 0;
+		_s >> n;
+		for (size_t i = 0; i < n; ++i)
+		{
+			std::string k, v;
+			_s >> k >> v;
+			_map[k] = v;
+		}
+	};
+	_s >> _g.m_sName >> _g.m_bActive
+		>> _g.m_sVolumeKey >> _g.m_maxIterations >> _g.m_bInsideGeometries
+		>> _g.m_bGenerateMixture >> _g.m_sMixtureKey >> _g.m_sAgglomerateKey >> _g.m_dAgglomerateScaleFactor;
+	ReadMap(_g.m_partMaterials);
+	ReadMap(_g.m_bondMaterials);
+	_s >> _g.m_bRandomVelocity >> _g.m_vObjInitVel >> _g.m_dVelMagnitude
+		>> _g.m_dStartGenerationTime >> _g.m_dUpdateStep >> _g.m_dEndGenerationTime;
+	int rateType = 0;
+	_s >> rateType >> _g.m_rateValue;
+	_g.m_rateType = static_cast<CObjectsGenerator::ERateType>(rateType);
+	return _s;
 }
 
 void CObjectsGenerator::GenerateNewObject(std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart, std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad,
