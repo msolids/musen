@@ -25,7 +25,7 @@ jobs:
   # Verify MUSEN builds with different CUDA versions
   compile-check:
     name: compile-check (CUDA ${{ matrix.cuda }})
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
@@ -99,7 +99,7 @@ jobs:
 
   # Build Debug, Release, Installer, ModelsCreator
   full-test:
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
     - name: Checkout
@@ -228,7 +228,7 @@ jobs:
 
   # Full build with CUDA_VERSION_RELEASE and all compute capabilities and publish GitHub Release
   release:
-    runs-on: windows-latest
+    runs-on: windows-2025
     needs: [compile-check, full-test]
     if: startsWith(github.ref, 'refs/tags/v')
 
