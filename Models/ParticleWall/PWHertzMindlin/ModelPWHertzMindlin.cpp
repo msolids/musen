@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelPWHertzMindlin.h"
@@ -14,16 +15,17 @@ CModelPWHertzMindlin::CModelPWHertzMindlin()
 
 void CModelPWHertzMindlin::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
-	const double   partRadius  = Particles().Radius(_iPart);
-	const CVector3 partAnglVel = Particles().AnglVel(_iPart);
-	const CVector3 normVector  = Walls().NormalVector(_iWall);
+	const double   partRadius        = Particles().Radius(_iPart);
+	const double   partContactRadius = Particles().ContactRadius(_iPart);
+	const CVector3 partAnglVel       = Particles().AnglVel(_iPart);
+	const CVector3 normVector        = Walls().NormalVector(_iWall);
 
 	const CVector3 rc     = CPU_GET_VIRTUAL_COORDINATE(Particles().Coord(_iPart)) - _collision->vContactVector;
 	const double   rcLen  = rc.Length();
 	const CVector3 rcNorm = rc / rcLen;
 
 	// normal overlap
-	const double normOverlap = partRadius - rcLen;
+	const double normOverlap = partContactRadius - rcLen;
 	if (normOverlap < 0) return;
 
 	// normal and tangential relative velocity
@@ -34,7 +36,7 @@ void CModelPWHertzMindlin::CalculatePW(double _time, double _timeStep, size_t _i
 	const CVector3 tangRelVel    = relVel - normRelVel;
 
 	// radius of the contact area
-	const double contactAreaRadius = std::sqrt(partRadius * normOverlap);
+	const double contactAreaRadius = std::sqrt(partContactRadius * normOverlap);
 
 	// normal force with damping
 	const double Kn = 2 * _interactProp.dEquivYoungModulus * contactAreaRadius;

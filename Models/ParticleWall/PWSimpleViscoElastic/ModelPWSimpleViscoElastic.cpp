@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelPWSimpleViscoElastic.h"
@@ -28,7 +29,7 @@ void CModelPWSimpleViscoElastic::CalculatePW(double _time, double _timeStep, siz
 	const CVector3 rcNorm = rc / rcLen;
 
 	// normal overlap
-	const double normOverlap =  Particles().Radius(_iPart) - rcLen;
+	const double normOverlap =  Particles().ContactRadius(_iPart) - rcLen;
 	if (normOverlap < 0) return;
 
 	// normal and tangential relative velocity

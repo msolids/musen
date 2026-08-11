@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelPWSimpleViscoelastic.cuh"
@@ -19,7 +20,7 @@ void CModelPWSimpleViscoElastic::CalculatePWGPU(double _time, double _timeStep, 
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPWForce_VE_kernel,
 		_particles.Coords,
-		_particles.Radii,
+		_particles.ContactRadii,
 		_particles.Vels,
 		_particles.Forces,
 		_particles.Moments,
@@ -43,7 +44,7 @@ void CModelPWSimpleViscoElastic::CalculatePWGPU(double _time, double _timeStep, 
 
 void __global__ CUDA_CalcPWForce_VE_kernel(
 	const CVector3	_partCoords[],
-	const double	_partRadii[],
+	const double	_partContactRadii[],
 	const CVector3	_partVels[],
 	CVector3		_partForces[],
 	CVector3		_partMoments[],
@@ -80,7 +81,7 @@ void __global__ CUDA_CalcPWForce_VE_kernel(
 		const CVector3 rcNorm = rc / rcLen;
 
 		// normal overlap
-		const double normOverlap = _partRadii[iPart] - rcLen;
+		const double normOverlap = _partContactRadii[iPart] - rcLen;
 		if (normOverlap < 0) continue;
 
 		// normal and tangential relative velocity

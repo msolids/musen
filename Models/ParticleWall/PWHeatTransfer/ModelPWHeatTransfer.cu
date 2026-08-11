@@ -1,5 +1,6 @@
-/* Copyright (c) 2023, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2023, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelPWHeatTransfer.cuh"
@@ -19,7 +20,7 @@ void CModelPWHeatTransfer::CalculatePWGPU(double _time, double _timeStep, const 
 {
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDA_CalcPWHeatTransfer_kernel,
 		_particles.Coords,
-		_particles.Radii,
+		_particles.ContactRadii,
 		_particles.Temperatures,
 
 		_particles.HeatFluxes,
@@ -35,7 +36,7 @@ void CModelPWHeatTransfer::CalculatePWGPU(double _time, double _timeStep, const 
 
 void __global__ CUDA_CalcPWHeatTransfer_kernel(
 	const CVector3	_partCoords[],
-	const double	_partRadii[],
+	const double	_partContactRadii[],
 	const double    _partTemperatures[],
 
 	double          _partHeatFluxes[],
@@ -50,10 +51,10 @@ void __global__ CUDA_CalcPWHeatTransfer_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		const unsigned iColl            = _collActivityIndices[iActivColl];
-		const unsigned iPart            = _collDstIDs[iColl];
-		const double   partRadius       = _partRadii[iPart];
-		const double   partTemperature  = _partTemperatures[iPart];
+		const unsigned iColl             = _collActivityIndices[iActivColl];
+		const unsigned iPart             = _collDstIDs[iColl];
+		const double   partContactRadius = _partContactRadii[iPart];
+		const double   partTemperature   = _partTemperatures[iPart];
 
 		const double wallTemperature   = m_vConstantModelParameters[0];
 		const double heatTransferCoeff = m_vConstantModelParameters[1];
@@ -63,10 +64,10 @@ void __global__ CUDA_CalcPWHeatTransfer_kernel(
 		const double   rcLen = rc.Length();
 
 		// normal overlap
-		const double normOverlap = partRadius - rcLen;
+		const double normOverlap = partContactRadius - rcLen;
 		if (normOverlap < 0) continue;
 
-		const double heatFlux = PI * partRadius * normOverlap * heatTransferCoeff * resistivityFactor * (wallTemperature - partTemperature);
+		const double heatFlux = PI * partContactRadius * normOverlap * heatTransferCoeff * resistivityFactor * (wallTemperature - partTemperature);
 
 		CUDA_ATOMIC_ADD(_partHeatFluxes[iPart], heatFlux);
 	}

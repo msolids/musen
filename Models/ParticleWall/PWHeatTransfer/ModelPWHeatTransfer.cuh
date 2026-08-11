@@ -1,5 +1,6 @@
-/* Copyright (c) 2023, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2023, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -8,7 +9,7 @@
 
 void __global__ CUDA_CalcPWHeatTransfer_kernel(
 	const CVector3	_partCoords[],
-	const double	_partRadii[],
+	const double	_partContactRadii[],
 	const double    _partTemperatures[],
 
 	double          _partHeatFluxes[],

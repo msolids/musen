@@ -1,5 +1,6 @@
-/* Copyright (c) 2023, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2023, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelPWHeatTransfer.h"
@@ -19,8 +20,8 @@ CModelPWHeatTransfer::CModelPWHeatTransfer()
 
 void CModelPWHeatTransfer::CalculatePW(double _time, double _timeStep, size_t _iWall, size_t _iPart, const SInteractProps& _interactProp, SCollision* _collision) const
 {
-	const double partRadius      = Particles().Radius(_iPart);
-	const double partTemperature = Particles().Temperature(_iPart);
+	const double partContactRadius = Particles().ContactRadius(_iPart);
+	const double partTemperature   = Particles().Temperature(_iPart);
 
 	const double wallTemperature   = m_parameters[0].value;
 	const double heatTransferCoeff = m_parameters[1].value;
@@ -30,10 +31,10 @@ void CModelPWHeatTransfer::CalculatePW(double _time, double _timeStep, size_t _i
 	const double   rcLen = rc.Length();
 
 	// normal overlap
-	const double normOverlap = partRadius - rcLen;
+	const double normOverlap = partContactRadius - rcLen;
 	if (normOverlap < 0) return;
 
-	_collision->dHeatFlux = PI * partRadius * normOverlap * heatTransferCoeff * resistivityFactor * (wallTemperature - partTemperature);
+	_collision->dHeatFlux = PI * partContactRadius * normOverlap * heatTransferCoeff * resistivityFactor * (wallTemperature - partTemperature);
 }
 
 void CModelPWHeatTransfer::ConsolidatePart(double _time, double _timeStep, size_t _iPart, SParticleStruct& _particles, const SCollision* _collision) const
