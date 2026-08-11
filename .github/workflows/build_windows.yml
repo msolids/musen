@@ -36,9 +36,11 @@ jobs:
             cuda_packages: '["cudart", "curand_dev", "nvcc"]'
           - cuda: '11.8.0' # CUDA 11.3–11.8
             sm: '35'
+            msvc_toolset: '14.29'
             cuda_packages: '["cudart", "curand_dev", "nvcc", "thrust"]'
           - cuda: '12.9.1' # CUDA 12.x
             sm: '50'
+            msvc_toolset: '14.44'
             cuda_packages: '["cudart", "curand_dev", "nvcc", "thrust"]'
           - cuda: '13.2.0' # CUDA 13.x
             sm: '75'
