@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelPW.cuh"
@@ -64,9 +65,6 @@ void CModelPW::CalculatePWGPU(double _time, double _timeStep, const SInteractPro
 		_collisions.ContactVectors,  // interpreted as Contact Point
 		_collisions.SrcIDs,
 		_collisions.DstIDs,
-		_collisions.EquivMasses,
-		_collisions.EquivRadii,
-		_collisions.NormalOverlaps,
 		_collisions.VirtualShifts,
 
 		_collisions.TangOverlaps,
@@ -119,9 +117,6 @@ void __global__ CUDA_CalcPWForce_kernel(
 	const CVector3		_collContactPoints[],
 	const unsigned		_collSrcIDs[],
 	const unsigned		_collDstIDs[],
-	const double		_collEquivMasses[],
-	const double		_collEquivRadii[],
-	const double		_collNormalOverlaps[],
 	const uint8_t		_collVirtShifts[],
 
 	CVector3 _collTangOverlaps[],

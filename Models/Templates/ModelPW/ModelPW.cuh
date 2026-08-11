@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -53,9 +54,6 @@ void __global__ CUDA_CalcPWForce_kernel(
 	const CVector3		_collContactPoints[],
 	const unsigned		_collSrcIDs[],
 	const unsigned		_collDstIDs[],
-	const double		_collEquivMasses[],
-	const double		_collEquivRadii[],
-	const double		_collNormalOverlaps[],
 	const uint8_t		_collVirtShifts[],
 
 	CVector3 _collTangOverlaps[],
