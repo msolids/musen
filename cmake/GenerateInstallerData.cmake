@@ -26,4 +26,7 @@ if(GIT_FOUND)
   endif()
 endif()
 
+# strip characters that are not allowed in the installer file name
+string(REGEX REPLACE "[/\\\\:*?\"<>|]" "-" _branch "${_branch}")
+
 file(WRITE "${OUTPUT_FILE}" "[Version]\nBranch=${_branch}\n")
