@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "CUDAKernels.cuh"
@@ -251,7 +252,7 @@ namespace CUDAKernels
 	}
 
 	__global__ void InitializePPCollisions_kernel(const unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst,
-		const double* _partRadii, const double* _partMasses, const unsigned* _partCompoundIndices,
+		const double* _partContactRadii, const double* _partMasses, const unsigned* _partCompoundIndices,
 		unsigned* _collSrcID, unsigned* _collDstID, double* _collEquivMass, double* _collEquivRadius, double* _collSumRadii, uint16_t* _collInteractPropID)
 	{
 		for (unsigned iColl = blockIdx.x * blockDim.x + threadIdx.x; iColl < _nCollisions; iColl += blockDim.x * gridDim.x)
@@ -261,9 +262,9 @@ namespace CUDAKernels
 			_collSrcID[iColl] = iSrc;
 			_collDstID[iColl] = iDst;
 			_collInteractPropID[iColl] = _partCompoundIndices[iSrc] * m_nCompoundsNumber + _partCompoundIndices[iDst];
-			_collEquivRadius[iColl] = _partRadii[iSrc] * _partRadii[iDst] / (_partRadii[iSrc] + _partRadii[iDst]);
+			_collEquivRadius[iColl] = _partContactRadii[iSrc] * _partContactRadii[iDst] / (_partContactRadii[iSrc] + _partContactRadii[iDst]);
 			_collEquivMass[iColl] = _partMasses[iSrc] * _partMasses[iDst] / (_partMasses[iSrc] + _partMasses[iDst]);
-			_collSumRadii[iColl] = (_partRadii[iSrc] + _partRadii[iDst]);
+			_collSumRadii[iColl] = (_partContactRadii[iSrc] + _partContactRadii[iDst]);
 		}
 	}
 
@@ -318,7 +319,7 @@ namespace CUDAKernels
 	}
 
 	__global__ void GetIntersectTypePW_kernel(const unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst,
-		const double* _partRadii, const CVector3* _partCoords,
+		const double* _partContactRadii, const CVector3* _partCoords,
 		const CVector3* _wallVertex1, const CVector3* _wallVertex2, const CVector3* _wallVertex3, const CVector3* _wallMinCoord, const CVector3* _wallMaxCoord, const CVector3* _wallNormalVector,
 		const uint8_t* _collVirtShifts, EIntersectionType* _collTempIntersectionType, CVector3* _collContactPoint, bool* _bActivePart)
 	{
@@ -326,7 +327,7 @@ namespace CUDAKernels
 		{
 			const unsigned iWall = _vVerListDst[i];
 			const unsigned iPart = _vVerListSrc[i];
-			const double radius = _partRadii[iPart];
+			const double contactRadius = _partContactRadii[iPart];
 			const CVector3 partCoord = _partCoords[iPart];
 
 			const CVector3 coord = !_collVirtShifts[i] ? partCoord : GetVirtualProperty(partCoord, _collVirtShifts[i], m_PBCGPU);
@@ -334,12 +335,12 @@ namespace CUDAKernels
 			const CVector3 minCoord = _wallMinCoord[iWall];
 			const CVector3 maxCoord = _wallMaxCoord[iWall];
 
-			if (coord.x <= minCoord.x - radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
-			if (coord.y <= minCoord.y - radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
-			if (coord.z <= minCoord.z - radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
-			if (coord.x >= maxCoord.x + radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
-			if (coord.y >= maxCoord.y + radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
-			if (coord.z >= maxCoord.z + radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+			if (coord.x <= minCoord.x - contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+			if (coord.y <= minCoord.y - contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+			if (coord.z <= minCoord.z - contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+			if (coord.x >= maxCoord.x + contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+			if (coord.y >= maxCoord.y + contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+			if (coord.z >= maxCoord.z + contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
 
 			const CVector3 normalVector = _wallNormalVector[iWall];
 			const CVector3 vertex1 = _wallVertex1[iWall];
@@ -347,7 +348,7 @@ namespace CUDAKernels
 			const CVector3 vertex3 = _wallVertex3[iWall];
 
 			double PPD = DotProduct(coord - (vertex1 + vertex2 + vertex3) / 3.0, normalVector); // particle projection point distance
-			if (fabs(PPD) >= radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+			if (fabs(PPD) >= contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
 
 			const CVector3 A = coord - normalVector * PPD; // projection point
 
@@ -387,7 +388,7 @@ namespace CUDAKernels
 				const double sqrLength1 = SquaredLength(C1 - coord);
 				const double sqrLength2 = SquaredLength(C2 - coord);
 				const double sqrLength3 = SquaredLength(C3 - coord);
-				if (fmin(fmin(sqrLength1, sqrLength2), sqrLength3) >= radius * radius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
+				if (fmin(fmin(sqrLength1, sqrLength2), sqrLength3) >= contactRadius * contactRadius) { _collTempIntersectionType[i] = EIntersectionType::NO_CONTACT; continue; }
 				_bActivePart[iPart] = true;
 				if (sqrLength1 <= sqrLength2 && sqrLength1 <= sqrLength3)
 				{
@@ -651,7 +652,7 @@ namespace CUDAKernels
 
 	__global__ void GetPWOverlaps_kernel(const unsigned* _nActiveCollisions, const unsigned* _collActiveIndices, const unsigned* _collPartID,
 		const uint8_t* _collVirtShifts, const CVector3* _collContactVectors,
-		const CVector3* _partCoords, const double* _partRadii, const unsigned _maxParticleID, double* _overlaps, uint8_t* _flags)
+		const CVector3* _partCoords, const double* _partContactRadii, const unsigned _maxParticleID, double* _overlaps, uint8_t* _flags)
 	{
 		for (unsigned iActiveColl = blockIdx.x * blockDim.x + threadIdx.x; iActiveColl < *_nActiveCollisions; iActiveColl += blockDim.x * gridDim.x)
 		{
@@ -660,7 +661,7 @@ namespace CUDAKernels
 
 			const bool consider = iPart < _maxParticleID;
 			const CVector3 vRc = _VIRTUAL_COORDINATE(_partCoords[iPart], _collVirtShifts[iColl], m_PBCGPU) - _collContactVectors[iColl];
-			_overlaps[iColl] = _partRadii[iPart] - vRc.Length();
+			_overlaps[iColl] = _partContactRadii[iPart] - vRc.Length();
 			_flags[iColl] = consider ? 1 : 0;
 		}
 	}

@@ -423,7 +423,7 @@ void CObjectsGenerator::CreateRandomPoint(CVector3* _pResult, const SVolumeType&
 	_pResult->z = _boundBox.coordBeg.z + (double)(rand() + 1)*vSize.z/RAND_MAX;
 }
 
-bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _partCoords, const std::vector<double>& _partRadii,
+bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _partCoords, const std::vector<double>& _partContactRadii,
 	const std::vector<unsigned>& _existingPartID, const std::vector<unsigned>& _existingWallID, const CSimplifiedScene& _scene)
 {
 	const SPBC pbc = _scene.GetPBC();
@@ -433,7 +433,7 @@ bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _partCoords, c
 	// add new particles to calculator
 	CContactCalculator calculator;
 	for (size_t i = 0; i < _partCoords.size(); ++i)
-		calculator.AddParticle(static_cast<unsigned>(i), _partCoords[i], _partRadii[i]);
+		calculator.AddParticle(static_cast<unsigned>(i), _partCoords[i], _partContactRadii[i]);
 
 	// check self-overlapping over PBC boundaries
 	if (pbc.bEnabled)
@@ -460,7 +460,7 @@ bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _partCoords, c
 	// check PW overlaps
 	for (auto id : _existingWallID)
 		for (size_t j = 0; j < _partCoords.size(); ++j)
-			if (IsSphereIntersectTriangle(walls.Coordinates(id), walls.NormalVector(id), _partCoords[j], _partRadii[j]).first != EIntersectionType::NO_CONTACT)
+			if (IsSphereIntersectTriangle(walls.Coordinates(id), walls.NormalVector(id), _partCoords[j], _partContactRadii[j]).first != EIntersectionType::NO_CONTACT)
 				return true;
 
 	return false;
