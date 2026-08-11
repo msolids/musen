@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "VerletList.h"
@@ -669,7 +670,6 @@ void CVerletList::RecalcParticlesPositions()
 				}
 	});
 
-
 	for (size_t iGrid = 0; iGrid < m_vGrid.size(); ++iGrid)
 	{
 		SGridLevel& gridLevel = m_vGrid[iGrid];
@@ -681,10 +681,10 @@ void CVerletList::RecalcParticlesPositions()
 			if (m_vParticles.Active(i))
 			{
 				const CVector3 relCoord = (m_vParticles.Coord(i) - m_workDomain.coordBeg) / gridLevel.dCellSize;
-				// limit from above for the case if the particle lays outside the domain (like newly generated)
-				vIDx[i] = std::min(static_cast<unsigned>(floor(relCoord.x)), gridLevel.nCellsX - 1);
-				vIDy[i] = std::min(static_cast<unsigned>(floor(relCoord.y)), gridLevel.nCellsY - 1);
-				vIDz[i] = std::min(static_cast<unsigned>(floor(relCoord.z)), gridLevel.nCellsZ - 1);
+				// clamped if the particle lays outside the domain (like newly generated)
+				vIDx[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.x), 0.0, gridLevel.nCellsX - 1.0));
+				vIDy[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.y), 0.0, gridLevel.nCellsY - 1.0));
+				vIDz[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.z), 0.0, gridLevel.nCellsZ - 1.0));
 				vTotalIndex[i] = vIDx[i] * gridLevel.nCellsY*gridLevel.nCellsZ + vIDy[i] * gridLevel.nCellsZ + vIDz[i];
 			}
 			else
