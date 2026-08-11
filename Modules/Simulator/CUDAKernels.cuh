@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -81,7 +82,7 @@ namespace CUDAKernels
 		bool* _newActiveCollFlags, double* _newNormalOverlap, CVector3* _newTangOverlap, CVector3* _newContactVector, CVector3* _newTotalForce);
 
 	__global__ void InitializePPCollisions_kernel(unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst,
-		const double* _partRadii, const double* _partMasses, const unsigned* _partCompoundIndices,
+		const double* _partContactRadii, const double* _partMasses, const unsigned* _partCompoundIndices,
 		unsigned* _collSrcID, unsigned* _collDstID, double* _collEquivMass, double* _collEquivRadius, double* _collSumRadii, uint16_t* _collInteractPropID);
 
 	__global__ void InitializePWCollisions_kernel(unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst,
@@ -94,7 +95,7 @@ namespace CUDAKernels
 		CVector3* _collContactVectors, CVector3* _collTangOverlaps);
 
 	__global__ void GetIntersectTypePW_kernel(unsigned _nCollisions, const unsigned* _vVerListSrc, const unsigned* _vVerListDst,
-		const double* _partRadii, const CVector3* _partCoords,
+		const double* _partContactRadii, const CVector3* _partCoords,
 		const CVector3* _wallVertex1, const CVector3* _wallVertex2, const CVector3* _wallVertex3, const CVector3* _wallMinCoord, const CVector3* _wallMaxCoord, const CVector3* _wallNormalVector,
 		const uint8_t* _collVirtShifts, EIntersectionType* _collTempIntersectionType, CVector3* _collContactPoint, bool* _bActivePart);
 
@@ -139,7 +140,7 @@ namespace CUDAKernels
 		const double* _collNormalOverlaps, const unsigned _maxParticleID, double* _overlaps, uint8_t* _flags);
 	__global__ void GetPWOverlaps_kernel(const unsigned* _nActiveCollisions, const unsigned* _collActiveIndices, const unsigned* _collPartID,
 		const uint8_t* _collVirtShifts, const CVector3* _collContactVectors,
-		const CVector3* _partCoords, const double* _partRadii, unsigned _maxParticleID, double* _overlaps, uint8_t* _flags);
+		const CVector3* _partCoords, const double* _partContactRadii, unsigned _maxParticleID, double* _overlaps, uint8_t* _flags);
 
 	__global__ void ReduceSum_kernel(unsigned _num, const unsigned* _idata, unsigned* _odata);
 	__global__ void ReduceSum_kernel(unsigned _num, const double* _idata, double* _odata);
