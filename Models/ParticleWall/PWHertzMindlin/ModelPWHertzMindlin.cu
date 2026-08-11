@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "ModelPWHertzMindlin.cuh"
@@ -23,6 +24,7 @@ void CModelPWHertzMindlin::CalculatePWGPU(double _time, double _timeStep, const 
 		_particles.Coords,
 		_particles.Masses,
 		_particles.Radii,
+		_particles.ContactRadii,
 		_particles.Vels,
 		_particles.Forces,
 		_particles.Moments,
@@ -54,6 +56,7 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 	const CVector3	_partCoords[],
 	const double	_partMasses[],
 	const double	_partRadii[],
+	const double	_partContactRadii[],
 	const CVector3	_partVels[],
 	CVector3		_partForces[],
 	CVector3		_partMoments[],
@@ -78,21 +81,22 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 {
 	for (unsigned iActivColl = blockIdx.x * blockDim.x + threadIdx.x; iActivColl < *_collActiveCollisionsNum; iActivColl += blockDim.x * gridDim.x)
 	{
-		const unsigned       iColl            = _collActivityIndices[iActivColl];
-		const unsigned       iWall            = _collSrcIDs[iColl];
-		const unsigned       iPart            = _collDstIDs[iColl];
-		const SInteractProps prop             = _interactProps[_collInteractPropIDs[iColl]];
-		const double         partRadius       = _partRadii[iPart];
-		const CVector3       partAnglVel      = _partAnglVels[iPart];
-		const CVector3       normVector       = _wallNormalVecs[iWall];
-		const CVector3       tangOverlapOld   = _collTangOverlaps[iColl];
+		const unsigned       iColl             = _collActivityIndices[iActivColl];
+		const unsigned       iWall             = _collSrcIDs[iColl];
+		const unsigned       iPart             = _collDstIDs[iColl];
+		const SInteractProps prop              = _interactProps[_collInteractPropIDs[iColl]];
+		const double         partRadius        = _partRadii[iPart];
+		const double         partContactRadius = _partContactRadii[iPart];
+		const CVector3       partAnglVel       = _partAnglVels[iPart];
+		const CVector3       normVector        = _wallNormalVecs[iWall];
+		const CVector3       tangOverlapOld    = _collTangOverlaps[iColl];
 
 		const CVector3 rc     = GPU_GET_VIRTUAL_COORDINATE(_partCoords[iPart]) - _collContactPoints[iColl];
 		const double   rcLen  = rc.Length();
 		const CVector3 rcNorm = rc / rcLen;
 
 		// normal overlap
-		const double normOverlap = partRadius - rcLen;
+		const double normOverlap = partContactRadius - rcLen;
 		if (normOverlap < 0) continue;
 
 		// normal and tangential relative velocity
@@ -103,7 +107,7 @@ void __global__ CUDA_CalcPWForce_HM_kernel(
 		const CVector3 tangRelVel    = relVel - normRelVel;
 
 		// radius of the contact area
-		const double contactAreaRadius = sqrt(partRadius * normOverlap);
+		const double contactAreaRadius = sqrt(partContactRadius * normOverlap);
 
 		// normal force with damping
 		const double Kn = 2 * prop.dEquivYoungModulus * contactAreaRadius;

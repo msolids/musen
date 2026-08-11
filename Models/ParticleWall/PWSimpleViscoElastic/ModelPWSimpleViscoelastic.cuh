@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -8,7 +9,7 @@
 
 void __global__ CUDA_CalcPWForce_VE_kernel(
 	const CVector3	_partCoords[],
-	const double	_partRadii[],
+	const double	_partContactRadii[],
 	const CVector3	_partVels[],
 	CVector3		_partForces[],
 	CVector3		_partMoments[],
