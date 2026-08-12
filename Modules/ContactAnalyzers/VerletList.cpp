@@ -6,6 +6,11 @@
 #include "VerletList.h"
 #include <cfloat>
 
+namespace
+{
+	constexpr uint32_t c_padCells = 2; ///< Number of empty grid cells kept between the particles and the grid boundary.
+}
+
 CVerletList::CVerletList(CSimplifiedScene& _Scene):
 	m_nThreadsNumber(GetThreadsNumber()),
 	m_vParticles(_Scene.GetRefToParticles()),
@@ -15,6 +20,7 @@ CVerletList::CVerletList(CSimplifiedScene& _Scene):
 	m_SimDomain.coordBeg.Init(0);
 	m_SimDomain.coordEnd.Init(0.5);
 	m_workDomain = m_SimDomain;
+	m_partAABB = m_SimDomain;
 	m_dMaxParticleRadius = 0;
 	m_dMinParticleRadius = 0;
 	m_dVerletDistance = 0;
@@ -38,6 +44,7 @@ void CVerletList::InitializeList()
 	m_nAutoVerletDistNumerator = 0;
 	m_dVerletDistance = 0;
 	m_nThreadsNumber = GetThreadsNumber();
+	m_partAABB = m_SimDomain;
 }
 
 void CVerletList::SetSceneInfo(const SVolumeType& _simDomain, double _dMinPartRadius, double _dMaxPartRadius, uint32_t _dMaxCellsNumber, double _dVerletCoeff, bool _bAutoAdjust)
@@ -47,6 +54,7 @@ void CVerletList::SetSceneInfo(const SVolumeType& _simDomain, double _dMinPartRa
 	{
 		m_SimDomain = _simDomain;
 		m_workDomain = m_SimDomain;
+		m_partAABB = m_SimDomain;
 		bRecalculate = true;
 	}
 	if (_dMinPartRadius != m_dMinParticleRadius && _dMinPartRadius > 0)
@@ -150,6 +158,8 @@ void CVerletList::RecalculateGrid()
 	double dCurrCellSize = 2 * m_dMaxParticleRadius +  m_dVerletDistance;
 	if (dCurrCellSize == 0)	return;
 
+	const uint32_t cellsMax = std::max(m_nCellsMax, 2 * c_padCells + 1);
+
 	// if PBC is enabled, the simulation domain must be large enough to allow generation of virtual particles outside PBC, but still inside the domain
 	if (m_Scene.m_PBC.bEnabled)
 	{
@@ -163,6 +173,18 @@ void CVerletList::RecalculateGrid()
 				m_workDomain.coordEnd[i] = std::max(m_workDomain.coordEnd[i], m_Scene.m_PBC.currentDomain.coordEnd[i] + delta);
 			}
 	}
+	else
+	{
+		// cover only the occupied region, padded so that no particle falls into an outermost cell
+		const CVector3 extent = m_partAABB.coordEnd - m_partAABB.coordBeg;
+		const double averExtent = (extent.x + extent.y + extent.z) / 3;
+		double cellSize = dCurrCellSize;
+		if (averExtent / cellSize > cellsMax - 2 * c_padCells)
+			cellSize = averExtent / (cellsMax - 2 * c_padCells); // keeps the cell number within the limit
+		const CVector3 pad{ c_padCells * cellSize };
+		m_workDomain.coordBeg = m_partAABB.coordBeg - pad;
+		m_workDomain.coordEnd = m_partAABB.coordEnd + pad;
+	}
 
 	const double dAverLength = (m_workDomain.coordEnd.x - m_workDomain.coordBeg.x + m_workDomain.coordEnd.y - m_workDomain.coordBeg.y + m_workDomain.coordEnd.z - m_workDomain.coordBeg.z) / 3;
 	do
@@ -173,9 +195,9 @@ void CVerletList::RecalculateGrid()
 		gl.dMaxPartRadius = (gl.dCellSize -  m_dVerletDistance) / 2;
 		dCurrCellSize /= 2; // proceed to the next grid
 		gl.dMinPartRadius = (dCurrCellSize -  m_dVerletDistance) / 2;
-		if (dAverLength / gl.dCellSize > m_nCellsMax)
+		if (dAverLength / gl.dCellSize > cellsMax)
 		{
-			gl.dCellSize = dAverLength / m_nCellsMax;
+			gl.dCellSize = dAverLength / cellsMax;
 			dCurrCellSize = 0; // to stop loop afterwards
 		}
 
@@ -209,9 +231,13 @@ bool CVerletList::IsNeedToBeUpdated(double _dTimeStep, double _dMaxPartDist, dou
 
 void CVerletList::UpdateList(double _dCurrTime)
 {
+	if (!m_Scene.m_PBC.bEnabled)
+		UpdateParticlesAABB();
 	if(m_bAutoAdjustVerletDistance)
 		AutoAdjustVerletDistance(_dCurrTime);
 	m_Scene.AddVirtualParticles(m_dVerletDistance);
+	if (!m_Scene.m_PBC.bEnabled && IsGridRefitNeeded())
+		RecalculateGrid();
 	ClearOldPositions();
 	RecalcPositions();
 	m_PPList.resize(m_vParticles.Size());
@@ -338,6 +364,52 @@ void CVerletList::RemoveSBContacts()
 void CVerletList::AddDisregardingTimeInterval(const clock_t& _interval)
 {
 	m_DisregardingTimeInterval += _interval;
+}
+
+void CVerletList::UpdateParticlesAABB()
+{
+	const size_t particlesNumber = m_vParticles.Size();
+	const size_t threadsNumber = std::max<size_t>(GetThreadsNumber(), 1);
+	const SVolumeType empty{ CVector3{ DBL_MAX }, CVector3{ -DBL_MAX } };
+	std::vector partialBox(threadsNumber, empty);
+	ParallelFor([&](size_t iThread)
+		{
+			SVolumeType box = empty;
+			for (size_t i = particlesNumber * iThread / threadsNumber; i < particlesNumber * (iThread + 1) / threadsNumber; ++i)
+				if (m_vParticles.Active(i) && m_vParticles.Coord(i).IsFinite())
+				{
+					const CVector3& coord = m_vParticles.Coord(i);
+					box.coordBeg = Min(box.coordBeg, coord);
+					box.coordEnd = Max(box.coordEnd, coord);
+				}
+			partialBox[iThread] = box;
+		});
+
+	SVolumeType box = empty;
+	for (const auto& part : partialBox)
+	{
+		box.coordBeg = Min(box.coordBeg, part.coordBeg);
+		box.coordEnd = Max(box.coordEnd, part.coordEnd);
+	}
+	// keep the previous box if no active particle with a finite position was found
+	if (box.coordBeg.x <= box.coordEnd.x)
+		m_partAABB = box;
+}
+
+bool CVerletList::IsGridRefitNeeded() const
+{
+	if (m_vGrid.empty()) return true;
+	const double cellSize = m_vGrid.front().dCellSize;
+	const double margin = (c_padCells - 1.0) * cellSize;
+	for (size_t d = 0; d < 3; ++d)
+	{
+		// the outermost grid cells must stay free of particles
+		if (m_partAABB.coordBeg[d] < m_workDomain.coordBeg[d] + margin) return true;
+		if (m_partAABB.coordEnd[d] > m_workDomain.coordEnd[d] - margin) return true;
+		// the grid covers much more than the particles occupy
+		if (m_workDomain.coordEnd[d] - m_workDomain.coordBeg[d] > 2 * (m_partAABB.coordEnd[d] - m_partAABB.coordBeg[d] + 2 * c_padCells * cellSize)) return true;
+	}
+	return false;
 }
 
 void CVerletList::AutoAdjustVerletDistance(double _dCurrentTime)
@@ -681,14 +753,17 @@ void CVerletList::RecalcParticlesPositions()
 			if (m_vParticles.Active(i))
 			{
 				const CVector3 relCoord = (m_vParticles.Coord(i) - m_workDomain.coordBeg) / gridLevel.dCellSize;
-				// clamped if the particle lays outside the domain (like newly generated)
-				vIDx[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.x), 0.0, gridLevel.nCellsX - 1.0));
-				vIDy[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.y), 0.0, gridLevel.nCellsY - 1.0));
-				vIDz[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.z), 0.0, gridLevel.nCellsZ - 1.0));
-				vTotalIndex[i] = vIDx[i] * gridLevel.nCellsY*gridLevel.nCellsZ + vIDy[i] * gridLevel.nCellsZ + vIDz[i];
+				if (relCoord.IsFinite()) // a particle without a finite position cannot be placed into the grid
+				{
+					// clamped if the particle lays outside the domain (like newly generated)
+					vIDx[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.x), 0.0, gridLevel.nCellsX - 1.0));
+					vIDy[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.y), 0.0, gridLevel.nCellsY - 1.0));
+					vIDz[i] = static_cast<size_t>(std::clamp(std::floor(relCoord.z), 0.0, gridLevel.nCellsZ - 1.0));
+					vTotalIndex[i] = vIDx[i] * gridLevel.nCellsY*gridLevel.nCellsZ + vIDy[i] * gridLevel.nCellsZ + vIDz[i];
+					return;
+				}
 			}
-			else
-				vTotalIndex[i] = nMaxIndex + 1;
+			vTotalIndex[i] = nMaxIndex + 1;
 		});
 
 		ParallelFor([&](size_t iThread)

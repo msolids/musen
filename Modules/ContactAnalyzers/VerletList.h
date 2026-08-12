@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -71,7 +72,8 @@ private:
 	SParticleStruct& m_vParticles;
 	const SWallStruct& m_vWalls;
 	SVolumeType m_SimDomain;
-	SVolumeType m_workDomain; // Working simulation domain taking into account simulation domain, verlet distance and max particle radius. Needed for proper work with PBC.
+	SVolumeType m_workDomain; ///< Region covered by the grid: the padded particle bounding box, or the simulation domain extended to hold virtual particles if PBC is enabled.
+	SVolumeType m_partAABB{}; ///< Axis-aligned minimum bounding box of the centres of all active particles.
 	double m_dMaxParticleRadius;
 	double m_dMinParticleRadius;
 	double m_dVerletDistance;
@@ -105,6 +107,12 @@ public:
 	void AddDisregardingTimeInterval(const clock_t& _interval);
 
 private:
+	/** @brief Recalculates the bounding box of all active particles. */
+	void UpdateParticlesAABB();
+	/**
+	 * @brief Checks whether the grid has to be rebuilt to fit the current particles.
+	 * @return True if the particles do not fit the grid anymore, or the grid is much larger than needed. */
+	[[nodiscard]] bool IsGridRefitNeeded() const;
 	void AutoAdjustVerletDistance( double _dCurrentTime );
 	void RecalculateGrid();	// recalculates whole grids
 	void EmptyGrid();

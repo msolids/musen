@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -43,6 +44,7 @@ public:
 	CUDA_HOST_DEVICE bool IsZero() const { return x == 0 && y == 0 && z == 0; }
 	CUDA_HOST_DEVICE bool IsSignificant() const { return fabs(x) > MIN_SIGNIFICANT_VALUE || fabs(y) > MIN_SIGNIFICANT_VALUE || fabs(z) > MIN_SIGNIFICANT_VALUE; }
 	CUDA_HOST_DEVICE bool IsInf() const { return isinf(x) || isinf(y) || isinf(z); }
+	CUDA_HOST_DEVICE bool IsFinite() const { return isfinite(x) && isfinite(y) && isfinite(z); }
 
 	CUDA_HOST_DEVICE T Length() const { return sqrt(x*x + y*y + z*z); }
 	CUDA_HOST_DEVICE friend T Length(const CBasicVector3& _v) { return sqrt(_v.x*_v.x + _v.y*_v.y + _v.z*_v.z); }
