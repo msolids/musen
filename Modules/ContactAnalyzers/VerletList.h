@@ -72,8 +72,8 @@ private:
 	SParticleStruct& m_vParticles;
 	const SWallStruct& m_vWalls;
 	SVolumeType m_SimDomain;
-	SVolumeType m_workDomain; ///< Region covered by the grid: the padded particle bounding box, or the simulation domain extended to hold virtual particles if PBC is enabled.
-	SVolumeType m_partAABB{}; ///< Axis-aligned minimum bounding box of the centres of all active particles.
+	SVolumeType m_gridDomain{};      ///< Region covered by the grid: a padded bounding box of all particles.
+	SVolumeType m_partBoundingBox{}; ///< Bounding box of the centres of all active particles, virtual ones included.
 	double m_dMaxParticleRadius;
 	double m_dMinParticleRadius;
 	double m_dVerletDistance;
@@ -108,12 +108,14 @@ public:
 
 private:
 	/** @brief Recalculates the bounding box of all active particles. */
-	void UpdateParticlesAABB();
+	void UpdateParticlesBoundingBox();
 	/**
 	 * @brief Checks whether the grid has to be rebuilt to fit the current particles.
 	 * @return True if the particles do not fit the grid anymore, or the grid is much larger than needed. */
 	[[nodiscard]] bool IsGridRefitNeeded() const;
 	void AutoAdjustVerletDistance( double _dCurrentTime );
+	/** @brief Invalidates the grid and marks it for a rebuild during the next update. */
+	void InvalidateGrid();
 	void RecalculateGrid();	// recalculates whole grids
 	void EmptyGrid();
 	void SortList();		// Sorts current PP verlet list so that the src is always smaller as the dst.
