@@ -137,8 +137,8 @@ namespace CUDAKernels
 			const unsigned iWall = _wallsInGeom[i];
 			const double area = 0.5 * Length((_vertex2[iWall] - _vertex1[iWall]) * (_vertex3[iWall] - _vertex1[iWall]));
 			const CVector3 centroid = (_vertex1[iWall] + _vertex2[iWall] + _vertex3[iWall]) / 3.;
-			_areas[iWall] = area;
-			_weightedCentroids[iWall] = area * centroid;
+			_areas[i] = area;
+			_weightedCentroids[i] = area * centroid;
 		}
 	}
 
