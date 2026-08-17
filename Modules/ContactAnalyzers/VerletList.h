@@ -19,6 +19,8 @@ struct SCalcPerfmMetric
 #define DEFAULT_TEOR_DISTANCE			1e+12
 #define DEFAULT_VERLET_DISTANCE_COEFF	2
 
+constexpr uint32_t c_defaultVerletMaxCells = 50;	///< Default cube root of the maximum total number of grid cells for Verlet lists calculation.
+
 class CVerletList
 {
 public:
@@ -80,7 +82,7 @@ private:
 	double m_dMaxTheorWallDistance; // the maximal theoretical distance which has been overcome by particles
 	bool m_bConnectedPPContact; // consider contact between already connected particles
 	std::vector<SGridLevel> m_vGrid;
-	uint32_t m_nCellsMax;					/// Maximum allowed number of cells in each direction.
+	uint32_t m_nCellsMax;				///< Cube root of the maximum allowed total number of grid cells.
 	double m_dVerletDistanceCoeff;		/// A coefficient to calculate verlet distance.
 	bool m_bAutoAdjustVerletDistance;	/// If set to true - the verlet distance will be automatically adjusted during the simulation.
 
@@ -107,7 +109,8 @@ public:
 	void AddDisregardingTimeInterval(const clock_t& _interval);
 
 private:
-	/** @brief Recalculates the bounding box of all active particles. */
+	/**
+	 * @brief Recalculates the bounding box of all active particles. */
 	void UpdateParticlesBoundingBox();
 	/**
 	 * @brief Checks whether the grid has to be rebuilt to fit the current particles.
@@ -116,7 +119,9 @@ private:
 	void AutoAdjustVerletDistance( double _dCurrentTime );
 	/** @brief Invalidates the grid and marks it for a rebuild during the next update. */
 	void InvalidateGrid();
-	void RecalculateGrid();	// recalculates whole grids
+	/**
+	 * @brief Rebuilds all grid levels around the current particle bounding box. */
+	void RecalculateGrid();
 	void EmptyGrid();
 	void SortList();		// Sorts current PP verlet list so that the src is always smaller as the dst.
 

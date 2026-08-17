@@ -7,6 +7,11 @@
 #include "ThreadPool.h"
 #include <algorithm>
 
+namespace
+{
+	constexpr unsigned c_defaultMaxCells = 50;	///< Default maximum number of contact detection grid cells per direction.
+}
+
 CContactCalculator::CContactCalculator()
 {
 	m_nMaxID = 0;
@@ -14,7 +19,7 @@ CContactCalculator::CContactCalculator()
 	m_nCellsX = 0;
 	m_nCellsY = 0;
 	m_nCellsZ = 0;
-	m_nCellsMax = DEFAULT_MAX_CELLS;
+	m_nCellsMax = c_defaultMaxCells;
 }
 
 void CContactCalculator::AddParticle(unsigned _nID, const CVector3& _vCoord, double _dRadius)
