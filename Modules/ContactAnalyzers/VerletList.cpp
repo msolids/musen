@@ -16,7 +16,7 @@ namespace
 	constexpr uint32_t c_padCells = 2;									///< Number of empty grid cells kept between the particles and the grid boundary.
 	constexpr double c_padTotal = 2 * c_padCells + 1;					///< Cells each direction holds on top of those covering the particles.
 	constexpr uint32_t c_noCell = std::numeric_limits<uint32_t>::max();	///< Marks an object which is placed into no cell.
-	constexpr uint32_t c_cellsMaxLimit = 1625;							///< Largest allowed number of cells per direction: the cube root of the uint32_t range.
+	constexpr uint32_t c_cellsMaxLimit = 1625;							///< Upper limit for the cell number: its cube must stay within uint32_t.
 }
 
 void CVerletList::CCellLists::Reset(size_t _cellsNumber)
@@ -53,7 +53,6 @@ CVerletList::SCellSpan CVerletList::CCellLists::Cell(size_t _iCell) const
 }
 
 CVerletList::CVerletList(CSimplifiedScene& _Scene):
-	m_nThreadsNumber(GetThreadsNumber()),
 	m_vParticles(_Scene.GetRefToParticles()),
 	m_vWalls(_Scene.GetRefToWalls()),
 	m_Scene(_Scene)
@@ -84,7 +83,6 @@ void CVerletList::InitializeList()
 	m_DisregardingTimeInterval = 0;
 	m_nAutoVerletDistNumerator = 0;
 	m_dVerletDistance = 0;
-	m_nThreadsNumber = GetThreadsNumber();
 	m_partBoundingBox = m_SimDomain;
 	InvalidateGrid();
 }
@@ -131,46 +129,54 @@ void CVerletList::SetSceneInfo(const SVolumeType& _simDomain, double _dMinPartRa
 
 void CVerletList::SortList()
 {
-	std::vector<std::vector<unsigned>> vTempDst(m_PPList.size());  // iDst
-	std::vector<std::vector<uint8_t>> vTempVirt(m_PPList.size()); // virtData
-	// remove old contacts and save new ones
-	ParallelFor(m_PPList.size(), [&](size_t iSrc)
+	const size_t rowsNumber = m_PPList.size();
+	const size_t threadsNumber = std::max<size_t>(GetThreadsNumber(), 1);
+	const bool pbcEnabled = m_Scene.m_PBC.bEnabled;
+
+	m_reversedPairs.resize(threadsNumber * threadsNumber);
+	for (auto& bucket : m_reversedPairs)
+		bucket.clear();
+
+	// take the wrongly directed contacts out of their rows
+	ParallelFor(threadsNumber, [&](size_t iThread)
 	{
-		size_t j = 0;
-		while (j < m_PPList[iSrc].size())
+		for (size_t iSrc = iThread; iSrc < rowsNumber; iSrc += threadsNumber)
 		{
-			const unsigned iDst = m_PPList[iSrc][j];
-			if (iDst < iSrc)
+			size_t j = 0;
+			while (j < m_PPList[iSrc].size())
 			{
-				vTempDst[iSrc].push_back(iDst);
-				m_PPList[iSrc][j] = m_PPList[iSrc].back();
-				m_PPList[iSrc].pop_back();
-				if (m_Scene.m_PBC.bEnabled)
+				const uint32_t iDst = m_PPList[iSrc][j];
+				if (iDst < iSrc)
 				{
-					vTempVirt[iSrc].emplace_back(InverseVirtShift(m_PPVirtShift[iSrc][j]));
-					m_PPVirtShift[iSrc][j] = m_PPVirtShift[iSrc].back();
-					m_PPVirtShift[iSrc].pop_back();
+					const size_t iBucket = iThread * threadsNumber + iDst % threadsNumber;
+					const uint8_t shift = pbcEnabled ? InverseVirtShift(m_PPVirtShift[iSrc][j]) : uint8_t{ 0 };
+					m_reversedPairs[iBucket].push_back({ iDst, static_cast<uint32_t>(iSrc), shift });
+					m_PPList[iSrc][j] = m_PPList[iSrc].back();
+					m_PPList[iSrc].pop_back();
+					if (pbcEnabled)
+					{
+						m_PPVirtShift[iSrc][j] = m_PPVirtShift[iSrc].back();
+						m_PPVirtShift[iSrc].pop_back();
+					}
 				}
+				else
+					++j;
 			}
-			else
-				j++;
 		}
 	});
 
-	// add new contacts
-	ParallelFor([&](size_t iThread)
+	// put them back into the rows of their destinations
+	ParallelFor(threadsNumber, [&](size_t iThread)
 	{
-		for (size_t iSrc = 0; iSrc < vTempDst.size(); ++iSrc)
-			for (size_t i = 0; i < vTempDst[iSrc].size(); ++i)
+		for (size_t iWriter = 0; iWriter < threadsNumber; ++iWriter)
+		{
+			for (const SReversedPair& pair : m_reversedPairs[iWriter * threadsNumber + iThread])
 			{
-				const unsigned iDst = vTempDst[iSrc][i];
-				if (iDst % m_nThreadsNumber == iThread)
-				{
-					m_PPList[iDst].push_back(static_cast<unsigned>(iSrc));
-					if (m_Scene.m_PBC.bEnabled)
-						m_PPVirtShift[iDst].push_back(vTempVirt[iSrc][i]);
-				}
+				m_PPList[pair.dst].push_back(pair.src);
+				if (pbcEnabled)
+					m_PPVirtShift[pair.dst].push_back(pair.shift);
 			}
+		}
 	});
 }
 
@@ -281,13 +287,14 @@ void CVerletList::UpdateList(double _dCurrTime)
 		ParallelFor(gridLevel.CellsNumber(), [&](size_t iCell)
 		{
 			const SCellSpan mainParts = gridLevel.mainParts.Cell(iCell);
-			if (mainParts.empty() && gridLevel.secondParts.Cell(iCell).empty()) return; // an empty cell can hold no contacts
+			const SCellSpan secondParts = gridLevel.secondParts.Cell(iCell);
+			if (mainParts.empty() && secondParts.empty()) return; // an empty cell can hold no contacts
 			const uint32_t x = static_cast<uint32_t>(floor(double(iCell) / gridLevel.cellsZ / gridLevel.cellsY));
 			const uint32_t y = static_cast<uint32_t>(floor(double(iCell - x * gridLevel.cellsZ * gridLevel.cellsY) / gridLevel.cellsZ));
 			const uint32_t z = static_cast<uint32_t>(iCell) - x* gridLevel.cellsZ* gridLevel.cellsY - y* gridLevel.cellsZ;
 			CheckCollisionPP(gridLevel, x, y, z, x, y, z, true);
 			CheckCollisionPW(gridLevel, iCell);
-			if (mainParts.size() > 10 && gridLevel.secondParts.Cell(iCell).empty())
+			if (mainParts.size() > 10 && secondParts.empty())
 			{
 				CheckCollisionPPSorted(gridLevel, x, y, z, x, y, z + 1, ESortCoord::Z);
 				CheckCollisionPPSorted(gridLevel, x, y, z, x, y + 1, z, ESortCoord::Y);
@@ -819,6 +826,9 @@ void CVerletList::GetPWContacts(size_t _iP, std::vector<EIntersectionType>& _vIn
 
 CVerletList::SCellRange CVerletList::WallCellRange(const SGridLevel& _gridLevel, unsigned _iWall) const
 {
+	if (!m_vWalls.MinCoord(_iWall).IsFinite() || !m_vWalls.MaxCoord(_iWall).IsFinite())
+		return {};	// a wall without a finite position cannot be placed into the grid
+
 	// Converts a cell coordinate into an index.
 	const auto CellBound = [](double _cellCoord, unsigned _cellsCount)
 		{

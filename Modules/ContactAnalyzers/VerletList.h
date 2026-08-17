@@ -38,8 +38,6 @@ public:
 	 * The length is equal to [partNum][collNumber].*/
 	std::vector<std::vector<uint8_t>> m_PWVirtShift;
 
-	size_t m_nThreadsNumber;	/// Number of available parallel threads.
-
 private:
 	/**
 	 * @brief Object indices stored for a single grid cell. */
@@ -86,7 +84,8 @@ private:
 	};
 
 	/**
-	 * @brief Inclusive range of cells covered by an object. */
+	 * @brief Inclusive range of cells covered by an object.
+	 * @details A default-constructed range is empty, since its first cell lies behind its last one. */
 	struct SCellRange
 	{
 		uint32_t minX{ 1 }, minY{ 1 }, minZ{ 1 };	///< First covered cell in each direction.
@@ -106,6 +105,7 @@ private:
 		uint32_t cellsX;		///< Number of cells in direction X.
 		uint32_t cellsY;		///< Number of cells in direction Y.
 		uint32_t cellsZ;		///< Number of cells in direction Z.
+
 		/**
 		 * @brief Returns the total number of cells of the level. */
 		[[nodiscard]] size_t CellsNumber() const { return static_cast<size_t>(cellsX) * cellsY * cellsZ; }
@@ -116,6 +116,15 @@ private:
 		 * @param _z Cell coordinate in direction Z.
 		 * @return Linear index of the cell. */
 		[[nodiscard]] size_t CellIndex(uint32_t _x, uint32_t _y, uint32_t _z) const { return (static_cast<size_t>(_x) * cellsY + _y) * cellsZ + _z; }
+	};
+
+	/**
+	 * @brief Auxiliary struct for flipping wrongly sorted PP list pairs. */
+	struct SReversedPair
+	{
+		uint32_t dst;	///< Index the contact moves to.
+		uint32_t src;	///< Index the contact was emitted in.
+		uint8_t shift;	///< Periodic shift, inverted for the new direction (for PBC).
 	};
 
 	struct SEntry
@@ -154,6 +163,8 @@ private:
 	unsigned m_nAutoVerletDistNumerator; // AutoUpdate verlet distance called after each 10 recalculation steps
 	std::vector<SCalcPerfmMetric> m_PerformHistory; // performance history
 
+	std::vector<std::vector<SReversedPair>> m_reversedPairs;	///< Contacts which SortList moves between indices, bucketed as [writing thread][receiving thread].
+
 public:
 	CVerletList(CSimplifiedScene& _Scene);
 	void InitializeList();
@@ -182,7 +193,9 @@ private:
 	/**
 	 * @brief Rebuilds all grid levels around the current particle bounding box. */
 	void RecalculateGrid();
-	void SortList();		// Sorts current PP verlet list so that the src is always smaller as the dst.
+	/**
+	 * @brief Sorts current PP verlet list so that the src is always smaller as the dst. */
+	void SortList();
 
 	void RecalcPositions();
 	/**
