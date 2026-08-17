@@ -37,7 +37,7 @@
          <string>The total number of cells in the contact detection grid is limited to the cube of this value</string>
         </property>
         <property name="minimum">
-         <number>1</number>
+         <number>6</number>
         </property>
         <property name="maximum">
          <number>1000</number>
