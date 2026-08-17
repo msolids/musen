@@ -12,8 +12,6 @@
 #define _180_PI     57.295779579
 #define _2_SQRT_5_6 1.825741858350553711523232609336
 
-#define DEFAULT_MAX_CELLS 50
-
 #define DEFAULT_ACTIVITY_END 1e+300
 
 enum class ERunningStatus

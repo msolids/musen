@@ -4,11 +4,14 @@
    See LICENSE file for license and warranty information. */
 
 #include "VerletList.h"
+
+#include <algorithm>
 #include <cfloat>
 
 namespace
 {
-	constexpr uint32_t c_padCells = 2; ///< Number of empty grid cells kept between the particles and the grid boundary.
+	constexpr uint32_t c_padCells = 2;					///< Number of empty grid cells kept between the particles and the grid boundary.
+	constexpr double c_padTotal = 2 * c_padCells + 1;	///< Cells each direction holds on top of those covering the particles.
 }
 
 CVerletList::CVerletList(CSimplifiedScene& _Scene):
@@ -31,7 +34,7 @@ CVerletList::CVerletList(CSimplifiedScene& _Scene):
 	m_dLastRealTime = 0;
 	m_nAutoVerletDistNumerator = 0;
 	m_bConnectedPPContact = false;
-	m_nCellsMax = DEFAULT_MAX_CELLS;
+	m_nCellsMax = c_defaultVerletMaxCells;
 	m_dVerletDistanceCoeff = DEFAULT_VERLET_DISTANCE_COEFF;
 	m_bAutoAdjustVerletDistance = true;
 }
@@ -45,6 +48,7 @@ void CVerletList::InitializeList()
 	m_dVerletDistance = 0;
 	m_nThreadsNumber = GetThreadsNumber();
 	m_partBoundingBox = m_SimDomain;
+	InvalidateGrid();
 }
 
 void CVerletList::SetSceneInfo(const SVolumeType& _simDomain, double _dMinPartRadius, double _dMaxPartRadius, uint32_t _dMaxCellsNumber, double _dVerletCoeff, bool _bAutoAdjust)
@@ -160,44 +164,45 @@ void CVerletList::RecalculateGrid()
 {
 	EmptyGrid();
 
-	double dCurrCellSize = 2 * m_dMaxParticleRadius +  m_dVerletDistance;
-	if (dCurrCellSize == 0)	return;
-
-	// the grid must keep at least one cell besides the padding, otherwise the subtraction below wraps
-	const uint32_t cellsMax = std::max(m_nCellsMax, 2 * c_padCells + 1);
+	double currCellSize = 2 * m_dMaxParticleRadius + m_dVerletDistance;
+	if (currCellSize == 0.0)
+		return;
 
 	// cover only the occupied region, padded so that no particle falls into an outermost cell
 	const CVector3 extent = m_partBoundingBox.coordEnd - m_partBoundingBox.coordBeg;
-	const double averExtent = (extent.x + extent.y + extent.z) / 3;
-	double cellSize = dCurrCellSize;
-	if (averExtent / cellSize > cellsMax - 2 * c_padCells)
-		cellSize = averExtent / (cellsMax - 2 * c_padCells); // keeps the cell number within the limit
-	const CVector3 pad{ c_padCells * cellSize };
+	// the number of cells is limited in total; the limit must leave room for the padding
+	const double cellsMax = std::max(static_cast<double>(m_nCellsMax), c_padTotal + 1);
+	const double cellsBudget = cellsMax * cellsMax * cellsMax;
+	// the smallest cell size which keeps the padded box within the budget
+	currCellSize = std::max(currCellSize, (extent.x + extent.y + extent.z) / (3 * (cellsMax - c_padTotal)));
+
+	const CVector3 pad{ c_padCells * currCellSize };
 	m_gridDomain.coordBeg = m_partBoundingBox.coordBeg - pad;
 	m_gridDomain.coordEnd = m_partBoundingBox.coordEnd + pad;
 
-	const double dAverLength = (m_gridDomain.coordEnd.x - m_gridDomain.coordBeg.x + m_gridDomain.coordEnd.y - m_gridDomain.coordBeg.y + m_gridDomain.coordEnd.z - m_gridDomain.coordBeg.z) / 3;
+	const CVector3 gridExtent = m_gridDomain.coordEnd - m_gridDomain.coordBeg;
+	// upper bound of the number of cells the padded box needs at a given cell size
+	const auto CellsNeeded = [&gridExtent](double _cellSize)
+		{
+			return (gridExtent.x / _cellSize + 1) * (gridExtent.y / _cellSize + 1) * (gridExtent.z / _cellSize + 1);
+		};
+
 	do
 	{
 		m_vGrid.emplace_back();
 		SGridLevel& gl = m_vGrid.back();
-		gl.dCellSize = dCurrCellSize;
-		gl.dMaxPartRadius = (gl.dCellSize -  m_dVerletDistance) / 2;
-		dCurrCellSize /= 2; // proceed to the next grid
-		gl.dMinPartRadius = (dCurrCellSize -  m_dVerletDistance) / 2;
-		if (dAverLength / gl.dCellSize > cellsMax)
-		{
-			gl.dCellSize = dAverLength / cellsMax;
-			dCurrCellSize = 0; // to stop loop afterwards
-		}
+		gl.dCellSize = currCellSize;
+		gl.dMaxPartRadius = (gl.dCellSize - m_dVerletDistance) / 2;
+		currCellSize /= 2; // proceed to the next grid
+		gl.dMinPartRadius = (currCellSize - m_dVerletDistance) / 2;
 
 		gl.nCellsX = static_cast<unsigned>(floor((m_gridDomain.coordEnd.x - m_gridDomain.coordBeg.x) / gl.dCellSize)) + 1;
 		gl.nCellsY = static_cast<unsigned>(floor((m_gridDomain.coordEnd.y - m_gridDomain.coordBeg.y) / gl.dCellSize)) + 1;
 		gl.nCellsZ = static_cast<unsigned>(floor((m_gridDomain.coordEnd.z - m_gridDomain.coordBeg.z) / gl.dCellSize)) + 1;
 
-		if (gl.nCellsX < 1) gl.nCellsX = 1;
-		if (gl.nCellsY < 1) gl.nCellsY = 1;
-		if (gl.nCellsZ < 1) gl.nCellsZ = 1;
+		gl.nCellsX = std::max(gl.nCellsX, 1u);
+		gl.nCellsY = std::max(gl.nCellsY, 1u);
+		gl.nCellsZ = std::max(gl.nCellsZ, 1u);
 
 		gl.grid.resize(gl.nCellsX);
 		for (unsigned x = 0; x < gl.nCellsX; ++x)
@@ -206,7 +211,8 @@ void CVerletList::RecalculateGrid()
 			for (unsigned y = 0; y < gl.nCellsY; ++y)
 				gl.grid[x][y].resize(gl.nCellsZ);
 		}
-	} while (dCurrCellSize > 2*m_dMinParticleRadius +  m_dVerletDistance);
+		// a further level is added only while it still holds smaller particles and fits the budget
+	} while (currCellSize > 2 * m_dMinParticleRadius + m_dVerletDistance && CellsNeeded(currCellSize) <= cellsBudget);
 
 	m_vGrid.back().dMinPartRadius = 0;
 }
@@ -770,9 +776,14 @@ void CVerletList::RecalcParticlesPositions()
 	}
 }
 
-
 void CVerletList::RecalcWallsPositions()
 {
+	// Converts a cell coordinate into an index, keeping the values that signal a coordinate outside the grid.
+	const auto CellBound = [](double _cellCoord, unsigned _cellsCount)
+		{
+			return static_cast<int>(std::clamp(_cellCoord, -2.0, static_cast<double>(_cellsCount)));
+		};
+
 	ParallelFor(m_vGrid.size(), [&](size_t iGrid)
 	{
 		for (unsigned iWall = 0; iWall < m_vWalls.Size(); ++iWall)
@@ -780,16 +791,16 @@ void CVerletList::RecalcWallsPositions()
 			SGridLevel& gridLevel = m_vGrid[iGrid];
 
 			const CVector3 minCoord = (m_vWalls.MinCoord(iWall) - m_gridDomain.coordBeg) / gridLevel.dCellSize;
-			int nMinX = static_cast<int>(floor(minCoord.x));
-			int nMinY = static_cast<int>(floor(minCoord.y));
-			int nMinZ = static_cast<int>(floor(minCoord.z));
+			int nMinX = CellBound(floor(minCoord.x), gridLevel.nCellsX);
+			int nMinY = CellBound(floor(minCoord.y), gridLevel.nCellsY);
+			int nMinZ = CellBound(floor(minCoord.z), gridLevel.nCellsZ);
 
 			if (nMinX >= static_cast<int>(gridLevel.nCellsX) || nMinY >= static_cast<int>(gridLevel.nCellsY) || nMinZ >= static_cast<int>(gridLevel.nCellsZ)) continue;
 
 			const CVector3 maxCoord = (m_vWalls.MaxCoord(iWall) - m_gridDomain.coordBeg) / gridLevel.dCellSize;
-			int nMaxX = static_cast<int>(ceil(maxCoord.x)) + 1;
-			int nMaxY = static_cast<int>(ceil(maxCoord.y)) + 1;
-			int nMaxZ = static_cast<int>(ceil(maxCoord.z)) + 1;
+			int nMaxX = CellBound(ceil(maxCoord.x), gridLevel.nCellsX) + 1;
+			int nMaxY = CellBound(ceil(maxCoord.y), gridLevel.nCellsY) + 1;
+			int nMaxZ = CellBound(ceil(maxCoord.z), gridLevel.nCellsZ) + 1;
 
 			if (nMaxX < 0 || nMaxY < 0 || nMaxZ < 0) continue;
 

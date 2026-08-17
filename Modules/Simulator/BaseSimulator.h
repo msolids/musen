@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -57,7 +58,7 @@ protected:
 	double m_maxParticleTemperature{ 0 };							// Maximal temperature of particles.
 	double m_maxWallVelocity{ 0 };									// Maximal velocity of walls.
 	bool m_wallsVelocityChanged{ true };							// Need to recalculate maximal wall velocity.
-	uint32_t m_cellsMax{ DEFAULT_MAX_CELLS };						// Maximum allowed number of cells in each direction of verlet list.
+	uint32_t m_cellsMax{ c_defaultVerletMaxCells };					///< Cube root of the maximum allowed total number of grid cells for Verlet lists calculation.
 	double m_verletDistanceCoeff{ DEFAULT_VERLET_DISTANCE_COEFF };	// A coefficient to calculate verlet distance within a verlet list.
 	bool m_autoAdjustVerletDistance{ true };						// If set to true - the verlet distance will be automatically adjusted during the simulation.
 	bool m_considerAnisotropy{ false };								// Consider anisotropy of non-spherical objects during the simulation.
