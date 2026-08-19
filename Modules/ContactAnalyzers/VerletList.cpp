@@ -14,9 +14,10 @@
 namespace
 {
 	constexpr uint32_t c_padCells = 2;									///< Number of empty grid cells kept between the particles and the grid boundary.
-	constexpr double c_padTotal = 2 * c_padCells + 1;					///< Cells each direction holds on top of those covering the particles.
 	constexpr uint32_t c_noCell = std::numeric_limits<uint32_t>::max();	///< Marks an object which is placed into no cell.
 	constexpr uint32_t c_cellsMaxLimit = 1625;							///< Upper limit for the cell number: its cube must stay within uint32_t.
+	constexpr size_t c_sortedMinParticles = 10;							///< Particles per cell from which the sorted neighbour search pays off.
+	constexpr double c_padTotal = 2 * c_padCells + 1;					///< Cells each direction holds on top of those covering the particles.
 }
 
 void CVerletList::CCellLists::Reset(size_t _cellsNumber)
@@ -294,7 +295,7 @@ void CVerletList::UpdateList(double _dCurrTime)
 			const uint32_t z = static_cast<uint32_t>(iCell) - x* gridLevel.cellsZ* gridLevel.cellsY - y* gridLevel.cellsZ;
 			CheckCollisionPP(gridLevel, x, y, z, x, y, z, true);
 			CheckCollisionPW(gridLevel, iCell);
-			if (mainParts.size() > 10 && secondParts.empty())
+			if (mainParts.size() > c_sortedMinParticles)
 			{
 				CheckCollisionPPSorted(gridLevel, x, y, z, x, y, z + 1, ESortCoord::Z);
 				CheckCollisionPPSorted(gridLevel, x, y, z, x, y + 1, z, ESortCoord::Y);
@@ -566,10 +567,18 @@ void CVerletList::InsertParticlesToVector(std::vector<SEntry>& _vec, SCellSpan _
 void CVerletList::CheckCollisionPPSorted(const SGridLevel& _gridLevel, unsigned _nX1, unsigned _nY1, unsigned _nZ1, unsigned _nX2, unsigned _nY2, unsigned _nZ2, ESortCoord _dim)
 {
 	if (_nX2 >= _gridLevel.cellsX || _nY2 >= _gridLevel.cellsY || _nZ2 >= _gridLevel.cellsZ) return;
+	const size_t iCell1 = _gridLevel.CellIndex(_nX1, _nY1, _nZ1);
+	const size_t iCell2 = _gridLevel.CellIndex(_nX2, _nY2, _nZ2);
+	// this function pairs only main with main, so any secondary particle in either cell needs the full check
+	if (!_gridLevel.secondParts.Cell(iCell1).empty() || !_gridLevel.secondParts.Cell(iCell2).empty())
+	{
+		CheckCollisionPP(_gridLevel, _nX1, _nY1, _nZ1, _nX2, _nY2, _nZ2);
+		return;
+	}
 
 	std::vector<SEntry> setMainRSorted, setMainLSorted;
-	InsertParticlesToVector(setMainRSorted, _gridLevel.mainParts.Cell(_gridLevel.CellIndex(_nX1, _nY1, _nZ1)), _dim, ESortDir::Right);
-	InsertParticlesToVector(setMainLSorted, _gridLevel.mainParts.Cell(_gridLevel.CellIndex(_nX2, _nY2, _nZ2)), _dim, ESortDir::Left);
+	InsertParticlesToVector(setMainRSorted, _gridLevel.mainParts.Cell(iCell1), _dim, ESortDir::Right);
+	InsertParticlesToVector(setMainLSorted, _gridLevel.mainParts.Cell(iCell2), _dim, ESortDir::Left);
 	for (auto it1 = setMainRSorted.crbegin(); it1 != setMainRSorted.crend(); ++it1) //main-main
 	{
 		const double temp1 = m_dVerletDistance + m_vParticles.ContactRadius(it1->id);
