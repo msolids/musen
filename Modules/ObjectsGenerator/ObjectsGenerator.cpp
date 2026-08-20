@@ -4,8 +4,84 @@
    See LICENSE file for license and warranty information. */
 
 #include "ObjectsGenerator.h"
-#include "Quaternion.h"
+
+#include "AnalysisVolume.h"
+#include "MaterialsDatabase.h"
+#include "Mixture.h"
 #include "MUSENStringFunctions.h"
+#include "Quaternion.h"
+#include "SimplifiedScene.h"
+
+namespace
+{
+	/**
+	 * @brief Returns true if the target object cannot be placed.
+	 * @details Checks the candidate's spheres against the already-placed spheres held in \p _grid
+	 * (including their periodic images), against each other over PBC boundaries, and against the
+	 * walls listed in \p _wallIDs.
+	 * @param _coords Centers of the candidate's spheres.
+	 * @param _radii Contact radii of the candidate's spheres.
+	 * @param _grid Index of the already-placed particles.
+	 * @param _wallIDs Walls in the generation volume.
+	 * @param _walls Walls of the scene.
+	 * @param _pbc Periodic boundary conditions of the scene.
+	 * @return True if the candidate overlaps any particle or wall. */
+	bool IsOverlapped(const std::vector<CVector3>& _coords, const std::vector<double>& _radii, const CPlacementGrid& _grid, const std::vector<unsigned>& _wallIDs, const SWallStruct& _walls, const SPBC& _pbc)
+	{
+		// check self-overlapping over PBC boundaries
+		if (_pbc.bEnabled && _coords.size() > 1)
+		{
+			CContactCalculator calculator;
+			for (size_t i = 0; i < _coords.size(); ++i)
+				calculator.AddParticle(static_cast<unsigned>(i), _coords[i], _radii[i]);
+			const std::vector<double> overlapsTarget = calculator.GetOverlaps(SPBC{});	// overlaps without PBC
+			const std::vector<double> overlapsActual = calculator.GetOverlaps(_pbc);	// overlaps with PBC
+			if (overlapsActual.size() > overlapsTarget.size())							// more overlaps than without PBC
+				return true;
+		}
+
+		const bool pbcAxis[3]{ _pbc.bEnabled && _pbc.bX, _pbc.bEnabled && _pbc.bY, _pbc.bEnabled && _pbc.bZ };
+
+		// check against the already-placed particles held in the grid
+		for (size_t i = 0; i < _coords.size(); ++i)
+		{
+			const CVector3& coord = _coords[i];
+			const double    radius = _radii[i];
+
+			// a sphere within its own contact reach of an enabled PBC also touches the opposite side
+			CVector3 shifts[8]{};	// 2^3: each axis is either wrapped or not; element 0 is no wrap at all
+			size_t shiftsNumber = 1;
+			for (size_t axis = 0; axis < 3; ++axis)
+			{
+				if (!pbcAxis[axis]) continue;
+				const double reach = radius + _grid.MaxRadius(); // widest contact distance to anything indexed
+				double shift = 0.0;
+				if (coord[axis] - _pbc.currentDomain.coordBeg[axis] < reach)
+					shift = _pbc.boundaryShift[axis];
+				else if (_pbc.currentDomain.coordEnd[axis] - coord[axis] < reach)
+					shift = -_pbc.boundaryShift[axis];
+				if (shift == 0.0) continue;
+				for (size_t j = 0, number = shiftsNumber; j < number; ++j, ++shiftsNumber)
+				{
+					shifts[shiftsNumber] = shifts[j];
+					shifts[shiftsNumber][axis] = shift;
+				}
+			}
+
+			for (size_t j = 0; j < shiftsNumber; ++j)
+				if (_grid.Overlaps(coord + shifts[j], radius))
+					return true;
+		}
+
+		// check PW overlaps
+		for (const auto id : _wallIDs)
+			for (size_t j = 0; j < _coords.size(); ++j)
+				if (IsSphereIntersectTriangle(_walls.Coordinates(id), _walls.NormalVector(id), _coords[j], _radii[j]).first != EIntersectionType::NO_CONTACT)
+					return true;
+
+		return false;
+	}
+}
 
 CObjectsGenerator::CObjectsGenerator(CAgglomeratesDatabase* _pAgglomD, CMaterialsDatabase* _pMaterialsDB) :
 	m_pAgglomDB( _pAgglomD ), m_pMaterialsDB( _pMaterialsDB )
@@ -31,7 +107,7 @@ CObjectsGenerator::CObjectsGenerator(CAgglomeratesDatabase* _pAgglomD, CMaterial
 
 void CObjectsGenerator::Initialize()
 {
-	m_dLastGenerationTime = 0;
+	m_dLastGenerationTime = m_dStartGenerationTime;
 	unsigned seed = (unsigned)time( 0 );
 	switch ( seed % 5 )
 	{
@@ -105,6 +181,18 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 	_Scene.GetAllParticlesInVolume(boundingBoxContactSearch, &vPartInVolume );
 	_Scene.GetAllWallsInVolume(boundingBoxContactSearch, &vWallsInVolume );
 
+	// initialize overlaps detector
+	{
+		const SParticleStruct& parts = _Scene.GetRefToParticles();
+		double maxContRadius = MaxObjectRadius();
+		for (auto id : vPartInVolume)
+			maxContRadius = std::max(maxContRadius, parts.ContactRadius(id));
+		const size_t newSpheres = nNewObjects * (m_bGenerateMixture ? 1 : m_PreLoadedAgglomerate.vParticles.size());
+		m_placementGrid.Initialize(boundingBoxContactSearch, maxContRadius, vPartInVolume.size() + newSpheres);
+		for (auto id : vPartInVolume)
+			m_placementGrid.Insert(parts.Coord(id), parts.ContactRadius(id));
+	}
+
 	SWallStruct& pWalls = _Scene.GetRefToWalls();
 	std::vector<CVector3> vCoordNewPart;
 	std::vector<CQuaternion> vQuatNewPart;
@@ -159,7 +247,7 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 			if ( vID.size() != vCoordNewPart.size() ) // not all particles in volume
 				bSuccess = false;
 			if ( bSuccess )
-				bSuccess = !IsOverlapped( vCoordNewPart, vContRadiiNewPart, vPartInVolume, vWallsInVolume, _Scene);
+				bSuccess = !IsOverlapped(vCoordNewPart, vContRadiiNewPart, m_placementGrid, vWallsInVolume, pWalls, m_PBC);
 
 			if (( bSuccess ) && (!m_bInsideGeometries))
 				for (const auto& checker : vInRealVolumeCheckers)
@@ -208,7 +296,8 @@ size_t CObjectsGenerator::Generate(double _dCurrentTime, CSystemStructure* _pSys
 				// update values for later addition to system structure
 				_newObjects.push_back(SGeneratedObject{ SPHERE, indices[iFree], _Scene.GetTotalParticlesNumber() - 1 });
 				iFree++;
-				vPartInVolume.push_back( (unsigned)_Scene.GetTotalParticlesNumber()-1 );
+				// make the new particle visible to the overlap check of subsequent attempts
+				m_placementGrid.Insert(vCoordNewPart[i], vContRadiiNewPart[i]);
 			}
 			if (m_bGenerateMixture)
 			{
@@ -258,7 +347,7 @@ bool CObjectsGenerator::IsNeedToBeGenerated(double _dCurrentTime) const
 
 size_t CObjectsGenerator::NumberToBeGenerated(double _currTime) const
 {
-	return static_cast<size_t>(floor((_currTime - (m_dLastGenerationTime - m_dStartGenerationTime)) * m_dGenerationRate));
+	return static_cast<size_t>(floor((_currTime - m_dLastGenerationTime) * m_dGenerationRate));
 }
 
 size_t CObjectsGenerator::MixtureFractionIndexToGenerate() const
@@ -283,6 +372,22 @@ size_t CObjectsGenerator::MixtureFractionIndexToGenerate() const
 
 	// if all the current fractions are equal to the target values, generate the 0th fraction
 	return 0;
+}
+
+double CObjectsGenerator::MaxObjectRadius() const
+{
+	double maxRadius = 0.0;
+	if (m_bGenerateMixture)
+	{
+		const CMixture* mixture = m_pMaterialsDB->GetMixture(m_sMixtureKey);
+		if (!mixture) return 0.0;
+		for (size_t i = 0; i < mixture->FractionsNumber(); ++i)
+			maxRadius = std::max({ maxRadius, mixture->GetFractionDiameter(i) / 2.0, mixture->GetFractionContactDiameter(i) / 2.0 });
+	}
+	else
+		for (const auto& particle : m_PreLoadedAgglomerate.vParticles)
+			maxRadius = std::max({ maxRadius, particle.dRadius, particle.dContactRadius });
+	return maxRadius;
 }
 
 bool CObjectsGenerator::IsGeneratingParticles() const
@@ -423,45 +528,3 @@ void CObjectsGenerator::CreateRandomPoint(CVector3* _pResult, const SVolumeType&
 	_pResult->z = _boundBox.coordBeg.z + (double)(rand() + 1)*vSize.z/RAND_MAX;
 }
 
-bool CObjectsGenerator::IsOverlapped(const std::vector<CVector3>& _partCoords, const std::vector<double>& _partContactRadii,
-	const std::vector<unsigned>& _existingPartID, const std::vector<unsigned>& _existingWallID, const CSimplifiedScene& _scene)
-{
-	const SPBC pbc = _scene.GetPBC();
-	const SParticleStruct& parts = _scene.GetRefToParticles();
-	const SWallStruct& walls = _scene.GetRefToWalls();
-
-	// add new particles to calculator
-	CContactCalculator calculator;
-	for (size_t i = 0; i < _partCoords.size(); ++i)
-		calculator.AddParticle(static_cast<unsigned>(i), _partCoords[i], _partContactRadii[i]);
-
-	// check self-overlapping over PBC boundaries
-	if (pbc.bEnabled)
-	{
-		std::vector<double> overlapsTarget = calculator.GetOverlaps(SPBC{});	// overlaps without PBC
-		std::vector<double> overlapsActual = calculator.GetOverlaps(pbc);		// overlaps with PBC
-		if (overlapsActual.size() > overlapsTarget.size())						// more overlaps than without PBC
-			return true;
-	}
-
-	// to distinguish between old and new particles
-	const unsigned limit = (unsigned)_partCoords.size() + 1;
-	// add old particles to calculator
-	for (auto id : _existingPartID)
-		calculator.AddParticle(id + limit, parts.Coord(id), parts.ContactRadius(id));
-	// calculate all overlaps
-	const auto [ID1, ID2] = calculator.GetOverlappingIDs(pbc);
-
-	// check if there are overlaps between old and new particles
-	for (size_t i = 0; i < ID1.size(); ++i)
-		if ((ID1[i] < limit && ID2[i] >= limit) || (ID1[i] >= limit && ID2[i] < limit))
-			return true;
-
-	// check PW overlaps
-	for (auto id : _existingWallID)
-		for (size_t j = 0; j < _partCoords.size(); ++j)
-			if (IsSphereIntersectTriangle(walls.Coordinates(id), walls.NormalVector(id), _partCoords[j], _partContactRadii[j]).first != EIntersectionType::NO_CONTACT)
-				return true;
-
-	return false;
-}

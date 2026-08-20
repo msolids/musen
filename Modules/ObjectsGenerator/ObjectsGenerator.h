@@ -4,10 +4,18 @@
    See LICENSE file for license and warranty information. */
 
 #pragma once
-#include "SystemStructure.h"
+
+#include <map>
+#include <string>
+#include <vector>
+
 #include "AgglomeratesDatabase.h"
-#include "SimplifiedScene.h"
-#include "ThreadPool.h"
+#include "PlacementGrid.h"
+#include "Vector3.h"
+
+class CMaterialsDatabase;
+class CSimplifiedScene;
+class CSystemStructure;
 
 class CObjectsGenerator
 {
@@ -58,6 +66,8 @@ private:
 public:
 	CObjectsGenerator(CAgglomeratesDatabase* _pAgglomD, CMaterialsDatabase* _pMaterialsDB);
 
+	/**
+	 * @brief Prepares the generator for a simulation run. */
 	void Initialize();
 
 	// Adds objects to simplified scene and fills _newObjects for later adding them to system structure. Returns number of objects which have been created.
@@ -69,24 +79,24 @@ public:
 	// Returns index of a mixture's fraction that has to be generated now.
 	[[nodiscard]] size_t MixtureFractionIndexToGenerate() const;
 
-	// Checks whether the generator will produce particles. 
+	// Checks whether the generator will produce particles.
 	[[nodiscard]] bool IsGeneratingParticles() const;
-	// Checks whether the generator will produce bonds. 
+	// Checks whether the generator will produce bonds.
 	[[nodiscard]] bool IsGeneratingBonds() const;
 
 	/**
-	 * \brief Text-format serialization.
-	 * \details Config only, runtime state is skipped.
-	 * \param _s Output stream.
-	 * \param _g Objects generator to serialize.
-	 * \return Reference to the output stream. */
+	 * @brief Text-format serialization.
+	 * @details Config only, runtime state is skipped.
+	 * @param _s Output stream.
+	 * @param _g Objects generator to serialize.
+	 * @return Reference to the output stream. */
 	friend std::ostream& operator<<(std::ostream& _s, const CObjectsGenerator& _g);
 	/**
-	 * \brief Text-format deserialization.
-	 * \details Config only, runtime state is skipped.
-	 * \param _s Input stream.
-	 * \param _g Objects generator to deserialize into.
-	 * \return Reference to the input stream. */
+	 * @brief Text-format deserialization.
+	 * @details Config only, runtime state is skipped.
+	 * @param _s Input stream.
+	 * @param _g Objects generator to deserialize into.
+	 * @return Reference to the input stream. */
 	friend std::istream& operator>>(std::istream& _s, CObjectsGenerator& _g);
 
 private:
@@ -94,9 +104,13 @@ private:
 	void GenerateNewObject( std::vector<CVector3>* _pCoordPart, std::vector<CQuaternion>* _pQuatPart,
 		std::vector<double>* _pPartRad, std::vector<double>* _pPartContRad, std::vector<std::string>* _sMaterialsKey, const SVolumeType& _boundBox, SPBC& _PBC, const double _dCurrentTime);
 
-	static bool IsOverlapped(const std::vector<CVector3>& _partCoords, const std::vector<double>& _partContactRadii,
-		const std::vector<unsigned>& _existingPartID, const std::vector<unsigned>& _existingWallID, const CSimplifiedScene& _scene);
+	/**
+	 * @brief Returns the largest radius this generator can produce.
+	 * @return Largest radius, 0 if nothing will be generated. */
+	[[nodiscard]] double MaxObjectRadius() const;
 
 	// creates random point in the volume
 	static void CreateRandomPoint( CVector3* _pResult, const SVolumeType& _boundBox );
+
+	CPlacementGrid m_placementGrid; ///< Detector of placement overlaps.
 };
