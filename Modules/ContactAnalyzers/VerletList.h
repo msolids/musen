@@ -127,18 +127,9 @@ private:
 		uint8_t shift;	///< Periodic shift, inverted for the new direction (for PBC).
 	};
 
-	struct SEntry
-	{
-		unsigned id;
-		double val;
-		SEntry(unsigned _id, double _val) : id{ _id }, val{ _val }{}
-		friend bool operator<(const SEntry& _e1, const SEntry& _e2)
-		{
-			return _e1.val < _e2.val;
-		}
-	};
-	enum class ESortCoord : unsigned { X , Y , Z, XY, YZ, XZ };
-	enum class ESortDir : unsigned { Left, Right };
+	/**
+	 * @brief Direction along which a pair of cells is sorted. */
+	enum class ESortCoord { X, Y, Z, XY, XZ, YZ };
 
 	SParticleStruct& m_vParticles;
 	const SWallStruct& m_vWalls;
@@ -206,8 +197,35 @@ private:
 	 * @brief Places all walls into those cells of every grid level which their bounding box overlaps. */
 	void RecalcWallsPositions();
 
-	void CheckCollisionPP( const SGridLevel& _gridLevel, unsigned _nX1, unsigned _nY1, unsigned _nZ1, unsigned _nX2, unsigned _nY2, unsigned _nZ2, bool _bSameCell = false );
-	void CheckCollisionPPSorted(const SGridLevel& _gridLevel, unsigned _nX1, unsigned _nY1, unsigned _nZ1, unsigned _nX2, unsigned _nY2, unsigned _nZ2, ESortCoord _dim);
+	/**
+	 * @brief Searches contacts between the particles of one cell.
+	 * @param _gridLevel Grid level of the cell.
+	 * @param _iCell Linear index of the cell. */
+	void CheckCollisionPPInCell(const SGridLevel& _gridLevel, size_t _iCell);
+	/**
+	 * @brief Searches contacts between the particles of two different cells.
+	 * @details Pairs the main-main and the main-secondary.
+	 * @param _gridLevel Grid level of both cells.
+	 * @param _iCell1 Linear index of the first cell.
+	 * @param _x2 Coordinate X of the second cell.
+	 * @param _y2 Coordinate Y of the second cell.
+	 * @param _z2 Coordinate Z of the second cell.
+	 * @param _dim Direction along which the second cell is sorted. */
+	void CheckCollisionPPBetweenCells(const SGridLevel& _gridLevel, size_t _iCell1, uint32_t _x2, uint32_t _y2, uint32_t _z2, ESortCoord _dim);
+	/**
+	 * @brief Pairs the main particles of two cells by sorting the second cell along a direction.
+	 * @details The scan of a sorted cell stops at the first particle which is out of reach.
+	 * @param _main1 Main particles of the first cell.
+	 * @param _main2 Main particles of the second cell.
+	 * @param _dim Direction along which the second cell is sorted. */
+	void PairCellsSorted(SCellSpan _main1, SCellSpan _main2, ESortCoord _dim);
+	/**
+	 * @brief Pairs the particles of two cells by testing every pair.
+	 * @param _main1 Main particles of the first cell.
+	 * @param _second1 Secondary particles of the first cell.
+	 * @param _main2 Main particles of the second cell.
+	 * @param _second2 Secondary particles of the second cell. */
+	void PairCellsPlain(SCellSpan _main1, SCellSpan _second1, SCellSpan _main2, SCellSpan _second2);
 	void CheckCollisionPW(const SGridLevel& _gridLevel, size_t _iCell);
 
 	void AddPossibleContactPP(unsigned _iPart1, unsigned _iPart2);	// Add possible contacts into the list
@@ -216,9 +234,18 @@ private:
 	// remove contacts between particles "directly" connected with bonds
 	void RemoveSBContacts();
 
-	// for improved contact detection
-	void InsertParticlesToVector(std::vector<SEntry>& _vec, SCellSpan _partIDs, ESortCoord _dim, ESortDir _dir) const;
-
+	/**
+	 * @brief Checks whether two particles are close enough to become a possible contact.
+	 * @param _pos1 Coordinates of the first particle.
+	 * @param _reach Verlet distance increased by the contact radius of the first particle.
+	 * @param _p2 Index of the second particle.
+	 * @return True if the pair belongs into the verlet list. */
+	[[nodiscard]] bool IsCloseEnough(const CVector3& _pos1, double _reach, uint32_t _p2) const;
+	/**
+	 * @brief Returns the position of a particle on the direction along which a pair of cells is sorted.
+	 * @param _id Index of the particle.
+	 * @param _dim Sorting direction. */
+	[[nodiscard]] double SortKey(uint32_t _id, ESortCoord _dim) const;
 	/**
 	 * @brief Determines the cells of a grid level which the bounding box of a wall overlaps.
 	 * @param _gridLevel Grid level.

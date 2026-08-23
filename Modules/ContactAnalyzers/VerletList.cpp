@@ -16,8 +16,18 @@ namespace
 	constexpr uint32_t c_padCells = 2;									///< Number of empty grid cells kept between the particles and the grid boundary.
 	constexpr uint32_t c_noCell = std::numeric_limits<uint32_t>::max();	///< Marks an object which is placed into no cell.
 	constexpr uint32_t c_cellsMaxLimit = 1625;							///< Upper limit for the cell number: its cube must stay within uint32_t.
-	constexpr size_t c_sortedMinParticles = 10;							///< Particles per cell from which the sorted neighbour search pays off.
+	constexpr size_t c_sortedMinPairs = 256;							///< Particle pairs of two cells above which the sorted neighbour search pays off.
 	constexpr double c_padTotal = 2 * c_padCells + 1;					///< Cells each direction holds on top of those covering the particles.
+	constexpr double c_diagonalScale = 0.70710678118654752;				///< Scales a diagonal sort key to a unit direction.
+
+	/**
+	 * @brief Particle placed on the direction along which a cell is sorted. */
+	struct SEntry
+	{
+		uint32_t id;	///< Index of the particle.
+		double val;		///< Position of the surface point of the particle on the sorting direction.
+		friend bool operator<(const SEntry& _e1, const SEntry& _e2) { return _e1.val < _e2.val; }
+	};
 }
 
 void CVerletList::CCellLists::Reset(size_t _cellsNumber)
@@ -287,61 +297,26 @@ void CVerletList::UpdateList(double _dCurrTime)
 	{
 		ParallelFor(gridLevel.CellsNumber(), [&](size_t iCell)
 		{
-			const SCellSpan mainParts = gridLevel.mainParts.Cell(iCell);
-			const SCellSpan secondParts = gridLevel.secondParts.Cell(iCell);
-			if (mainParts.empty() && secondParts.empty()) return; // an empty cell can hold no contacts
+			if (gridLevel.mainParts.Cell(iCell).empty() && gridLevel.secondParts.Cell(iCell).empty())
+				return; // an empty cell can hold no contacts
 			const uint32_t x = static_cast<uint32_t>(floor(double(iCell) / gridLevel.cellsZ / gridLevel.cellsY));
 			const uint32_t y = static_cast<uint32_t>(floor(double(iCell - x * gridLevel.cellsZ * gridLevel.cellsY) / gridLevel.cellsZ));
 			const uint32_t z = static_cast<uint32_t>(iCell) - x* gridLevel.cellsZ* gridLevel.cellsY - y* gridLevel.cellsZ;
-			CheckCollisionPP(gridLevel, x, y, z, x, y, z, true);
+			CheckCollisionPPInCell(gridLevel, iCell);
 			CheckCollisionPW(gridLevel, iCell);
-			if (mainParts.size() > c_sortedMinParticles)
-			{
-				CheckCollisionPPSorted(gridLevel, x, y, z, x, y, z + 1, ESortCoord::Z);
-				CheckCollisionPPSorted(gridLevel, x, y, z, x, y + 1, z, ESortCoord::Y);
-				CheckCollisionPPSorted(gridLevel, x, y, z, x + 1, y, z, ESortCoord::X);
-				CheckCollisionPPSorted(gridLevel, x, y, z, x + 1, y + 1, z, ESortCoord::XY);
-				CheckCollisionPPSorted(gridLevel, x, y, z, x + 1, y + 1, z + 1, ESortCoord::XY);
-				CheckCollisionPPSorted(gridLevel, x, y, z, x, y + 1, z + 1, ESortCoord::YZ);
-				CheckCollisionPPSorted(gridLevel, x, y, z, x + 1, y, z + 1, ESortCoord::XZ);
-
-				if (x > 0)
-					CheckCollisionPPSorted(gridLevel, x, y, z, x - 1, y, z + 1, ESortCoord::Z);
-				if (y > 0)
-				{
-					if (x > 0)
-						CheckCollisionPPSorted(gridLevel, x, y, z, x - 1, y - 1, z + 1, ESortCoord::Z);
-					CheckCollisionPPSorted(gridLevel, x, y, z, x, y - 1, z + 1, ESortCoord::Z);
-					CheckCollisionPPSorted(gridLevel, x, y, z, x + 1, y - 1, z + 1, ESortCoord::XZ);
-					CheckCollisionPPSorted(gridLevel, x, y, z, x + 1, y - 1, z, ESortCoord::X);
-					if (z > 0)
-						CheckCollisionPPSorted(gridLevel, x, y, z, x + 1, y - 1, z - 1, ESortCoord::X);
-				}
-			}
-			else
-			{
-				CheckCollisionPP(gridLevel, x, y, z, x, y, z + 1);
-				CheckCollisionPP(gridLevel, x, y, z, x, y + 1, z);
-				CheckCollisionPP(gridLevel, x, y, z, x + 1, y, z);
-				CheckCollisionPP(gridLevel, x, y, z, x, y + 1, z + 1);
-				CheckCollisionPP(gridLevel, x, y, z, x + 1, y + 1, z);
-				CheckCollisionPP(gridLevel, x, y, z, x + 1, y, z + 1);
-				CheckCollisionPP(gridLevel, x, y, z, x + 1, y + 1, z + 1);
-
-				if (x > 0)
-					CheckCollisionPP(gridLevel, x, y, z, x - 1, y, z + 1);
-				if (y > 0)
-				{
-					if (x > 0)
-						CheckCollisionPP(gridLevel, x, y, z, x - 1, y - 1, z + 1);
-					CheckCollisionPP(gridLevel, x, y, z, x, y - 1, z + 1);
-					CheckCollisionPP(gridLevel, x, y, z, x + 1, y - 1, z + 1);
-					CheckCollisionPP(gridLevel, x, y, z, x + 1, y - 1, z);
-					if (z > 0)
-						CheckCollisionPP(gridLevel, x, y, z, x + 1, y - 1, z - 1);
-				}
-			}
-
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x    , y    , z + 1, ESortCoord::Z);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x    , y + 1, z    , ESortCoord::Y);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x + 1, y    , z    , ESortCoord::X);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x + 1, y + 1, z    , ESortCoord::XY);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x + 1, y + 1, z + 1, ESortCoord::XY);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x    , y + 1, z + 1, ESortCoord::YZ);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x + 1, y    , z + 1, ESortCoord::XZ);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x - 1, y    , z + 1, ESortCoord::Z);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x - 1, y - 1, z + 1, ESortCoord::Z);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x    , y - 1, z + 1, ESortCoord::Z);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x + 1, y - 1, z + 1, ESortCoord::XZ);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x + 1, y - 1, z    , ESortCoord::X);
+			CheckCollisionPPBetweenCells(gridLevel, iCell, x + 1, y - 1, z - 1, ESortCoord::X);
 		});
 	}
 	ReassignVirtualContacts(); // shift virtual-real contacts as real-real
@@ -545,109 +520,89 @@ void CVerletList::ReassignVirtualContacts()
 	m_PWVirtShift.resize(realPartNum);
 }
 
-void CVerletList::InsertParticlesToVector(std::vector<SEntry>& _vec, SCellSpan _partIDs, ESortCoord _dim, ESortDir _dir) const
+void CVerletList::CheckCollisionPPInCell(const SGridLevel& _gridLevel, size_t _iCell)
 {
-	_vec.reserve(_partIDs.size());
-	for (const uint32_t id : _partIDs)
+	const SCellSpan main = _gridLevel.mainParts.Cell(_iCell);
+	const SCellSpan second = _gridLevel.secondParts.Cell(_iCell);
+	for (size_t i = 0; i < main.size(); ++i)
 	{
-		const double radius = _dir == ESortDir::Right ? m_vParticles.ContactRadius(id) : -m_vParticles.ContactRadius(id);
-		switch (_dim)
-		{
-		case ESortCoord::X : _vec.emplace_back(id, m_vParticles.Coord(id).x + radius); break;
-		case ESortCoord::Y : _vec.emplace_back(id, m_vParticles.Coord(id).y + radius); break;
-		case ESortCoord::Z : _vec.emplace_back(id, m_vParticles.Coord(id).z + radius); break;
-		case ESortCoord::XY: _vec.emplace_back(id, (m_vParticles.Coord(id).x + m_vParticles.Coord(id).y) * 0.5 + radius); break;
-		case ESortCoord::XZ: _vec.emplace_back(id, (m_vParticles.Coord(id).x + m_vParticles.Coord(id).z) * 0.5 + radius); break;
-		case ESortCoord::YZ: _vec.emplace_back(id, (m_vParticles.Coord(id).y + m_vParticles.Coord(id).z) * 0.5 + radius); break;
-		}
+		const uint32_t p1 = main[i];
+		const double reach = m_dVerletDistance + m_vParticles.ContactRadius(p1);
+		const CVector3 pos1 = m_vParticles.Coord(p1);
+		for (size_t j = i + 1; j < main.size(); ++j) // each pair of the cell once
+			if (IsCloseEnough(pos1, reach, main[j]))
+				AddPossibleContactPP(std::min(p1, main[j]), std::max(p1, main[j]));
+		for (const uint32_t p2 : second)
+			if (IsCloseEnough(pos1, reach, p2))
+				AddPossibleContactPP(std::min(p1, p2), std::max(p1, p2));
 	}
-	std::sort(_vec.begin(), _vec.end());
 }
 
-void CVerletList::CheckCollisionPPSorted(const SGridLevel& _gridLevel, unsigned _nX1, unsigned _nY1, unsigned _nZ1, unsigned _nX2, unsigned _nY2, unsigned _nZ2, ESortCoord _dim)
+void CVerletList::CheckCollisionPPBetweenCells(const SGridLevel& _gridLevel, size_t _iCell1, uint32_t _x2, uint32_t _y2, uint32_t _z2, ESortCoord _dim)
 {
-	if (_nX2 >= _gridLevel.cellsX || _nY2 >= _gridLevel.cellsY || _nZ2 >= _gridLevel.cellsZ) return;
-	const size_t iCell1 = _gridLevel.CellIndex(_nX1, _nY1, _nZ1);
-	const size_t iCell2 = _gridLevel.CellIndex(_nX2, _nY2, _nZ2);
-	// this function pairs only main with main, so any secondary particle in either cell needs the full check
-	if (!_gridLevel.secondParts.Cell(iCell1).empty() || !_gridLevel.secondParts.Cell(iCell2).empty())
-	{
-		CheckCollisionPP(_gridLevel, _nX1, _nY1, _nZ1, _nX2, _nY2, _nZ2);
+	if (_x2 >= _gridLevel.cellsX || _y2 >= _gridLevel.cellsY || _z2 >= _gridLevel.cellsZ)
 		return;
-	}
-
-	std::vector<SEntry> setMainRSorted, setMainLSorted;
-	InsertParticlesToVector(setMainRSorted, _gridLevel.mainParts.Cell(iCell1), _dim, ESortDir::Right);
-	InsertParticlesToVector(setMainLSorted, _gridLevel.mainParts.Cell(iCell2), _dim, ESortDir::Left);
-	for (auto it1 = setMainRSorted.crbegin(); it1 != setMainRSorted.crend(); ++it1) //main-main
-	{
-		const double temp1 = m_dVerletDistance + m_vParticles.ContactRadius(it1->id);
-		auto iter2 = setMainLSorted.cbegin();
-		for (; iter2 != setMainLSorted.cend(); ++iter2)
-			if (iter2->val - it1->val <= m_dVerletDistance)
-			{
-				if (SquaredLength(m_vParticles.Coord(it1->id) - m_vParticles.Coord(iter2->id)) <= std::pow(temp1 + m_vParticles.ContactRadius(iter2->id), 2))
-					AddPossibleContactPP(it1->id, iter2->id);
-			}
-			else
-				break;
-		if (iter2 == setMainLSorted.cbegin()) break;
-	}
-}
-
-void CVerletList::CheckCollisionPP(const SGridLevel& _gridLevel, unsigned _nX1, unsigned _nY1, unsigned _nZ1, unsigned _nX2, unsigned _nY2, unsigned _nZ2, bool _bSameCell /*= false*/)
-{
-	if (_nX2 >= _gridLevel.cellsX || _nY2 >= _gridLevel.cellsY || _nZ2 >= _gridLevel.cellsZ) return;
-	const size_t iCell2 = _gridLevel.CellIndex(_nX2, _nY2, _nZ2);
+	const size_t iCell2 = _gridLevel.CellIndex(_x2, _y2, _z2);
 	const SCellSpan main2 = _gridLevel.mainParts.Cell(iCell2);
 	const SCellSpan second2 = _gridLevel.secondParts.Cell(iCell2);
-	if (main2.empty() && second2.empty()) return; // nothing to pair the current cell with
-	const size_t iCell1 = _gridLevel.CellIndex(_nX1, _nY1, _nZ1);
-	const SCellSpan main1 = _gridLevel.mainParts.Cell(iCell1);
-	const SCellSpan second1 = _gridLevel.secondParts.Cell(iCell1);
-	for (size_t i = 0; i < main1.size(); ++i)
+	if (main2.empty() && second2.empty())
+		return;	// nothing to pair the first cell with
+	const SCellSpan main1 = _gridLevel.mainParts.Cell(_iCell1);
+	const SCellSpan second1 = _gridLevel.secondParts.Cell(_iCell1);
+
+	if (second1.empty() && second2.empty() && main1.size() * main2.size() > c_sortedMinPairs)
+		PairCellsSorted(main1, main2, _dim);
+	else
+		PairCellsPlain(main1, second1, main2, second2);
+}
+
+void CVerletList::PairCellsSorted(SCellSpan _main1, SCellSpan _main2, ESortCoord _dim)
+{
+	thread_local std::vector<SEntry> sortedMain2; // kept per thread, so that refills stay off the heap
+	sortedMain2.clear();
+	sortedMain2.reserve(_main2.size());
+	for (const uint32_t p2 : _main2) // the near surface point of each particle along the direction
+		sortedMain2.push_back({ p2, SortKey(p2, _dim) - m_vParticles.ContactRadius(p2) });
+	std::sort(sortedMain2.begin(), sortedMain2.end());
+	for (const uint32_t p1 : _main1)
 	{
-		const uint32_t p1 = main1[i];
-		const double temp1 = m_dVerletDistance + m_vParticles.ContactRadius(p1);
+		const double reach = m_dVerletDistance + m_vParticles.ContactRadius(p1);
 		const CVector3 pos1 = m_vParticles.Coord(p1);
-		size_t iStart = 0;
-		if (_bSameCell)
-			iStart = i + 1;
-		for (size_t j = iStart; j < main2.size(); ++j) // main-main
+		const double sortPos = SortKey(p1, _dim) + m_vParticles.ContactRadius(p1); // its far surface point
+		for (const SEntry& neighbour : sortedMain2)
 		{
-			const uint32_t p2 = main2[j];
-			if (SquaredLength(pos1 - m_vParticles.Coord(p2)) <= std::pow(temp1 + m_vParticles.ContactRadius(p2), 2))
-			{
-				if (_bSameCell && p2 < p1)
-					AddPossibleContactPP(p2, p1);
-				else
-					AddPossibleContactPP(p1, p2);
-			}
-		}
-		for (const uint32_t p2 : second2) // main-secondary
-		{
-			if (SquaredLength(pos1 - m_vParticles.Coord(p2)) <= pow(temp1 + m_vParticles.ContactRadius(p2), 2))
-			{
-				if (_bSameCell && p2 < p1)
-					AddPossibleContactPP(p2, p1);
-				else
-					AddPossibleContactPP(p1, p2);
-			}
+			if (neighbour.val - sortPos > m_dVerletDistance)
+				break; // sorted, so no further particle can be close enough either
+			if (IsCloseEnough(pos1, reach, neighbour.id))
+				AddPossibleContactPP(p1, neighbour.id);
 		}
 	}
+}
 
-	if (!_bSameCell) // secondary-main
-		for (const uint32_t p1 : main2)
-		{
-			const CVector3 vPos1 = m_vParticles.Coord(p1);
-			const double dTemp1 = m_dVerletDistance + m_vParticles.ContactRadius(p1);
-			for (const uint32_t p2 : second1)
-			{
-				const double contactDist = dTemp1 + m_vParticles.ContactRadius(p2);
-				if (SquaredLength(vPos1 - m_vParticles.Coord(p2)) <= contactDist * contactDist)
-					AddPossibleContactPP(p2, p1);
-			}
-		}
+void CVerletList::PairCellsPlain(SCellSpan _main1, SCellSpan _second1, SCellSpan _main2, SCellSpan _second2)
+{
+	for (const uint32_t p1 : _main1)
+	{
+		const double reach = m_dVerletDistance + m_vParticles.ContactRadius(p1);
+		const CVector3 pos1 = m_vParticles.Coord(p1);
+		for (const uint32_t p2 : _main2)
+			if (IsCloseEnough(pos1, reach, p2))
+				AddPossibleContactPP(p1, p2);
+		for (const uint32_t p2 : _second2)
+			if (IsCloseEnough(pos1, reach, p2))
+				AddPossibleContactPP(p1, p2);
+	}
+
+	if (_second1.empty())
+		return; // nothing left to pair the second cell with
+	for (const uint32_t p1 : _main2)
+	{
+		const double reach = m_dVerletDistance + m_vParticles.ContactRadius(p1);
+		const CVector3 pos1 = m_vParticles.Coord(p1);
+		for (const uint32_t p2 : _second1)
+			if (IsCloseEnough(pos1, reach, p2))
+				AddPossibleContactPP(p2, p1); // the row of p2, which belongs to the first cell
+	}
 }
 
 void CVerletList::CheckCollisionPW(const SGridLevel& _gridLevel, size_t _iCell)
@@ -831,6 +786,27 @@ void CVerletList::GetPWContacts(size_t _iP, std::vector<EIntersectionType>& _vIn
 			for (size_t j = 0; j < m_PWList[_iP].size(); ++j) // additional check that there is no contact between one wall and real and virtual particles
 				if (j != i && _vIntersectionType[j] != EIntersectionType::NO_CONTACT && bVirtualContacts[j] == 0 && m_PWList[_iP][j] == m_PWList[_iP][i])
 					_vIntersectionType[i] = EIntersectionType::NO_CONTACT;
+}
+
+bool CVerletList::IsCloseEnough(const CVector3& _pos1, double _reach, uint32_t _p2) const
+{
+	const double contactDist = _reach + m_vParticles.ContactRadius(_p2);
+	return SquaredLength(_pos1 - m_vParticles.Coord(_p2)) <= contactDist * contactDist;
+}
+
+double CVerletList::SortKey(uint32_t _id, ESortCoord _dim) const
+{
+	const CVector3 coord = m_vParticles.Coord(_id);
+	switch (_dim)
+	{
+	case ESortCoord::X: return coord.x;
+	case ESortCoord::Y: return coord.y;
+	case ESortCoord::Z: return coord.z;
+	case ESortCoord::XY: return (coord.x + coord.y) * c_diagonalScale;
+	case ESortCoord::XZ: return (coord.x + coord.z) * c_diagonalScale;
+	case ESortCoord::YZ: return (coord.y + coord.z) * c_diagonalScale;
+	}
+	return 0.0;	// unreachable
 }
 
 CVerletList::SCellRange CVerletList::WallCellRange(const SGridLevel& _gridLevel, unsigned _iWall) const
