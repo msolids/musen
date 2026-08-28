@@ -675,6 +675,12 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		CRealGeometry* pGeom = m_pSystemStructure->Geometry(iGeom);
 
 		if (pGeom->Planes().empty()) continue;
+
+		// motion characteristics before the update
+		const CVector3 prevVel       = pGeom->GetCurrentVelocity();
+		const CVector3 prevRotVel    = pGeom->GetCurrentRotVelocity();
+		const CVector3 prevRotCenter = pGeom->GetCurrentRotCenter();
+
 		if (pGeom->Motion()->IsForceDriven()) // force
 		{
 			const CVector3 vTotalForce = m_impl->gpu.CalculateTotalForceOnWall(iGeom, m_impl->sceneGPU.GetPointerToWalls());
@@ -687,7 +693,7 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		CVector3 vRotVel = pGeom->GetCurrentRotVelocity();
 		CVector3 vRotCenter = pGeom->GetCurrentRotCenter();
 
-		if (m_currentTime == 0 || vVel != pGeom->GetCurrentVelocity() || vRotVel != pGeom->GetCurrentRotVelocity() || vRotCenter != pGeom->GetCurrentRotCenter())
+		if (m_currentTime == 0 || vVel != prevVel || vRotVel != prevRotVel || vRotCenter != prevRotCenter)
 			m_wallsVelocityChanged = true;
 
 		if ( !pGeom->FreeMotion().IsZero() )
