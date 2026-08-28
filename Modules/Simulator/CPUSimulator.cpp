@@ -318,6 +318,11 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 		const auto& planes = geom->Planes();
 		if (planes.empty()) continue;
 
+		// motion characteristics before the update
+		const CVector3 prevVel       = geom->GetCurrentVelocity();
+		const CVector3 prevRotVel    = geom->GetCurrentRotVelocity();
+		const CVector3 prevRotCenter = geom->GetCurrentRotCenter();
+
 		if (geom->Motion()->IsForceDriven()) // force
 		{
 			CVector3 totalForce{ 0.0 };
@@ -354,15 +359,8 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 
 		if (m_currentTime == 0.0)
 			m_wallsVelocityChanged = true;
-		else
-		{
-			if (!(geom->GetCurrentVelocity() - geom->GetCurrentVelocity()).IsZero())
-				m_wallsVelocityChanged = true;
-			else if (!(geom->GetCurrentRotVelocity() - geom->GetCurrentRotVelocity()).IsZero())
-				m_wallsVelocityChanged = true;
-			else if (!(geom->GetCurrentRotCenter() - geom->GetCurrentRotCenter()).IsZero())
-				m_wallsVelocityChanged = true;
-		}
+		else if (vel != prevVel || rotVel != prevRotVel || geom->GetCurrentRotCenter() != prevRotCenter)
+			m_wallsVelocityChanged = true;
 
 		if (!geom->FreeMotion().IsZero() && geom->Mass() != 0.0)// solve newtons motion for wall
 		{
