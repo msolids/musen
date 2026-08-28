@@ -14,7 +14,7 @@
    <string>Geometries Editor</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+   <iconset resource="../../MusenGUI/musengui.qrc">
     <normaloff>:/MusenGUI/Pictures/geomEditorIco.png</normaloff>:/MusenGUI/Pictures/geomEditorIco.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,0">
@@ -54,7 +54,7 @@
             <string>Real</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <iconset resource="../../MusenGUI/musengui.qrc">
              <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
            </property>
            <property name="autoDefault">
@@ -77,7 +77,7 @@
             <string>Analysis</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <iconset resource="../../MusenGUI/musengui.qrc">
              <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
            </property>
            <property name="autoDefault">
@@ -100,7 +100,7 @@
             <string>Remove</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <iconset resource="../../MusenGUI/musengui.qrc">
              <normaloff>:/MusenGUI/Pictures/minus.png</normaloff>:/MusenGUI/Pictures/minus.png</iconset>
            </property>
            <property name="autoDefault">
@@ -123,7 +123,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <iconset resource="../../MusenGUI/musengui.qrc">
              <normaloff>:/MusenGUI/Pictures/down.png</normaloff>:/MusenGUI/Pictures/down.png</iconset>
            </property>
            <property name="autoDefault">
@@ -146,7 +146,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <iconset resource="../../MusenGUI/musengui.qrc">
              <normaloff>:/MusenGUI/Pictures/up.png</normaloff>:/MusenGUI/Pictures/up.png</iconset>
            </property>
            <property name="autoDefault">
@@ -162,6 +162,11 @@
       <attribute name="headerVisible">
        <bool>false</bool>
       </attribute>
+      <column>
+       <property name="text">
+        <string notr="true">1</string>
+       </property>
+      </column>
      </widget>
      <widget class="QGroupBox" name="groupMotion">
       <property name="enabled">
@@ -257,7 +262,7 @@
             <string>Add</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <iconset resource="../../MusenGUI/musengui.qrc">
              <normaloff>:/MusenGUI/Pictures/add.png</normaloff>:/MusenGUI/Pictures/add.png</iconset>
            </property>
            <property name="autoDefault">
@@ -274,7 +279,7 @@
             <string>Remove</string>
            </property>
            <property name="icon">
-            <iconset resource="../../MusenGUI/MusenGUI/musengui.qrc">
+            <iconset resource="../../MusenGUI/musengui.qrc">
              <normaloff>:/MusenGUI/Pictures/minus.png</normaloff>:/MusenGUI/Pictures/minus.png</iconset>
            </property>
            <property name="autoDefault">
@@ -308,7 +313,20 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
          <item>
           <widget class="QGroupBox" name="groupFreeMotion">
            <property name="title">
@@ -367,11 +385,64 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_4">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+          <widget class="QGroupBox" name="groupForceDirection">
+           <property name="toolTip">
+            <string>Direction, onto which the total force acting on the geometry is projected to obtain the sensed force</string>
            </property>
-          </spacer>
+           <property name="title">
+            <string>Force direction</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0,1,0,1">
+            <item>
+             <widget class="QLabel" name="labelForceDirX">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>X:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditForceDirX"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelForceDirY">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Y:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditForceDirY"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelForceDirZ">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Z:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditForceDirZ"/>
+            </item>
+           </layout>
+          </widget>
          </item>
         </layout>
        </item>
@@ -424,7 +495,7 @@
   <tabstop>buttonClose</tabstop>
  </tabstops>
  <resources>
-  <include location="../../MusenGUI/MusenGUI/musengui.qrc"/>
+  <include location="../../MusenGUI/musengui.qrc"/>
  </resources>
  <connections>
   <connection>

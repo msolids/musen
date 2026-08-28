@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -83,6 +84,7 @@ private:
 	EMotionType m_motionType{ EMotionType::NONE };		// Type of geometry's motion.
 	std::vector<STimeMotionInterval>  m_intervalsTime;	// Time-dependent motion of this geometry. Is used if (m_motionType == TIME_DEPENDENT).
 	std::vector<SForceMotionInterval> m_intervalsForce;	// Force-dependent motion of this geometry. Is used if (m_motionType == FORCE_DEPENDENT).
+	CVector3 m_forceDirection{ 0.0, 0.0, 1.0 };			///< Direction of the force to consider; a unit vector. Used if (m_motionType == FORCE_DEPENDENT || m_motionType == CONSTANT_FORCE).
 
 	size_t m_iMotion{ static_cast<size_t>(-1) };	// Index of currently acting motion characteristics.
 	SMotionInfo m_currentMotion;					// Currently acting motion characteristics.
@@ -90,6 +92,9 @@ private:
 public:
 	EMotionType MotionType() const;			// Returns current motion type.
 	void SetMotionType(EMotionType _type);	// Sets current motion type.
+	/**
+	 * @brief Returns true if the current motion type is driven by the force acting on the geometry. */
+	bool IsForceDriven() const;
 
 	void AddInterval();		// Adds a new motion interval of the currently selected type.
 
@@ -104,6 +109,19 @@ public:
 	void ChangeForceInterval(size_t _index, const SForceMotionInterval& _interval);	// Changes existing force-dependent motion interval.
 	SForceMotionInterval GetForceInterval(size_t _index) const;						// Returns selected force-dependent motion interval.
 	std::vector<SForceMotionInterval> GetForceIntervals() const;					// Returns all defined force-dependent motion intervals.
+	/**
+	 * @brief Returns the unit vector, onto which the total force acting on the geometry is projected to obtain the sensed force. */
+	const CVector3& GetForceDirection() const;
+	/**
+	 * @brief Sets the direction, onto which the total force acting on the geometry is projected to obtain the sensed force.
+	 * @details The vector is normalized; a zero or non-finite vector resets it to the default {0,0,1}.
+	 * @param _dir Direction of the force to consider; a unit vector. */
+	void SetForceDirection(const CVector3& _dir);
+	/**
+	 * @brief Returns the force value the motion reacts to.
+	 * @param _totalForce Total force acting on all walls of the geometry.
+	 * @return The total force projected onto the force direction. */
+	double SensedForce(const CVector3& _totalForce) const;
 
 	void DeleteInterval(size_t _index);		// Removes motion interval of the currently selected type.
 	void MoveIntervalUp(size_t _index);		// Moves motion interval of the currently selected type upwards in the list.

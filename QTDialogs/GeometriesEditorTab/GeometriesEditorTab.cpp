@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "GeometriesEditorTab.h"
@@ -44,6 +45,9 @@ void CGeometriesEditorTab::InitializeConnections() const
 	connect(ui.checkBoxFreeMotionY,		&QCheckBox::clicked,				this, &CGeometriesEditorTab::MotionChanged);
 	connect(ui.checkBoxFreeMotionZ,		&QCheckBox::clicked,				this, &CGeometriesEditorTab::MotionChanged);
 	connect(ui.lineEditMass,			&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.lineEditForceDirX,		&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.lineEditForceDirY,		&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.lineEditForceDirZ,		&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
 
 	connect(ui.buttonAddMotion,		&QPushButton::clicked, this, &CGeometriesEditorTab::AddMotion);
 	connect(ui.buttonDeleteMotion,	&QPushButton::clicked, this, &CGeometriesEditorTab::DeleteMotion);
@@ -227,7 +231,7 @@ void CGeometriesEditorTab::UpdateMeasurementUnits() const
 
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::TIME_BEG,		"Time start",		EUnitType::TIME);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::TIME_END,		"Time end",			EUnitType::TIME);
-	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::FORCE,			"Force Z",			EUnitType::FORCE);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::FORCE,			"Force",			EUnitType::FORCE);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_X,			"Velocity X",		EUnitType::VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Y,			"Velocity Y",		EUnitType::VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Z,			"Velocity Z",		EUnitType::VELOCITY);
@@ -417,17 +421,19 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 
 	if (!m_object) return;
 
-	CQtSignalBlocker blocker{ ui.tableMotion, ui.checkBoxAroundCenter, ui.groupFreeMotion, ui.checkBoxFreeMotionX, ui.checkBoxFreeMotionY, ui.checkBoxFreeMotionZ, ui.lineEditMass };
+	[[maybe_unused]] CQtSignalBlocker blocker{ ui.tableMotion, ui.checkBoxAroundCenter, ui.groupFreeMotion, ui.checkBoxFreeMotionX, ui.checkBoxFreeMotionY, ui.checkBoxFreeMotionZ, ui.lineEditMass,
+		ui.groupForceDirection, ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ };
 
 	const auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
 
 	// movement type
 	const auto* motion = m_object->Motion();
 	const auto type = motion->MotionType();
+	const bool forceBased = motion->IsForceDriven();
 	ui.tableMotion->ShowRow(ERowMotion::TIME_BEG,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
 	ui.tableMotion->ShowRow(ERowMotion::TIME_END,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
-	ui.tableMotion->ShowRow(ERowMotion::FORCE,        type == CGeometryMotion::EMotionType::FORCE_DEPENDENT || type == CGeometryMotion::EMotionType::CONSTANT_FORCE);
-	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   type == CGeometryMotion::EMotionType::FORCE_DEPENDENT || type == CGeometryMotion::EMotionType::CONSTANT_FORCE);
+	ui.tableMotion->ShowRow(ERowMotion::FORCE,        forceBased);
+	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   forceBased);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_X,    geometry);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Y,    geometry);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Z,    geometry);
@@ -456,15 +462,16 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
 	{
 		const auto intervals = motion->GetForceIntervals();
-		ui.tableMotion->setColumnCount(static_cast<int>(intervals.size()));
-		for (int i = 0; i < static_cast<int>(intervals.size()); ++i)
+		const int count = static_cast<int>(intervals.size());
+		const int columns = type == CGeometryMotion::EMotionType::CONSTANT_FORCE && count > 1 ? 1 : count;
+		ui.tableMotion->setColumnCount(columns);
+		for (int i = 0; i < columns; ++i)
 		{
 			ui.tableMotion->SetItemEditableConv(    ERowMotion::FORCE,        i, intervals[i].forceLimit,              EUnitType::FORCE);
 			ui.tableMotion->SetComboBox(            ERowMotion::LIMIT_TYPE,   i, { "MIN", "MAX" }, { E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MIN), E2I(CGeometryMotion::SForceMotionInterval::ELimitType::MAX) }, E2I(intervals[i].limitType));
 			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X,        i, intervals[i].motion.velocity,         EUnitType::VELOCITY);
 			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X,    i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
 			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter,   EUnitType::LENGTH);
-			if (type == CGeometryMotion::EMotionType::CONSTANT_FORCE) break; // show only one entry in constant-force mode
 		}
 		break;
 	}
@@ -476,6 +483,12 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	ui.checkBoxAroundCenter->setChecked(geometry && geometry->RotateAroundCenter());
 	ui.checkBoxAroundCenter->setEnabled(geometry);
 	ui.tableMotion->resizeColumnsToContents();
+
+	// force direction
+	ui.groupForceDirection->setVisible(geometry && forceBased);
+	const CVector3 shownDirection = GetConvValue(ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ, EUnitType::NONE);
+	if (Normalized(shownDirection) != motion->GetForceDirection())
+		ShowConvValue(ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ, motion->GetForceDirection(), EUnitType::NONE);
 
 	// free motion parameters
 	ui.checkBoxFreeMotionX->setChecked(geometry && geometry->FreeMotion().x);
@@ -787,6 +800,7 @@ void CGeometriesEditorTab::MotionChanged()
 	geometry->SetRotateAroundCenter(ui.checkBoxAroundCenter->isChecked());
 	geometry->SetMass(GetConvValue(ui.lineEditMass, EUnitType::MASS));
 	geometry->SetFreeMotion(CBasicVector3<bool>{ ui.checkBoxFreeMotionX->isChecked(), ui.checkBoxFreeMotionY->isChecked(), ui.checkBoxFreeMotionZ->isChecked() });
+	geometry->Motion()->SetForceDirection(GetConvValue(ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ, EUnitType::NONE));
 
 	UpdateMotionInfo();
 }

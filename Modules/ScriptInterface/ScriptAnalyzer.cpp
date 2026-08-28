@@ -41,6 +41,13 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		if (i < _job.models.size())
 			_job.models[i].parameters = params;
 	};
+	// all GEOMETRY_MOTION_* keys address the geometry either by name or by index
+	const auto ReadGeometryID = [](std::stringstream& _ss, SJob::SGeometryMotionInterval& _motion)
+	{
+		const std::string nameOrIndex = GetValueFromStream<std::string>(&_ss);
+		_motion.geometryName  = IsSimpleUInt(nameOrIndex) ? "" : nameOrIndex;
+		_motion.geometryIndex = IsSimpleUInt(nameOrIndex) ? std::stoull(nameOrIndex) : -1;
+	};
 
 	if (_line.empty()) return;
 	std::stringstream ss{ _line };
@@ -318,9 +325,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	else if (key == "GEOMETRY_MOTION_TIME")
 	{
 		SJob::SGeometryMotionIntervalTime motion;
-		const std::string nameOrIndex = GetValueFromStream<std::string>(&ss);
-		motion.geometryName                      = IsSimpleUInt(nameOrIndex) ? "" : nameOrIndex;
-		motion.geometryIndex                     = IsSimpleUInt(nameOrIndex) ? std::stoull(nameOrIndex) : -1;
+		ReadGeometryID(ss, motion);
 		motion.intrerval.timeBeg                 = GetValueFromStream<double>(&ss);
 		motion.intrerval.timeEnd                 = GetValueFromStream<double>(&ss);
 		motion.intrerval.motion.velocity         = GetValueFromStream<CVector3>(&ss);
@@ -328,18 +333,20 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		motion.intrerval.motion.rotationCenter   = GetValueFromStream<CVector3>(&ss);
 		m_jobs.back().geometryTimeIntervals.push_back(motion);
 	}
-	else if (key == "GEOMETRY_MOTION_FORCE")
+	else if (key == "GEOMETRY_MOTION_FORCE" || key == "GEOMETRY_MOTION_CONST_FORCE")
 	{
 		SJob::SGeometryMotionIntervalForce motion;
-		const std::string nameOrIndex            = GetValueFromStream<std::string>(&ss);
-		motion.geometryName                      = IsSimpleUInt(nameOrIndex) ? "" : nameOrIndex;
-		motion.geometryIndex                     = IsSimpleUInt(nameOrIndex) ? std::stoull(nameOrIndex) : -1;
+		motion.type                              = key == "GEOMETRY_MOTION_FORCE" ? CGeometryMotion::EMotionType::FORCE_DEPENDENT : CGeometryMotion::EMotionType::CONSTANT_FORCE;
+		ReadGeometryID(ss, motion);
 		motion.intrerval.forceLimit              = GetValueFromStream<double>(&ss);
-		const std::string type = ToUpperCase(GetValueFromStream<std::string>(&ss));
-		motion.intrerval.limitType               = type == "MIN" ? CGeometryMotion::SForceMotionInterval::ELimitType::MIN : CGeometryMotion::SForceMotionInterval::ELimitType::MAX;
+		const std::string limit = ToUpperCase(GetValueFromStream<std::string>(&ss));
+		motion.intrerval.limitType               = limit == "MIN" ? CGeometryMotion::SForceMotionInterval::ELimitType::MIN : CGeometryMotion::SForceMotionInterval::ELimitType::MAX;
 		motion.intrerval.motion.velocity         = GetValueFromStream<CVector3>(&ss);
 		motion.intrerval.motion.rotationVelocity = GetValueFromStream<CVector3>(&ss);
 		motion.intrerval.motion.rotationCenter   = GetValueFromStream<CVector3>(&ss);
+		motion.forceDirection                    = GetValueFromStream<CVector3>(&ss);
+		if (!ss) // an older script may not have the force direction
+			_out << "Warning: no force direction (Dx Dy Dz) given in " << key << ", the force is measured along Z.\n";
 		m_jobs.back().geometryForceIntervals.push_back(motion);
 	}
 	else

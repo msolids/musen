@@ -1,11 +1,15 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "GeometryMotion.h"
+
 #include "MixedFunctions.h"
 #include "MUSENStringFunctions.h"
 #include "ProtoFunctions.h"
+
+#include <cmath>
 
 // TODO: sort time-dependent motion intervals
 
@@ -17,6 +21,11 @@ CGeometryMotion::EMotionType CGeometryMotion::MotionType() const
 void CGeometryMotion::SetMotionType(EMotionType _type)
 {
 	m_motionType = _type;
+}
+
+bool CGeometryMotion::IsForceDriven() const
+{
+	return m_motionType == EMotionType::FORCE_DEPENDENT || m_motionType == EMotionType::CONSTANT_FORCE;
 }
 
 void CGeometryMotion::AddInterval()
@@ -93,6 +102,23 @@ std::vector<CGeometryMotion::SForceMotionInterval> CGeometryMotion::GetForceInte
 	return m_intervalsForce;
 }
 
+const CVector3& CGeometryMotion::GetForceDirection() const
+{
+	return m_forceDirection;
+}
+
+void CGeometryMotion::SetForceDirection(const CVector3& _dir)
+{
+	const CVector3 normalized = Normalized(_dir);
+	const bool valid = !normalized.IsZero() && std::isfinite(normalized.x) && std::isfinite(normalized.y) && std::isfinite(normalized.z);
+	m_forceDirection = valid ? normalized : CVector3{ 0.0, 0.0, 1.0 };
+}
+
+double CGeometryMotion::SensedForce(const CVector3& _totalForce) const
+{
+	return DotProduct(_totalForce, m_forceDirection);
+}
+
 void CGeometryMotion::DeleteInterval(size_t _index)
 {
 	switch (m_motionType)
@@ -153,6 +179,7 @@ void CGeometryMotion::Clear()
 {
 	m_intervalsTime.clear();
 	m_intervalsForce.clear();
+	m_forceDirection.Init(0.0, 0.0, 1.0);
 }
 
 bool CGeometryMotion::IsValid() const
@@ -288,6 +315,7 @@ CVector3 CGeometryMotion::TimeDependentShift(double _time) const
 void CGeometryMotion::LoadFromProto(const ProtoGeometryMotion& _proto)
 {
 	m_motionType = static_cast<EMotionType>(_proto.type());
+	SetForceDirection(Proto2Val(_proto.force_direction()));
 	switch (m_motionType)
 	{
 	case EMotionType::TIME_DEPENDENT:
@@ -309,6 +337,7 @@ void CGeometryMotion::SaveToProto(ProtoGeometryMotion& _proto) const
 {
 	_proto.set_version(0);
 	_proto.set_type(E2I(m_motionType));
+	Val2Proto(_proto.mutable_force_direction(), m_forceDirection);
 	_proto.clear_intervals();
 	switch (m_motionType)
 	{
@@ -357,6 +386,7 @@ std::ostream& operator<<(std::ostream& _s, const CGeometryMotion& _obj)
 		_s << _obj.GetForceIntervals().size() << " ";
 		for (const auto& interval : _obj.GetForceIntervals())
 			_s << interval << " ";
+		_s << _obj.m_forceDirection << " ";
 		break;
 	}
 	case CGeometryMotion::EMotionType::NONE:
@@ -384,6 +414,11 @@ std::istream& operator>>(std::istream& _s, CGeometryMotion& _obj)
 	{
 		for (size_t i = 0; i < intervals; ++i)
 			_obj.AddForceInterval(GetValueFromStream<CGeometryMotion::SForceMotionInterval>(&_s));
+		const CVector3 direction = GetValueFromStream<CVector3>(&_s);
+		if (_s)
+			_obj.SetForceDirection(direction);
+		else if (_s.eof()) // the record ends here, keep the default {0,0,1}
+			_s.clear();
 		break;
 	}
 	case CGeometryMotion::EMotionType::NONE:
