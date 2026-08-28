@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. 
+/* Copyright (c) 2013-2020, MUSEN Development Team.
    Copyright (c) 2026, DyssolTEC GmbH.
    All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
@@ -106,6 +106,8 @@ struct SJob
 	struct SGeometryMotionIntervalForce : SGeometryMotionInterval
 	{
 		CGeometryMotion::SForceMotionInterval intrerval;	// Force-dependent motion interval.
+		CVector3 forceDirection{ 0.0 };						///< Direction, onto which the total force on the geometry is projected to obtain the sensed force. Zero if the script line does not specify one.
+		CGeometryMotion::EMotionType type{ CGeometryMotion::EMotionType::FORCE_DEPENDENT };	///< Whether the interval is applied as FORCE_DEPENDENT or as CONSTANT_FORCE motion.
 	};
 
 	std::string sourceFileName;

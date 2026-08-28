@@ -125,8 +125,15 @@ void CConsoleSimulator::SetupSystemStructure() const
 		for (const auto& motion : m_job.geometryForceIntervals)
 			if (auto* geometry = GetGeometryPtr(motion))
 			{
-				geometry->Motion()->SetMotionType(CGeometryMotion::EMotionType::FORCE_DEPENDENT);
-				geometry->Motion()->AddForceInterval(motion.intrerval);
+				auto* geometryMotion = geometry->Motion();
+				const bool     extends  = geometryMotion->HasMotion();
+				const auto     prevType = geometryMotion->MotionType();
+				const CVector3 prevDir  = geometryMotion->GetForceDirection();
+				geometryMotion->SetMotionType(motion.type);
+				geometryMotion->AddForceInterval(motion.intrerval);
+				geometryMotion->SetForceDirection(motion.forceDirection);
+				if (extends && (prevType != geometryMotion->MotionType() || prevDir != geometryMotion->GetForceDirection()))
+					m_err << "Warning: force motion lines for geometry '" << geometry->Name() << "' specify different motion types or force directions. The last one is applied.\n";
 			}
 	}
 }

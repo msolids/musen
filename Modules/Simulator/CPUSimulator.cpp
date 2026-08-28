@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "CPUSimulator.h"
@@ -317,16 +318,15 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 		const auto& planes = geom->Planes();
 		if (planes.empty()) continue;
 
-		if (geom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT ||  // force
-			geom->Motion()->MotionType() == CGeometryMotion::EMotionType::CONSTANT_FORCE)
+		if (geom->Motion()->IsForceDriven()) // force
 		{
-			double totalForceZ = 0;
+			CVector3 totalForce{ 0.0 };
 			for (const auto& plane : planes)
 			{
 				const size_t iWall = m_scene.m_vNewIndexes[plane];
-				totalForceZ += walls.Force(iWall).z;
+				totalForce += walls.Force(iWall);
 			}
-			geom->UpdateMotionInfo(totalForceZ);
+			geom->UpdateMotionInfo(geom->Motion()->SensedForce(totalForce));
 		}
 		else
 			geom->UpdateMotionInfo(m_currentTime); // time
