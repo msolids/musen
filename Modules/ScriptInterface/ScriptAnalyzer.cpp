@@ -333,10 +333,12 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		motion.intrerval.motion.rotationCenter   = GetValueFromStream<CVector3>(&ss);
 		m_jobs.back().geometryTimeIntervals.push_back(motion);
 	}
-	else if (key == "GEOMETRY_MOTION_FORCE" || key == "GEOMETRY_MOTION_CONST_FORCE")
+	else if (key == "GEOMETRY_MOTION_FORCE" || key == "GEOMETRY_MOTION_CONST_FORCE" || key == "GEOMETRY_MOTION_CYCLIC_FORCE")
 	{
 		SJob::SGeometryMotionIntervalForce motion;
-		motion.type                              = key == "GEOMETRY_MOTION_FORCE" ? CGeometryMotion::EMotionType::FORCE_DEPENDENT : CGeometryMotion::EMotionType::CONSTANT_FORCE;
+		if      (key == "GEOMETRY_MOTION_FORCE")        motion.type = CGeometryMotion::EMotionType::FORCE_DEPENDENT;
+		else if (key == "GEOMETRY_MOTION_CONST_FORCE")  motion.type = CGeometryMotion::EMotionType::CONSTANT_FORCE;
+		else if (key == "GEOMETRY_MOTION_CYCLIC_FORCE") motion.type = CGeometryMotion::EMotionType::CYCLIC_FORCE;
 		ReadGeometryID(ss, motion);
 		motion.intrerval.forceLimit              = GetValueFromStream<double>(&ss);
 		const std::string limit = ToUpperCase(GetValueFromStream<std::string>(&ss));
@@ -347,6 +349,12 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		motion.forceDirection                    = GetValueFromStream<CVector3>(&ss);
 		if (!ss) // an older script may not have the force direction
 			_out << "Warning: no force direction (Dx Dy Dz) given in " << key << ", the force is measured along Z.\n";
+		if (motion.type == CGeometryMotion::EMotionType::CYCLIC_FORCE)
+		{
+			motion.strokeLength = GetValueFromStream<double>(&ss);
+			if (!ss || motion.strokeLength <= 0.0)
+				_out << "Warning: no positive stroke length given in " << key << ", the simulation will refuse to start.\n";
+		}
 		m_jobs.back().geometryForceIntervals.push_back(motion);
 	}
 	else

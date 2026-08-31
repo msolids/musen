@@ -149,7 +149,7 @@ namespace CUDAKernels
 	}
 
 	__global__ void MoveWalls_kernel(const double _timeStep, const unsigned _nWallsInGeom, const CVector3 _vel, const CVector3 _rotVel, const CVector3 _definedRotCenter, const CMatrix3 _rotMatrix,
-		const CVector3 _freeMotion, const CVector3* _totalForce, double _mass, bool _isRotateAroundCenter,
+		const CVector3 _extraShift, const CVector3 _freeMotion, const CVector3* _totalForce, double _mass, bool _isRotateAroundCenter,
 		const CVector3 _externalAccel, const CVector3* _calculatedCenter, const unsigned* _wallsInGeom, CVector3* _vertex1, CVector3* _vertex2, CVector3* _vertex3,
 		CVector3* _wallMinCoord, CVector3* _wallMaxCoord, CVector3* _wallNormalVector, CVector3* _wallVel, CVector3* _wallRotCenter, CVector3* _wallRotVel)
 	{
@@ -178,11 +178,12 @@ namespace CUDAKernels
 
 				_wallNormalVector[iWall] = Normalized((_vertex2[iWall] - _vertex1[iWall])*(_vertex3[iWall] - _vertex1[iWall]));
 			}
-			if (vel.x != 0.0 || vel.y != 0.0 || vel.z != 0.0)
+			const CVector3 shift = vel * _timeStep + _extraShift;
+			if (shift.x != 0.0 || shift.y != 0.0 || shift.z != 0.0)
 			{
-				_vertex1[iWall] += vel * _timeStep;
-				_vertex2[iWall] += vel * _timeStep;
-				_vertex3[iWall] += vel * _timeStep;
+				_vertex1[iWall] += shift;
+				_vertex2[iWall] += shift;
+				_vertex3[iWall] += shift;
 			}
 
 

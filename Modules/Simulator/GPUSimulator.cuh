@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -84,7 +85,7 @@ public:
 	void MoveParticles(double _timeStep, bool _anisotropy, double _partVelocityLimit, const SGPUParticles& _particles);
 	void MoveParticlesPrediction(double _timeStep, bool _anisotropy, double _partVelocityLimit, const SGPUParticles& _particles);
 
-	void MoveWalls(double _timeStep, size_t _iWallsInGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix,
+	void MoveWalls(double _timeStep, size_t _iWallsInGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix, const CVector3& _extraShift,
 		const CVector3& _freeMotion, bool _isForceDependentMotion, bool _isRotateAroundCenter, double _mass, SGPUWalls& _walls, const CVector3& _externalAccel);
 
 	void UpdateTemperatures(double _currTimeStep, SGPUParticles& _particles);

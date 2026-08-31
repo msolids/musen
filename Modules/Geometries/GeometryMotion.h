@@ -20,7 +20,8 @@ public:
 		NONE = 0,
 		TIME_DEPENDENT = 1,
 		FORCE_DEPENDENT = 2,
-		CONSTANT_FORCE = 3
+		CONSTANT_FORCE = 3,
+		CYCLIC_FORCE = 4
 	};
 
 	// Information about movement characteristics.
@@ -83,11 +84,13 @@ private:
 
 	EMotionType m_motionType{ EMotionType::NONE };		// Type of geometry's motion.
 	std::vector<STimeMotionInterval>  m_intervalsTime;	// Time-dependent motion of this geometry. Is used if (m_motionType == TIME_DEPENDENT).
-	std::vector<SForceMotionInterval> m_intervalsForce;	// Force-dependent motion of this geometry. Is used if (m_motionType == FORCE_DEPENDENT).
-	CVector3 m_forceDirection{ 0.0, 0.0, 1.0 };			///< Direction of the force to consider; a unit vector. Used if (m_motionType == FORCE_DEPENDENT || m_motionType == CONSTANT_FORCE).
+	std::vector<SForceMotionInterval> m_intervalsForce;	// Force-dependent motion of this geometry. Is used if the motion is force-driven.
+	CVector3 m_forceDirection{ 0.0, 0.0, 1.0 };			///< Direction of the force to consider; a unit vector. Used if the motion is force-driven.
+	double m_strokeLength{ 0.0 };						///< Length of one stroke. Is used if (m_motionType == CYCLIC_FORCE).
 
 	size_t m_iMotion{ static_cast<size_t>(-1) };	// Index of currently acting motion characteristics.
 	SMotionInfo m_currentMotion;					// Currently acting motion characteristics.
+	CVector3 m_accumulatedShift{ 0.0 };				///< Translational shift performed by the geometry since the beginning of the current stroke.
 
 public:
 	EMotionType MotionType() const;			// Returns current motion type.
@@ -123,6 +126,22 @@ public:
 	 * @return The total force projected onto the force direction. */
 	double SensedForce(const CVector3& _totalForce) const;
 
+	/**
+	 * @brief Returns the length of one stroke of a cyclic motion.
+	 * @details Used for EMotionType::CYCLIC_FORCE. */
+	double GetStrokeLength() const;
+	/**
+	 * @brief Sets the length of one stroke of a cyclic motion.
+	 * @details Used for EMotionType::CYCLIC_FORCE.
+	 * @param _length Length of one stroke [m]. */
+	void SetStrokeLength(double _length);
+	/**
+	 * @brief Returns the shift which returns the geometry to the position where the current stroke started.
+	 * @details Used for EMotionType::CYCLIC_FORCE. The stroke is finished as soon as the geometry has travelled the stroke length along the direction of its velocity.
+	 * The next call to UpdateMotionInfo() starts a new stroke.
+	 * @return Shift to apply to the geometry, or a zero vector if the current stroke is not finished yet. */
+	CVector3 StrokeResetShift() const;
+
 	void DeleteInterval(size_t _index);		// Removes motion interval of the currently selected type.
 	void MoveIntervalUp(size_t _index);		// Moves motion interval of the currently selected type upwards in the list.
 	void MoveIntervalDown(size_t _index);	// Moves motion interval of the currently selected type downwards in the list.
@@ -132,7 +151,11 @@ public:
 	bool IsValid() const;				// Checks whether the selected settings are valid.
 	std::string ErrorMessage() const;	// Returns description of the last occurred error.
 
-	void UpdateMotionInfo(double _dependentValue);	// Updates current motion characteristics according to the current time or force.
+	/**
+	 * @brief Updates current motion characteristics according to the current time or force.
+	 * @param _dependentValue Current time or sensed force, depending on the motion type.
+	 * @param _timeStep Current simulation time step. */
+	void UpdateMotionInfo(double _dependentValue, double _timeStep);
 	void ResetMotionInfo();							// Resets current motion characteristics to the initial state.
 	SMotionInfo GetCurrentMotion() const;			// Returns current motion characteristics.
 

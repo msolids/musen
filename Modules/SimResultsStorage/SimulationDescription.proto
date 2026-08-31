@@ -83,6 +83,7 @@ message ProtoGeometryMotion
 	uint32 type                                    = 2;
 	repeated ProtoGeometryMotionInterval intervals = 3;
 	ProtoVector force_direction                    = 4;
+	double stroke_length                           = 5;
 }
 
 message ProtoBaseGeometry
