@@ -331,10 +331,10 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 				const size_t iWall = m_scene.m_vNewIndexes[plane];
 				totalForce += walls.Force(iWall);
 			}
-			geom->UpdateMotionInfo(geom->Motion()->SensedForce(totalForce));
+			geom->UpdateMotionInfo(geom->Motion()->SensedForce(totalForce), _timeStep);
 		}
 		else
-			geom->UpdateMotionInfo(m_currentTime); // time
+			geom->UpdateMotionInfo(m_currentTime, _timeStep); // time
 		CVector3 vel = geom->GetCurrentVelocity();
 		CVector3 rotVel = geom->GetCurrentRotVelocity();
 		CVector3 rotCenter;
@@ -382,7 +382,10 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 			m_wallsVelocityChanged = true;
 		}
 
-		if (vel.IsZero() && rotVel.IsZero()) continue;
+		const CVector3 strokeReset = geom->Motion()->StrokeResetShift(); // for cyclic motion
+		const CVector3 shift = vel * _timeStep + strokeReset;
+
+		if (shift.IsZero() && rotVel.IsZero() && strokeReset.IsZero()) continue;
 		CMatrix3 rotMatrix;
 		if (!rotVel.IsZero())
 			rotMatrix = CQuaternion(rotVel*_timeStep).ToRotmat();
@@ -400,11 +403,11 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 				walls.Vert2(iWall) = rotCenter + rotMatrix * (walls.Vert2(iWall) - rotCenter);
 				walls.Vert3(iWall) = rotCenter + rotMatrix * (walls.Vert3(iWall) - rotCenter);
 			}
-			if (!vel.IsZero())
+			if (!shift.IsZero())
 			{
-				walls.Vert1(iWall) += vel * _timeStep;
-				walls.Vert2(iWall) += vel * _timeStep;
-				walls.Vert3(iWall) += vel * _timeStep;
+				walls.Vert1(iWall) += shift;
+				walls.Vert2(iWall) += shift;
+				walls.Vert3(iWall) += shift;
 			}
 
 			// update wall properties
@@ -414,6 +417,9 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 			if (!rotVel.IsZero())
 				walls.NormalVector(iWall) = Normalized((walls.Vert2(iWall) - walls.Vert1(iWall))*(walls.Vert3(iWall) - walls.Vert1(iWall)));
 		});
+
+		if (!strokeReset.IsZero())
+			m_verletList.ResetCurrentData(); // the geometry jumped, so the Verlet list must be rebuilt
 	}
 }
 

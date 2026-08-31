@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #include "RealGeometry.h"
@@ -172,9 +173,9 @@ void CRealGeometry::Rotate(const CMatrix3& _rotation)
 		wall->SetPlaneCoord(wall->GetPlaneCoords().Rotated(center, _rotation));
 }
 
-void CRealGeometry::UpdateMotionInfo(double _dependentValue)
+void CRealGeometry::UpdateMotionInfo(double _dependentValue, double _timeStep)
 {
-	Motion()->UpdateMotionInfo(_dependentValue);
+	Motion()->UpdateMotionInfo(_dependentValue, _timeStep);
 }
 
 CVector3 CRealGeometry::GetCurrentVelocity() const
@@ -257,6 +258,7 @@ void CRealGeometry::LoadFromProto_v0(const ProtoRealGeometry_v0& _proto)
 		break;
 	}
 	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
+	case CGeometryMotion::EMotionType::CYCLIC_FORCE:
 	case CGeometryMotion::EMotionType::NONE: break;
 	}
 

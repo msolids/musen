@@ -205,7 +205,7 @@ CVector3 CGPU::CalculateTotalForceOnWall(size_t _iGeom, SGPUWalls & _walls)
 	return vResult;
 }
 
-void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix,
+void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, const CVector3& _rotVel, const CVector3& _rotCenter, const CMatrix3& _rotMatrix, const CVector3& _extraShift,
 	const CVector3& _freeMotion, bool _isForceDependentMotion, bool _isRotateAroundCenter, double _mass, SGPUWalls& _walls, const CVector3& _externalAccel)
 {
 	const unsigned wallsInGeom = static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size());
@@ -231,7 +231,7 @@ void CGPU::MoveWalls(double _timeStep, size_t _iGeom, const CVector3& _vel, cons
 	}
 	CUDA_KERNEL_ARGS2_DEFAULT(CUDAKernels::MoveWalls_kernel, _timeStep,
 		static_cast<unsigned>(m_vvWallsInGeom[_iGeom].size()), _vel, _rotVel, _rotCenter, _rotMatrix,
-		_freeMotion, totalForce.data().get(), _mass, _isRotateAroundCenter, _externalAccel,
+		_extraShift, _freeMotion, totalForce.data().get(), _mass, _isRotateAroundCenter, _externalAccel,
 		rotCenter.data().get(), m_vvWallsInGeom[_iGeom].data().get(),
 		_walls.Vertices1, _walls.Vertices2, _walls.Vertices3, _walls.MinCoords,
 		_walls.MaxCoords, _walls.NormalVectors, _walls.Vels, _walls.RotCenters, _walls.RotVels);
@@ -684,10 +684,10 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		if (pGeom->Motion()->IsForceDriven()) // force
 		{
 			const CVector3 vTotalForce = m_impl->gpu.CalculateTotalForceOnWall(iGeom, m_impl->sceneGPU.GetPointerToWalls());
-			pGeom->UpdateMotionInfo(pGeom->Motion()->SensedForce(vTotalForce));
+			pGeom->UpdateMotionInfo(pGeom->Motion()->SensedForce(vTotalForce), _dTimeStep);
 		}
 		else
-			pGeom->UpdateMotionInfo(m_currentTime); // time
+			pGeom->UpdateMotionInfo(m_currentTime, _dTimeStep); // time
 
 		CVector3 vVel = pGeom->GetCurrentVelocity();
 		CVector3 vRotVel = pGeom->GetCurrentRotVelocity();
@@ -699,13 +699,17 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		if ( !pGeom->FreeMotion().IsZero() )
 			m_wallsVelocityChanged = true;
 
-		if (vRotVel.IsZero() && pGeom->FreeMotion().IsZero() && vVel.IsZero()) continue;
+		const CVector3 strokeReset = pGeom->Motion()->StrokeResetShift(); // for cyclic motion
+		if (vRotVel.IsZero() && pGeom->FreeMotion().IsZero() && vVel.IsZero() && strokeReset.IsZero()) continue;
 		CMatrix3 RotMatrix;
 		if (!vRotVel.IsZero())
 			RotMatrix = CQuaternion(vRotVel*_dTimeStep).ToRotmat();
 
-		m_impl->gpu.MoveWalls(_dTimeStep, iGeom, vVel, vRotVel, vRotCenter, RotMatrix, pGeom->FreeMotion(),
+		m_impl->gpu.MoveWalls(_dTimeStep, iGeom, vVel, vRotVel, vRotCenter, RotMatrix, strokeReset, pGeom->FreeMotion(),
 			pGeom->Motion()->MotionType() == CGeometryMotion::EMotionType::FORCE_DEPENDENT, pGeom->RotateAroundCenter(), pGeom->Mass(), m_impl->sceneGPU.GetPointerToWalls(), m_externalAcceleration);
+
+		if (!strokeReset.IsZero())
+			m_verletList.ResetCurrentData(); // the geometry jumped, so the Verlet list must be rebuilt
 	}
 }
 

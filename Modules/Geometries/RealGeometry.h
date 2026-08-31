@@ -1,5 +1,6 @@
-/* Copyright (c) 2013-2020, MUSEN Development Team. All rights reserved.
-   This file is part of MUSEN framework http://msolids.net/musen.
+/* Copyright (c) 2013-2020, MUSEN Development Team.
+   Copyright (c) 2026, DyssolTEC GmbH.
+   All rights reserved. This file is part of MUSEN framework https://github.com/msolids/musen.
    See LICENSE file for license and warranty information. */
 
 #pragma once
@@ -47,7 +48,11 @@ public:
 	void DeformSTL(const CVector3& _factors) override;			// Scales sizes of the STL geometry by the given factors different in each dimension at time point 0.
 	void Rotate(const CMatrix3& _rotation) override;			// Rotates the geometry according to the given rotational matrix at time point 0.
 
-	void UpdateMotionInfo(double _dependentValue);	// Updates current motion characteristics according to the current time or force.
+	/**
+	 * @brief Updates current motion characteristics according to the current time or force.
+	 * @param _dependentValue Current time or sensed force, depending on the motion type.
+	 * @param _timeStep Current simulation time step. */
+	void UpdateMotionInfo(double _dependentValue, double _timeStep);
 	CVector3 GetCurrentVelocity() const;			// Returns current translational velocity.
 	CVector3 GetCurrentRotVelocity() const;			// Returns current rotational velocity.
 	CVector3 GetCurrentRotCenter() const;			// Returns current center of rotation.

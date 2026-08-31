@@ -126,14 +126,16 @@ void CConsoleSimulator::SetupSystemStructure() const
 			if (auto* geometry = GetGeometryPtr(motion))
 			{
 				auto* geometryMotion = geometry->Motion();
-				const bool     extends  = geometryMotion->HasMotion();
-				const auto     prevType = geometryMotion->MotionType();
-				const CVector3 prevDir  = geometryMotion->GetForceDirection();
+				const bool     extends    = geometryMotion->HasMotion();
+				const auto     prevType   = geometryMotion->MotionType();
+				const CVector3 prevDir    = geometryMotion->GetForceDirection();
+				const double   prevStroke = geometryMotion->GetStrokeLength();
 				geometryMotion->SetMotionType(motion.type);
 				geometryMotion->AddForceInterval(motion.intrerval);
 				geometryMotion->SetForceDirection(motion.forceDirection);
-				if (extends && (prevType != geometryMotion->MotionType() || prevDir != geometryMotion->GetForceDirection()))
-					m_err << "Warning: force motion lines for geometry '" << geometry->Name() << "' specify different motion types or force directions. The last one is applied.\n";
+				geometryMotion->SetStrokeLength(motion.strokeLength);
+				if (extends && (prevType != geometryMotion->MotionType() || prevDir != geometryMotion->GetForceDirection() || prevStroke != geometryMotion->GetStrokeLength()))
+					m_err << "Warning: force motion lines for geometry '" << geometry->Name() << "' specify different motion types, force directions or stroke lengths. The last one is applied.\n";
 			}
 	}
 }

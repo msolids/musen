@@ -107,7 +107,8 @@ struct SJob
 	{
 		CGeometryMotion::SForceMotionInterval intrerval;	// Force-dependent motion interval.
 		CVector3 forceDirection{ 0.0 };						///< Direction, onto which the total force on the geometry is projected to obtain the sensed force. Zero if the script line does not specify one.
-		CGeometryMotion::EMotionType type{ CGeometryMotion::EMotionType::FORCE_DEPENDENT };	///< Whether the interval is applied as FORCE_DEPENDENT or as CONSTANT_FORCE motion.
+		double strokeLength{ 0.0 };							///< Length of one stroke. Is used if the interval is applied as CYCLIC_FORCE motion.
+		CGeometryMotion::EMotionType type{ CGeometryMotion::EMotionType::FORCE_DEPENDENT };	///< Whether the interval is applied as FORCE_DEPENDENT, CONSTANT_FORCE or CYCLIC_FORCE motion.
 	};
 
 	std::string sourceFileName;

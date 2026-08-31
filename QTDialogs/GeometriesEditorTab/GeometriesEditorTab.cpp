@@ -48,6 +48,7 @@ void CGeometriesEditorTab::InitializeConnections() const
 	connect(ui.lineEditForceDirX,		&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
 	connect(ui.lineEditForceDirY,		&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
 	connect(ui.lineEditForceDirZ,		&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
+	connect(ui.lineEditStrokeLength,	&QLineEdit::editingFinished,		this, &CGeometriesEditorTab::MotionChanged);
 
 	connect(ui.buttonAddMotion,		&QPushButton::clicked, this, &CGeometriesEditorTab::AddMotion);
 	connect(ui.buttonDeleteMotion,	&QPushButton::clicked, this, &CGeometriesEditorTab::DeleteMotion);
@@ -95,9 +96,9 @@ void CGeometriesEditorTab::SetupPropertiesList()
 	// motion
 	m_properties[EProperty::MOTION] = ui.treeProperties->CreateItem(general, 0, "Motion");
 	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1,
-		{ "None", "Time-dependent", "Force-dependent", "Constant force" },
+		{ "None", "Time-dependent", "Force-dependent", "Constant force", "Cyclic force" },
 		{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT),
-		E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE) }, 0);
+		E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE), E2I(CGeometryMotion::EMotionType::CYCLIC_FORCE) }, 0);
 	connect(motion, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::MotionTypeChanged);
 
 	// triangles
@@ -243,6 +244,7 @@ void CGeometriesEditorTab::UpdateMeasurementUnits() const
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_CENTER_Z,	"Rot. center Z",	EUnitType::LENGTH);
 
 	ShowConvLabel(ui.labelMass, "Mass", EUnitType::MASS);
+	ShowConvLabel(ui.labelStrokeLength, "Stroke length", EUnitType::LENGTH);
 }
 
 void CGeometriesEditorTab::UpdateAddButtons()
@@ -299,9 +301,9 @@ void CGeometriesEditorTab::UpdateMotionCombo() const
 	{
 	case EType::NONE: break;
 	case EType::GEOMETRY:
-		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent", "Constant force" },
+		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent", "Constant force", "Cyclic force" },
 			{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT),
-			E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE) }, -1);
+			E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE), E2I(CGeometryMotion::EMotionType::CYCLIC_FORCE) }, -1);
 		break;
 	case EType::VOLUME:
 		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT) }, -1);
@@ -422,7 +424,7 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	if (!m_object) return;
 
 	[[maybe_unused]] CQtSignalBlocker blocker{ ui.tableMotion, ui.checkBoxAroundCenter, ui.groupFreeMotion, ui.checkBoxFreeMotionX, ui.checkBoxFreeMotionY, ui.checkBoxFreeMotionZ, ui.lineEditMass,
-		ui.groupForceDirection, ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ };
+		ui.groupForceDirection, ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ, ui.lineEditStrokeLength };
 
 	const auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
 
@@ -430,16 +432,17 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	const auto* motion = m_object->Motion();
 	const auto type = motion->MotionType();
 	const bool forceBased = motion->IsForceDriven();
+	const bool cyclic = type == CGeometryMotion::EMotionType::CYCLIC_FORCE;
 	ui.tableMotion->ShowRow(ERowMotion::TIME_BEG,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
 	ui.tableMotion->ShowRow(ERowMotion::TIME_END,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
 	ui.tableMotion->ShowRow(ERowMotion::FORCE,        forceBased);
 	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   forceBased);
-	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_X,    geometry);
-	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Y,    geometry);
-	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Z,    geometry);
-	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_X, geometry && !geometry->RotateAroundCenter());
-	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_Y, geometry && !geometry->RotateAroundCenter());
-	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_Z, geometry && !geometry->RotateAroundCenter());
+	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_X,    geometry && !cyclic);
+	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Y,    geometry && !cyclic);
+	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Z,    geometry && !cyclic);
+	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_X, geometry && !cyclic && !geometry->RotateAroundCenter());
+	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_Y, geometry && !cyclic && !geometry->RotateAroundCenter());
+	ui.tableMotion->ShowRow(ERowMotion::ROT_CENTER_Z, geometry && !cyclic && !geometry->RotateAroundCenter());
 
 	// movement parameters
 	switch (type)
@@ -460,10 +463,12 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	}
 	case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
 	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
+	case CGeometryMotion::EMotionType::CYCLIC_FORCE:
 	{
 		const auto intervals = motion->GetForceIntervals();
 		const int count = static_cast<int>(intervals.size());
-		const int columns = type == CGeometryMotion::EMotionType::CONSTANT_FORCE && count > 1 ? 1 : count;
+		// all force-driven types except FORCE_DEPENDENT use only the first interval
+		const int columns = type == CGeometryMotion::EMotionType::FORCE_DEPENDENT ? count : std::min(count, 1);
 		ui.tableMotion->setColumnCount(columns);
 		for (int i = 0; i < columns; ++i)
 		{
@@ -480,8 +485,8 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 		break;
 	}
 
-	ui.checkBoxAroundCenter->setChecked(geometry && geometry->RotateAroundCenter());
-	ui.checkBoxAroundCenter->setEnabled(geometry);
+	ui.checkBoxAroundCenter->setChecked(geometry && !cyclic && geometry->RotateAroundCenter());
+	ui.checkBoxAroundCenter->setEnabled(geometry && !cyclic);
 	ui.tableMotion->resizeColumnsToContents();
 
 	// force direction
@@ -490,13 +495,18 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	if (Normalized(shownDirection) != motion->GetForceDirection())
 		ShowConvValue(ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ, motion->GetForceDirection(), EUnitType::NONE);
 
+	// stroke length
+	ui.groupStroke->setVisible(geometry && type == CGeometryMotion::EMotionType::CYCLIC_FORCE);
+	ShowConvValue(ui.lineEditStrokeLength, motion->GetStrokeLength(), EUnitType::LENGTH);
+
 	// free motion parameters
 	ui.checkBoxFreeMotionX->setChecked(geometry && geometry->FreeMotion().x);
 	ui.checkBoxFreeMotionY->setChecked(geometry && geometry->FreeMotion().y);
 	ui.checkBoxFreeMotionZ->setChecked(geometry && geometry->FreeMotion().z);
 	ShowConvValue(ui.lineEditMass, geometry ? geometry->Mass() : 0, EUnitType::MASS);
-	ui.lineEditMass->setEnabled(geometry && !geometry->FreeMotion().IsZero());
-	ui.groupFreeMotion->setEnabled(geometry);
+	ui.lineEditMass->setEnabled(geometry && !cyclic && !geometry->FreeMotion().IsZero());
+	// the stroke counts the prescribed displacement, which a free motion overrides
+	ui.groupFreeMotion->setEnabled(geometry && !cyclic);
 }
 
 void CGeometriesEditorTab::UpdateMotionVisibility()
@@ -658,7 +668,22 @@ void CGeometriesEditorTab::ColorChanged()
 void CGeometriesEditorTab::MotionTypeChanged()
 {
 	const CGeometryMotion::EMotionType type = static_cast<CGeometryMotion::EMotionType>(ui.treeProperties->GetComboBoxValue(m_properties.at(EProperty::MOTION), 1).toUInt());
-	m_object->Motion()->SetMotionType(type);
+	auto* motion = m_object->Motion();
+	motion->SetMotionType(type);
+	if (type == CGeometryMotion::EMotionType::CYCLIC_FORCE)
+	{
+		for (size_t i = 0; i < motion->GetForceIntervals().size(); ++i)
+		{
+			auto interval = motion->GetForceInterval(i);
+			interval.motion.rotationVelocity.Init(0.0);
+			motion->ChangeForceInterval(i, interval);
+		}
+		if (auto* geometry = dynamic_cast<CRealGeometry*>(m_object))
+		{
+			geometry->SetFreeMotion(CBasicVector3<bool>{ false, false, false });
+			geometry->SetRotateAroundCenter(false);
+		}
+	}
 	UpdateMotionInfo();
 }
 
@@ -778,11 +803,12 @@ void CGeometriesEditorTab::MotionTableChanged()
 			break;
 		case CGeometryMotion::EMotionType::FORCE_DEPENDENT:
 		case CGeometryMotion::EMotionType::CONSTANT_FORCE:
+		case CGeometryMotion::EMotionType::CYCLIC_FORCE:
 			m_object->Motion()->ChangeForceInterval(iCol, {
 				ui.tableMotion->GetConvValue(ERowMotion::FORCE, iCol, EUnitType::FORCE),
 				static_cast<CGeometryMotion::SForceMotionInterval::ELimitType>(ui.tableMotion->GetComboBoxValue(ERowMotion::LIMIT_TYPE, iCol).toUInt()), {
 				ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
-				ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) ,
+				m_object->Motion()->MotionType() != CGeometryMotion::EMotionType::CYCLIC_FORCE ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) : CVector3{ 0.0 },
 				ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH)
 				} });
 			break;
@@ -801,6 +827,7 @@ void CGeometriesEditorTab::MotionChanged()
 	geometry->SetMass(GetConvValue(ui.lineEditMass, EUnitType::MASS));
 	geometry->SetFreeMotion(CBasicVector3<bool>{ ui.checkBoxFreeMotionX->isChecked(), ui.checkBoxFreeMotionY->isChecked(), ui.checkBoxFreeMotionZ->isChecked() });
 	geometry->Motion()->SetForceDirection(GetConvValue(ui.lineEditForceDirX, ui.lineEditForceDirY, ui.lineEditForceDirZ, EUnitType::NONE));
+	geometry->Motion()->SetStrokeLength(GetConvValue(ui.lineEditStrokeLength, EUnitType::LENGTH));
 
 	UpdateMotionInfo();
 }
