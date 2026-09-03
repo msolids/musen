@@ -26,6 +26,8 @@ public:
 	void SetForce(int _objectID, const CVector3& _force) const;
 	void SetTemperature(int _objectID, const double& _temperature) const;
 	void SetTotalTorque(int _objectID, const double& _totalTorque) const;
+	void SetNormalMomentMagnitude(int _objectID, const double& _normalMomentMagnitude) const;
+	void SetTangentialMomentMagnitude(int _objectID, const double& _tangentialMomentMagnitude) const;
 	void SetOrientation(int _objectID, const CQuaternion& _orientation) const;
 	void SetStressTensor(int _objectID, const CMatrix3& _stressTensor) const;
 	void ClearAllTDData(int _objectID) const;

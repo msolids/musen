@@ -72,6 +72,8 @@ public:
 	CVector3 GetForce(double _time) const;
 	double GetTemperature(double _time) const;
 	double GetTotalTorque(double _time) const;
+	double GetNormalMomentMagnitude(double _time) const;
+	double GetTangentialMomentMagnitude(double _time) const;
 	CQuaternion GetOrientation(double _time) const;
 	CMatrix3 GetStressTensor(double _time) const;
 	CVector3 GetNormalStress(double _time) const; // return diagonal elements of stress tensor
@@ -86,6 +88,8 @@ public:
 	CVector3 GetForce() const;
 	double GetTemperature() const;
 	double GetTotalTorque() const;
+	double GetNormalMomentMagnitude() const;
+	double GetTangentialMomentMagnitude() const;
 	CQuaternion GetOrientation() const;
 	CMatrix3 GetStressTensor() const;
 	CVector3 GetNormalStress() const; // return diagonal elements of stress tensor
@@ -98,6 +102,8 @@ public:
 	void SetForce(double _time, const CVector3& _force) const;
 	void SetTemperature(double _time, const double& _temperature) const;
 	void SetTotalTorque(double _time, const double& _totalTorque) const;
+	void SetNormalMomentMagnitude(double _time, const double& _normalMomentMagnitude) const;
+	void SetTangentialMomentMagnitude(double _time, const double& _tangentialMomentMagnitude) const;
 	void SetOrientation(double _time, const CQuaternion& _orientation) const;
 	void SetStressTensor(double _time, const CMatrix3& _stressTensor) const;
 
@@ -109,6 +115,8 @@ public:
 	void SetForce(const CVector3& _force) const;
 	void SetTemperature(const double& _temperature) const;
 	void SetTotalTorque(const double& _totalTorque) const;
+	void SetNormalMomentMagnitude(const double& _normalMomentMagnitude) const;
+	void SetTangentialMomentMagnitude(const double& _tangentialMomentMagnitude) const;
 	void SetOrientation(const CQuaternion& _orientation) const;
 	void SetStressTensor(const CMatrix3& _stressTensor) const;
 

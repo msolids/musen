@@ -638,6 +638,19 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="checkTDBondEnergy">
+              <property name="toolTip">
+               <string>Elastic potential energy of the bond (Ji &amp; Di, 2013, axial + shear terms)</string>
+              </property>
+              <property name="text">
+               <string>Elastic energy</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_6">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -1200,6 +1213,7 @@
   <tabstop>checkTDBondTemp</tabstop>
   <tabstop>checkTDBondTotTorque</tabstop>
   <tabstop>checkTDBondVel</tabstop>
+  <tabstop>checkTDBondEnergy</tabstop>
   <tabstop>groupTDWalls</tabstop>
   <tabstop>checkTDWallCoord</tabstop>
   <tabstop>checkTDWallForce</tabstop>

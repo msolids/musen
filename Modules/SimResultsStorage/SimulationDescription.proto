@@ -388,6 +388,8 @@ message ProtoTimeDependentProperties
 	ProtoVector force = 11;
 	ProtoQuaternion quaternion = 12;
 	ProtoMatrix stress_tensor = 13;
+	double normal_moment_magnitude = 14;
+	double tangential_moment_magnitude = 15;
 }
 
 message ProtoTimePoint

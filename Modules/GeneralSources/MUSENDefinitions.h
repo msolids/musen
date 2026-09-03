@@ -70,6 +70,7 @@ enum class ETXTCommands : unsigned
 	OBJECT_PLANE_COORD       = 44,
 	OBJECT_TANG_OVERLAP      = 45,
 	DYNAMIC_GENERATOR        = 46,
+	OBJECT_ENERGY            = 47,
 };
 
 // ********* physical constants

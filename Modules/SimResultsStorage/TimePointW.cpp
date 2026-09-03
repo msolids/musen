@@ -47,6 +47,16 @@ void CTimePointW::SetTotalTorque(int _objectID, const double& _totalTorque) cons
 	protoTimePoint->mutable_particles(_objectID)->set_total_torque(_totalTorque);
 }
 
+void CTimePointW::SetNormalMomentMagnitude(int _objectID, const double& _normalMomentMagnitude) const
+{
+	protoTimePoint->mutable_particles(_objectID)->set_normal_moment_magnitude(_normalMomentMagnitude);
+}
+
+void CTimePointW::SetTangentialMomentMagnitude(int _objectID, const double& _tangentialMomentMagnitude) const
+{
+	protoTimePoint->mutable_particles(_objectID)->set_tangential_moment_magnitude(_tangentialMomentMagnitude);
+}
+
 void CTimePointW::SetOrientation(int _objectID, const CQuaternion& _orientation) const
 {
 	protoTimePoint->mutable_particles(_objectID)->mutable_quaternion()->set_q0(_orientation.q0);
@@ -78,6 +88,8 @@ void CTimePointW::ClearAllTDData(int _objectID) const
 	protoTimePoint->mutable_particles(_objectID)->clear_angle_vel();
 	protoTimePoint->mutable_particles(_objectID)->clear_angle_accl();
 	protoTimePoint->mutable_particles(_objectID)->clear_total_torque();
+	protoTimePoint->mutable_particles(_objectID)->clear_normal_moment_magnitude();
+	protoTimePoint->mutable_particles(_objectID)->clear_tangential_moment_magnitude();
 	protoTimePoint->mutable_particles(_objectID)->clear_force();
 	protoTimePoint->mutable_particles(_objectID)->clear_quaternion();
 }

@@ -73,6 +73,10 @@ bool CBondsAnalyzer::Export()
 			case CResultsAnalyzer::EPropertyType::Stress:
 				WriteValueToResults(-1 * DotProduct(pBond->GetForce(dTime), m_pSystemStructure->GetBond(dTime, vBonds[j]).Normalized())/ pBond->m_dCrossCutSurface, iTime);
 				break;
+			case CResultsAnalyzer::EPropertyType::BondElasticEnergy:
+				m_pSystemStructure->PrepareTimePointForRead(dTime);
+				WriteValueToResults(CalcBondElasticEnergyFull(pBond, m_pSystemStructure->GetBond(dTime, vBonds[j])), iTime);
+				break;
 			default:
 				break;
 			}

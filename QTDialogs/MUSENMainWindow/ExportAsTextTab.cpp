@@ -246,7 +246,7 @@ void CExportAsTextTab::ApplyAllFlags()
 		SetFlags(&settings.objectTypes, ui.groupObjectType, { ui.checkTypeParts, ui.checkTypeBonds, ui.checkTypeWalls });
 		SetFlags(&settings.constProps , ui.groupConst     , { ui.checkConstID, ui.checkConstType, ui.checkConstGeometry, ui.checkConstMaterial, ui.checkConstActivity });
 		SetFlags(&settings.tdPropsPart, ui.groupTDParts   , { ui.checkTDPartAngVel, ui.checkTDPartCoord, ui.checkTDPartForce, ui.checkTDPartForceAmpl, ui.checkTDPartOrient, ui.checkTDPartPrincStress, ui.checkTDPartStressTens, ui.checkTDPartTemp, ui.checkTDPartVel });
-		SetFlags(&settings.tdPropsBond, ui.groupTDBonds   , { ui.checkTDBondCoord, ui.checkTDBondForce, ui.checkTDBondForceAmpl, ui.checkTDBondTangOverl, ui.checkTDBondTemp, ui.checkTDBondTotTorque, ui.checkTDBondVel });
+		SetFlags(&settings.tdPropsBond, ui.groupTDBonds   , { ui.checkTDBondCoord, ui.checkTDBondForce, ui.checkTDBondForceAmpl, ui.checkTDBondTangOverl, ui.checkTDBondTemp, ui.checkTDBondTotTorque, ui.checkTDBondVel, ui.checkTDBondEnergy });
 		SetFlags(&settings.tdPropsWall, ui.groupTDWalls   , { ui.checkTDWallCoord, ui.checkTDWallForce, ui.checkTDWallForceAmpl, ui.checkTDWallVel });
 		SetFlags(&settings.sceneInfo  , ui.groupScene     , { ui.checkInfoDomain, ui.checkInfoPBC, ui.checkInfoAnisotropy, ui.checkInfoContactRadius });
 		SetFlags(&settings.geometries , ui.groupGeometries, { ui.checkGeometryGeneral, ui.checkGeometryTDP, ui.checkGeometryWalls, ui.checkGeometryVolumes });

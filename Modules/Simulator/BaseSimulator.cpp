@@ -415,7 +415,12 @@ void CBaseSimulator::p_SaveData()
 		if (!solidBonds.Active(i) && !pSBond->IsActive(m_currentTime)) return;
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bSBForce)       pSBond->SetForce(solidBonds.TotalForce(i));
 		if (!m_selectiveSaving || m_selectiveSavingFlags.bSBTangOverlap) pSBond->SetTangentialOverlap(solidBonds.TangentialOverlap(i));
-		if (!m_selectiveSaving || m_selectiveSavingFlags.bSBTotTorque)   pSBond->SetTotalTorque(Length(solidBonds.NormalMoment(i) + solidBonds.TangentialMoment(i)));
+		if (!m_selectiveSaving || m_selectiveSavingFlags.bSBTotTorque)
+		{
+			pSBond->SetTotalTorque(Length(solidBonds.NormalMoment(i) + solidBonds.TangentialMoment(i)));
+			pSBond->SetNormalMomentMagnitude(Length(solidBonds.NormalMoment(i)));
+			pSBond->SetTangentialMomentMagnitude(Length(solidBonds.TangentialMoment(i)));
+		}
 		pSBond->SetObjectActivity(solidBonds.Active(i) ? m_currentTime : solidBonds.EndActivity(i), solidBonds.Active(i));
 	});
 

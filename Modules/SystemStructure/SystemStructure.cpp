@@ -946,6 +946,14 @@ CVector3 CSystemStructure::GetBondCoordinate(size_t _bondID) const
 	return (objects[bond->m_nLeftObjectID]->GetCoordinates() + objects[bond->m_nRightObjectID]->GetCoordinates()) / 2.0;
 }
 
+CVector3 CSystemStructure::GetBond(size_t _bondID) const
+{
+	if (!objects[_bondID] || objects[_bondID]->GetObjectType() != SOLID_BOND) return CVector3{ 0.0 };
+	const auto* bond = dynamic_cast<CBond*>(objects[_bondID]);
+	if (!objects[bond->m_nLeftObjectID] || !objects[bond->m_nRightObjectID]) return CVector3{ 0.0 };
+	return GetSolidBond(objects[bond->m_nRightObjectID]->GetCoordinates(), objects[bond->m_nLeftObjectID]->GetCoordinates(), m_PBC);
+}
+
 void CSystemStructure::ResetInitBondLength() const
 {
 	for (const auto& bond : GetAllBonds(0.0))

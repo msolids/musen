@@ -599,6 +599,7 @@ CByteStream CExportAsText::GetBinDataBond(size_t _id) const
 	if (m_selectors.tdPropsBond.temperature) stream.Write(bond->GetTemperature());
 	if (m_selectors.tdPropsBond.totTorque  ) stream.Write(bond->GetTotalTorque());
 	if (m_selectors.tdPropsBond.velocity   ) stream.Write(m_systemStructure->GetBondVelocity(m_constData[_id].id));
+	if (m_selectors.tdPropsBond.energy     ) stream.Write(CalcBondElasticEnergyFull(bond, m_systemStructure->GetBond(m_constData[_id].id)));
 	return stream;
 }
 
@@ -612,6 +613,7 @@ void CExportAsText::WriteFromBinDataBond(CByteStream& _stream)
 	if (m_selectors.tdPropsBond.temperature) WriteValue(ETXTCommands::OBJECT_TEMPERATURE , _stream.Read<double  >());
 	if (m_selectors.tdPropsBond.totTorque  ) WriteValue(ETXTCommands::OBJECT_TOT_TORQUE  , _stream.Read<double  >());
 	if (m_selectors.tdPropsBond.velocity   ) WriteValue(ETXTCommands::OBJECT_VELOCITY    , _stream.Read<CVector3>());
+	if (m_selectors.tdPropsBond.energy     ) WriteValue(ETXTCommands::OBJECT_ENERGY      , _stream.Read<double  >());
 }
 
 CByteStream CExportAsText::GetBinDataWall(size_t _id) const

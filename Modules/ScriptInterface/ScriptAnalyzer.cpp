@@ -279,6 +279,7 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		m_jobs.back().txtExportSettings.tdPropsBond.temperature = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportSettings.tdPropsBond.totTorque   = GetValueFromStream<CTriState>(&ss).ToBool(true);
 		m_jobs.back().txtExportSettings.tdPropsBond.velocity    = GetValueFromStream<CTriState>(&ss).ToBool(true);
+		m_jobs.back().txtExportSettings.tdPropsBond.energy      = GetValueFromStream<CTriState>(&ss).ToBool(true);
 	}
 	else if (key == "TEXT_EXPORT_TD_WALL")
 	{

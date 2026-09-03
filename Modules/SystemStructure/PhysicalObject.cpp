@@ -101,6 +101,16 @@ double CPhysicalObject::GetTotalTorque(double _time) const
 	return m_storage->GetTimePointR(_time, static_cast<int>(m_lObjectID))->GetTotalTorque(static_cast<int>(m_lObjectID));
 }
 
+double CPhysicalObject::GetNormalMomentMagnitude(double _time) const
+{
+	return m_storage->GetTimePointR(_time, static_cast<int>(m_lObjectID))->GetNormalMomentMagnitude(static_cast<int>(m_lObjectID));
+}
+
+double CPhysicalObject::GetTangentialMomentMagnitude(double _time) const
+{
+	return m_storage->GetTimePointR(_time, static_cast<int>(m_lObjectID))->GetTangentialMomentMagnitude(static_cast<int>(m_lObjectID));
+}
+
 CQuaternion CPhysicalObject::GetOrientation(double _time) const
 {
 	return m_storage->GetTimePointR(_time, static_cast<int>(m_lObjectID))->GetOrientation(static_cast<int>(m_lObjectID));
@@ -157,6 +167,16 @@ double CPhysicalObject::GetTotalTorque() const
 	return m_storage->GetTimePointR()->GetTotalTorque(static_cast<int>(m_lObjectID));
 }
 
+double CPhysicalObject::GetNormalMomentMagnitude() const
+{
+	return m_storage->GetTimePointR()->GetNormalMomentMagnitude(static_cast<int>(m_lObjectID));
+}
+
+double CPhysicalObject::GetTangentialMomentMagnitude() const
+{
+	return m_storage->GetTimePointR()->GetTangentialMomentMagnitude(static_cast<int>(m_lObjectID));
+}
+
 CQuaternion CPhysicalObject::GetOrientation() const
 {
 	return m_storage->GetTimePointR()->GetOrientation(static_cast<int>(m_lObjectID));
@@ -203,6 +223,16 @@ void CPhysicalObject::SetTotalTorque(double _time, const double& _totalTorque) c
 	m_storage->GetTimePointW(_time, static_cast<int>(m_lObjectID))->SetTotalTorque(static_cast<int>(m_lObjectID), _totalTorque);
 }
 
+void CPhysicalObject::SetNormalMomentMagnitude(double _time, const double& _normalMomentMagnitude) const
+{
+	m_storage->GetTimePointW(_time, static_cast<int>(m_lObjectID))->SetNormalMomentMagnitude(static_cast<int>(m_lObjectID), _normalMomentMagnitude);
+}
+
+void CPhysicalObject::SetTangentialMomentMagnitude(double _time, const double& _tangentialMomentMagnitude) const
+{
+	m_storage->GetTimePointW(_time, static_cast<int>(m_lObjectID))->SetTangentialMomentMagnitude(static_cast<int>(m_lObjectID), _tangentialMomentMagnitude);
+}
+
 void CPhysicalObject::SetOrientation(double _time, const CQuaternion& _orientation) const
 {
 	m_storage->GetTimePointW(_time, static_cast<int>(m_lObjectID))->SetOrientation(static_cast<int>(m_lObjectID), _orientation);
@@ -241,6 +271,16 @@ void CPhysicalObject::SetTemperature(const double& _temperature) const
 void CPhysicalObject::SetTotalTorque(const double& _totalTorque) const
 {
 	m_storage->GetTimePointW()->SetTotalTorque(static_cast<int>(m_lObjectID), _totalTorque);
+}
+
+void CPhysicalObject::SetNormalMomentMagnitude(const double& _normalMomentMagnitude) const
+{
+	m_storage->GetTimePointW()->SetNormalMomentMagnitude(static_cast<int>(m_lObjectID), _normalMomentMagnitude);
+}
+
+void CPhysicalObject::SetTangentialMomentMagnitude(const double& _tangentialMomentMagnitude) const
+{
+	m_storage->GetTimePointW()->SetTangentialMomentMagnitude(static_cast<int>(m_lObjectID), _tangentialMomentMagnitude);
 }
 
 void CPhysicalObject::SetOrientation(const CQuaternion& _orientation) const

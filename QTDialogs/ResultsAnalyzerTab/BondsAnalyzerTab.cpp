@@ -19,6 +19,7 @@ CBondsAnalyzerTab::CBondsAnalyzerTab(QWidget *parent)
 	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::Number,        "Number [-]",           "Number of solid bonds");
 	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::Strain, "Strain [%]", "Relative bonds strain (positive-compression, negative-tension)");
 	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::Stress, "Stress [Pa]", "Bond normal stress (positive-compression, negative-tension)");
+	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::BondElasticEnergy, "Potential energy [J]", "Elastic potential energy of the bond (Ji & Di, 2013, axial + shear terms)");
 	AddAnalysisProperty(CResultsAnalyzer::EPropertyType::VelocityTotal, "Velocity total [m/s]", "Calculated as middle velocity of contact partners");
 
 	SetWindowTitle("Bonds Analyzer");

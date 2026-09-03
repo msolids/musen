@@ -151,6 +151,8 @@ public:
 	CVector3 GetBondVelocity(size_t _bondID) const;
 	// Returns coordinate of the bond at current time point (selected with PrepareTimePointForRead).
 	CVector3 GetBondCoordinate(size_t _bondID) const;
+	// Returns vector of the bond at current time point (selected with PrepareTimePointForRead).
+	CVector3 GetBond(size_t _bondID) const;
 	// Set initial bond length of all bonds equal to their actual length at time point 0.
 	void ResetInitBondLength() const;
 

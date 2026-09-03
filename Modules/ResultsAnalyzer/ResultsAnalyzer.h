@@ -41,7 +41,8 @@ public:
 		Temperature		   = 26,
 		PrincipalStress	   = 27,
 		PartNumber,
-		BondNumber
+		BondNumber,
+		BondElasticEnergy
 	};
 	typedef std::vector<EPropertyType> VPropertyType;
 	enum class EDistanceType

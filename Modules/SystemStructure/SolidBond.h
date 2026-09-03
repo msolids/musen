@@ -62,3 +62,8 @@ public:
 private:
 	void UpdatePrecalculatedValues() override;
 };
+
+// Elastic potential energy of a bond (Ji & Di, 2013): full formula (axial + shear + torsion + bending).
+// Uses Force and moment magnitudes from the currently prepared time point (PrepareTimePointForRead / GetForce(time)).
+// _bondVector must be the bond vector at that same time (e.g. CSystemStructure::GetBond).
+double CalcBondElasticEnergyFull(const CSolidBond* _bond, const CVector3& _bondVector);

@@ -34,6 +34,8 @@ public:
 	CVector3 GetForce(int _objectID) const;
 	double GetTemperature(int _objectID) const;
 	double GetTotalTorque(int _objectID) const;
+	double GetNormalMomentMagnitude(int _objectID) const;
+	double GetTangentialMomentMagnitude(int _objectID) const;
 	CQuaternion GetOrientation(int _objectID) const;
 	CMatrix3 GetStressTensor(int _objectID) const;
 

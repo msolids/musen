@@ -49,6 +49,16 @@ double CTimePointR::GetTotalTorque(int _objectID) const
 	return PairToVal(protoTimePointL->particles(_objectID).total_torque(), protoTimePointR->particles(_objectID).total_torque());
 }
 
+double CTimePointR::GetNormalMomentMagnitude(int _objectID) const
+{
+	return PairToVal(protoTimePointL->particles(_objectID).normal_moment_magnitude(), protoTimePointR->particles(_objectID).normal_moment_magnitude());
+}
+
+double CTimePointR::GetTangentialMomentMagnitude(int _objectID) const
+{
+	return PairToVal(protoTimePointL->particles(_objectID).tangential_moment_magnitude(), protoTimePointR->particles(_objectID).tangential_moment_magnitude());
+}
+
 CQuaternion CTimePointR::GetOrientation(int _objectID) const
 {
 	return PairToVal(protoTimePointL->particles(_objectID).quaternion(), protoTimePointR->particles(_objectID).quaternion());

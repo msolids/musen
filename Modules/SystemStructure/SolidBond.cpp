@@ -63,3 +63,31 @@ void CSolidBond::UpdatePrecalculatedValues()
 	m_dCrossCutSurface = PI * m_dDiameter * m_dDiameter / 4;
 	m_dAxialMoment = PI * m_dDiameter * m_dDiameter * m_dDiameter * m_dDiameter / 64; // I
 }
+
+double CalcBondElasticEnergyFull(const CSolidBond* _bond, const CVector3& _bondVector)
+{
+	if (!_bond) return 0.0;
+
+	const CVector3 axis = _bondVector.Normalized();
+	const CVector3 Ftotal = _bond->GetForce();
+	const double Fn = DotProduct(Ftotal, axis);
+	const double Fs = (Ftotal - axis * Fn).Length();
+	const double L0 = _bond->GetInitLength();
+	const double A = _bond->m_dCrossCutSurface;
+	const double Kn_eff = (L0 != 0.0) ? A * _bond->GetYoungModulus() / L0 : 0.0;
+	const double Ks_eff = (L0 != 0.0) ? A * _bond->GetShearModulus() / L0 : 0.0;
+	const double I = _bond->m_dAxialMoment;
+	const double J = 2.0 * I;
+	const double Mn = _bond->GetNormalMomentMagnitude();
+	const double Ms = _bond->GetTangentialMomentMagnitude();
+	double dEnergy = 0.0;
+	if (Kn_eff != 0.0)
+		dEnergy += Fn * Fn / Kn_eff;
+	if (Ks_eff != 0.0)
+		dEnergy += Fs * Fs / Ks_eff;
+	if (Ks_eff != 0.0 && J != 0.0)
+		dEnergy += A * Mn * Mn / (J * Ks_eff);
+	if (Kn_eff != 0.0 && I != 0.0)
+		dEnergy += A * Ms * Ms / (I * Kn_eff);
+	return 0.5 * dEnergy;
+}
