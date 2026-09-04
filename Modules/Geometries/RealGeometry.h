@@ -49,10 +49,11 @@ public:
 	void Rotate(const CMatrix3& _rotation) override;			// Rotates the geometry according to the given rotational matrix at time point 0.
 
 	/**
-	 * @brief Updates current motion characteristics according to the current time or force.
-	 * @param _dependentValue Current time or sensed force, depending on the motion type.
+	 * @brief Updates current motion characteristics according to the current time and force.
+	 * @param _time Current simulation time.
+	 * @param _totalForce Total force acting on all walls of the geometry.
 	 * @param _timeStep Current simulation time step. */
-	void UpdateMotionInfo(double _dependentValue, double _timeStep);
+	void UpdateMotionInfo(double _time, const CVector3& _totalForce, double _timeStep);
 	CVector3 GetCurrentVelocity() const;			// Returns current translational velocity.
 	CVector3 GetCurrentRotVelocity() const;			// Returns current rotational velocity.
 	CVector3 GetCurrentRotCenter() const;			// Returns current center of rotation.

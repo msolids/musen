@@ -41,12 +41,19 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		if (i < _job.models.size())
 			_job.models[i].parameters = params;
 	};
-	// all GEOMETRY_MOTION_* keys address the geometry either by name or by index
 	const auto ReadGeometryID = [](std::stringstream& _ss, SJob::SGeometryMotionInterval& _motion)
 	{
 		const std::string nameOrIndex = GetValueFromStream<std::string>(&_ss);
 		_motion.geometryName  = IsSimpleUInt(nameOrIndex) ? "" : nameOrIndex;
 		_motion.geometryIndex = IsSimpleUInt(nameOrIndex) ? std::stoull(nameOrIndex) : -1;
+	};
+	const auto ReadMotionInfo = [](std::stringstream& _ss)
+	{
+		CGeometryMotion::SMotionInfo motion;
+		motion.velocity         = GetValueFromStream<CVector3>(&_ss);
+		motion.rotationVelocity = GetValueFromStream<CVector3>(&_ss);
+		motion.rotationCenter   = GetValueFromStream<CVector3>(&_ss);
+		return motion;
 	};
 
 	if (_line.empty()) return;
@@ -326,11 +333,9 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 	{
 		SJob::SGeometryMotionIntervalTime motion;
 		ReadGeometryID(ss, motion);
-		motion.intrerval.timeBeg                 = GetValueFromStream<double>(&ss);
-		motion.intrerval.timeEnd                 = GetValueFromStream<double>(&ss);
-		motion.intrerval.motion.velocity         = GetValueFromStream<CVector3>(&ss);
-		motion.intrerval.motion.rotationVelocity = GetValueFromStream<CVector3>(&ss);
-		motion.intrerval.motion.rotationCenter   = GetValueFromStream<CVector3>(&ss);
+		motion.intrerval.timeBeg = GetValueFromStream<double>(&ss);
+		motion.intrerval.timeEnd = GetValueFromStream<double>(&ss);
+		motion.intrerval.motion  = ReadMotionInfo(ss);
 		m_jobs.back().geometryTimeIntervals.push_back(motion);
 	}
 	else if (key == "GEOMETRY_MOTION_FORCE" || key == "GEOMETRY_MOTION_CONST_FORCE" || key == "GEOMETRY_MOTION_CYCLIC_FORCE")
@@ -340,15 +345,11 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 		else if (key == "GEOMETRY_MOTION_CONST_FORCE")  motion.type = CGeometryMotion::EMotionType::CONSTANT_FORCE;
 		else if (key == "GEOMETRY_MOTION_CYCLIC_FORCE") motion.type = CGeometryMotion::EMotionType::CYCLIC_FORCE;
 		ReadGeometryID(ss, motion);
-		motion.intrerval.forceLimit              = GetValueFromStream<double>(&ss);
+		motion.intrerval.forceLimit = GetValueFromStream<double>(&ss);
 		const std::string limit = ToUpperCase(GetValueFromStream<std::string>(&ss));
-		motion.intrerval.limitType               = limit == "MIN" ? CGeometryMotion::SForceMotionInterval::ELimitType::MIN : CGeometryMotion::SForceMotionInterval::ELimitType::MAX;
-		motion.intrerval.motion.velocity         = GetValueFromStream<CVector3>(&ss);
-		motion.intrerval.motion.rotationVelocity = GetValueFromStream<CVector3>(&ss);
-		motion.intrerval.motion.rotationCenter   = GetValueFromStream<CVector3>(&ss);
-		motion.forceDirection                    = GetValueFromStream<CVector3>(&ss);
-		if (!ss) // an older script may not have the force direction
-			_out << "Warning: no force direction (Dx Dy Dz) given in " << key << ", the force is measured along Z.\n";
+		motion.intrerval.limitType  = limit == "MIN" ? CGeometryMotion::SForceMotionInterval::ELimitType::MIN : CGeometryMotion::SForceMotionInterval::ELimitType::MAX;
+		motion.intrerval.motion     = ReadMotionInfo(ss);
+		motion.forceDirection       = GetValueFromStream<CVector3>(&ss);
 		if (motion.type == CGeometryMotion::EMotionType::CYCLIC_FORCE)
 		{
 			motion.strokeLength = GetValueFromStream<double>(&ss);
@@ -356,6 +357,22 @@ void CScriptAnalyzer::ProcessLine(const std::string& _line, std::ostream& _out /
 				_out << "Warning: no positive stroke length given in " << key << ", the simulation will refuse to start.\n";
 		}
 		m_jobs.back().geometryForceIntervals.push_back(motion);
+	}
+	else if (key == "GEOMETRY_MOTION_PID_FORCE")
+	{
+		SJob::SGeometryMotionIntervalPID motion;
+		ReadGeometryID(ss, motion);
+		motion.intrerval.timeBeg  = GetValueFromStream<double>(&ss);
+		motion.intrerval.timeEnd  = GetValueFromStream<double>(&ss);
+		motion.intrerval.forceSet = GetValueFromStream<double>(&ss);
+		motion.intrerval.gainP    = GetValueFromStream<double>(&ss);
+		motion.intrerval.gainI    = GetValueFromStream<double>(&ss);
+		motion.intrerval.gainD    = GetValueFromStream<double>(&ss);
+		motion.intrerval.motion   = ReadMotionInfo(ss);
+		motion.forceDirection     = GetValueFromStream<CVector3>(&ss);
+		if (motion.intrerval.gainP == 0.0 && motion.intrerval.gainI == 0.0 && motion.intrerval.gainD == 0.0)
+			_out << "Warning: all controller gains are zero in " << key << ", the simulation will refuse to start.\n";
+		m_jobs.back().geometryPIDIntervals.push_back(motion);
 	}
 	else
 		_out << "Unknown script key: " << key << std::endl;

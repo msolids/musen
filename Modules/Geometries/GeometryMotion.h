@@ -5,9 +5,11 @@
 
 #pragma once
 
-#include "Vector3.h"
 #include "MixedFunctions.h"
 #include "MUSENStringFunctions.h"
+#include "Vector3.h"
+
+#include <optional>
 
 class ProtoGeometryMotion;
 
@@ -21,7 +23,8 @@ public:
 		TIME_DEPENDENT = 1,
 		FORCE_DEPENDENT = 2,
 		CONSTANT_FORCE = 3,
-		CYCLIC_FORCE = 4
+		CYCLIC_FORCE = 4,
+		PID_FORCE = 5
 	};
 
 	// Information about movement characteristics.
@@ -79,18 +82,48 @@ public:
 		}
 	};
 
+	/**
+	 * @brief Description of a PID-controlled motion interval.
+	 * @details The geometry moves along the force direction with the speed requested by the PID controller,
+	 * and keeps the prescribed velocity in the directions perpendicular to it. */
+	struct SPIDMotionInterval
+	{
+		double timeBeg{};	///< Interval start time.
+		double timeEnd{};	///< Interval end time.
+		double forceSet{};	///< Setpoint of the sensed force [N].
+		double gainP{};		///< Proportional gain [m/(s*N)].
+		double gainI{};		///< Integral gain [m/(s^2*N)].
+		double gainD{};		///< Derivative gain [m/N].
+		SMotionInfo motion;	///< Movement characteristics for this interval.
+		friend std::ostream& operator<<(std::ostream& _s, const SPIDMotionInterval& _obj)
+		{
+			_s << _obj.timeBeg << " " << _obj.timeEnd << " " << _obj.forceSet << " " << _obj.gainP << " " << _obj.gainI << " " << _obj.gainD << " " << _obj.motion;
+			return _s;
+		}
+		friend std::istream& operator>>(std::istream& _s, SPIDMotionInterval& _obj)
+		{
+			_s >> _obj.timeBeg >> _obj.timeEnd >> _obj.forceSet >> _obj.gainP >> _obj.gainI >> _obj.gainD >> _obj.motion;
+			return _s;
+		}
+	};
+
 private:
 	mutable std::string m_errorMessage;		// Description of the last occurred error.
 
 	EMotionType m_motionType{ EMotionType::NONE };		// Type of geometry's motion.
 	std::vector<STimeMotionInterval>  m_intervalsTime;	// Time-dependent motion of this geometry. Is used if (m_motionType == TIME_DEPENDENT).
 	std::vector<SForceMotionInterval> m_intervalsForce;	// Force-dependent motion of this geometry. Is used if the motion is force-driven.
+	std::vector<SPIDMotionInterval> m_intervalsPID;		///< PID-controlled motion of this geometry. Is used if (m_motionType == PID_FORCE).
 	CVector3 m_forceDirection{ 0.0, 0.0, 1.0 };			///< Direction of the force to consider; a unit vector. Used if the motion is force-driven.
 	double m_strokeLength{ 0.0 };						///< Length of one stroke. Is used if (m_motionType == CYCLIC_FORCE).
 
 	size_t m_iMotion{ static_cast<size_t>(-1) };	// Index of currently acting motion characteristics.
 	SMotionInfo m_currentMotion;					// Currently acting motion characteristics.
-	CVector3 m_accumulatedShift{ 0.0 };				///< Translational shift performed by the geometry since the beginning of the current stroke.
+	CVector3 m_accumulatedShift{ 0.0 };				///< Translational shift performed by the geometry since the beginning of the current stroke.  Is used if (m_motionType == CYCLIC_FORCE).
+	double m_integralTerm{ 0.0 };					///< Accumulated integral part of the controller output [m/s]. Is used if (m_motionType == PID_FORCE).
+	double m_derivativeTerm{ 0.0 };					///< Filtered derivative part of the controller output [m/s]. Is used if (m_motionType == PID_FORCE).
+	std::optional<double> m_prevTime;				///< Simulation time at which the time-integrated state was last advanced.
+	std::optional<double> m_prevForce;				///< Sensed force at the previous time step. Is used if (m_motionType == PID_FORCE).
 
 public:
 	EMotionType MotionType() const;			// Returns current motion type.
@@ -120,11 +153,22 @@ public:
 	 * @details The vector is normalized; a zero or non-finite vector resets it to the default {0,0,1}.
 	 * @param _dir Direction of the force to consider; a unit vector. */
 	void SetForceDirection(const CVector3& _dir);
+
 	/**
-	 * @brief Returns the force value the motion reacts to.
-	 * @param _totalForce Total force acting on all walls of the geometry.
-	 * @return The total force projected onto the force direction. */
-	double SensedForce(const CVector3& _totalForce) const;
+	 * @brief Adds a new PID-controlled motion interval. */
+	void AddPIDInterval();
+	/**
+	 * @brief Adds a new PID-controlled motion interval.
+	 * @param _interval Interval to add. */
+	void AddPIDInterval(const SPIDMotionInterval& _interval);
+	/**
+	 * @brief Changes an existing PID-controlled motion interval.
+	 * @param _index Index of the interval to change.
+	 * @param _interval New value of the interval. */
+	void ChangePIDInterval(size_t _index, const SPIDMotionInterval& _interval);
+	/**
+	 * @brief Returns all defined PID-controlled motion intervals. */
+	std::vector<SPIDMotionInterval> GetPIDIntervals() const;
 
 	/**
 	 * @brief Returns the length of one stroke of a cyclic motion.
@@ -152,10 +196,11 @@ public:
 	std::string ErrorMessage() const;	// Returns description of the last occurred error.
 
 	/**
-	 * @brief Updates current motion characteristics according to the current time or force.
-	 * @param _dependentValue Current time or sensed force, depending on the motion type.
+	 * @brief Updates current motion characteristics according to the current time and force.
+	 * @param _time Current simulation time.
+	 * @param _totalForce Total force acting on all walls of the geometry.
 	 * @param _timeStep Current simulation time step. */
-	void UpdateMotionInfo(double _dependentValue, double _timeStep);
+	void UpdateMotionInfo(double _time, const CVector3& _totalForce, double _timeStep);
 	void ResetMotionInfo();							// Resets current motion characteristics to the initial state.
 	SMotionInfo GetCurrentMotion() const;			// Returns current motion characteristics.
 

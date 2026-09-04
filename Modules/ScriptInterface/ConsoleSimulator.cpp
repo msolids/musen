@@ -101,43 +101,49 @@ void CConsoleSimulator::SetupSystemStructure() const
 		return geometry;
 	};
 
-	if (!m_job.geometryTimeIntervals.empty())
+	// Applies motion lines to their geometries.
+	const auto ApplyMotionLines = [&](const auto& _motions, const auto& _apply)
 	{
-		// clear motion for those geometries, which need to be overriden
-		for (const auto& motion : m_job.geometryTimeIntervals)
+		for (const auto& motion : _motions)
 			if (auto* geometry = GetGeometryPtr(motion))
 				geometry->Motion()->Clear();
-		// set motion intervals
-		for (const auto& motion : m_job.geometryTimeIntervals)
+		for (const auto& motion : _motions)
 			if (auto* geometry = GetGeometryPtr(motion))
-			{
-				geometry->Motion()->SetMotionType(CGeometryMotion::EMotionType::TIME_DEPENDENT);
-				geometry->Motion()->AddTimeInterval(motion.intrerval);
-			}
-	}
-	if (!m_job.geometryForceIntervals.empty())
+				_apply(geometry, motion);
+	};
+
+	ApplyMotionLines(m_job.geometryTimeIntervals, [](CRealGeometry* geometry, const SJob::SGeometryMotionIntervalTime& motion)
 	{
-		// clear motion for those geometries, which need to be overriden
-		for (const auto& motion : m_job.geometryForceIntervals)
-			if (auto* geometry = GetGeometryPtr(motion))
-				geometry->Motion()->Clear();
-		// set motion intervals
-		for (const auto& motion : m_job.geometryForceIntervals)
-			if (auto* geometry = GetGeometryPtr(motion))
-			{
-				auto* geometryMotion = geometry->Motion();
-				const bool     extends    = geometryMotion->HasMotion();
-				const auto     prevType   = geometryMotion->MotionType();
-				const CVector3 prevDir    = geometryMotion->GetForceDirection();
-				const double   prevStroke = geometryMotion->GetStrokeLength();
-				geometryMotion->SetMotionType(motion.type);
-				geometryMotion->AddForceInterval(motion.intrerval);
-				geometryMotion->SetForceDirection(motion.forceDirection);
-				geometryMotion->SetStrokeLength(motion.strokeLength);
-				if (extends && (prevType != geometryMotion->MotionType() || prevDir != geometryMotion->GetForceDirection() || prevStroke != geometryMotion->GetStrokeLength()))
-					m_err << "Warning: force motion lines for geometry '" << geometry->Name() << "' specify different motion types, force directions or stroke lengths. The last one is applied.\n";
-			}
-	}
+		geometry->Motion()->SetMotionType(CGeometryMotion::EMotionType::TIME_DEPENDENT);
+		geometry->Motion()->AddTimeInterval(motion.intrerval);
+	});
+
+	ApplyMotionLines(m_job.geometryForceIntervals, [&](CRealGeometry* geometry, const SJob::SGeometryMotionIntervalForce& motion)
+	{
+		auto* geometryMotion = geometry->Motion();
+		const bool     extends    = geometryMotion->HasMotion();
+		const auto     prevType   = geometryMotion->MotionType();
+		const CVector3 prevDir    = geometryMotion->GetForceDirection();
+		const double   prevStroke = geometryMotion->GetStrokeLength();
+		geometryMotion->SetMotionType(motion.type);
+		geometryMotion->AddForceInterval(motion.intrerval);
+		geometryMotion->SetForceDirection(motion.forceDirection);
+		geometryMotion->SetStrokeLength(motion.strokeLength);
+		if (extends && (prevType != geometryMotion->MotionType() || prevDir != geometryMotion->GetForceDirection() || prevStroke != geometryMotion->GetStrokeLength()))
+			m_err << "Warning: force motion lines for geometry '" << geometry->Name() << "' specify different motion types, force directions or stroke lengths. The last one is applied.\n";
+	});
+
+	ApplyMotionLines(m_job.geometryPIDIntervals, [&](CRealGeometry* geometry, const SJob::SGeometryMotionIntervalPID& motion)
+	{
+		auto* geometryMotion = geometry->Motion();
+		const bool     extends = geometryMotion->HasMotion();
+		const CVector3 prevDir = geometryMotion->GetForceDirection();
+		geometryMotion->SetMotionType(CGeometryMotion::EMotionType::PID_FORCE);
+		geometryMotion->AddPIDInterval(motion.intrerval);
+		geometryMotion->SetForceDirection(motion.forceDirection);
+		if (extends && prevDir != geometryMotion->GetForceDirection())
+			m_err << "Warning: PID motion lines for geometry '" << geometry->Name() << "' specify different force directions. The last one is applied.\n";
+	});
 }
 
 void CConsoleSimulator::SetupGenerationManager()

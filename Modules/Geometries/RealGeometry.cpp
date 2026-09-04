@@ -173,9 +173,9 @@ void CRealGeometry::Rotate(const CMatrix3& _rotation)
 		wall->SetPlaneCoord(wall->GetPlaneCoords().Rotated(center, _rotation));
 }
 
-void CRealGeometry::UpdateMotionInfo(double _dependentValue, double _timeStep)
+void CRealGeometry::UpdateMotionInfo(double _time, const CVector3& _totalForce, double _timeStep)
 {
-	Motion()->UpdateMotionInfo(_dependentValue, _timeStep);
+	Motion()->UpdateMotionInfo(_time, _totalForce, _timeStep);
 }
 
 CVector3 CRealGeometry::GetCurrentVelocity() const
@@ -259,6 +259,7 @@ void CRealGeometry::LoadFromProto_v0(const ProtoRealGeometry_v0& _proto)
 	}
 	case CGeometryMotion::EMotionType::CONSTANT_FORCE:
 	case CGeometryMotion::EMotionType::CYCLIC_FORCE:
+	case CGeometryMotion::EMotionType::PID_FORCE:
 	case CGeometryMotion::EMotionType::NONE: break;
 	}
 

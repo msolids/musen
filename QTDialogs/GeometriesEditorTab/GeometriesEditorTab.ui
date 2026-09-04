@@ -206,6 +206,21 @@
          </row>
          <row>
           <property name="text">
+           <string>Proportional gain</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Integral gain</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
+           <string>Derivative gain</string>
+          </property>
+         </row>
+         <row>
+          <property name="text">
            <string>Velocity X</string>
           </property>
          </row>

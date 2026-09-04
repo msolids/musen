@@ -681,26 +681,22 @@ void CGPUSimulator::MoveWalls(double _dTimeStep)
 		const CVector3 prevRotVel    = pGeom->GetCurrentRotVelocity();
 		const CVector3 prevRotCenter = pGeom->GetCurrentRotCenter();
 
-		if (pGeom->Motion()->IsForceDriven()) // force
-		{
-			const CVector3 vTotalForce = m_impl->gpu.CalculateTotalForceOnWall(iGeom, m_impl->sceneGPU.GetPointerToWalls());
-			pGeom->UpdateMotionInfo(pGeom->Motion()->SensedForce(vTotalForce), _dTimeStep);
-		}
-		else
-			pGeom->UpdateMotionInfo(m_currentTime, _dTimeStep); // time
+		const CVector3 motionForce = pGeom->Motion()->IsForceDriven() ? m_impl->gpu.CalculateTotalForceOnWall(iGeom, m_impl->sceneGPU.GetPointerToWalls()) : CVector3{ 0.0 };
+		pGeom->UpdateMotionInfo(m_currentTime, motionForce, _dTimeStep);
 
 		CVector3 vVel = pGeom->GetCurrentVelocity();
 		CVector3 vRotVel = pGeom->GetCurrentRotVelocity();
 		CVector3 vRotCenter = pGeom->GetCurrentRotCenter();
 
-		if (m_currentTime == 0 || vVel != prevVel || vRotVel != prevRotVel || vRotCenter != prevRotCenter)
+		const bool velocityChanged = vVel != prevVel || vRotVel != prevRotVel || vRotCenter != prevRotCenter;
+		if (m_currentTime == 0 || velocityChanged)
 			m_wallsVelocityChanged = true;
 
 		if ( !pGeom->FreeMotion().IsZero() )
 			m_wallsVelocityChanged = true;
 
 		const CVector3 strokeReset = pGeom->Motion()->StrokeResetShift(); // for cyclic motion
-		if (vRotVel.IsZero() && pGeom->FreeMotion().IsZero() && vVel.IsZero() && strokeReset.IsZero()) continue;
+		if (!velocityChanged && vRotVel.IsZero() && pGeom->FreeMotion().IsZero() && vVel.IsZero() && strokeReset.IsZero()) continue;
 		CMatrix3 RotMatrix;
 		if (!vRotVel.IsZero())
 			RotMatrix = CQuaternion(vRotVel*_dTimeStep).ToRotmat();

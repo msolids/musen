@@ -75,6 +75,10 @@ message ProtoGeometryMotionInterval
 	double limit1            = 5;
 	double limit2            = 6;
 	uint32 limit_type        = 7;
+	double force_set         = 8;
+	double gain_p            = 9;
+	double gain_i            = 10;
+	double gain_d            = 11;
 }
 
 message ProtoGeometryMotion

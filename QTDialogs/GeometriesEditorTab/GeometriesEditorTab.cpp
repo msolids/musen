@@ -96,9 +96,10 @@ void CGeometriesEditorTab::SetupPropertiesList()
 	// motion
 	m_properties[EProperty::MOTION] = ui.treeProperties->CreateItem(general, 0, "Motion");
 	const auto* motion = ui.treeProperties->AddComboBox(m_properties[EProperty::MOTION], 1,
-		{ "None", "Time-dependent", "Force-dependent", "Constant force", "Cyclic force" },
+		{ "None", "Time-dependent", "Force-dependent", "Constant force", "Cyclic force", "PID force" },
 		{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT),
-		E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE), E2I(CGeometryMotion::EMotionType::CYCLIC_FORCE) }, 0);
+		E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE), E2I(CGeometryMotion::EMotionType::CYCLIC_FORCE),
+		E2I(CGeometryMotion::EMotionType::PID_FORCE) }, 0);
 	connect(motion, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CGeometriesEditorTab::MotionTypeChanged);
 
 	// triangles
@@ -236,6 +237,9 @@ void CGeometriesEditorTab::UpdateMeasurementUnits() const
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_X,			"Velocity X",		EUnitType::VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Y,			"Velocity Y",		EUnitType::VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::VEL_Z,			"Velocity Z",		EUnitType::VELOCITY);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::GAIN_P,		"Proportional gain [m/(s*N)]",	EUnitType::NONE);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::GAIN_I,		"Integral gain [m/(s^2*N)]",	EUnitType::NONE);
+	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::GAIN_D,		"Derivative gain [m/N]",		EUnitType::NONE);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_VEL_X,		"Rot. velocity X",  EUnitType::ANGULAR_VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_VEL_Y,		"Rot. velocity Y",  EUnitType::ANGULAR_VELOCITY);
 	ui.tableMotion->SetRowHeaderItemConv(ERowMotion::ROT_VEL_Z,		"Rot. velocity Z",  EUnitType::ANGULAR_VELOCITY);
@@ -301,9 +305,10 @@ void CGeometriesEditorTab::UpdateMotionCombo() const
 	{
 	case EType::NONE: break;
 	case EType::GEOMETRY:
-		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent", "Constant force", "Cyclic force" },
+		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent", "Force-dependent", "Constant force", "Cyclic force", "PID force" },
 			{ E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT),
-			E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE), E2I(CGeometryMotion::EMotionType::CYCLIC_FORCE) }, -1);
+			E2I(CGeometryMotion::EMotionType::FORCE_DEPENDENT), E2I(CGeometryMotion::EMotionType::CONSTANT_FORCE), E2I(CGeometryMotion::EMotionType::CYCLIC_FORCE),
+			E2I(CGeometryMotion::EMotionType::PID_FORCE) }, -1);
 		break;
 	case EType::VOLUME:
 		ui.treeProperties->SetupComboBox(m_properties.at(EProperty::MOTION), 1, { "None", "Time-dependent" }, { E2I(CGeometryMotion::EMotionType::NONE), E2I(CGeometryMotion::EMotionType::TIME_DEPENDENT) }, -1);
@@ -433,10 +438,14 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	const auto type = motion->MotionType();
 	const bool forceBased = motion->IsForceDriven();
 	const bool cyclic = type == CGeometryMotion::EMotionType::CYCLIC_FORCE;
-	ui.tableMotion->ShowRow(ERowMotion::TIME_BEG,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
-	ui.tableMotion->ShowRow(ERowMotion::TIME_END,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT);
+	const bool pid = type == CGeometryMotion::EMotionType::PID_FORCE;
+	ui.tableMotion->ShowRow(ERowMotion::TIME_BEG,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT || pid);
+	ui.tableMotion->ShowRow(ERowMotion::TIME_END,     type == CGeometryMotion::EMotionType::TIME_DEPENDENT || pid);
 	ui.tableMotion->ShowRow(ERowMotion::FORCE,        forceBased);
-	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   forceBased);
+	ui.tableMotion->ShowRow(ERowMotion::LIMIT_TYPE,   forceBased && !pid);
+	ui.tableMotion->ShowRow(ERowMotion::GAIN_P,       pid);
+	ui.tableMotion->ShowRow(ERowMotion::GAIN_I,       pid);
+	ui.tableMotion->ShowRow(ERowMotion::GAIN_D,       pid);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_X,    geometry && !cyclic);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Y,    geometry && !cyclic);
 	ui.tableMotion->ShowRow(ERowMotion::ROT_VEL_Z,    geometry && !cyclic);
@@ -480,6 +489,24 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 		}
 		break;
 	}
+	case CGeometryMotion::EMotionType::PID_FORCE:
+	{
+		const auto intervals = motion->GetPIDIntervals();
+		ui.tableMotion->setColumnCount(static_cast<int>(intervals.size()));
+		for (int i = 0; i < static_cast<int>(intervals.size()); ++i)
+		{
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::TIME_BEG,     i, intervals[i].timeBeg,                 EUnitType::TIME);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::TIME_END,     i, intervals[i].timeEnd,                 EUnitType::TIME);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::FORCE,        i, intervals[i].forceSet,                EUnitType::FORCE);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::GAIN_P,       i, intervals[i].gainP,                   EUnitType::NONE);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::GAIN_I,       i, intervals[i].gainI,                   EUnitType::NONE);
+			ui.tableMotion->SetItemEditableConv(    ERowMotion::GAIN_D,       i, intervals[i].gainD,                   EUnitType::NONE);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::VEL_X,        i, intervals[i].motion.velocity,         EUnitType::VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_VEL_X,    i, intervals[i].motion.rotationVelocity, EUnitType::ANGULAR_VELOCITY);
+			ui.tableMotion->SetItemsColEditableConv(ERowMotion::ROT_CENTER_X, i, intervals[i].motion.rotationCenter,   EUnitType::LENGTH);
+		}
+		break;
+	}
 	case CGeometryMotion::EMotionType::NONE:
 		ui.tableMotion->setColumnCount(0);
 		break;
@@ -505,8 +532,7 @@ void CGeometriesEditorTab::UpdateMotionInfo()
 	ui.checkBoxFreeMotionZ->setChecked(geometry && geometry->FreeMotion().z);
 	ShowConvValue(ui.lineEditMass, geometry ? geometry->Mass() : 0, EUnitType::MASS);
 	ui.lineEditMass->setEnabled(geometry && !cyclic && !geometry->FreeMotion().IsZero());
-	// the stroke counts the prescribed displacement, which a free motion overrides
-	ui.groupFreeMotion->setEnabled(geometry && !cyclic);
+	ui.groupFreeMotion->setEnabled(geometry && !cyclic && !pid);
 }
 
 void CGeometriesEditorTab::UpdateMotionVisibility()
@@ -670,6 +696,9 @@ void CGeometriesEditorTab::MotionTypeChanged()
 	const CGeometryMotion::EMotionType type = static_cast<CGeometryMotion::EMotionType>(ui.treeProperties->GetComboBoxValue(m_properties.at(EProperty::MOTION), 1).toUInt());
 	auto* motion = m_object->Motion();
 	motion->SetMotionType(type);
+	auto* geometry = dynamic_cast<CRealGeometry*>(m_object);
+	if (geometry && (type == CGeometryMotion::EMotionType::PID_FORCE || type == CGeometryMotion::EMotionType::CYCLIC_FORCE))
+		geometry->SetFreeMotion(CBasicVector3<bool>{ false, false, false });
 	if (type == CGeometryMotion::EMotionType::CYCLIC_FORCE)
 	{
 		for (size_t i = 0; i < motion->GetForceIntervals().size(); ++i)
@@ -678,11 +707,8 @@ void CGeometriesEditorTab::MotionTypeChanged()
 			interval.motion.rotationVelocity.Init(0.0);
 			motion->ChangeForceInterval(i, interval);
 		}
-		if (auto* geometry = dynamic_cast<CRealGeometry*>(m_object))
-		{
-			geometry->SetFreeMotion(CBasicVector3<bool>{ false, false, false });
+		if (geometry)
 			geometry->SetRotateAroundCenter(false);
-		}
 	}
 	UpdateMotionInfo();
 }
@@ -809,6 +835,19 @@ void CGeometriesEditorTab::MotionTableChanged()
 				static_cast<CGeometryMotion::SForceMotionInterval::ELimitType>(ui.tableMotion->GetComboBoxValue(ERowMotion::LIMIT_TYPE, iCol).toUInt()), {
 				ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
 				m_object->Motion()->MotionType() != CGeometryMotion::EMotionType::CYCLIC_FORCE ? ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY) : CVector3{ 0.0 },
+				ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH)
+				} });
+			break;
+		case CGeometryMotion::EMotionType::PID_FORCE:
+			m_object->Motion()->ChangePIDInterval(iCol, {
+				ui.tableMotion->GetConvValue(ERowMotion::TIME_BEG, iCol, EUnitType::TIME),
+				ui.tableMotion->GetConvValue(ERowMotion::TIME_END, iCol, EUnitType::TIME),
+				ui.tableMotion->GetConvValue(ERowMotion::FORCE, iCol, EUnitType::FORCE),
+				ui.tableMotion->GetConvValue(ERowMotion::GAIN_P, iCol, EUnitType::NONE),
+				ui.tableMotion->GetConvValue(ERowMotion::GAIN_I, iCol, EUnitType::NONE),
+				ui.tableMotion->GetConvValue(ERowMotion::GAIN_D, iCol, EUnitType::NONE), {
+				ui.tableMotion->GetConvVectorCol(ERowMotion::VEL_X, iCol, EUnitType::VELOCITY),
+				ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_VEL_X, iCol, EUnitType::ANGULAR_VELOCITY),
 				ui.tableMotion->GetConvVectorCol(ERowMotion::ROT_CENTER_X, iCol, EUnitType::LENGTH)
 				} });
 			break;

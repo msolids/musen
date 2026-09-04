@@ -9,9 +9,30 @@
 #include "MUSENStringFunctions.h"
 #include "ProtoFunctions.h"
 
+#include <algorithm>
 #include <cmath>
 
 // TODO: sort time-dependent motion intervals
+
+constexpr double DERIVATIVE_FILTER_N = 10.0; ///< Standard derivative filter coefficient; usually [5; 20].
+
+namespace
+{
+	/**
+	 * @brief Searches for the interval which contains the given time.
+	 * @param _intervals Intervals to search in.
+	 * @param _time Time to search for.
+	 * @param _iCurrent Index of the currently active interval, to search from; -1 to search from the beginning.
+	 * @return Index of the found interval, or nothing if no interval contains the time. */
+	template<typename T>
+	std::optional<size_t> FindTimeInterval(const std::vector<T>& _intervals, double _time, size_t _iCurrent)
+	{
+		for (size_t i = _iCurrent != static_cast<size_t>(-1) ? _iCurrent : 0; i < _intervals.size(); ++i)
+			if (IsInRange(_time, _intervals[i].timeBeg, _intervals[i].timeEnd))
+				return i;
+		return {};
+	}
+}
 
 CGeometryMotion::EMotionType CGeometryMotion::MotionType() const
 {
@@ -25,7 +46,18 @@ void CGeometryMotion::SetMotionType(EMotionType _type)
 
 bool CGeometryMotion::IsForceDriven() const
 {
-	return m_motionType == EMotionType::FORCE_DEPENDENT || m_motionType == EMotionType::CONSTANT_FORCE || m_motionType == EMotionType::CYCLIC_FORCE;
+	switch (m_motionType)
+	{
+	case EMotionType::FORCE_DEPENDENT:
+	case EMotionType::CONSTANT_FORCE:
+	case EMotionType::CYCLIC_FORCE:
+	case EMotionType::PID_FORCE:
+		return true;
+	case EMotionType::TIME_DEPENDENT:
+	case EMotionType::NONE:
+		return false;
+	}
+	return false;
 }
 
 void CGeometryMotion::AddInterval()
@@ -35,9 +67,9 @@ void CGeometryMotion::AddInterval()
 	case EMotionType::NONE:									break;
 	case EMotionType::TIME_DEPENDENT:	AddTimeInterval();	break;
 	case EMotionType::FORCE_DEPENDENT:	AddForceInterval();	break;
+	case EMotionType::PID_FORCE:		AddPIDInterval();	break;
 	case EMotionType::CONSTANT_FORCE:
 	case EMotionType::CYCLIC_FORCE:		if (m_intervalsForce.empty()) AddForceInterval();	break;
-
 	}
 }
 
@@ -115,9 +147,31 @@ void CGeometryMotion::SetForceDirection(const CVector3& _dir)
 	m_forceDirection = valid ? normalized : CVector3{ 0.0, 0.0, 1.0 };
 }
 
-double CGeometryMotion::SensedForce(const CVector3& _totalForce) const
+void CGeometryMotion::AddPIDInterval()
 {
-	return DotProduct(_totalForce, m_forceDirection);
+	SPIDMotionInterval interval;
+	if (!m_intervalsPID.empty())
+		interval = m_intervalsPID.back(); // continue with the setpoint and the gains of the previous interval
+	interval.timeBeg = interval.timeEnd;
+	interval.timeEnd += 1.0;
+	interval.motion.Clear();
+	AddPIDInterval(interval);
+}
+
+void CGeometryMotion::AddPIDInterval(const SPIDMotionInterval& _interval)
+{
+	m_intervalsPID.push_back(_interval);
+}
+
+void CGeometryMotion::ChangePIDInterval(size_t _index, const SPIDMotionInterval& _interval)
+{
+	if (_index < m_intervalsPID.size())
+		m_intervalsPID[_index] = _interval;
+}
+
+std::vector<CGeometryMotion::SPIDMotionInterval> CGeometryMotion::GetPIDIntervals() const
+{
+	return m_intervalsPID;
 }
 
 double CGeometryMotion::GetStrokeLength() const
@@ -155,6 +209,10 @@ void CGeometryMotion::DeleteInterval(size_t _index)
 		if (_index < m_intervalsForce.size())
 			m_intervalsForce.erase(m_intervalsForce.begin() + _index);
 		break;
+	case EMotionType::PID_FORCE:
+		if (_index < m_intervalsPID.size())
+			m_intervalsPID.erase(m_intervalsPID.begin() + _index);
+		break;
 	case EMotionType::NONE: break;
 	}
 }
@@ -170,6 +228,10 @@ void CGeometryMotion::MoveIntervalUp(size_t _index)
 	case EMotionType::FORCE_DEPENDENT:
 		if (_index < m_intervalsForce.size() && _index != 0)
 			std::iter_swap(m_intervalsForce.begin() + _index, m_intervalsForce.begin() + _index - 1);
+		break;
+	case EMotionType::PID_FORCE:
+		if (_index < m_intervalsPID.size() && _index != 0)
+			std::iter_swap(m_intervalsPID.begin() + _index, m_intervalsPID.begin() + _index - 1);
 		break;
 	case EMotionType::CONSTANT_FORCE:
 	case EMotionType::CYCLIC_FORCE:
@@ -189,6 +251,10 @@ void CGeometryMotion::MoveIntervalDown(size_t _index)
 		if (_index < m_intervalsForce.size() && _index != m_intervalsForce.size() - 1)
 			std::iter_swap(m_intervalsForce.begin() + _index, m_intervalsForce.begin() + _index + 1);
 		break;
+	case EMotionType::PID_FORCE:
+		if (_index < m_intervalsPID.size() && _index != m_intervalsPID.size() - 1)
+			std::iter_swap(m_intervalsPID.begin() + _index, m_intervalsPID.begin() + _index + 1);
+		break;
 	case EMotionType::CONSTANT_FORCE:
 	case EMotionType::CYCLIC_FORCE:
 	case EMotionType::NONE: break;
@@ -197,16 +263,21 @@ void CGeometryMotion::MoveIntervalDown(size_t _index)
 
 bool CGeometryMotion::HasMotion() const
 {
-	return !m_intervalsTime.empty() || !m_intervalsForce.empty();
+	return !m_intervalsTime.empty() || !m_intervalsForce.empty() || !m_intervalsPID.empty();
 }
 
 void CGeometryMotion::Clear()
 {
 	m_intervalsTime.clear();
 	m_intervalsForce.clear();
+	m_intervalsPID.clear();
 	m_forceDirection.Init(0.0, 0.0, 1.0);
 	m_strokeLength = 0.0;
 	m_accumulatedShift.Init(0.0);
+	m_integralTerm = 0.0;
+	m_derivativeTerm = 0.0;
+	m_prevTime.reset();
+	m_prevForce.reset();
 }
 
 bool CGeometryMotion::IsValid() const
@@ -247,6 +318,23 @@ bool CGeometryMotion::IsValid() const
 			}
 		}
 		break;
+	case EMotionType::PID_FORCE:
+		if (m_intervalsPID.empty())
+		{
+			m_errorMessage = "PID force movement is selected, but time intervals are not specified.";
+			return false;
+		}
+		if (std::all_of(m_intervalsPID.begin(), m_intervalsPID.end(), [](const SPIDMotionInterval& _interval) { return _interval.gainP == 0.0 && _interval.gainI == 0.0 && _interval.gainD == 0.0; }))
+		{
+			m_errorMessage = "PID force movement is selected, but all controller gains are zero.";
+			return false;
+		}
+		if (std::any_of(m_intervalsPID.begin(), m_intervalsPID.end(), [](const SPIDMotionInterval& _interval) { return _interval.gainD != 0.0 && _interval.gainP == 0.0; }))
+		{
+			m_errorMessage = "PID force movement is selected with a derivative gain but without a proportional gain.";
+			return false;
+		}
+		break;
 	case EMotionType::NONE:	break;
 	}
 
@@ -259,30 +347,28 @@ std::string CGeometryMotion::ErrorMessage() const
 	return m_errorMessage;
 }
 
-void CGeometryMotion::UpdateMotionInfo(double _dependentValue, double _timeStep)
+void CGeometryMotion::UpdateMotionInfo(double _time, const CVector3& _totalForce, double _timeStep)
 {
+	const bool advanceState = m_prevTime != _time;
+	m_prevTime = _time;
+
 	switch (m_motionType)
 	{
 	case EMotionType::TIME_DEPENDENT:
 	{
-		bool found = false;				// is needed to accelerate updating
-		const size_t iStart = m_iMotion == static_cast<size_t>(-1) ? 0 : m_iMotion;
-		for (size_t i = iStart; i < m_intervalsTime.size() && !found; ++i)										// search starting from the current
-			if (m_intervalsTime[i].timeBeg <= _dependentValue && _dependentValue <= m_intervalsTime[i].timeEnd)	// the value is in interval
-			{
-				found = true;
-				if (m_iMotion != i)		// it is a new interval - update current values
-				{
-					m_iMotion = i;
-					m_currentMotion = m_intervalsTime[i].motion;
-				}
-			}
-		if (!found)						// such interval does not exist
-			m_currentMotion.Clear();	// set current velocities to zero
+		const auto iInterval = FindTimeInterval(m_intervalsTime, _time, m_iMotion);
+		if (!iInterval)						// such interval does not exist
+			m_currentMotion.Clear();		// set current velocities to zero
+		else if (m_iMotion != *iInterval)	// it is a new interval - update current values
+		{
+			m_iMotion = *iInterval;
+			m_currentMotion = m_intervalsTime[*iInterval].motion;
+		}
 		break;
 	}
 	case EMotionType::FORCE_DEPENDENT:
 	{
+		const double sensedForce = DotProduct(_totalForce, m_forceDirection);
 		if (m_iMotion == static_cast<size_t>(-1))	// initialize
 		{
 			m_iMotion = 0;
@@ -297,8 +383,8 @@ void CGeometryMotion::UpdateMotionInfo(double _dependentValue, double _timeStep)
 		bool updated = false;	// is needed to accelerate updating
 		switch (m_intervalsForce[m_iMotion].limitType)
 		{
-		case SForceMotionInterval::ELimitType::MIN:	if (_dependentValue < m_intervalsForce[m_iMotion].forceLimit) { ++m_iMotion; updated = true; } break;
-		case SForceMotionInterval::ELimitType::MAX:	if (_dependentValue > m_intervalsForce[m_iMotion].forceLimit) { ++m_iMotion; updated = true; } break;
+		case SForceMotionInterval::ELimitType::MIN:	if (sensedForce < m_intervalsForce[m_iMotion].forceLimit) { ++m_iMotion; updated = true; } break;
+		case SForceMotionInterval::ELimitType::MAX:	if (sensedForce > m_intervalsForce[m_iMotion].forceLimit) { ++m_iMotion; updated = true; } break;
 		}
 
 		if (updated)			// it is a new interval - update current values
@@ -313,6 +399,7 @@ void CGeometryMotion::UpdateMotionInfo(double _dependentValue, double _timeStep)
 	case EMotionType::CONSTANT_FORCE:
 	case EMotionType::CYCLIC_FORCE:
 	{
+		const double sensedForce = DotProduct(_totalForce, m_forceDirection);
 		bool bReverseDirection=false;
 		m_iMotion = 0; // only first interval is used
 		if (m_iMotion >= m_intervalsForce.size())	// no intervals defined
@@ -323,20 +410,54 @@ void CGeometryMotion::UpdateMotionInfo(double _dependentValue, double _timeStep)
 		m_currentMotion = m_intervalsForce[m_iMotion].motion;
 		switch (m_intervalsForce[m_iMotion].limitType)
 		{
-		case SForceMotionInterval::ELimitType::MIN:	if (_dependentValue < m_intervalsForce[m_iMotion].forceLimit) bReverseDirection = true; break;
-		case SForceMotionInterval::ELimitType::MAX:	if (_dependentValue > m_intervalsForce[m_iMotion].forceLimit) bReverseDirection = true; break;
+		case SForceMotionInterval::ELimitType::MIN:	if (sensedForce < m_intervalsForce[m_iMotion].forceLimit) bReverseDirection = true; break;
+		case SForceMotionInterval::ELimitType::MAX:	if (sensedForce > m_intervalsForce[m_iMotion].forceLimit) bReverseDirection = true; break;
 		}
 		if (bReverseDirection) // make motion in reverse direction
 		{
 			m_currentMotion.rotationVelocity *= -1;
 			m_currentMotion.velocity *= -1;
 		}
-		if (m_motionType == EMotionType::CYCLIC_FORCE)	// advance the current stroke
+		if (m_motionType == EMotionType::CYCLIC_FORCE && advanceState)	// advance the current stroke
 		{
 			if (!StrokeResetShift().IsZero())	// the previous stroke is finished and its reset is already applied
 				m_accumulatedShift.Init(0.0);
 			m_accumulatedShift += m_currentMotion.velocity * _timeStep;
 		}
+		break;
+	}
+	case EMotionType::PID_FORCE:
+	{
+		const auto iInterval = FindTimeInterval(m_intervalsPID, _time, m_iMotion);
+		if (!iInterval)					// such interval does not exist
+		{
+			m_currentMotion.Clear();	// set current velocities to zero
+			m_integralTerm = 0.0;		// the controller is off, its state is meaningless
+			m_derivativeTerm = 0.0;
+			m_prevForce.reset();
+			break;
+		}
+		if (m_iMotion != *iInterval)	// it is a new interval - update current values
+		{
+			m_iMotion = *iInterval;
+			m_currentMotion = m_intervalsPID[*iInterval].motion;
+		}
+
+		const SPIDMotionInterval& interval = m_intervalsPID[m_iMotion];
+		const double sensedForce = DotProduct(_totalForce, m_forceDirection);
+		const double error = sensedForce - interval.forceSet;
+		const double proportionalTerm = interval.gainP * error;
+		if (advanceState)
+		{
+			m_integralTerm += interval.gainI * error * _timeStep;
+			const double filterTime = std::abs(interval.gainD / interval.gainP) / DERIVATIVE_FILTER_N;
+			if (m_prevForce)
+				m_derivativeTerm = (filterTime * m_derivativeTerm + interval.gainD * (sensedForce - *m_prevForce)) / (filterTime + _timeStep);
+			m_prevForce = sensedForce;
+		}
+		const double speed = proportionalTerm + m_integralTerm + m_derivativeTerm;
+		const CVector3& velocity = interval.motion.velocity;
+		m_currentMotion.velocity = velocity + (speed - DotProduct(velocity, m_forceDirection)) * m_forceDirection;
 		break;
 	}
 	case EMotionType::NONE: break;
@@ -348,6 +469,10 @@ void CGeometryMotion::ResetMotionInfo()
 	m_iMotion = -1;
 	m_currentMotion.Clear();
 	m_accumulatedShift.Init(0.0);
+	m_integralTerm = 0.0;
+	m_derivativeTerm = 0.0;
+	m_prevTime.reset();
+	m_prevForce.reset();
 }
 
 CGeometryMotion::SMotionInfo CGeometryMotion::GetCurrentMotion() const
@@ -383,6 +508,11 @@ void CGeometryMotion::LoadFromProto(const ProtoGeometryMotion& _proto)
 	case EMotionType::CYCLIC_FORCE:
 		for (const auto& interval : _proto.intervals())
 			AddForceInterval({ interval.limit1(), static_cast<SForceMotionInterval::ELimitType>(interval.limit_type()),
+				SMotionInfo{Proto2Val(interval.velocity()), Proto2Val(interval.rot_velocity()), Proto2Val(interval.rot_center())} });
+		break;
+	case EMotionType::PID_FORCE:
+		for (const auto& interval : _proto.intervals())
+			AddPIDInterval({ interval.limit1(), interval.limit2(), interval.force_set(), interval.gain_p(), interval.gain_i(), interval.gain_d(),
 				SMotionInfo{Proto2Val(interval.velocity()), Proto2Val(interval.rot_velocity()), Proto2Val(interval.rot_center())} });
 		break;
 	case EMotionType::NONE: break;
@@ -422,6 +552,21 @@ void CGeometryMotion::SaveToProto(ProtoGeometryMotion& _proto) const
 			Val2Proto(protoInterval->mutable_rot_center(), interval.motion.rotationCenter);
 		}
 		break;
+	case EMotionType::PID_FORCE:
+		for (const auto& interval : m_intervalsPID)
+		{
+			auto* protoInterval = _proto.add_intervals();
+			protoInterval->set_limit1(interval.timeBeg);
+			protoInterval->set_limit2(interval.timeEnd);
+			protoInterval->set_force_set(interval.forceSet);
+			protoInterval->set_gain_p(interval.gainP);
+			protoInterval->set_gain_i(interval.gainI);
+			protoInterval->set_gain_d(interval.gainD);
+			Val2Proto(protoInterval->mutable_velocity(), interval.motion.velocity);
+			Val2Proto(protoInterval->mutable_rot_velocity(), interval.motion.rotationVelocity);
+			Val2Proto(protoInterval->mutable_rot_center(), interval.motion.rotationCenter);
+		}
+		break;
 	case EMotionType::NONE: break;
 	}
 }
@@ -448,6 +593,14 @@ std::ostream& operator<<(std::ostream& _s, const CGeometryMotion& _obj)
 		_s << _obj.m_forceDirection << " ";
 		if (_obj.m_motionType == CGeometryMotion::EMotionType::CYCLIC_FORCE)
 			_s << _obj.m_strokeLength << " ";
+		break;
+	}
+	case CGeometryMotion::EMotionType::PID_FORCE:
+	{
+		_s << _obj.GetPIDIntervals().size() << " ";
+		for (const auto& interval : _obj.GetPIDIntervals())
+			_s << interval << " ";
+		_s << _obj.m_forceDirection << " ";
 		break;
 	}
 	case CGeometryMotion::EMotionType::NONE:
@@ -489,6 +642,13 @@ std::istream& operator>>(std::istream& _s, CGeometryMotion& _obj)
 			else if (_s.eof()) // the record ends here, keep the default 0.0
 				_s.clear();
 		}
+		break;
+	}
+	case CGeometryMotion::EMotionType::PID_FORCE:
+	{
+		for (size_t i = 0; i < intervals; ++i)
+			_obj.AddPIDInterval(GetValueFromStream<CGeometryMotion::SPIDMotionInterval>(&_s));
+		_obj.SetForceDirection(GetValueFromStream<CVector3>(&_s));
 		break;
 	}
 	case CGeometryMotion::EMotionType::NONE:

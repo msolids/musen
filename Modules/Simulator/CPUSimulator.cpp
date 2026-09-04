@@ -323,18 +323,11 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 		const CVector3 prevRotVel    = geom->GetCurrentRotVelocity();
 		const CVector3 prevRotCenter = geom->GetCurrentRotCenter();
 
-		if (geom->Motion()->IsForceDriven()) // force
-		{
-			CVector3 totalForce{ 0.0 };
+		CVector3 motionForce{ 0.0 }; // only needed for force-driven motion
+		if (geom->Motion()->IsForceDriven())
 			for (const auto& plane : planes)
-			{
-				const size_t iWall = m_scene.m_vNewIndexes[plane];
-				totalForce += walls.Force(iWall);
-			}
-			geom->UpdateMotionInfo(geom->Motion()->SensedForce(totalForce), _timeStep);
-		}
-		else
-			geom->UpdateMotionInfo(m_currentTime, _timeStep); // time
+				motionForce += walls.Force(m_scene.m_vNewIndexes[plane]);
+		geom->UpdateMotionInfo(m_currentTime, motionForce, _timeStep);
 		CVector3 vel = geom->GetCurrentVelocity();
 		CVector3 rotVel = geom->GetCurrentRotVelocity();
 		CVector3 rotCenter;
@@ -357,9 +350,8 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 		else
 			rotCenter = geom->GetCurrentRotCenter();
 
-		if (m_currentTime == 0.0)
-			m_wallsVelocityChanged = true;
-		else if (vel != prevVel || rotVel != prevRotVel || geom->GetCurrentRotCenter() != prevRotCenter)
+		const bool velocityChanged = vel != prevVel || rotVel != prevRotVel || geom->GetCurrentRotCenter() != prevRotCenter;
+		if (m_currentTime == 0.0 || velocityChanged)
 			m_wallsVelocityChanged = true;
 
 		if (!geom->FreeMotion().IsZero() && geom->Mass() != 0.0)// solve newtons motion for wall
@@ -385,7 +377,7 @@ void CCPUSimulator::MoveWalls(double _timeStep)
 		const CVector3 strokeReset = geom->Motion()->StrokeResetShift(); // for cyclic motion
 		const CVector3 shift = vel * _timeStep + strokeReset;
 
-		if (shift.IsZero() && rotVel.IsZero() && strokeReset.IsZero()) continue;
+		if (!velocityChanged && shift.IsZero() && rotVel.IsZero() && strokeReset.IsZero()) continue;
 		CMatrix3 rotMatrix;
 		if (!rotVel.IsZero())
 			rotMatrix = CQuaternion(rotVel*_timeStep).ToRotmat();

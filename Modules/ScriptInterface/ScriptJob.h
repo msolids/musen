@@ -110,6 +110,11 @@ struct SJob
 		double strokeLength{ 0.0 };							///< Length of one stroke. Is used if the interval is applied as CYCLIC_FORCE motion.
 		CGeometryMotion::EMotionType type{ CGeometryMotion::EMotionType::FORCE_DEPENDENT };	///< Whether the interval is applied as FORCE_DEPENDENT, CONSTANT_FORCE or CYCLIC_FORCE motion.
 	};
+	struct SGeometryMotionIntervalPID : SGeometryMotionInterval
+	{
+		CGeometryMotion::SPIDMotionInterval intrerval;		///< PID-controlled motion interval.
+		CVector3 forceDirection{ 0.0 };						///< Direction, onto which the total force on the geometry is projected to obtain the sensed force. Zero if the script line does not specify one.
+	};
 
 	std::string sourceFileName;
 	std::string resultFileName;
@@ -189,4 +194,5 @@ struct SJob
 	// geometry movement
 	std::vector<SGeometryMotionIntervalTime> geometryTimeIntervals;
 	std::vector<SGeometryMotionIntervalForce> geometryForceIntervals;
+	std::vector<SGeometryMotionIntervalPID> geometryPIDIntervals;
 };
